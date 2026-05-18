@@ -3,6 +3,7 @@
 // Built for IC Markets + TradingView - XAU/USD Intraday
 // 100% FREE - Full Institutional-Grade System
 // Features: FVG, Order Blocks, Volume Analysis, Sessions, Liquidity, Divergence, Structure, HTF Levels, Protection
+// VERSION: Full Auto — only Weekly Intelligence + Calendar require manual updates
 
 //@version=6
 indicator("Elite Intelligence ULTIMATE - Full Auto",
@@ -11,337 +12,194 @@ indicator("Elite Intelligence ULTIMATE - Full Auto",
      max_lines_count=500,
      max_boxes_count=500)
 
-// Unconditional plot at line 13 — satisfies CE10246 regardless of other outputs.
-// 100% transparent = invisible on chart; plotting close keeps the scale correct.
+// CE10246 guard — unconditional non-na output, invisible (100% transparent)
 plot(close, "", color=color.new(color.white, 100), display=display.all)
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// AUTOMATED TIMEFRAME DETECTION & OPTIMIZATION
-// Detects current chart TF and auto-adjusts ALL settings
+// TIMEFRAME AUTO-DETECTION
 // ═══════════════════════════════════════════════════════════════════════════════
 
-// Get current timeframe in minutes
 current_tf_minutes = timeframe.in_seconds() / 60
 
-// Timeframe classification
-is_1m = current_tf_minutes == 1
-is_2m = current_tf_minutes == 2
-is_5m = current_tf_minutes == 5
+is_1m  = current_tf_minutes == 1
+is_2m  = current_tf_minutes == 2
+is_5m  = current_tf_minutes == 5
 is_15m = current_tf_minutes == 15
 is_30m = current_tf_minutes == 30
-is_1h = current_tf_minutes == 60
-is_4h = current_tf_minutes == 240
+is_1h  = current_tf_minutes == 60
+is_4h  = current_tf_minutes == 240
 is_daily = timeframe.isdaily
 
-// Display current timeframe
-tf_display = is_1m ? "1M" : is_2m ? "2M" : is_5m ? "5M" : is_15m ? "15M" : 
+tf_display = is_1m ? "1M" : is_2m ? "2M" : is_5m ? "5M" : is_15m ? "15M" :
              is_30m ? "30M" : is_1h ? "1H" : is_4h ? "4H" : is_daily ? "Daily" : "Custom"
 
-// Auto-optimization mode
-auto_optimize = input.bool(true, "Auto-Optimize for Timeframe", 
-     group="⚙️ System Configuration",
-     tooltip="Automatically adjust all settings based on current chart timeframe")
-
 // ═══════════════════════════════════════════════════════════════════════════════
-// SECTION 1: WEEKLY FUNDAMENTAL INTELLIGENCE INPUTS
-// Update every Sunday from Claude's weekly briefing (2 minutes)
+// SECTION 1 — WEEKLY INTELLIGENCE  (update every Sunday, ~2 min)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-regime_score = input.int(-4, "Market Regime Score", 
+regime_score = input.int(0, "Market Regime Score  (-10 Bear → +10 Bull)",
      minval=-10, maxval=10, step=1,
-     group="📊 Weekly Intelligence (Update Sunday)",
-     tooltip="From Claude: -10 = Strong Bearish, 0 = Neutral, +10 = Strong Bullish")
+     group="📊 Weekly Intelligence — Update Sunday")
 
-fed_stance = input.string("Hawkish", "Fed Policy Stance",
+fed_stance = input.string("Neutral", "Fed Stance",
      options=["Dovish", "Neutral", "Hawkish"],
-     group="📊 Weekly Intelligence (Update Sunday)")
+     group="📊 Weekly Intelligence — Update Sunday")
 
-usd_trend = input.string("Strong", "USD Trend",
+usd_trend = input.string("Neutral", "USD Trend",
      options=["Weak", "Neutral", "Strong"],
-     group="📊 Weekly Intelligence (Update Sunday)")
+     group="📊 Weekly Intelligence — Update Sunday")
 
 geopolitical_risk = input.string("Medium", "Geopolitical Risk",
      options=["Low", "Medium", "High"],
-     group="📊 Weekly Intelligence (Update Sunday)")
+     group="📊 Weekly Intelligence — Update Sunday")
 
-risk_sentiment = input.string("Risk-Off", "Risk Sentiment",
+risk_sentiment = input.string("Neutral", "Risk Sentiment",
      options=["Risk-On", "Neutral", "Risk-Off"],
-     group="📊 Weekly Intelligence (Update Sunday)")
+     group="📊 Weekly Intelligence — Update Sunday")
 
-intelligence_confidence = input.int(85, "Confidence %",
+intelligence_confidence = input.int(75, "Confidence %",
      minval=0, maxval=100, step=5,
-     group="📊 Weekly Intelligence (Update Sunday)")
+     group="📊 Weekly Intelligence — Update Sunday")
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// SECTION 2: FOREX FACTORY CALENDAR INTEGRATION  
-// Update daily from forexfactory.com/calendar (3 minutes)
+// SECTION 2 — FOREX FACTORY CALENDAR  (update daily, ~3 min)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-event_1_enabled = input.bool(true, "Event 1 Active?", 
-     group="📅 Forex Factory (Update Daily)")
-
-event_1_name = input.string("FOMC Minutes", "Event 1 Name", 
-     group="📅 Forex Factory (Update Daily)")
-
-event_1_time = input.time(timestamp("2026-05-20 14:00"), "Event 1 Time (UTC)",
-     group="📅 Forex Factory (Update Daily)")
-
+event_1_enabled = input.bool(false, "Event 1 Active?",
+     group="📅 Forex Factory — Update Daily")
+event_1_name = input.string("", "Event 1 Name",
+     group="📅 Forex Factory — Update Daily")
+event_1_time = input.time(timestamp("2026-01-01 00:00"), "Event 1 Time (UTC)",
+     group="📅 Forex Factory — Update Daily")
 event_1_impact = input.string("High", "Event 1 Impact",
      options=["Medium", "High"],
-     group="📅 Forex Factory (Update Daily)")
+     group="📅 Forex Factory — Update Daily")
 
 event_2_enabled = input.bool(false, "Event 2 Active?",
-     group="📅 Forex Factory (Update Daily)")
-
+     group="📅 Forex Factory — Update Daily")
 event_2_name = input.string("", "Event 2 Name",
-     group="📅 Forex Factory (Update Daily)")
-
-event_2_time = input.time(timestamp("2026-05-20 14:00"), "Event 2 Time (UTC)",
-     group="📅 Forex Factory (Update Daily)")
-
+     group="📅 Forex Factory — Update Daily")
+event_2_time = input.time(timestamp("2026-01-01 00:00"), "Event 2 Time (UTC)",
+     group="📅 Forex Factory — Update Daily")
 event_2_impact = input.string("High", "Event 2 Impact",
      options=["Medium", "High"],
-     group="📅 Forex Factory (Update Daily)")
+     group="📅 Forex Factory — Update Daily")
 
 event_3_enabled = input.bool(false, "Event 3 Active?",
-     group="📅 Forex Factory (Update Daily)")
-
+     group="📅 Forex Factory — Update Daily")
 event_3_name = input.string("", "Event 3 Name",
-     group="📅 Forex Factory (Update Daily)")
-
-event_3_time = input.time(timestamp("2026-05-20 14:00"), "Event 3 Time (UTC)",
-     group="📅 Forex Factory (Update Daily)")
-
+     group="📅 Forex Factory — Update Daily")
+event_3_time = input.time(timestamp("2026-01-01 00:00"), "Event 3 Time (UTC)",
+     group="📅 Forex Factory — Update Daily")
 event_3_impact = input.string("High", "Event 3 Impact",
      options=["Medium", "High"],
-     group="📅 Forex Factory (Update Daily)")
+     group="📅 Forex Factory — Update Daily")
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// SECTION 3: TECHNICAL SETTINGS (AUTO-OPTIMIZED PER TIMEFRAME)
+// ALL TECHNICAL PARAMETERS — FULLY AUTO-OPTIMISED PER TIMEFRAME
+// No manual inputs needed below this line
 // ═══════════════════════════════════════════════════════════════════════════════
 
-// RSI Length (auto-optimized)
-rsi_length_auto = is_1m or is_2m ? 9 : 
-                  is_5m ? 14 :
-                  is_15m or is_30m ? 14 :
-                  is_1h ? 14 :
-                  is_4h ? 14 :
-                  is_daily ? 14 : 14
+// ── Indicator lengths ──────────────────────────────────────────────────────────
+rsi_length = is_1m or is_2m ? 9 : 14
+atr_length = is_1m or is_2m ? 10 : is_4h or is_daily ? 20 : 14
+bb_length  = 20
+bb_mult    = 2.0
 
-rsi_length = auto_optimize ? rsi_length_auto : 
-             input.int(14, "RSI Length", minval=5, maxval=50, group="📈 Technical")
+ema_fast  = is_1m or is_2m ? 8  : is_4h ? 21 : 20
+ema_slow  = is_1m or is_2m ? 21 : 50
+ema_trend = is_1m or is_2m ? 50 : 200
 
-// ATR Length (auto-optimized)
-atr_length_auto = is_1m or is_2m ? 10 :
-                  is_5m ? 14 :
-                  is_15m or is_30m ? 14 :
-                  is_1h ? 14 :
-                  is_4h ? 20 :
-                  is_daily ? 20 : 14
+// ── Smart Money ────────────────────────────────────────────────────────────────
+fvg_max_display      = 3
+ob_lookback          = is_1m or is_2m ? 10 : is_5m ? 20 : is_15m ? 30 : is_30m ? 40 : is_1h ? 50 : is_4h ? 100 : 50
+ob_volume_threshold  = 1.5
+max_order_blocks     = 2
+fvg_score_weight     = 2.0
+ob_score_weight      = 3.0
 
-atr_length = auto_optimize ? atr_length_auto :
-             input.int(14, "ATR Length", minval=5, maxval=50, group="📈 Technical")
+// ── Volume ─────────────────────────────────────────────────────────────────────
+vwap_band_mult            = 2.0
+volume_delta_period        = 14
+relative_volume_threshold  = 2.0
+volume_score_weight        = 2.0
 
-// Bollinger Bands
-bb_length = auto_optimize ? 20 : input.int(20, "BB Length", minval=10, maxval=50, group="📈 Technical")
-bb_mult = auto_optimize ? 2.0 : input.float(2.0, "BB StdDev", minval=1.0, maxval=4.0, step=0.5, group="📈 Technical")
+// ── Sessions (UTC hours) ──────────────────────────────────────────────────────
+asian_start          = 0
+london_start         = 8
+ny_start             = 13
+london_kz_start      = 7
+london_kz_end        = 10
+ny_kz_start          = 13
+ny_kz_end            = 16
+dead_zone_start      = 21
+dead_zone_end        = 1
+killzone_boost       = 2.0
+deadzone_penalty     = -3.0
 
-// EMAs (auto-optimized per TF)
-ema_fast_auto = is_1m or is_2m ? 8 : is_5m ? 20 : is_15m or is_30m ? 20 : is_1h ? 20 : is_4h ? 21 : 20
-ema_slow_auto = is_1m or is_2m ? 21 : is_5m ? 50 : is_15m or is_30m ? 50 : is_1h ? 50 : is_4h ? 50 : 50
-ema_trend_auto = is_1m or is_2m ? 50 : is_5m ? 200 : is_15m or is_30m ? 200 : is_1h ? 200 : is_4h ? 200 : 200
+// ── Liquidity ─────────────────────────────────────────────────────────────────
+equal_level_tolerance   = 0.05
+sweep_confirmation_bars = 3
+liquidity_sweep_weight  = 3.0
 
-ema_fast = auto_optimize ? ema_fast_auto : input.int(20, "Fast EMA", group="📈 Technical")
-ema_slow = auto_optimize ? ema_slow_auto : input.int(50, "Slow EMA", group="📈 Technical")
-ema_trend = auto_optimize ? ema_trend_auto : input.int(200, "Trend EMA", group="📈 Technical")
+// ── Divergence ────────────────────────────────────────────────────────────────
+divergence_weight = 3.0
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// SECTION 4: SMART MONEY CONCEPTS (FVG + ORDER BLOCKS)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ── Market structure ──────────────────────────────────────────────────────────
+structure_lookback        = 10
+with_structure_boost      = 2.0
+counter_structure_penalty = -2.0
 
-show_fvg = input.bool(true, "Show Fair Value Gaps", group="💎 Smart Money")
-fvg_max_display = input.int(3, "Max FVGs Display", minval=1, maxval=10, group="💎 Smart Money")
+// ── News shock ────────────────────────────────────────────────────────────────
+atr_shock_threshold    = 2.0
+volume_shock_threshold = 3.0
+velocity_extreme       = 0.30
+velocity_high          = 0.15
+velocity_moderate      = 0.08
 
-show_order_blocks = input.bool(true, "Show Order Blocks", group="💎 Smart Money")
+shock_pause_extreme  = is_1m or is_2m ? 30 : is_5m ? 12 : is_15m ? 4 : is_30m ? 2 : 1
+shock_pause_high     = is_1m or is_2m ? 15 : is_5m ? 6  : is_15m ? 2 : is_30m ? 1 : 1
+shock_pause_moderate = is_1m or is_2m ? 10 : is_5m ? 3  : is_15m ? 1 : 1
 
-// OB lookback (auto-optimized)
-ob_lookback_auto = is_1m or is_2m ? 10 : is_5m ? 20 : is_15m ? 30 : is_30m ? 40 : is_1h ? 50 : is_4h ? 100 : 50
-ob_lookback = auto_optimize ? ob_lookback_auto : input.int(20, "OB Lookback", minval=5, maxval=200, group="💎 Smart Money")
+// ── Signal thresholds ─────────────────────────────────────────────────────────
+buy_threshold  = is_1m or is_2m ? 8 : is_5m ? 6 : is_15m ? 6 : is_30m ? 5 : is_1h ? 5 : is_4h ? 4 : 6
+sell_threshold = is_1m or is_2m ? -8 : is_5m ? -6 : is_15m ? -6 : is_30m ? -5 : is_1h ? -5 : is_4h ? -4 : -6
+min_risk_reward = 1.5
 
-ob_volume_threshold = input.float(1.5, "OB Volume Threshold (×avg)", minval=1.0, maxval=5.0, step=0.1, group="💎 Smart Money")
-max_order_blocks = input.int(2, "Max OBs Display", minval=1, maxval=5, group="💎 Smart Money")
+// ── TP / SL ATR multipliers ───────────────────────────────────────────────────
+sl_atr_multiplier  = is_1m or is_2m ? 0.4 : is_5m ? 0.5 : is_15m ? 0.6 : is_30m ? 0.7 : is_1h ? 0.8 : is_4h ? 1.0 : 0.5
+tp1_atr_multiplier = is_1m or is_2m ? 1.0 : is_5m ? 1.5 : is_15m ? 2.0 : is_30m ? 2.5 : is_1h ? 3.0 : is_4h ? 4.0 : 1.5
+tp2_atr_multiplier = is_1m or is_2m ? 2.0 : is_5m ? 2.5 : is_15m ? 3.5 : is_30m ? 4.5 : is_1h ? 5.0 : is_4h ? 6.0 : 2.5
 
-fvg_score_weight = input.float(2.0, "FVG Signal Weight", minval=0.0, maxval=5.0, step=0.5, group="💎 Smart Money")
-ob_score_weight = input.float(3.0, "OB Signal Weight", minval=0.0, maxval=5.0, step=0.5, group="💎 Smart Money")
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// SECTION 5: VOLUME ANALYSIS
-// ═══════════════════════════════════════════════════════════════════════════════
-
-show_vwap = input.bool(true, "Show VWAP", group="📊 Volume")
-show_vwap_bands = input.bool(true, "Show VWAP Bands", group="📊 Volume")
-vwap_band_mult = input.float(2.0, "VWAP Band Mult", minval=1.0, maxval=4.0, step=0.5, group="📊 Volume")
-
-volume_delta_period = input.int(14, "Volume Delta Period", minval=5, maxval=50, group="📊 Volume")
-relative_volume_threshold = input.float(2.0, "High Rel Volume (×avg)", minval=1.5, maxval=5.0, step=0.1, group="📊 Volume")
-volume_score_weight = input.float(2.0, "Volume Weight", minval=0.0, maxval=5.0, step=0.5, group="📊 Volume")
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// SECTION 6: SESSION ANALYSIS & KILL ZONES
-// ═══════════════════════════════════════════════════════════════════════════════
-
-show_sessions = input.bool(true, "Show Session Markers", group="🕐 Sessions & Kill Zones")
-show_kill_zones = input.bool(true, "Highlight Kill Zones", group="🕐 Sessions & Kill Zones")
-
-// Session times (UTC)
-asian_start = input.int(0, "Asian Start (UTC)", minval=0, maxval=23, group="🕐 Sessions & Kill Zones")
-london_start = input.int(8, "London Start (UTC)", minval=0, maxval=23, group="🕐 Sessions & Kill Zones")
-ny_start = input.int(13, "NY Start (UTC)", minval=0, maxval=23, group="🕐 Sessions & Kill Zones")
-
-// Kill zones (ICT concept)
-london_killzone_start = input.int(7, "London Kill Zone Start (UTC)", minval=0, maxval=23, group="🕐 Sessions & Kill Zones")
-london_killzone_end = input.int(10, "London Kill Zone End (UTC)", minval=0, maxval=23, group="🕐 Sessions & Kill Zones")
-ny_killzone_start = input.int(13, "NY Kill Zone Start (UTC)", minval=0, maxval=23, group="🕐 Sessions & Kill Zones")
-ny_killzone_end = input.int(16, "NY Kill Zone End (UTC)", minval=0, maxval=23, group="🕐 Sessions & Kill Zones")
-
-// Dead zone
-dead_zone_start = input.int(21, "Dead Zone Start (UTC)", minval=0, maxval=23, group="🕐 Sessions & Kill Zones")
-dead_zone_end = input.int(1, "Dead Zone End (UTC)", minval=0, maxval=23, group="🕐 Sessions & Kill Zones")
-
-killzone_boost = input.float(2.0, "Kill Zone Signal Boost", minval=0.0, maxval=5.0, step=0.5, group="🕐 Sessions & Kill Zones")
-deadzone_penalty = input.float(-3.0, "Dead Zone Penalty", minval=-5.0, maxval=0.0, step=0.5, group="🕐 Sessions & Kill Zones")
+// ── Protection ────────────────────────────────────────────────────────────────
+daily_loss_limit = 150.0
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// SECTION 7: LIQUIDITY CONCEPTS (ICT/SMC)
+// CORE TECHNICAL INDICATORS
 // ═══════════════════════════════════════════════════════════════════════════════
 
-show_liquidity_levels = input.bool(true, "Show Equal Highs/Lows", group="💧 Liquidity Concepts")
-detect_sweeps = input.bool(true, "Detect Liquidity Sweeps", group="💧 Liquidity Concepts")
-show_bos = input.bool(true, "Show Break of Structure", group="💧 Liquidity Concepts")
-
-equal_level_tolerance = input.float(0.05, "Equal Level Tolerance %", minval=0.01, maxval=0.5, step=0.01, group="💧 Liquidity Concepts")
-sweep_confirmation_bars = input.int(3, "Sweep Confirmation Bars", minval=1, maxval=10, group="💧 Liquidity Concepts")
-liquidity_sweep_weight = input.float(3.0, "Sweep Signal Weight", minval=0.0, maxval=5.0, step=0.5, group="💧 Liquidity Concepts")
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// SECTION 8: DIVERGENCE DETECTION
-// ═══════════════════════════════════════════════════════════════════════════════
-
-detect_divergence = input.bool(true, "Detect RSI Divergence", group="📐 Divergence")
-divergence_lookback = input.int(5, "Divergence Lookback", minval=3, maxval=20, group="📐 Divergence")
-divergence_weight = input.float(3.0, "Divergence Signal Weight", minval=0.0, maxval=5.0, step=0.5, group="📐 Divergence")
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// SECTION 9: MARKET STRUCTURE
-// ═══════════════════════════════════════════════════════════════════════════════
-
-track_structure = input.bool(true, "Track Market Structure", group="🏗️ Market Structure")
-structure_lookback = input.int(10, "Structure Lookback", minval=5, maxval=50, group="🏗️ Market Structure")
-with_structure_boost = input.float(2.0, "With-Structure Boost", minval=0.0, maxval=5.0, step=0.5, group="🏗️ Market Structure")
-counter_structure_penalty = input.float(-2.0, "Counter-Structure Penalty", minval=-5.0, maxval=0.0, step=0.5, group="🏗️ Market Structure")
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// SECTION 10: HTF LEVELS OVERLAY
-// ═══════════════════════════════════════════════════════════════════════════════
-
-show_htf_levels = input.bool(true, "Show HTF Levels", group="⬆️ Higher Timeframe")
-show_daily_levels = input.bool(true, "Show Daily S/R", group="⬆️ Higher Timeframe")
-show_4h_levels = input.bool(true, "Show 4H S/R", group="⬆️ Higher Timeframe")
-show_1h_levels = input.bool(true, "Show 1H S/R", group="⬆️ Higher Timeframe")
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// SECTION 11: NEWS SHOCK DETECTION (AUTOMATED)
-// ═══════════════════════════════════════════════════════════════════════════════
-
-atr_shock_threshold = input.float(2.0, "ATR Shock Multiplier", minval=1.5, maxval=5.0, step=0.1, group="⚡ News Shock Detection")
-volume_shock_threshold = input.float(3.0, "Volume Shock Multiplier", minval=2.0, maxval=10.0, step=0.5, group="⚡ News Shock Detection")
-
-velocity_extreme = input.float(0.30, "Extreme Velocity %/min", minval=0.1, maxval=1.0, step=0.05, group="⚡ News Shock Detection")
-velocity_high = input.float(0.15, "High Velocity %/min", minval=0.05, maxval=0.5, step=0.05, group="⚡ News Shock Detection")
-velocity_moderate = input.float(0.08, "Moderate Velocity %/min", minval=0.03, maxval=0.3, step=0.02, group="⚡ News Shock Detection")
-
-// Pause durations (auto-optimized per TF)
-shock_pause_extreme_auto = is_1m or is_2m ? 30 : is_5m ? 12 : is_15m ? 4 : is_30m ? 2 : is_1h ? 1 : 1
-shock_pause_high_auto = is_1m or is_2m ? 15 : is_5m ? 6 : is_15m ? 2 : is_30m ? 1 : is_1h ? 1 : 1
-shock_pause_moderate_auto = is_1m or is_2m ? 10 : is_5m ? 3 : is_15m ? 1 : is_30m ? 1 : is_1h ? 1 : 1
-
-shock_pause_extreme = auto_optimize ? shock_pause_extreme_auto : input.int(12, "Pause After EXTREME (bars)", group="⚡ News Shock Detection")
-shock_pause_high = auto_optimize ? shock_pause_high_auto : input.int(6, "Pause After HIGH (bars)", group="⚡ News Shock Detection")
-shock_pause_moderate = auto_optimize ? shock_pause_moderate_auto : input.int(3, "Pause After MODERATE (bars)", group="⚡ News Shock Detection")
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// SECTION 12: SIGNAL GENERATION (AUTO-OPTIMIZED)
-// ═══════════════════════════════════════════════════════════════════════════════
-
-// Thresholds (auto-optimized per TF)
-buy_threshold_auto = is_1m or is_2m ? 8 : is_5m ? 6 : is_15m ? 6 : is_30m ? 5 : is_1h ? 5 : is_4h ? 4 : 6
-sell_threshold_auto = is_1m or is_2m ? -8 : is_5m ? -6 : is_15m ? -6 : is_30m ? -5 : is_1h ? -5 : is_4h ? -4 : -6
-
-buy_threshold = auto_optimize ? buy_threshold_auto : input.int(6, "Buy Signal Threshold", minval=3, maxval=10, group="🎯 Signal Settings")
-sell_threshold = auto_optimize ? sell_threshold_auto : input.int(-6, "Sell Signal Threshold", minval=-10, maxval=-3, group="🎯 Signal Settings")
-
-min_risk_reward = input.float(1.5, "Min Risk:Reward", minval=1.0, maxval=5.0, step=0.5, group="🎯 Signal Settings")
-
-// TP/SL multipliers (auto-optimized)
-sl_atr_mult_auto = is_1m or is_2m ? 0.4 : is_5m ? 0.5 : is_15m ? 0.6 : is_30m ? 0.7 : is_1h ? 0.8 : is_4h ? 1.0 : 0.5
-tp1_atr_mult_auto = is_1m or is_2m ? 1.0 : is_5m ? 1.5 : is_15m ? 2.0 : is_30m ? 2.5 : is_1h ? 3.0 : is_4h ? 4.0 : 1.5
-tp2_atr_mult_auto = is_1m or is_2m ? 2.0 : is_5m ? 2.5 : is_15m ? 3.5 : is_30m ? 4.5 : is_1h ? 5.0 : is_4h ? 6.0 : 2.5
-
-sl_atr_multiplier = auto_optimize ? sl_atr_mult_auto : input.float(0.5, "SL ATR Mult", minval=0.3, maxval=2.0, step=0.1, group="🎯 Signal Settings")
-tp1_atr_multiplier = auto_optimize ? tp1_atr_mult_auto : input.float(1.5, "TP1 ATR Mult", minval=0.5, maxval=10.0, step=0.5, group="🎯 Signal Settings")
-tp2_atr_multiplier = auto_optimize ? tp2_atr_mult_auto : input.float(2.5, "TP2 ATR Mult", minval=1.0, maxval=15.0, step=0.5, group="🎯 Signal Settings")
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// SECTION 13: DRAWDOWN PROTECTION
-// ═══════════════════════════════════════════════════════════════════════════════
-
-enable_protection = input.bool(true, "Enable Drawdown Protection", group="🛡️ Protection")
-daily_loss_limit = input.float(150.0, "Daily Loss Limit $", minval=0.0, step=10.0, group="🛡️ Protection")
-max_losing_streak = input.int(3, "Max Losing Streak", minval=2, maxval=10, group="🛡️ Protection")
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// SECTION 14: VISUAL SETTINGS
-// ═══════════════════════════════════════════════════════════════════════════════
-
-show_dashboard = input.bool(true, "Show Dashboard", group="🖥️ Display")
-dashboard_position = input.string("Top Right", "Dashboard Position",
-     options=["Top Right", "Top Left", "Bottom Right", "Bottom Left"],
-     group="🖥️ Display")
-
-show_signals_on_chart = input.bool(true, "Show Signals on Chart", group="🖥️ Display")
-show_tp_sl_lines = input.bool(true, "Show TP/SL Lines", group="🖥️ Display")
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// CORE CALCULATIONS - TECHNICAL INDICATORS
-// ═══════════════════════════════════════════════════════════════════════════════
-
-// Current timeframe
-rsi = ta.rsi(close, rsi_length)
-atr = ta.atr(atr_length)
+rsi   = ta.rsi(close, rsi_length)
+atr   = ta.atr(atr_length)
 [bb_mid, bb_upper, bb_lower] = ta.bb(close, bb_length, bb_mult)
-ema20 = ta.ema(close, ema_fast)
-ema50 = ta.ema(close, ema_slow)
+ema20  = ta.ema(close, ema_fast)
+ema50  = ta.ema(close, ema_slow)
 ema200 = ta.ema(close, ema_trend)
 
 // Multi-timeframe RSI
-rsi_5m = request.security(syminfo.tickerid, "5", ta.rsi(close, rsi_length), lookahead=barmerge.lookahead_off)
-rsi_15m = request.security(syminfo.tickerid, "15", ta.rsi(close, rsi_length), lookahead=barmerge.lookahead_off)
-rsi_30m = request.security(syminfo.tickerid, "30", ta.rsi(close, rsi_length), lookahead=barmerge.lookahead_off)
-rsi_1h = request.security(syminfo.tickerid, "60", ta.rsi(close, rsi_length), lookahead=barmerge.lookahead_off)
-rsi_4h = request.security(syminfo.tickerid, "240", ta.rsi(close, rsi_length), lookahead=barmerge.lookahead_off)
-rsi_daily = request.security(syminfo.tickerid, "D", ta.rsi(close, rsi_length), lookahead=barmerge.lookahead_off)
+rsi_1h    = request.security(syminfo.tickerid, "60",  ta.rsi(close, rsi_length), lookahead=barmerge.lookahead_off)
+rsi_4h    = request.security(syminfo.tickerid, "240", ta.rsi(close, rsi_length), lookahead=barmerge.lookahead_off)
+rsi_daily = request.security(syminfo.tickerid, "D",   ta.rsi(close, rsi_length), lookahead=barmerge.lookahead_off)
 
 // Bollinger squeeze
-bb_width = (bb_upper - bb_lower) / bb_mid
+bb_width   = (bb_upper - bb_lower) / bb_mid
 bb_squeeze = bb_width < ta.sma(bb_width, 20) * 0.8
 
 // Swing points
 swing_high = ta.pivothigh(high, 5, 5)
-swing_low = ta.pivotlow(low, 5, 5)
+swing_low  = ta.pivotlow(low,  5, 5)
 
 var float last_swing_high = na
-var float last_swing_low = na
-
+var float last_swing_low  = na
 if not na(swing_high)
     last_swing_high := swing_high
 if not na(swing_low)
@@ -352,18 +210,17 @@ ma_bullish_align = ema20 > ema50 and ema50 > ema200
 ma_bearish_align = ema20 < ema50 and ema50 < ema200
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// VWAP CALCULATION
+// VWAP
 // ═══════════════════════════════════════════════════════════════════════════════
 
-vwap_value = ta.vwap(close)
+vwap_value  = ta.vwap(close)
 vwap_stddev = ta.stdev(close, 20)
-vwap_upper = vwap_value + vwap_stddev * vwap_band_mult
-vwap_lower = vwap_value - vwap_stddev * vwap_band_mult
+vwap_upper  = vwap_value + vwap_stddev * vwap_band_mult
+vwap_lower  = vwap_value - vwap_stddev * vwap_band_mult
 
-// Plot VWAP
-plot(show_vwap ? vwap_value : na, "VWAP", color=color.new(color.orange, 0), linewidth=2)
-plot(show_vwap and show_vwap_bands ? vwap_upper : na, "VWAP Upper", color=color.new(color.orange, 70))
-plot(show_vwap and show_vwap_bands ? vwap_lower : na, "VWAP Lower", color=color.new(color.orange, 70))
+plot(vwap_value,  "VWAP",       color=color.new(color.orange, 0),  linewidth=2)
+plot(vwap_upper,  "VWAP Upper", color=color.new(color.orange, 70))
+plot(vwap_lower,  "VWAP Lower", color=color.new(color.orange, 70))
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // VOLUME ANALYSIS
@@ -373,332 +230,227 @@ normal_volume = ta.sma(volume, 20)
 relative_volume = volume / normal_volume
 high_volume = relative_volume > relative_volume_threshold
 
-// Volume delta approximation (buying vs selling pressure)
-volume_delta = close > open ? volume : close < open ? -volume : 0
+volume_delta  = close > open ? volume : close < open ? -volume : 0
 cumulative_delta = ta.cum(volume_delta)
-delta_sma = ta.sma(cumulative_delta, volume_delta_period)
+delta_sma     = ta.sma(cumulative_delta, volume_delta_period)
 delta_bullish = cumulative_delta > delta_sma
 delta_bearish = cumulative_delta < delta_sma
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// FAIR VALUE GAPS (FVG) DETECTION
+// FAIR VALUE GAPS (FVG)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-// Bullish FVG: gap between high[2] and low (no overlap)
-bullish_fvg = low > high[2]
-bullish_fvg_top = low
+bullish_fvg        = low > high[2]
+bullish_fvg_top    = low
 bullish_fvg_bottom = high[2]
 
-// Bearish FVG: gap between low[2] and high (no overlap)  
-bearish_fvg = high < low[2]
-bearish_fvg_top = low[2]
+bearish_fvg        = high < low[2]
+bearish_fvg_top    = low[2]
 bearish_fvg_bottom = high
 
-// Track FVG zones
 var box[] bullish_fvg_boxes = array.new<box>()
 var box[] bearish_fvg_boxes = array.new<box>()
 
-if show_fvg and bullish_fvg
+if bullish_fvg
     if array.size(bullish_fvg_boxes) >= fvg_max_display
         box.delete(array.shift(bullish_fvg_boxes))
-    fvg_box = box.new(bar_index, bullish_fvg_top, bar_index + 50, bullish_fvg_bottom,
-         bgcolor=color.new(color.green, 85),
-         border_color=color.new(color.green, 50),
-         border_width=1)
-    array.push(bullish_fvg_boxes, fvg_box)
+    array.push(bullish_fvg_boxes, box.new(bar_index, bullish_fvg_top, bar_index + 50, bullish_fvg_bottom,
+         bgcolor=color.new(color.green, 85), border_color=color.new(color.green, 50), border_width=1))
 
-if show_fvg and bearish_fvg
+if bearish_fvg
     if array.size(bearish_fvg_boxes) >= fvg_max_display
         box.delete(array.shift(bearish_fvg_boxes))
-    fvg_box = box.new(bar_index, bearish_fvg_top, bar_index + 50, bearish_fvg_bottom,
-         bgcolor=color.new(color.red, 85),
-         border_color=color.new(color.red, 50),
-         border_width=1)
-    array.push(bearish_fvg_boxes, fvg_box)
+    array.push(bearish_fvg_boxes, box.new(bar_index, bearish_fvg_top, bar_index + 50, bearish_fvg_bottom,
+         bgcolor=color.new(color.red, 85), border_color=color.new(color.red, 50), border_width=1))
 
-// FVG retest detection
 var bool in_bullish_fvg = false
 var bool in_bearish_fvg = false
 
-// Check if price is retesting any active FVG
 for i = 0 to array.size(bullish_fvg_boxes) - 1
-    fvg_box = array.get(bullish_fvg_boxes, i)
-    fvg_top = box.get_top(fvg_box)
-    fvg_bottom = box.get_bottom(fvg_box)
-    if close >= fvg_bottom and close <= fvg_top
+    b = array.get(bullish_fvg_boxes, i)
+    if close >= box.get_bottom(b) and close <= box.get_top(b)
         in_bullish_fvg := true
         break
 
 for i = 0 to array.size(bearish_fvg_boxes) - 1
-    fvg_box = array.get(bearish_fvg_boxes, i)
-    fvg_top = box.get_top(fvg_box)
-    fvg_bottom = box.get_bottom(fvg_box)
-    if close >= fvg_bottom and close <= fvg_top
+    b = array.get(bearish_fvg_boxes, i)
+    if close >= box.get_bottom(b) and close <= box.get_top(b)
         in_bearish_fvg := true
         break
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// ORDER BLOCK DETECTION
+// ORDER BLOCKS
 // ═══════════════════════════════════════════════════════════════════════════════
-
-// Bullish OB: Last bearish candle before strong bullish move
-// Bearish OB: Last bullish candle before strong bearish move
 
 var box[] bullish_ob_boxes = array.new<box>()
 var box[] bearish_ob_boxes = array.new<box>()
 
-// Detect bullish order block
 bullish_ob_detected = false
-bullish_ob_high = 0.0
-bullish_ob_low = 0.0
+bullish_ob_high     = 0.0
+bullish_ob_low      = 0.0
 
 for i = 1 to ob_lookback
-    // Look for bearish candle (close < open) with high volume
     if close[i] < open[i] and volume[i] > normal_volume[i] * ob_volume_threshold
-        // Check if followed by strong bullish move
-        bullish_move = close > high[i] and (close - low[i]) > atr * 1.5
-        if bullish_move
+        if close > high[i] and (close - low[i]) > atr * 1.5
             bullish_ob_detected := true
-            bullish_ob_high := high[i]
-            bullish_ob_low := low[i]
+            bullish_ob_high     := high[i]
+            bullish_ob_low      := low[i]
             break
 
-// Detect bearish order block
 bearish_ob_detected = false
-bearish_ob_high = 0.0
-bearish_ob_low = 0.0
+bearish_ob_high     = 0.0
+bearish_ob_low      = 0.0
 
 for i = 1 to ob_lookback
-    // Look for bullish candle (close > open) with high volume
     if close[i] > open[i] and volume[i] > normal_volume[i] * ob_volume_threshold
-        // Check if followed by strong bearish move
-        bearish_move = close < low[i] and (high[i] - close) > atr * 1.5
-        if bearish_move
+        if close < low[i] and (high[i] - close) > atr * 1.5
             bearish_ob_detected := true
-            bearish_ob_high := high[i]
-            bearish_ob_low := low[i]
+            bearish_ob_high     := high[i]
+            bearish_ob_low      := low[i]
             break
 
-// Draw order blocks
-if show_order_blocks and bullish_ob_detected
+if bullish_ob_detected
     if array.size(bullish_ob_boxes) >= max_order_blocks
         box.delete(array.shift(bullish_ob_boxes))
-    ob_box = box.new(bar_index, bullish_ob_high, bar_index + 50, bullish_ob_low,
-         bgcolor=color.new(color.blue, 80),
-         border_color=color.new(color.blue, 30),
-         border_width=2)
-    array.push(bullish_ob_boxes, ob_box)
+    array.push(bullish_ob_boxes, box.new(bar_index, bullish_ob_high, bar_index + 50, bullish_ob_low,
+         bgcolor=color.new(color.blue, 80), border_color=color.new(color.blue, 30), border_width=2))
 
-if show_order_blocks and bearish_ob_detected
+if bearish_ob_detected
     if array.size(bearish_ob_boxes) >= max_order_blocks
         box.delete(array.shift(bearish_ob_boxes))
-    ob_box = box.new(bar_index, bearish_ob_high, bar_index + 50, bearish_ob_low,
-         bgcolor=color.new(color.purple, 80),
-         border_color=color.new(color.purple, 30),
-         border_width=2)
-    array.push(bearish_ob_boxes, ob_box)
+    array.push(bearish_ob_boxes, box.new(bar_index, bearish_ob_high, bar_index + 50, bearish_ob_low,
+         bgcolor=color.new(color.purple, 80), border_color=color.new(color.purple, 30), border_width=2))
 
-// OB retest detection
 var bool in_bullish_ob = false
 var bool in_bearish_ob = false
 
 for i = 0 to array.size(bullish_ob_boxes) - 1
-    ob_box = array.get(bullish_ob_boxes, i)
-    ob_high = box.get_top(ob_box)
-    ob_low = box.get_bottom(ob_box)
-    if close >= ob_low and close <= ob_high
+    b = array.get(bullish_ob_boxes, i)
+    if close >= box.get_bottom(b) and close <= box.get_top(b)
         in_bullish_ob := true
         break
 
 for i = 0 to array.size(bearish_ob_boxes) - 1
-    ob_box = array.get(bearish_ob_boxes, i)
-    ob_high = box.get_top(ob_box)
-    ob_low = box.get_bottom(ob_box)
-    if close >= ob_low and close <= ob_high
+    b = array.get(bearish_ob_boxes, i)
+    if close >= box.get_bottom(b) and close <= box.get_top(b)
         in_bearish_ob := true
         break
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// SESSION ANALYSIS & KILL ZONES
+// SESSIONS & KILL ZONES
 // ═══════════════════════════════════════════════════════════════════════════════
 
 current_hour = hour(time, "UTC")
 
-// Detect sessions
-in_asian = current_hour >= asian_start and current_hour < london_start
-in_london = current_hour >= london_start and current_hour < ny_start
-in_ny = current_hour >= ny_start and current_hour < asian_start
+in_london_killzone = current_hour >= london_kz_start and current_hour < london_kz_end
+in_ny_killzone     = current_hour >= ny_kz_start     and current_hour < ny_kz_end
+in_killzone        = in_london_killzone or in_ny_killzone
+in_dead_zone       = current_hour >= dead_zone_start or current_hour <= dead_zone_end
 
-// Kill zones
-in_london_killzone = current_hour >= london_killzone_start and current_hour < london_killzone_end
-in_ny_killzone = current_hour >= ny_killzone_start and current_hour < ny_killzone_end
-in_killzone = in_london_killzone or in_ny_killzone
+// Session open markers
+if current_hour == london_start
+    line.new(bar_index, low, bar_index, high, color=color.new(color.yellow, 50), width=2)
+    label.new(bar_index, high, "LONDON", style=label.style_label_down,
+         color=color.new(color.yellow, 30), textcolor=color.white, size=size.small)
 
-// Dead zone
-in_dead_zone = current_hour >= dead_zone_start or current_hour <= dead_zone_end
+if current_hour == ny_start
+    line.new(bar_index, low, bar_index, high, color=color.new(color.yellow, 50), width=2)
+    label.new(bar_index, high, "NY", style=label.style_label_down,
+         color=color.new(color.yellow, 30), textcolor=color.white, size=size.small)
 
-// Session markers
-if show_sessions and (current_hour == london_start or current_hour == ny_start)
-    session_name = current_hour == london_start ? "LONDON" : "NY"
-    line.new(bar_index, low, bar_index, high,
-         color=color.new(color.yellow, 50),
-         width=2,
-         style=line.style_solid)
-    label.new(bar_index, high, session_name,
-         style=label.style_label_down,
-         color=color.new(color.yellow, 30),
-         textcolor=color.white,
-         size=size.small)
-
-// Highlight kill zones — bgcolor must be at global scope (CE10188)
-bgcolor(show_kill_zones and in_killzone  ? color.new(color.green, 95) : na, title="Kill Zone")
-bgcolor(show_kill_zones and in_dead_zone ? color.new(color.red,   95) : na, title="Dead Zone")
+bgcolor(in_killzone  ? color.new(color.green, 95) : na, title="Kill Zone")
+bgcolor(in_dead_zone ? color.new(color.red,   95) : na, title="Dead Zone")
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// LIQUIDITY CONCEPTS - EQUAL HIGHS/LOWS & SWEEPS
+// LIQUIDITY — EQUAL HIGHS / LOWS & SWEEPS
 // ═══════════════════════════════════════════════════════════════════════════════
 
-// Detect equal highs (within tolerance)
-var float[] recent_highs = array.new<float>()
-var int[] recent_high_bars = array.new<int>()
+var float[] recent_highs     = array.new<float>()
+var int[]   recent_high_bars = array.new<int>()
 
 if not na(swing_high)
-    // Check if this high is equal to any recent high
     for i = 0 to array.size(recent_highs) - 1
-        existing_high = array.get(recent_highs, i)
-        diff_pct = math.abs(swing_high - existing_high) / existing_high * 100
-        
-        if diff_pct <= equal_level_tolerance
-            // Equal high detected - mark as liquidity level
-            existing_bar = array.get(recent_high_bars, i)
-            if show_liquidity_levels
-                line.new(existing_bar, existing_high, bar_index, swing_high,
-                     color=color.new(color.red, 30),
-                     width=2,
-                     style=line.style_dashed)
-                label.new(bar_index, swing_high, "EQH",
-                     style=label.style_label_down,
-                     color=color.new(color.red, 20),
-                     textcolor=color.white,
-                     size=size.tiny)
-    
-    // Add to tracking
+        eh = array.get(recent_highs, i)
+        if math.abs(swing_high - eh) / eh * 100 <= equal_level_tolerance
+            eb = array.get(recent_high_bars, i)
+            line.new(eb, eh, bar_index, swing_high,
+                 color=color.new(color.red, 30), width=2, style=line.style_dashed)
+            label.new(bar_index, swing_high, "EQH",
+                 style=label.style_label_down, color=color.new(color.red, 20),
+                 textcolor=color.white, size=size.tiny)
     array.push(recent_highs, swing_high)
     array.push(recent_high_bars, bar_index)
-    
-    // Keep only last 20 swings
     if array.size(recent_highs) > 20
         array.shift(recent_highs)
         array.shift(recent_high_bars)
 
-// Detect equal lows
-var float[] recent_lows = array.new<float>()
-var int[] recent_low_bars = array.new<int>()
+var float[] recent_lows     = array.new<float>()
+var int[]   recent_low_bars = array.new<int>()
 
 if not na(swing_low)
     for i = 0 to array.size(recent_lows) - 1
-        existing_low = array.get(recent_lows, i)
-        diff_pct = math.abs(swing_low - existing_low) / existing_low * 100
-        
-        if diff_pct <= equal_level_tolerance
-            existing_bar = array.get(recent_low_bars, i)
-            if show_liquidity_levels
-                line.new(existing_bar, existing_low, bar_index, swing_low,
-                     color=color.new(color.green, 30),
-                     width=2,
-                     style=line.style_dashed)
-                label.new(bar_index, swing_low, "EQL",
-                     style=label.style_label_up,
-                     color=color.new(color.green, 20),
-                     textcolor=color.white,
-                     size=size.tiny)
-    
+        el = array.get(recent_lows, i)
+        if math.abs(swing_low - el) / el * 100 <= equal_level_tolerance
+            eb = array.get(recent_low_bars, i)
+            line.new(eb, el, bar_index, swing_low,
+                 color=color.new(color.green, 30), width=2, style=line.style_dashed)
+            label.new(bar_index, swing_low, "EQL",
+                 style=label.style_label_up, color=color.new(color.green, 20),
+                 textcolor=color.white, size=size.tiny)
     array.push(recent_lows, swing_low)
     array.push(recent_low_bars, bar_index)
-    
     if array.size(recent_lows) > 20
         array.shift(recent_lows)
         array.shift(recent_low_bars)
 
-// Liquidity sweep detection
 var bool bullish_sweep_detected = false
 var bool bearish_sweep_detected = false
 
-// Bullish sweep: breaks below equal lows then reverses
-if detect_sweeps
-    for i = 0 to array.size(recent_lows) - 1
-        liquidity_low = array.get(recent_lows, i)
-        liquidity_bar = array.get(recent_low_bars, i)
-        
-        // Check if we broke below and reversed
-        broke_below = low[1] < liquidity_low
-        reversed_up = close > open and close > close[1] and close > liquidity_low
-        
-        if broke_below and reversed_up and bar_index - liquidity_bar <= sweep_confirmation_bars
+for i = 0 to array.size(recent_lows) - 1
+    liq_low = array.get(recent_lows, i)
+    liq_bar = array.get(recent_low_bars, i)
+    if low[1] < liq_low and close > open and close > close[1] and close > liq_low
+        if bar_index - liq_bar <= sweep_confirmation_bars
             bullish_sweep_detected := true
-            if show_liquidity_levels
-                label.new(bar_index, low, "SWEEP↑",
-                     style=label.style_label_up,
-                     color=color.new(color.lime, 0),
-                     textcolor=color.white,
-                     size=size.normal)
+            label.new(bar_index, low, "SWEEP↑", style=label.style_label_up,
+                 color=color.new(color.lime, 0), textcolor=color.white, size=size.normal)
             break
 
-// Bearish sweep: breaks above equal highs then reverses
-if detect_sweeps
-    for i = 0 to array.size(recent_highs) - 1
-        liquidity_high = array.get(recent_highs, i)
-        liquidity_bar = array.get(recent_high_bars, i)
-        
-        broke_above = high[1] > liquidity_high
-        reversed_down = close < open and close < close[1] and close < liquidity_high
-        
-        if broke_above and reversed_down and bar_index - liquidity_bar <= sweep_confirmation_bars
+for i = 0 to array.size(recent_highs) - 1
+    liq_high = array.get(recent_highs, i)
+    liq_bar  = array.get(recent_high_bars, i)
+    if high[1] > liq_high and close < open and close < close[1] and close < liq_high
+        if bar_index - liq_bar <= sweep_confirmation_bars
             bearish_sweep_detected := true
-            if show_liquidity_levels
-                label.new(bar_index, high, "SWEEP↓",
-                     style=label.style_label_down,
-                     color=color.new(color.red, 0),
-                     textcolor=color.white,
-                     size=size.normal)
+            label.new(bar_index, high, "SWEEP↓", style=label.style_label_down,
+                 color=color.new(color.red, 0), textcolor=color.white, size=size.normal)
             break
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// BREAK OF STRUCTURE (BOS) & CHANGE OF CHARACTER (ChOCH)
+// BREAK OF STRUCTURE (BOS)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-// BOS: Price breaks recent structure high/low
-bullish_bos = show_bos and not na(last_swing_high) and close > last_swing_high and close[1] <= last_swing_high
-bearish_bos = show_bos and not na(last_swing_low) and close < last_swing_low and close[1] >= last_swing_low
+bullish_bos = not na(last_swing_high) and close > last_swing_high and close[1] <= last_swing_high
+bearish_bos = not na(last_swing_low)  and close < last_swing_low  and close[1] >= last_swing_low
 
 if bullish_bos
     line.new(bar_index, last_swing_high, bar_index + 5, last_swing_high,
-         color=color.new(color.green, 0),
-         width=2,
-         style=line.style_solid)
+         color=color.new(color.green, 0), width=2)
     label.new(bar_index, last_swing_high, "BOS",
-         style=label.style_label_up,
-         color=color.new(color.green, 20),
-         textcolor=color.white,
-         size=size.small)
+         style=label.style_label_up, color=color.new(color.green, 20),
+         textcolor=color.white, size=size.small)
 
 if bearish_bos
     line.new(bar_index, last_swing_low, bar_index + 5, last_swing_low,
-         color=color.new(color.red, 0),
-         width=2,
-         style=line.style_solid)
+         color=color.new(color.red, 0), width=2)
     label.new(bar_index, last_swing_low, "BOS",
-         style=label.style_label_down,
-         color=color.new(color.red, 20),
-         textcolor=color.white,
-         size=size.small)
+         style=label.style_label_down, color=color.new(color.red, 20),
+         textcolor=color.white, size=size.small)
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// DIVERGENCE DETECTION
+// DIVERGENCE — pre-computed at global scope (CE10123 compliance)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-// ta.valuewhen requires simple int occurrence and must be at global scope (CE10123 / CW10003).
-// Pre-compute the last two swing-low and swing-high prices + RSI values here.
 div_low_price_cur   = ta.valuewhen(not na(swing_low),  low,  0)
 div_low_price_prev  = ta.valuewhen(not na(swing_low),  low,  1)
 div_rsi_at_low_cur  = ta.valuewhen(not na(swing_low),  rsi,  0)
@@ -709,171 +461,120 @@ div_high_price_prev  = ta.valuewhen(not na(swing_high), high, 1)
 div_rsi_at_high_cur  = ta.valuewhen(not na(swing_high), rsi,  0)
 div_rsi_at_high_prev = ta.valuewhen(not na(swing_high), rsi,  1)
 
-// Regular Bullish Divergence: Price lower low, RSI higher low
 var bool bullish_divergence = false
 var bool bearish_divergence = false
 
-if detect_divergence
-    // Trigger only on the bar where a new swing low forms
-    if not na(swing_low)
-        if div_low_price_cur < div_low_price_prev and div_rsi_at_low_cur > div_rsi_at_low_prev
-            bullish_divergence := true
-            label.new(bar_index, low, "DIV+",
-                 style=label.style_label_up,
-                 color=color.new(color.aqua, 20),
-                 textcolor=color.white,
-                 size=size.small)
+if not na(swing_low)
+    if div_low_price_cur < div_low_price_prev and div_rsi_at_low_cur > div_rsi_at_low_prev
+        bullish_divergence := true
+        label.new(bar_index, low, "DIV+", style=label.style_label_up,
+             color=color.new(color.aqua, 20), textcolor=color.white, size=size.small)
 
-    // Regular Bearish Divergence: Price higher high, RSI lower high
-    // Trigger only on the bar where a new swing high forms
-    if not na(swing_high)
-        if div_high_price_cur > div_high_price_prev and div_rsi_at_high_cur < div_rsi_at_high_prev
-            bearish_divergence := true
-            label.new(bar_index, high, "DIV-",
-                 style=label.style_label_down,
-                 color=color.new(color.fuchsia, 20),
-                 textcolor=color.white,
-                 size=size.small)
+if not na(swing_high)
+    if div_high_price_cur > div_high_price_prev and div_rsi_at_high_cur < div_rsi_at_high_prev
+        bearish_divergence := true
+        label.new(bar_index, high, "DIV-", style=label.style_label_down,
+             color=color.new(color.fuchsia, 20), textcolor=color.white, size=size.small)
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// MARKET STRUCTURE TRACKING
+// MARKET STRUCTURE
 // ═══════════════════════════════════════════════════════════════════════════════
 
 var string market_structure = "RANGING"
-var bool uptrend = false
-var bool downtrend = false
+var bool   uptrend   = false
+var bool   downtrend = false
 
-if track_structure
-    // Track swing highs and lows over lookback period
-    var float[] structure_highs = array.new<float>()
-    var float[] structure_lows = array.new<float>()
-    
-    if not na(swing_high)
-        array.push(structure_highs, swing_high)
-        if array.size(structure_highs) > structure_lookback
-            array.shift(structure_highs)
-    
-    if not na(swing_low)
-        array.push(structure_lows, swing_low)
-        if array.size(structure_lows) > structure_lookback
-            array.shift(structure_lows)
-    
-    // Determine structure
-    if array.size(structure_highs) >= 2 and array.size(structure_lows) >= 2
-        // Check for higher highs and higher lows
-        recent_highs_rising = array.get(structure_highs, array.size(structure_highs)-1) > 
-                              array.get(structure_highs, array.size(structure_highs)-2)
-        recent_lows_rising = array.get(structure_lows, array.size(structure_lows)-1) > 
-                             array.get(structure_lows, array.size(structure_lows)-2)
-        
-        // Check for lower highs and lower lows
-        recent_highs_falling = array.get(structure_highs, array.size(structure_highs)-1) < 
-                               array.get(structure_highs, array.size(structure_highs)-2)
-        recent_lows_falling = array.get(structure_lows, array.size(structure_lows)-1) < 
-                              array.get(structure_lows, array.size(structure_lows)-2)
-        
-        // Classify
-        if recent_highs_rising and recent_lows_rising
-            market_structure := "UPTREND"
-            uptrend := true
-            downtrend := false
-        else if recent_highs_falling and recent_lows_falling
-            market_structure := "DOWNTREND"
-            uptrend := false
-            downtrend := true
-        else
-            market_structure := "RANGING"
-            uptrend := false
-            downtrend := false
+var float[] structure_highs = array.new<float>()
+var float[] structure_lows  = array.new<float>()
+
+if not na(swing_high)
+    array.push(structure_highs, swing_high)
+    if array.size(structure_highs) > structure_lookback
+        array.shift(structure_highs)
+
+if not na(swing_low)
+    array.push(structure_lows, swing_low)
+    if array.size(structure_lows) > structure_lookback
+        array.shift(structure_lows)
+
+if array.size(structure_highs) >= 2 and array.size(structure_lows) >= 2
+    hh = array.get(structure_highs, array.size(structure_highs)-1) > array.get(structure_highs, array.size(structure_highs)-2)
+    hl = array.get(structure_lows,  array.size(structure_lows)-1)  > array.get(structure_lows,  array.size(structure_lows)-2)
+    lh = array.get(structure_highs, array.size(structure_highs)-1) < array.get(structure_highs, array.size(structure_highs)-2)
+    ll = array.get(structure_lows,  array.size(structure_lows)-1)  < array.get(structure_lows,  array.size(structure_lows)-2)
+
+    if hh and hl
+        market_structure := "UPTREND"
+        uptrend   := true
+        downtrend := false
+    else if lh and ll
+        market_structure := "DOWNTREND"
+        uptrend   := false
+        downtrend := true
+    else
+        market_structure := "RANGING"
+        uptrend   := false
+        downtrend := false
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// HTF LEVELS OVERLAY
+// HTF LEVELS
 // ═══════════════════════════════════════════════════════════════════════════════
 
-// Daily levels
-daily_high = request.security(syminfo.tickerid, "D", high, lookahead=barmerge.lookahead_on)
-daily_low = request.security(syminfo.tickerid, "D", low, lookahead=barmerge.lookahead_on)
-daily_pivot = (daily_high + daily_low + close) / 3
+daily_high = request.security(syminfo.tickerid, "D",   high, lookahead=barmerge.lookahead_on)
+daily_low  = request.security(syminfo.tickerid, "D",   low,  lookahead=barmerge.lookahead_on)
+h4_high    = request.security(syminfo.tickerid, "240", high, lookahead=barmerge.lookahead_on)
+h4_low     = request.security(syminfo.tickerid, "240", low,  lookahead=barmerge.lookahead_on)
+h1_high    = request.security(syminfo.tickerid, "60",  high, lookahead=barmerge.lookahead_on)
+h1_low     = request.security(syminfo.tickerid, "60",  low,  lookahead=barmerge.lookahead_on)
 
-// 4H levels
-h4_high = request.security(syminfo.tickerid, "240", high, lookahead=barmerge.lookahead_on)
-h4_low = request.security(syminfo.tickerid, "240", low, lookahead=barmerge.lookahead_on)
-
-// 1H levels
-h1_high = request.security(syminfo.tickerid, "60", high, lookahead=barmerge.lookahead_on)
-h1_low = request.security(syminfo.tickerid, "60", low, lookahead=barmerge.lookahead_on)
-
-// Plot HTF levels
-plot(show_htf_levels and show_daily_levels ? daily_high : na, "Daily High", 
-     color=color.new(color.red, 30), linewidth=2, style=plot.style_line)
-plot(show_htf_levels and show_daily_levels ? daily_low : na, "Daily Low",
-     color=color.new(color.green, 30), linewidth=2, style=plot.style_line)
-
-plot(show_htf_levels and show_4h_levels ? h4_high : na, "4H High",
-     color=color.new(color.orange, 50), linewidth=1, style=plot.style_line)
-plot(show_htf_levels and show_4h_levels ? h4_low : na, "4H Low",
-     color=color.new(color.lime, 50), linewidth=1, style=plot.style_line)
-
-plot(show_htf_levels and show_1h_levels ? h1_high : na, "1H High",
-     color=color.new(color.yellow, 70), linewidth=1, style=plot.style_line)
-plot(show_htf_levels and show_1h_levels ? h1_low : na, "1H Low",
-     color=color.new(color.aqua, 70), linewidth=1, style=plot.style_line)
+plot(daily_high, "Daily High", color=color.new(color.red,    30), linewidth=2)
+plot(daily_low,  "Daily Low",  color=color.new(color.green,  30), linewidth=2)
+plot(h4_high,    "4H High",    color=color.new(color.orange, 50), linewidth=1)
+plot(h4_low,     "4H Low",     color=color.new(color.lime,   50), linewidth=1)
+plot(h1_high,    "1H High",    color=color.new(color.yellow, 70), linewidth=1)
+plot(h1_low,     "1H Low",     color=color.new(color.aqua,   70), linewidth=1)
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // NEWS SHOCK DETECTION
 // ═══════════════════════════════════════════════════════════════════════════════
 
-normal_atr = ta.sma(atr, 20)
-atr_ratio = atr / normal_atr
-
+normal_atr  = ta.sma(atr, 20)
+atr_ratio   = atr / normal_atr
 volume_ratio = volume / normal_volume
 
 price_change_5bars = math.abs(close - close[5]) / close * 100
 velocity_per_minute = price_change_5bars / 5
 
-atr_shock = atr_ratio > atr_shock_threshold
-volume_shock = volume_ratio > volume_shock_threshold
+atr_shock          = atr_ratio   > atr_shock_threshold
+volume_shock       = volume_ratio > volume_shock_threshold
 news_shock_detected = atr_shock and volume_shock
 
 var string impact_level = "NORMAL"
 if news_shock_detected
-    if velocity_per_minute > velocity_extreme
-        impact_level := "EXTREME"
-    else if velocity_per_minute > velocity_high
-        impact_level := "HIGH"
-    else if velocity_per_minute > velocity_moderate
-        impact_level := "MODERATE"
-    else
-        impact_level := "NORMAL"
+    impact_level := velocity_per_minute > velocity_extreme  ? "EXTREME"  :
+                    velocity_per_minute > velocity_high     ? "HIGH"     :
+                    velocity_per_minute > velocity_moderate ? "MODERATE" : "NORMAL"
 
 var int bars_since_shock = 999
-if news_shock_detected
-    bars_since_shock := 0
-else
-    bars_since_shock := bars_since_shock + 1
+bars_since_shock := news_shock_detected ? 0 : bars_since_shock + 1
 
-pause_duration = impact_level == "EXTREME" ? shock_pause_extreme :
-                 impact_level == "HIGH" ? shock_pause_high :
+pause_duration = impact_level == "EXTREME"  ? shock_pause_extreme  :
+                 impact_level == "HIGH"     ? shock_pause_high     :
                  impact_level == "MODERATE" ? shock_pause_moderate : 0
 
 shock_pause_active = bars_since_shock < pause_duration
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// FOREX FACTORY CALENDAR EVENT HANDLING
+// FOREX FACTORY CALENDAR
 // ═══════════════════════════════════════════════════════════════════════════════
 
-f_in_event_window(enabled, event_time_input, impact) =>
+f_in_event_window(enabled, evt_time, impact) =>
     if not enabled
         false
     else
-        buffer_before = impact == "High" ? 30 * 60000 : 15 * 60000
-        buffer_after = impact == "High" ? 60 * 60000 : 30 * 60000
-        
-        current_time = time
-        event_start = event_time_input - buffer_before
-        event_end = event_time_input + buffer_after
-        
-        current_time >= event_start and current_time <= event_end
+        buf_before = impact == "High" ? 30 * 60000 : 15 * 60000
+        buf_after  = impact == "High" ? 60 * 60000 : 30 * 60000
+        time >= evt_time - buf_before and time <= evt_time + buf_after
 
 in_event_1 = f_in_event_window(event_1_enabled, event_1_time, event_1_impact)
 in_event_2 = f_in_event_window(event_2_enabled, event_2_time, event_2_impact)
@@ -890,23 +591,23 @@ else if event_3_enabled and time < event_3_time
     next_event_name := event_3_name
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// FUNDAMENTAL INTELLIGENCE SCORING
+// FUNDAMENTAL SCORE
 // ═══════════════════════════════════════════════════════════════════════════════
 
-fed_score = fed_stance == "Dovish" ? 2 : fed_stance == "Hawkish" ? -2 : 0
-usd_score = usd_trend == "Weak" ? 2 : usd_trend == "Strong" ? -2 : 0
-geo_score = geopolitical_risk == "High" ? 2 : geopolitical_risk == "Low" ? -1 : 0
-sentiment_score = risk_sentiment == "Risk-On" ? -1 : risk_sentiment == "Risk-Off" ? 2 : 0
+fed_score       = fed_stance       == "Dovish"   ?  2 : fed_stance       == "Hawkish" ? -2 : 0
+usd_score       = usd_trend        == "Weak"     ?  2 : usd_trend        == "Strong"  ? -2 : 0
+geo_score       = geopolitical_risk == "High"    ?  2 : geopolitical_risk == "Low"    ? -1 : 0
+sentiment_score = risk_sentiment   == "Risk-Off"  ?  2 : risk_sentiment   == "Risk-On" ? -1 : 0
 
 fundamental_score = regime_score + fed_score + usd_score + geo_score + sentiment_score
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// TECHNICAL CONFLUENCE SCORING
+// TECHNICAL CONFLUENCE SCORE
 // ═══════════════════════════════════════════════════════════════════════════════
 
 technical_score = 0.0
 
-// Multi-timeframe RSI
+// Multi-TF RSI
 technical_score := technical_score + (rsi_4h < 25 ? 3 : rsi_4h < 30 ? 2 : rsi_4h > 75 ? -3 : rsi_4h > 70 ? -2 : 0)
 technical_score := technical_score + (rsi_daily < 30 ? 2 : rsi_daily > 70 ? -2 : 0)
 technical_score := technical_score + (rsi_1h < 35 ? 1 : rsi_1h > 65 ? -1 : 0)
@@ -914,9 +615,7 @@ technical_score := technical_score + (rsi_1h < 35 ? 1 : rsi_1h > 65 ? -1 : 0)
 // Bollinger position
 bb_position = (close - bb_lower) / (bb_upper - bb_lower)
 technical_score := technical_score + (bb_position < 0.2 ? 1.5 : bb_position > 0.8 ? -1.5 : 0)
-
-// Squeeze
-technical_score := technical_score + (bb_squeeze ? 1 : 0)
+technical_score := technical_score + (bb_squeeze ? 1.0 : 0.0)
 
 // MA alignment
 technical_score := technical_score + (ma_bullish_align ? 2 : ma_bearish_align ? -2 : 0)
@@ -926,55 +625,49 @@ above_all_emas = close > ema20 and close > ema50 and close > ema200
 below_all_emas = close < ema20 and close < ema50 and close < ema200
 technical_score := technical_score + (above_all_emas ? 1 : below_all_emas ? -1 : 0)
 
-// VWAP position
+// VWAP
 technical_score := technical_score + (close > vwap_value ? 0.5 : close < vwap_value ? -0.5 : 0)
 
-// Volume confirmation
-technical_score := technical_score + (high_volume and delta_bullish ? volume_score_weight : 
+// Volume
+technical_score := technical_score + (high_volume and delta_bullish ? volume_score_weight :
                                       high_volume and delta_bearish ? -volume_score_weight : 0)
 
-// Smart money concepts
+// Smart Money
 technical_score := technical_score + (in_bullish_fvg ? fvg_score_weight : in_bearish_fvg ? -fvg_score_weight : 0)
-technical_score := technical_score + (in_bullish_ob ? ob_score_weight : in_bearish_ob ? -ob_score_weight : 0)
+technical_score := technical_score + (in_bullish_ob  ? ob_score_weight  : in_bearish_ob  ? -ob_score_weight  : 0)
 
 // Liquidity sweeps
-technical_score := technical_score + (bullish_sweep_detected ? liquidity_sweep_weight : 
+technical_score := technical_score + (bullish_sweep_detected ? liquidity_sweep_weight :
                                       bearish_sweep_detected ? -liquidity_sweep_weight : 0)
 
 // Divergence
 technical_score := technical_score + (bullish_divergence ? divergence_weight :
                                       bearish_divergence ? -divergence_weight : 0)
 
-// Market structure alignment
-technical_score := technical_score + (uptrend and technical_score > 0 ? with_structure_boost :
-                                      downtrend and technical_score < 0 ? -with_structure_boost :
-                                      uptrend and technical_score < 0 ? counter_structure_penalty :
-                                      downtrend and technical_score > 0 ? -counter_structure_penalty : 0)
+// Structure
+technical_score := technical_score + (uptrend   and technical_score > 0 ?  with_structure_boost :
+                                      downtrend  and technical_score < 0 ? -with_structure_boost :
+                                      uptrend   and technical_score < 0 ?  counter_structure_penalty :
+                                      downtrend  and technical_score > 0 ? -counter_structure_penalty : 0)
 
-// Session/kill zone adjustment
+// Session
 technical_score := technical_score + (in_killzone ? killzone_boost : in_dead_zone ? deadzone_penalty : 0)
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// CONTEXT MULTIPLIER
+// CONTEXT MULTIPLIER & FINAL SCORE
 // ═══════════════════════════════════════════════════════════════════════════════
 
 both_bullish = technical_score > 0 and fundamental_score > 0
 both_bearish = technical_score < 0 and fundamental_score < 0
-conflicting = (technical_score > 0 and fundamental_score < 0) or (technical_score < 0 and fundamental_score > 0)
+conflicting  = (technical_score > 0 and fundamental_score < 0) or
+               (technical_score < 0 and fundamental_score > 0)
 
-context_multiplier = both_bullish or both_bearish ? 1.5 :
-                     conflicting ? 0.6 :
-                     1.0
+context_multiplier = both_bullish or both_bearish ? 1.5 : conflicting ? 0.6 : 1.0
 
 if atr_ratio > 1.5
     context_multiplier := context_multiplier * 0.7
-
 if bb_squeeze
     context_multiplier := context_multiplier * 1.2
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// FINAL INTELLIGENCE-ADJUSTED SCORE
-// ═══════════════════════════════════════════════════════════════════════════════
 
 confidence_factor = intelligence_confidence / 100.0
 final_score = technical_score * context_multiplier * confidence_factor
@@ -983,34 +676,30 @@ signal_strength = math.abs(final_score) >= 8 ? "HIGH" :
                   math.abs(final_score) >= 6 ? "MEDIUM" : "LOW"
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// DYNAMIC TP/SL
+// DYNAMIC TP / SL
 // ═══════════════════════════════════════════════════════════════════════════════
 
-sl_long = (na(last_swing_low) ? close - atr * 2 : last_swing_low) - (atr * sl_atr_multiplier)
-sl_short = (na(last_swing_high) ? close + atr * 2 : last_swing_high) + (atr * sl_atr_multiplier)
-
-tp1_long = close + (atr * tp1_atr_multiplier)
-tp2_long = close + (atr * tp2_atr_multiplier)
-tp1_short = close - (atr * tp1_atr_multiplier)
-tp2_short = close - (atr * tp2_atr_multiplier)
-
-rr_long = (tp1_long - close) / (close - sl_long)
-rr_short = (close - tp1_short) / (sl_short - close)
+sl_long   = (na(last_swing_low)  ? close - atr * 2 : last_swing_low)  - atr * sl_atr_multiplier
+sl_short  = (na(last_swing_high) ? close + atr * 2 : last_swing_high) + atr * sl_atr_multiplier
+tp1_long  = close + atr * tp1_atr_multiplier
+tp2_long  = close + atr * tp2_atr_multiplier
+tp1_short = close - atr * tp1_atr_multiplier
+tp2_short = close - atr * tp2_atr_multiplier
+rr_long   = (tp1_long  - close) / (close - sl_long)
+rr_short  = (close - tp1_short) / (sl_short - close)
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // DRAWDOWN PROTECTION
 // ═══════════════════════════════════════════════════════════════════════════════
 
-var float daily_pnl = 0.0
-var int current_date = dayofmonth(time)
+var float daily_pnl   = 0.0
+var int   current_day = dayofmonth(time)
 
-// Reset daily P&L at start of new day
-if current_date != current_date[1]
-    daily_pnl := 0.0
-    current_date := dayofmonth(time)
+if dayofmonth(time) != current_day
+    daily_pnl   := 0.0
+    current_day := dayofmonth(time)
 
-// Check if daily loss limit hit
-daily_limit_hit = enable_protection and daily_pnl <= -daily_loss_limit
+daily_limit_hit = daily_pnl <= -daily_loss_limit
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SIGNAL GENERATION
@@ -1018,180 +707,138 @@ daily_limit_hit = enable_protection and daily_pnl <= -daily_loss_limit
 
 trading_paused = calendar_pause_active or shock_pause_active or in_dead_zone or daily_limit_hit
 
-buy_signal = final_score >= buy_threshold and rr_long >= min_risk_reward and not trading_paused
+buy_signal  = final_score >= buy_threshold  and rr_long  >= min_risk_reward and not trading_paused
 sell_signal = final_score <= sell_threshold and rr_short >= min_risk_reward and not trading_paused
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// DASHBOARD  (table-based — locked to chart corner, not bar/price position)
-// ═══════════════════════════════════════════════════════════════════════════════
-
-// Declared at global scope so it persists across bar evaluations
-var table dashboard_tbl = na
-
-if show_dashboard and barstate.islast
-    dashboard_text = ""
-
-    dashboard_text := dashboard_text + "═════════════════════════════\n"
-    dashboard_text := dashboard_text + "ELITE INTELLIGENCE ULTIMATE\n"
-    dashboard_text := dashboard_text + "Timeframe: " + tf_display + " (Auto-Optimized)\n"
-    dashboard_text := dashboard_text + "═════════════════════════════\n\n"
-
-    // Fundamental
-    dashboard_text := dashboard_text + "📊 FUNDAMENTAL (" + str.tostring(fundamental_score, "#.0") + ")\n"
-    dashboard_text := dashboard_text + "Regime: " + (fundamental_score > 0 ? "BULLISH" : fundamental_score < 0 ? "BEARISH" : "NEUTRAL") + "\n"
-    dashboard_text := dashboard_text + "Confidence: " + str.tostring(intelligence_confidence) + "%\n\n"
-
-    // Technical
-    dashboard_text := dashboard_text + "📈 TECHNICAL (" + str.tostring(technical_score, "#.1") + ")\n"
-    dashboard_text := dashboard_text + "4H RSI: " + str.tostring(rsi_4h, "#.1")
-    dashboard_text := dashboard_text + (rsi_4h < 25 ? " (EXTREME OS) 🟢" : rsi_4h < 30 ? " (OS) 🟡" :
-                                        rsi_4h > 75 ? " (EXTREME OB) 🔴" : rsi_4h > 70 ? " (OB) 🟠" : " ⚪") + "\n"
-    dashboard_text := dashboard_text + "Structure: " + market_structure + "\n"
-    dashboard_text := dashboard_text + (conflicting ? "⚠️ CONFLICT\n\n" : "✅ ALIGNED\n\n")
-
-    // Smart Money
-    dashboard_text := dashboard_text + "💎 SMART MONEY\n"
-    dashboard_text := dashboard_text + (in_bullish_fvg ? "In Bullish FVG ✅\n" :
-                                        in_bearish_fvg ? "In Bearish FVG ⚠️\n" : "No FVG\n")
-    dashboard_text := dashboard_text + (in_bullish_ob ? "In Bullish OB ✅\n" :
-                                        in_bearish_ob ? "In Bearish OB ⚠️\n" : "No OB\n")
-    dashboard_text := dashboard_text + (bullish_sweep_detected ? "Bullish Sweep! 🟢\n" :
-                                        bearish_sweep_detected ? "Bearish Sweep! 🔴\n" : "")
-    dashboard_text := dashboard_text + (bullish_divergence ? "Bullish Div ✅\n" :
-                                        bearish_divergence ? "Bearish Div ⚠️\n" : "")
-    dashboard_text := dashboard_text + "\n"
-
-    // Session
-    dashboard_text := dashboard_text + "🕐 SESSION\n"
-    dashboard_text := dashboard_text + (in_london_killzone ? "London Kill Zone 🎯\n" :
-                                        in_ny_killzone ? "NY Kill Zone 🎯\n" :
-                                        in_dead_zone ? "DEAD ZONE 🛑\n" : "Normal Hours\n")
-    dashboard_text := dashboard_text + "\n"
-
-    // Calendar
-    dashboard_text := dashboard_text + "📅 CALENDAR\n"
-    if next_event_name != ""
-        dashboard_text := dashboard_text + "Next: " + next_event_name + "\n"
-    dashboard_text := dashboard_text + (calendar_pause_active ? "PRE-EVENT 🛑\n\n" : "Clear ✅\n\n")
-
-    // Volatility
-    dashboard_text := dashboard_text + "⚡ VOLATILITY\n"
-    dashboard_text := dashboard_text + "Impact: " + impact_level
-    dashboard_text := dashboard_text + (impact_level == "EXTREME" ? " 🔴" :
-                                        impact_level == "HIGH" ? " 🟠" :
-                                        impact_level == "MODERATE" ? " 🟡" : " ✅") + "\n"
-    dashboard_text := dashboard_text + (shock_pause_active ? "Shock Pause: " + str.tostring(pause_duration - bars_since_shock) + " bars\n\n" : "\n")
-
-    // Protection
-    if enable_protection
-        dashboard_text := dashboard_text + "🛡️ PROTECTION\n"
-        dashboard_text := dashboard_text + (daily_limit_hit ? "⛔ DAILY LIMIT HIT\n\n" : "Active ✅\n\n")
-
-    // Final Signal
-    dashboard_text := dashboard_text + "🎯 SIGNAL (" + str.tostring(final_score, "#.1") + ")\n"
-    dashboard_text := dashboard_text + "Strength: " + signal_strength + "\n"
-
-    if trading_paused
-        pause_reason = calendar_pause_active ? "PRE-EVENT" :
-                       shock_pause_active ? "NEWS SHOCK" :
-                       in_dead_zone ? "DEAD ZONE" :
-                       daily_limit_hit ? "DAILY LIMIT" : "PAUSED"
-        dashboard_text := dashboard_text + "Status: PAUSED 🛑\n"
-        dashboard_text := dashboard_text + "Reason: " + pause_reason + "\n"
-    else if buy_signal
-        dashboard_text := dashboard_text + "🟢 BUY SIGNAL\n"
-        dashboard_text := dashboard_text + "Entry: " + str.tostring(close, "#.2") + "\n"
-        dashboard_text := dashboard_text + "SL: " + str.tostring(sl_long, "#.2") + "\n"
-        dashboard_text := dashboard_text + "TP1: " + str.tostring(tp1_long, "#.2") + "\n"
-        dashboard_text := dashboard_text + "R:R: " + str.tostring(rr_long, "#.1") + ":1\n"
-    else if sell_signal
-        dashboard_text := dashboard_text + "🔴 SELL SIGNAL\n"
-        dashboard_text := dashboard_text + "Entry: " + str.tostring(close, "#.2") + "\n"
-        dashboard_text := dashboard_text + "SL: " + str.tostring(sl_short, "#.2") + "\n"
-        dashboard_text := dashboard_text + "TP1: " + str.tostring(tp1_short, "#.2") + "\n"
-        dashboard_text := dashboard_text + "R:R: " + str.tostring(rr_short, "#.1") + ":1\n"
-    else
-        dashboard_text := dashboard_text + "⚪ NO SIGNAL\n"
-
-    dashboard_color = buy_signal  ? color.new(color.green,  10) :
-                      sell_signal ? color.new(color.red,    10) :
-                      trading_paused ? color.new(color.orange, 10) :
-                      color.new(color.gray, 10)
-
-    // Map setting string to position constant
-    tbl_pos = dashboard_position == "Top Right"    ? position.top_right    :
-              dashboard_position == "Top Left"     ? position.top_left     :
-              dashboard_position == "Bottom Right" ? position.bottom_right :
-                                                     position.bottom_left
-
-    // Create table once; update the single cell on every subsequent tick
-    if na(dashboard_tbl)
-        dashboard_tbl := table.new(tbl_pos, 1, 1,
-             border_width=1,
-             border_color=color.gray,
-             frame_width=1,
-             frame_color=color.gray)
-
-    table.cell(dashboard_tbl, 0, 0, dashboard_text,
-         text_color=color.white,
-         text_size=size.small,
-         bgcolor=dashboard_color,
-         text_halign=text.align_left)
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SIGNALS ON CHART
 // ═══════════════════════════════════════════════════════════════════════════════
 
-if show_signals_on_chart
-    if buy_signal
-        label.new(bar_index, low, "BUY\n" + signal_strength, 
-             style=label.style_label_up, 
-             color=color.new(color.green, 0),
-             textcolor=color.white,
-             size=size.normal)
-    
-    if sell_signal
-        label.new(bar_index, high, "SELL\n" + signal_strength,
-             style=label.style_label_down,
-             color=color.new(color.red, 0),
-             textcolor=color.white,
-             size=size.normal)
+if buy_signal
+    label.new(bar_index, low, "BUY\n" + signal_strength,
+         style=label.style_label_up, color=color.new(color.green, 0),
+         textcolor=color.white, size=size.normal)
+
+if sell_signal
+    label.new(bar_index, high, "SELL\n" + signal_strength,
+         style=label.style_label_down, color=color.new(color.red, 0),
+         textcolor=color.white, size=size.normal)
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// TP/SL LINES
+// TP / SL LINES
 // ═══════════════════════════════════════════════════════════════════════════════
 
-if show_tp_sl_lines and (buy_signal or sell_signal)
-    if buy_signal
-        line.new(bar_index, sl_long, bar_index + 10, sl_long, 
-             color=color.red, width=2, style=line.style_dashed)
-        line.new(bar_index, tp1_long, bar_index + 10, tp1_long,
-             color=color.green, width=2, style=line.style_solid)
-        line.new(bar_index, tp2_long, bar_index + 10, tp2_long,
-             color=color.green, width=1, style=line.style_dotted)
-    
-    if sell_signal
-        line.new(bar_index, sl_short, bar_index + 10, sl_short,
-             color=color.red, width=2, style=line.style_dashed)
-        line.new(bar_index, tp1_short, bar_index + 10, tp1_short,
-             color=color.green, width=2, style=line.style_solid)
-        line.new(bar_index, tp2_short, bar_index + 10, tp2_short,
-             color=color.green, width=1, style=line.style_dotted)
+if buy_signal
+    line.new(bar_index, sl_long,  bar_index + 10, sl_long,  color=color.red,   width=2, style=line.style_dashed)
+    line.new(bar_index, tp1_long, bar_index + 10, tp1_long, color=color.green, width=2, style=line.style_solid)
+    line.new(bar_index, tp2_long, bar_index + 10, tp2_long, color=color.green, width=1, style=line.style_dotted)
+
+if sell_signal
+    line.new(bar_index, sl_short,  bar_index + 10, sl_short,  color=color.red,   width=2, style=line.style_dashed)
+    line.new(bar_index, tp1_short, bar_index + 10, tp1_short, color=color.green, width=2, style=line.style_solid)
+    line.new(bar_index, tp2_short, bar_index + 10, tp2_short, color=color.green, width=1, style=line.style_dotted)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// DASHBOARD  — table locked to top-right corner
+// ═══════════════════════════════════════════════════════════════════════════════
+
+var table dashboard_tbl = na
+
+if barstate.islast
+    dt = ""
+    dt := dt + "═══ ELITE INTELLIGENCE ULTIMATE ═══\n"
+    dt := dt + "Timeframe : " + tf_display + "   (Auto-Optimised)\n\n"
+
+    dt := dt + "📊 FUNDAMENTAL  (" + str.tostring(fundamental_score, "#.0") + ")\n"
+    dt := dt + "Regime : " + (fundamental_score > 0 ? "BULLISH" : fundamental_score < 0 ? "BEARISH" : "NEUTRAL") + "\n"
+    dt := dt + "Confidence : " + str.tostring(intelligence_confidence) + "%\n\n"
+
+    dt := dt + "📈 TECHNICAL  (" + str.tostring(technical_score, "#.1") + ")\n"
+    dt := dt + "4H RSI : " + str.tostring(rsi_4h, "#.1") +
+         (rsi_4h < 25 ? "  EXTREME OS 🟢" : rsi_4h < 30 ? "  OS 🟡" :
+          rsi_4h > 75 ? "  EXTREME OB 🔴" : rsi_4h > 70 ? "  OB 🟠" : "  ⚪") + "\n"
+    dt := dt + "Structure : " + market_structure + "\n"
+    dt := dt + (conflicting ? "⚠️  CONFLICT\n\n" : "✅  ALIGNED\n\n")
+
+    dt := dt + "💎 SMART MONEY\n"
+    dt := dt + (in_bullish_fvg ? "In Bullish FVG ✅\n" : in_bearish_fvg ? "In Bearish FVG ⚠️\n" : "No FVG\n")
+    dt := dt + (in_bullish_ob  ? "In Bullish OB  ✅\n" : in_bearish_ob  ? "In Bearish OB  ⚠️\n" : "No OB\n")
+    dt := dt + (bullish_sweep_detected ? "Bullish Sweep 🟢\n" : bearish_sweep_detected ? "Bearish Sweep 🔴\n" : "")
+    dt := dt + (bullish_divergence ? "Bullish Div ✅\n" : bearish_divergence ? "Bearish Div ⚠️\n" : "")
+    dt := dt + "\n"
+
+    dt := dt + "🕐 SESSION\n"
+    dt := dt + (in_london_killzone ? "London Kill Zone 🎯\n" :
+                in_ny_killzone     ? "NY Kill Zone 🎯\n"     :
+                in_dead_zone       ? "DEAD ZONE 🛑\n"        : "Normal Hours\n")
+    dt := dt + "\n"
+
+    dt := dt + "📅 CALENDAR\n"
+    if next_event_name != ""
+        dt := dt + "Next : " + next_event_name + "\n"
+    dt := dt + (calendar_pause_active ? "PRE-EVENT 🛑\n\n" : "Clear ✅\n\n")
+
+    dt := dt + "⚡ VOLATILITY\n"
+    dt := dt + "Impact : " + impact_level +
+         (impact_level == "EXTREME" ? " 🔴" : impact_level == "HIGH" ? " 🟠" :
+          impact_level == "MODERATE" ? " 🟡" : " ✅") + "\n"
+    dt := dt + (shock_pause_active ? "Shock Pause : " + str.tostring(pause_duration - bars_since_shock) + " bars\n\n" : "\n")
+
+    dt := dt + "🛡️ PROTECTION\n"
+    dt := dt + (daily_limit_hit ? "⛔  DAILY LIMIT HIT\n\n" : "Active ✅\n\n")
+
+    dt := dt + "🎯 SIGNAL  (" + str.tostring(final_score, "#.1") + ")\n"
+    dt := dt + "Strength : " + signal_strength + "\n"
+
+    if trading_paused
+        pause_reason = calendar_pause_active ? "PRE-EVENT" :
+                       shock_pause_active    ? "NEWS SHOCK" :
+                       in_dead_zone          ? "DEAD ZONE"  :
+                       daily_limit_hit       ? "DAILY LIMIT" : "PAUSED"
+        dt := dt + "Status : PAUSED 🛑\n"
+        dt := dt + "Reason : " + pause_reason + "\n"
+    else if buy_signal
+        dt := dt + "🟢 BUY SIGNAL\n"
+        dt := dt + "Entry : " + str.tostring(close,    "#.2") + "\n"
+        dt := dt + "SL    : " + str.tostring(sl_long,  "#.2") + "\n"
+        dt := dt + "TP1   : " + str.tostring(tp1_long, "#.2") + "\n"
+        dt := dt + "R:R   : " + str.tostring(rr_long,  "#.1") + ":1\n"
+    else if sell_signal
+        dt := dt + "🔴 SELL SIGNAL\n"
+        dt := dt + "Entry : " + str.tostring(close,     "#.2") + "\n"
+        dt := dt + "SL    : " + str.tostring(sl_short,  "#.2") + "\n"
+        dt := dt + "TP1   : " + str.tostring(tp1_short, "#.2") + "\n"
+        dt := dt + "R:R   : " + str.tostring(rr_short,  "#.1") + ":1\n"
+    else
+        dt := dt + "⚪  NO SIGNAL\n"
+
+    dash_color = buy_signal  ? color.new(color.green,  10) :
+                 sell_signal ? color.new(color.red,    10) :
+                 trading_paused ? color.new(color.orange, 10) :
+                 color.new(color.gray, 10)
+
+    if na(dashboard_tbl)
+        dashboard_tbl := table.new(position.top_right, 1, 1,
+             border_width=1, border_color=color.gray,
+             frame_width=1,  frame_color=color.gray)
+
+    table.cell(dashboard_tbl, 0, 0, dt,
+         text_color=color.white,
+         text_size=size.small,
+         bgcolor=dash_color,
+         text_halign=text.align_left)
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ALERTS
 // ═══════════════════════════════════════════════════════════════════════════════
 
-alertcondition(buy_signal, "Buy Signal", "BUY signal fired — check dashboard for score and strength")
-alertcondition(sell_signal, "Sell Signal", "SELL signal fired — check dashboard for score and strength")
-alertcondition(news_shock_detected, "News Shock", "NEWS SHOCK detected — check dashboard for impact level")
-alertcondition(bullish_sweep_detected, "Bullish Sweep", "LIQUIDITY SWEEP - Bullish reversal likely")
-alertcondition(bearish_sweep_detected, "Bearish Sweep", "LIQUIDITY SWEEP - Bearish reversal likely")
-alertcondition(bullish_divergence, "Bullish Divergence", "BULLISH DIVERGENCE - Reversal signal")
-alertcondition(bearish_divergence, "Bearish Divergence", "BEARISH DIVERGENCE - Reversal signal")
-alertcondition(daily_limit_hit, "Daily Limit Hit", "⛔ DAILY LOSS LIMIT REACHED - STOP TRADING")
+alertcondition(buy_signal,             "Buy Signal",        "BUY signal fired — check dashboard")
+alertcondition(sell_signal,            "Sell Signal",       "SELL signal fired — check dashboard")
+alertcondition(news_shock_detected,    "News Shock",        "NEWS SHOCK detected — check dashboard")
+alertcondition(bullish_sweep_detected, "Bullish Sweep",     "LIQUIDITY SWEEP — bullish reversal likely")
+alertcondition(bearish_sweep_detected, "Bearish Sweep",     "LIQUIDITY SWEEP — bearish reversal likely")
+alertcondition(bullish_divergence,     "Bullish Divergence","BULLISH DIVERGENCE — reversal signal")
+alertcondition(bearish_divergence,     "Bearish Divergence","BEARISH DIVERGENCE — reversal signal")
+alertcondition(daily_limit_hit,        "Daily Limit Hit",   "DAILY LOSS LIMIT REACHED — stop trading")
 
-// Signal Score: 100%-transparent so invisible on chart, but a non-display.none plot()
-// satisfies CE10246 (indicator must have at least one output function)
 plot(final_score, "Signal Score", color=color.new(color.gray, 100))
-plot(impact_level == "EXTREME" ? 1 : impact_level == "HIGH" ? 2 : impact_level == "MODERATE" ? 3 : 4, "Impact", display=display.none)
