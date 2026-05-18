@@ -266,17 +266,19 @@ if bearish_fvg
 var bool in_bullish_fvg = false
 var bool in_bearish_fvg = false
 
-for i = 0 to array.size(bullish_fvg_boxes) - 1
-    b = array.get(bullish_fvg_boxes, i)
-    if close >= box.get_bottom(b) and close <= box.get_top(b)
-        in_bullish_fvg := true
-        break
+if array.size(bullish_fvg_boxes) > 0
+    for i = 0 to array.size(bullish_fvg_boxes) - 1
+        b = array.get(bullish_fvg_boxes, i)
+        if close >= box.get_bottom(b) and close <= box.get_top(b)
+            in_bullish_fvg := true
+            break
 
-for i = 0 to array.size(bearish_fvg_boxes) - 1
-    b = array.get(bearish_fvg_boxes, i)
-    if close >= box.get_bottom(b) and close <= box.get_top(b)
-        in_bearish_fvg := true
-        break
+if array.size(bearish_fvg_boxes) > 0
+    for i = 0 to array.size(bearish_fvg_boxes) - 1
+        b = array.get(bearish_fvg_boxes, i)
+        if close >= box.get_bottom(b) and close <= box.get_top(b)
+            in_bearish_fvg := true
+            break
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ORDER BLOCKS
@@ -324,17 +326,19 @@ if bearish_ob_detected
 var bool in_bullish_ob = false
 var bool in_bearish_ob = false
 
-for i = 0 to array.size(bullish_ob_boxes) - 1
-    b = array.get(bullish_ob_boxes, i)
-    if close >= box.get_bottom(b) and close <= box.get_top(b)
-        in_bullish_ob := true
-        break
+if array.size(bullish_ob_boxes) > 0
+    for i = 0 to array.size(bullish_ob_boxes) - 1
+        b = array.get(bullish_ob_boxes, i)
+        if close >= box.get_bottom(b) and close <= box.get_top(b)
+            in_bullish_ob := true
+            break
 
-for i = 0 to array.size(bearish_ob_boxes) - 1
-    b = array.get(bearish_ob_boxes, i)
-    if close >= box.get_bottom(b) and close <= box.get_top(b)
-        in_bearish_ob := true
-        break
+if array.size(bearish_ob_boxes) > 0
+    for i = 0 to array.size(bearish_ob_boxes) - 1
+        b = array.get(bearish_ob_boxes, i)
+        if close >= box.get_bottom(b) and close <= box.get_top(b)
+            in_bearish_ob := true
+            break
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SESSIONS & KILL ZONES
@@ -406,25 +410,27 @@ if not na(swing_low)
 var bool bullish_sweep_detected = false
 var bool bearish_sweep_detected = false
 
-for i = 0 to array.size(recent_lows) - 1
-    liq_low = array.get(recent_lows, i)
-    liq_bar = array.get(recent_low_bars, i)
-    if low[1] < liq_low and close > open and close > close[1] and close > liq_low
-        if bar_index - liq_bar <= sweep_confirmation_bars
-            bullish_sweep_detected := true
-            label.new(bar_index, low, "SWEEP↑", style=label.style_label_up,
-                 color=color.new(color.lime, 0), textcolor=color.white, size=size.normal)
-            break
+if array.size(recent_lows) > 0
+    for i = 0 to array.size(recent_lows) - 1
+        liq_low = array.get(recent_lows, i)
+        liq_bar = array.get(recent_low_bars, i)
+        if low[1] < liq_low and close > open and close > close[1] and close > liq_low
+            if bar_index - liq_bar <= sweep_confirmation_bars
+                bullish_sweep_detected := true
+                label.new(bar_index, low, "SWEEP↑", style=label.style_label_up,
+                     color=color.new(color.lime, 0), textcolor=color.white, size=size.normal)
+                break
 
-for i = 0 to array.size(recent_highs) - 1
-    liq_high = array.get(recent_highs, i)
-    liq_bar  = array.get(recent_high_bars, i)
-    if high[1] > liq_high and close < open and close < close[1] and close < liq_high
-        if bar_index - liq_bar <= sweep_confirmation_bars
-            bearish_sweep_detected := true
-            label.new(bar_index, high, "SWEEP↓", style=label.style_label_down,
-                 color=color.new(color.red, 0), textcolor=color.white, size=size.normal)
-            break
+if array.size(recent_highs) > 0
+    for i = 0 to array.size(recent_highs) - 1
+        liq_high = array.get(recent_highs, i)
+        liq_bar  = array.get(recent_high_bars, i)
+        if high[1] > liq_high and close < open and close < close[1] and close < liq_high
+            if bar_index - liq_bar <= sweep_confirmation_bars
+                bearish_sweep_detected := true
+                label.new(bar_index, high, "SWEEP↓", style=label.style_label_down,
+                     color=color.new(color.red, 0), textcolor=color.white, size=size.normal)
+                break
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // BREAK OF STRUCTURE (BOS)
