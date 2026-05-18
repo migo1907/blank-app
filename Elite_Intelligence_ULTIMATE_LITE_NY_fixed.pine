@@ -408,102 +408,83 @@ if sell_signal
 // DASHBOARD  (4 cols × 10 rows — structure unchanged from original)
 // ═══════════════════════════════════════════════════════════════════════════════
 
+// Pre-compute all dashboard values (outside if block avoids CE10156)
+d_sig_text    = active_trade == "LONG" ? "▲  LONG" : active_trade == "SHORT" ? "▼  SHORT" : "— WAITING"
+d_sig_color   = active_trade == "LONG" ? color.lime : active_trade == "SHORT" ? color.red : color.yellow
+d_conf_color  = trade_confidence > 75 ? color.lime : trade_confidence > 60 ? color.yellow : color.orange
+d_sess_text   = in_ny_kz ? "NY 🎯" : in_london_kz ? "LONDON" : in_dead_zone ? "DEAD 🛑" : "Asian"
+d_sess_color  = in_ny_kz ? color.lime : in_london_kz ? color.aqua : in_dead_zone ? color.red : color.gray
+d_entry_disp  = active_trade != "NONE" ? str.tostring(entry_price, "#.00") : "WAIT"
+d_rsi_color   = rsi_4h < 30 ? color.lime : rsi_4h > 70 ? color.red : color.yellow
+d_tp_disp     = active_trade != "NONE" ? str.tostring(tp_price, "#.00") : "—"
+d_sl_disp     = active_trade != "NONE" ? str.tostring(sl_price, "#.00") : "—"
+d_reg_text    = regime_score > 3 ? "BULL 🐂" : regime_score < -3 ? "BEAR 🐻" : "NEUTRAL"
+d_reg_color   = regime_score > 3 ? color.lime : regime_score < -3 ? color.red : color.yellow
+d_smart       = in_bullish_fvg or in_bearish_fvg or in_bullish_ob or in_bearish_ob
+d_smart_text  = d_smart ? "ACTIVE" : "Clear"
+d_smart_color = d_smart ? color.lime : color.gray
+d_stat_text   = news_pause ? "PRE-EVENT 🛑" : in_dead_zone ? "DEAD ZONE 🛑" : in_ny_kz ? "NY LIVE 🎯" : in_london_kz ? "LONDON 🟢" : "Monitoring"
+d_stat_color  = news_pause or in_dead_zone ? color.red : in_kill_zone ? color.lime : color.yellow
+d_bias_text   = close > ema200 ? "▲ Bullish Trend" : close < ema200 ? "▼ Bearish Trend" : "◆ Ranging"
+d_bias_color  = close > ema200 ? color.lime : close < ema200 ? color.red : color.yellow
+d_news_text   = next_event != "" ? next_event : "Clear ✅"
+d_news_color  = next_event != "" ? color.yellow : color.lime
+
 var table hub = table.new(position.bottom_left, 4, 10,
      bgcolor=color.rgb(10, 10, 10), border_color=color.gray, border_width=1)
 
 if barstate.islast
     // Row 0 — Header
-    table.cell(hub, 0, 0, "ELITE ULTIMATE LITE - NY",
-         text_color=color.white, bgcolor=color.new(color.blue, 20), text_size=size.normal)
+    table.cell(hub, 0, 0, "ELITE ULTIMATE LITE - NY", text_color=color.white, bgcolor=color.new(color.blue, 20), text_size=size.normal)
     table.merge_cells(hub, 0, 0, 3, 0)
 
     // Row 1 — Signal
-    sig_color = active_trade == "LONG"  ? color.lime :
-                active_trade == "SHORT" ? color.red  : color.yellow
-    sig_text  = active_trade == "LONG"  ? "▲  LONG" :
-                active_trade == "SHORT" ? "▼  SHORT" : "— WAITING"
-    table.cell(hub, 0, 1, "SIGNAL", text_color=color.gray, text_size=size.small)
-    table.cell(hub, 1, 1, sig_text,  text_color=sig_color,  text_size=size.normal)
+    table.cell(hub, 0, 1, "SIGNAL",    text_color=color.gray,    text_size=size.small)
+    table.cell(hub, 1, 1, d_sig_text,  text_color=d_sig_color,   text_size=size.normal)
     table.merge_cells(hub, 1, 1, 3, 1)
 
     // Row 2 — Confidence | Session
-    conf_color = trade_confidence > 75 ? color.lime :
-                 trade_confidence > 60 ? color.yellow : color.orange
-    table.cell(hub, 0, 2, "CONFIDENCE", text_color=color.gray, text_size=size.small)
-    table.cell(hub, 1, 2, str.tostring(trade_confidence) + "%",
-         text_color=conf_color, text_size=size.normal)
-
-    session_text  = in_ny_kz     ? "NY 🎯"   :
-                    in_london_kz ? "LONDON"   :
-                    in_dead_zone ? "DEAD 🛑"  : "Asian"
-    session_color = in_ny_kz     ? color.lime :
-                    in_london_kz ? color.aqua :
-                    in_dead_zone ? color.red  : color.gray
-    table.cell(hub, 2, 2, "SESSION",     text_color=color.gray,  text_size=size.small)
-    table.cell(hub, 3, 2, session_text,  text_color=session_color, text_size=size.normal)
+    table.cell(hub, 0, 2, "CONFIDENCE",                        text_color=color.gray,    text_size=size.small)
+    table.cell(hub, 1, 2, str.tostring(trade_confidence) + "%", text_color=d_conf_color,  text_size=size.normal)
+    table.cell(hub, 2, 2, "SESSION",    text_color=color.gray,   text_size=size.small)
+    table.cell(hub, 3, 2, d_sess_text,  text_color=d_sess_color, text_size=size.normal)
 
     // Row 3 — Entry | 4H RSI
-    table.cell(hub, 0, 3, "ENTRY", text_color=color.gray, text_size=size.small)
-    entry_disp = active_trade != "NONE" ? str.tostring(entry_price, "#.00") : "WAIT"
-    table.cell(hub, 1, 3, entry_disp, text_color=color.white, text_size=size.normal)
+    table.cell(hub, 0, 3, "ENTRY",     text_color=color.gray,  text_size=size.small)
+    table.cell(hub, 1, 3, d_entry_disp, text_color=color.white, text_size=size.normal)
+    table.cell(hub, 2, 3, "4H RSI",                            text_color=color.gray, text_size=size.small)
+    table.cell(hub, 3, 3, str.tostring(rsi_4h, "#.0"),         text_color=d_rsi_color, text_size=size.normal)
 
-    rsi_color = rsi_4h < 30 ? color.lime : rsi_4h > 70 ? color.red : color.yellow
-    table.cell(hub, 2, 3, "4H RSI",                          text_color=color.gray,  text_size=size.small)
-    table.cell(hub, 3, 3, str.tostring(rsi_4h, "#.0"),       text_color=rsi_color,   text_size=size.normal)
-
-    // Row 4 — Take Profit (full width)
+    // Row 4 — Take Profit
     table.cell(hub, 0, 4, "TAKE PROFIT", text_color=color.gray, text_size=size.small)
-    tp_disp = active_trade != "NONE" ? str.tostring(tp_price, "#.00") : "—"
-    table.cell(hub, 1, 4, tp_disp, text_color=color.lime, text_size=size.normal)
+    table.cell(hub, 1, 4, d_tp_disp,     text_color=color.lime, text_size=size.normal)
     table.merge_cells(hub, 1, 4, 3, 4)
 
-    // Row 5 — Stop Loss (full width)
+    // Row 5 — Stop Loss
     table.cell(hub, 0, 5, "STOP LOSS", text_color=color.gray, text_size=size.small)
-    sl_disp = active_trade != "NONE" ? str.tostring(sl_price, "#.00") : "—"
-    table.cell(hub, 1, 5, sl_disp, text_color=color.red, text_size=size.normal)
+    table.cell(hub, 1, 5, d_sl_disp,   text_color=color.red,  text_size=size.normal)
     table.merge_cells(hub, 1, 5, 3, 5)
 
     // Row 6 — Regime | Smart Money
-    regime_text  = regime_score > 3  ? "BULL 🐂" :
-                   regime_score < -3 ? "BEAR 🐻" : "NEUTRAL"
-    regime_color = regime_score > 3  ? color.lime :
-                   regime_score < -3 ? color.red  : color.yellow
-    table.cell(hub, 0, 6, "REGIME",    text_color=color.gray, text_size=size.small)
-    table.cell(hub, 1, 6, regime_text, text_color=regime_color, text_size=size.normal)
+    table.cell(hub, 0, 6, "REGIME",       text_color=color.gray,    text_size=size.small)
+    table.cell(hub, 1, 6, d_reg_text,     text_color=d_reg_color,   text_size=size.normal)
+    table.cell(hub, 2, 6, "SMART $",      text_color=color.gray,    text_size=size.small)
+    table.cell(hub, 3, 6, d_smart_text,   text_color=d_smart_color, text_size=size.normal)
 
-    smart_active = in_bullish_fvg or in_bearish_fvg or in_bullish_ob or in_bearish_ob
-    table.cell(hub, 2, 6, "SMART $", text_color=color.gray, text_size=size.small)
-    table.cell(hub, 3, 6, smart_active ? "ACTIVE" : "Clear",
-         text_color=smart_active ? color.lime : color.gray, text_size=size.normal)
-
-    // Row 7 — Status (full width)
-    status_text  = news_pause   ? "PRE-EVENT 🛑"  :
-                   in_dead_zone ? "DEAD ZONE 🛑"  :
-                   in_ny_kz     ? "NY LIVE 🎯"    :
-                   in_london_kz ? "LONDON 🟢"     : "Monitoring"
-    status_color = news_pause or in_dead_zone ? color.red :
-                   in_kill_zone ? color.lime : color.yellow
-    table.cell(hub, 0, 7, "STATUS",     text_color=color.gray, text_size=size.small)
-    table.cell(hub, 1, 7, status_text,  text_color=status_color, text_size=size.normal)
+    // Row 7 — Status
+    table.cell(hub, 0, 7, "STATUS",    text_color=color.gray,   text_size=size.small)
+    table.cell(hub, 1, 7, d_stat_text, text_color=d_stat_color, text_size=size.normal)
     table.merge_cells(hub, 1, 7, 3, 7)
 
-    // Row 8 — Bias (full width)
-    bias_text  = close > ema200 ? "▲ Bullish Trend" :
-                 close < ema200 ? "▼ Bearish Trend" : "◆ Ranging"
-    bias_color = close > ema200 ? color.lime :
-                 close < ema200 ? color.red  : color.yellow
-    table.cell(hub, 0, 8, "BIAS",     text_color=color.gray, text_size=size.small)
-    table.cell(hub, 1, 8, bias_text,  text_color=bias_color, text_size=size.small)
+    // Row 8 — Bias
+    table.cell(hub, 0, 8, "BIAS",      text_color=color.gray,   text_size=size.small)
+    table.cell(hub, 1, 8, d_bias_text, text_color=d_bias_color, text_size=size.small)
     table.merge_cells(hub, 1, 8, 3, 8)
 
     // Row 9 — News
-    table.cell(hub, 0, 9, "NEWS", text_color=color.gray, text_size=size.small)
-    if next_event != ""
-        table.cell(hub, 1, 9, next_event, text_color=color.yellow, text_size=size.tiny)
-        table.merge_cells(hub, 1, 9, 3, 9)
-    else
-        table.cell(hub, 1, 9, "Clear ✅", text_color=color.lime, text_size=size.small)
-        table.merge_cells(hub, 1, 9, 3, 9)
+    table.cell(hub, 0, 9, "NEWS",      text_color=color.gray,   text_size=size.small)
+    table.cell(hub, 1, 9, d_news_text, text_color=d_news_color, text_size=size.small)
+    table.merge_cells(hub, 1, 9, 3, 9)
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ALERTS  — const string only (fixes CE10123)
