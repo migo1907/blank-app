@@ -373,15 +373,16 @@ var float[] recent_highs     = array.new<float>()
 var int[]   recent_high_bars = array.new<int>()
 
 if not na(swing_high)
-    for i = 0 to array.size(recent_highs) - 1
-        eh = array.get(recent_highs, i)
-        if math.abs(swing_high - eh) / eh * 100 <= equal_level_tolerance
-            eb = array.get(recent_high_bars, i)
-            line.new(eb, eh, bar_index, swing_high,
-                 color=color.new(color.red, 30), width=2, style=line.style_dashed)
-            label.new(bar_index, swing_high, "EQH",
-                 style=label.style_label_down, color=color.new(color.red, 20),
-                 textcolor=color.white, size=size.tiny)
+    if array.size(recent_highs) > 0
+        for i = 0 to array.size(recent_highs) - 1
+            eh = array.get(recent_highs, i)
+            if math.abs(swing_high - eh) / eh * 100 <= equal_level_tolerance
+                eb = array.get(recent_high_bars, i)
+                line.new(eb, eh, bar_index, swing_high,
+                     color=color.new(color.red, 30), width=2, style=line.style_dashed)
+                label.new(bar_index, swing_high, "EQH",
+                     style=label.style_label_down, color=color.new(color.red, 20),
+                     textcolor=color.white, size=size.tiny)
     array.push(recent_highs, swing_high)
     array.push(recent_high_bars, bar_index)
     if array.size(recent_highs) > 20
@@ -392,15 +393,16 @@ var float[] recent_lows     = array.new<float>()
 var int[]   recent_low_bars = array.new<int>()
 
 if not na(swing_low)
-    for i = 0 to array.size(recent_lows) - 1
-        el = array.get(recent_lows, i)
-        if math.abs(swing_low - el) / el * 100 <= equal_level_tolerance
-            eb = array.get(recent_low_bars, i)
-            line.new(eb, el, bar_index, swing_low,
-                 color=color.new(color.green, 30), width=2, style=line.style_dashed)
-            label.new(bar_index, swing_low, "EQL",
-                 style=label.style_label_up, color=color.new(color.green, 20),
-                 textcolor=color.white, size=size.tiny)
+    if array.size(recent_lows) > 0
+        for i = 0 to array.size(recent_lows) - 1
+            el = array.get(recent_lows, i)
+            if math.abs(swing_low - el) / el * 100 <= equal_level_tolerance
+                eb = array.get(recent_low_bars, i)
+                line.new(eb, el, bar_index, swing_low,
+                     color=color.new(color.green, 30), width=2, style=line.style_dashed)
+                label.new(bar_index, swing_low, "EQL",
+                     style=label.style_label_up, color=color.new(color.green, 20),
+                     textcolor=color.white, size=size.tiny)
     array.push(recent_lows, swing_low)
     array.push(recent_low_bars, bar_index)
     if array.size(recent_lows) > 20
