@@ -309,16 +309,26 @@ var int signal_quality = 50
 
 if buy_signal or sell_signal
     q = 50
-    if in_kill_zone                   q := q + 15
-    if buy_signal  and in_bullish_fvg q := q + 10
-    if sell_signal and in_bearish_fvg q := q + 10
-    if buy_signal  and in_bullish_ob  q := q + 10
-    if sell_signal and in_bearish_ob  q := q + 10
-    if buy_signal  and bullish_sweep  q := q + 15
-    if sell_signal and bearish_sweep  q := q + 15
-    if high_volume                    q := q + 5
-    if rsi_4h < 30 and buy_signal     q := q + 10
-    if rsi_4h > 70 and sell_signal    q := q + 10
+    if in_kill_zone
+        q := q + 15
+    if buy_signal and in_bullish_fvg
+        q := q + 10
+    if sell_signal and in_bearish_fvg
+        q := q + 10
+    if buy_signal and in_bullish_ob
+        q := q + 10
+    if sell_signal and in_bearish_ob
+        q := q + 10
+    if buy_signal and bullish_sweep
+        q := q + 15
+    if sell_signal and bearish_sweep
+        q := q + 15
+    if high_volume
+        q := q + 5
+    if rsi_4h < 30 and buy_signal
+        q := q + 10
+    if rsi_4h > 70 and sell_signal
+        q := q + 10
     signal_quality := math.min(q, 95)
 
 // ═══════════════════════════════════════════════════════════════════════════════
