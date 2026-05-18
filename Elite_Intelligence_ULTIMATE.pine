@@ -5,11 +5,15 @@
 // Features: FVG, Order Blocks, Volume Analysis, Sessions, Liquidity, Divergence, Structure, HTF Levels, Protection
 
 //@version=6
-indicator("Elite Intelligence ULTIMATE - Full Auto", 
-     overlay=true, 
+indicator("Elite Intelligence ULTIMATE - Full Auto",
+     overlay=true,
      max_labels_count=500,
      max_lines_count=500,
      max_boxes_count=500)
+
+// Unconditional plot at line 13 — satisfies CE10246 regardless of other outputs.
+// 100% transparent = invisible on chart; plotting close keeps the scale correct.
+plot(close, "", color=color.new(color.white, 100), display=display.all)
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // AUTOMATED TIMEFRAME DETECTION & OPTIMIZATION
@@ -547,9 +551,8 @@ if show_sessions and (current_hour == london_start or current_hour == ny_start)
          size=size.small)
 
 // Highlight kill zones — bgcolor must be at global scope (CE10188)
-// color(na) used explicitly so Pine Script v6 can infer the color type (plain `na` is ambiguous)
-bgcolor(show_kill_zones and in_killzone  ? color.new(color.green, 95) : color(na), title="Kill Zone")
-bgcolor(show_kill_zones and in_dead_zone ? color.new(color.red,   95) : color(na), title="Dead Zone")
+bgcolor(show_kill_zones and in_killzone  ? color.new(color.green, 95) : na, title="Kill Zone")
+bgcolor(show_kill_zones and in_dead_zone ? color.new(color.red,   95) : na, title="Dead Zone")
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // LIQUIDITY CONCEPTS - EQUAL HIGHS/LOWS & SWEEPS
@@ -1167,9 +1170,9 @@ if show_tp_sl_lines and (buy_signal or sell_signal)
 // ALERTS
 // ═══════════════════════════════════════════════════════════════════════════════
 
-alertcondition(buy_signal, "Buy Signal", "BUY - Score: {{plot_0}} - Strength: " + signal_strength)
-alertcondition(sell_signal, "Sell Signal", "SELL - Score: {{plot_0}} - Strength: " + signal_strength)
-alertcondition(news_shock_detected, "News Shock", "NEWS SHOCK - Impact: " + impact_level)
+alertcondition(buy_signal, "Buy Signal", "BUY signal fired — check dashboard for score and strength")
+alertcondition(sell_signal, "Sell Signal", "SELL signal fired — check dashboard for score and strength")
+alertcondition(news_shock_detected, "News Shock", "NEWS SHOCK detected — check dashboard for impact level")
 alertcondition(bullish_sweep_detected, "Bullish Sweep", "LIQUIDITY SWEEP - Bullish reversal likely")
 alertcondition(bearish_sweep_detected, "Bearish Sweep", "LIQUIDITY SWEEP - Bearish reversal likely")
 alertcondition(bullish_divergence, "Bullish Divergence", "BULLISH DIVERGENCE - Reversal signal")
