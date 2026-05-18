@@ -28,35 +28,34 @@ intelligence_confidence = input.int(75, "Confidence %",
 // NEWS EVENTS
 // ═══════════════════════════════════════════════════════════════════════════════
 
-event_1_enabled = input.bool(false, "Event 1 Active?", group="📅 News Events")
-event_1_name    = input.string("", "Event 1 Name", group="📅 News Events")
+event_1_enabled = input.bool(false, "Event 1 Active?",   group="📅 News Events")
+event_1_name    = input.string("",   "Event 1 Name",     group="📅 News Events")
 event_1_time    = input.time(timestamp("2026-01-01 00:00"), "Event 1 Time (UTC)", group="📅 News Events")
-event_1_impact  = input.string("High", "Event 1 Impact", options=["Medium", "High"], group="📅 News Events")
+event_1_impact  = input.string("High", "Event 1 Impact", options=["Medium","High"], group="📅 News Events")
 
-event_2_enabled = input.bool(false, "Event 2 Active?", group="📅 News Events")
-event_2_name    = input.string("", "Event 2 Name", group="📅 News Events")
+event_2_enabled = input.bool(false, "Event 2 Active?",   group="📅 News Events")
+event_2_name    = input.string("",   "Event 2 Name",     group="📅 News Events")
 event_2_time    = input.time(timestamp("2026-01-01 00:00"), "Event 2 Time (UTC)", group="📅 News Events")
-event_2_impact  = input.string("High", "Event 2 Impact", options=["Medium", "High"], group="📅 News Events")
+event_2_impact  = input.string("High", "Event 2 Impact", options=["Medium","High"], group="📅 News Events")
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SIGNAL SETTINGS
 // ═══════════════════════════════════════════════════════════════════════════════
 
-rsi_oversold    = input.int(40,  "RSI Oversold Level",  minval=20, maxval=50, group="🎯 Signal Settings")
-rsi_overbought  = input.int(60,  "RSI Overbought Level", minval=50, maxval=80, group="🎯 Signal Settings")
-min_risk_reward = input.float(1.5, "Min Risk:Reward",   minval=1.0, maxval=5.0, step=0.5, group="🎯 Signal Settings")
-tp_atr_mult     = input.float(2.5, "Take Profit (ATR Mult)", minval=1.0, maxval=10.0, step=0.5, group="🎯 Signal Settings")
-sl_atr_mult     = input.float(1.5, "Stop Loss (ATR Mult)",   minval=0.5, maxval=3.0,  step=0.1, group="🎯 Signal Settings")
+rsi_oversold    = input.int(40,  "RSI Oversold Level",       minval=20, maxval=50,  group="🎯 Signal Settings")
+rsi_overbought  = input.int(60,  "RSI Overbought Level",     minval=50, maxval=80,  group="🎯 Signal Settings")
+min_risk_reward = input.float(1.5,"Min Risk:Reward",         minval=1.0, maxval=5.0, step=0.5, group="🎯 Signal Settings")
+tp_atr_mult     = input.float(2.5,"Take Profit (ATR Mult)",  minval=1.0, maxval=10.0, step=0.5, group="🎯 Signal Settings")
+sl_atr_mult     = input.float(1.5,"Stop Loss (ATR Mult)",    minval=0.5, maxval=3.0,  step=0.1, group="🎯 Signal Settings")
 
-use_fvg          = input.bool(true, "Use Fair Value Gaps",   group="💎 Smart Features")
-use_order_blocks = input.bool(true, "Use Order Blocks",      group="💎 Smart Features")
-use_liquidity    = input.bool(true, "Use Liquidity Sweeps",  group="💎 Smart Features")
-use_regime_filter= input.bool(true, "Use Regime Filter",     group="💎 Smart Features",
+use_fvg           = input.bool(true,  "Use Fair Value Gaps",  group="💎 Smart Features")
+use_order_blocks  = input.bool(true,  "Use Order Blocks",     group="💎 Smart Features")
+use_liquidity     = input.bool(true,  "Use Liquidity Sweeps", group="💎 Smart Features")
+use_regime_filter = input.bool(true,  "Use Regime Filter",    group="💎 Smart Features",
      tooltip="In bearish regime, reduce long signals. In bullish, reduce shorts.")
 
-show_kz_bg       = input.bool(true,  "Show Kill Zone Background", group="🎨 Display")
-show_fvg_boxes   = input.bool(false, "Show FVG Boxes",             group="🎨 Display")
-show_ob_boxes    = input.bool(false, "Show Order Block Boxes",     group="🎨 Display")
+show_fvg_boxes = input.bool(false, "Show FVG Boxes on Chart",         group="🎨 Display")
+show_ob_boxes  = input.bool(false, "Show Order Block Boxes on Chart",  group="🎨 Display")
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // CORE INDICATORS
@@ -74,7 +73,7 @@ normal_volume = ta.sma(volume, 20)
 high_volume   = volume > normal_volume * 1.5
 
 swing_high = ta.pivothigh(high, 5, 5)
-swing_low  = ta.pivotlow(low, 5, 5)
+swing_low  = ta.pivotlow(low,  5, 5)
 
 var float last_swing_high = na
 var float last_swing_low  = na
@@ -94,70 +93,65 @@ in_ny_kz     = current_hour >= 13 and current_hour < 16
 in_kill_zone = in_london_kz or in_ny_kz
 in_dead_zone = current_hour >= 21 or current_hour <= 1
 
-bgcolor(show_kz_bg and in_ny_kz     ? color.new(color.green, 92) : na, title="NY Kill Zone")
-bgcolor(show_kz_bg and in_london_kz ? color.new(color.blue,  95) : na, title="London Kill Zone")
-bgcolor(show_kz_bg and in_dead_zone ? color.new(color.red,   97) : na, title="Dead Zone")
+bgcolor(in_ny_kz     ? color.new(color.green, 92) : na, title="NY Kill Zone")
+bgcolor(in_london_kz ? color.new(color.blue,  95) : na, title="London Kill Zone")
+bgcolor(in_dead_zone ? color.new(color.red,   97) : na, title="Dead Zone")
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// FAIR VALUE GAPS
+// FAIR VALUE GAPS  — float arrays drive detection; boxes are display-only
 // ═══════════════════════════════════════════════════════════════════════════════
 
-bullish_fvg        = use_fvg and low > high[2]
-bullish_fvg_top    = low
-bullish_fvg_bottom = high[2]
+bullish_fvg    = use_fvg and low > high[2]
+bearish_fvg    = use_fvg and high < low[2]
 
-bearish_fvg        = use_fvg and high < low[2]
-bearish_fvg_top    = low[2]
-bearish_fvg_bottom = high
-
-var box[] bullish_fvg_boxes = array.new<box>()
-var box[] bearish_fvg_boxes = array.new<box>()
+// Detection arrays (always populated)
+var float[] bfvg_top = array.new<float>()
+var float[] bfvg_bot = array.new<float>()
+var float[] sfvg_top = array.new<float>()
+var float[] sfvg_bot = array.new<float>()
 
 if bullish_fvg
-    if array.size(bullish_fvg_boxes) >= 3
-        box.delete(array.shift(bullish_fvg_boxes))
-    new_box = box.new(bar_index, bullish_fvg_top, bar_index + 30, bullish_fvg_bottom,
-         bgcolor=color.new(color.green, 85), border_color=color.new(color.green, 50), border_width=1)
-    if not show_fvg_boxes
-        box.delete(new_box)
-    else
-        array.push(bullish_fvg_boxes, new_box)
+    if array.size(bfvg_top) >= 3
+        array.shift(bfvg_top)
+        array.shift(bfvg_bot)
+    array.push(bfvg_top, low)
+    array.push(bfvg_bot, high[2])
+    if show_fvg_boxes
+        box.new(bar_index, low, bar_index + 30, high[2],
+             bgcolor=color.new(color.green, 85), border_color=color.new(color.green, 50), border_width=1)
 
 if bearish_fvg
-    if array.size(bearish_fvg_boxes) >= 3
-        box.delete(array.shift(bearish_fvg_boxes))
-    new_box = box.new(bar_index, bearish_fvg_top, bar_index + 30, bearish_fvg_bottom,
-         bgcolor=color.new(color.red, 85), border_color=color.new(color.red, 50), border_width=1)
-    if not show_fvg_boxes
-        box.delete(new_box)
-    else
-        array.push(bearish_fvg_boxes, new_box)
+    if array.size(sfvg_top) >= 3
+        array.shift(sfvg_top)
+        array.shift(sfvg_bot)
+    array.push(sfvg_top, low[2])
+    array.push(sfvg_bot, high)
+    if show_fvg_boxes
+        box.new(bar_index, low[2], bar_index + 30, high,
+             bgcolor=color.new(color.red, 85), border_color=color.new(color.red, 50), border_width=1)
 
-var bool in_bullish_fvg = false
-var bool in_bearish_fvg = false
-in_bullish_fvg := false
-in_bearish_fvg := false
-
-if array.size(bullish_fvg_boxes) > 0
-    for i = 0 to array.size(bullish_fvg_boxes) - 1
-        b = array.get(bullish_fvg_boxes, i)
-        if close >= box.get_bottom(b) and close <= box.get_top(b)
+in_bullish_fvg = false
+if array.size(bfvg_top) > 0
+    for i = 0 to array.size(bfvg_top) - 1
+        if close >= array.get(bfvg_bot, i) and close <= array.get(bfvg_top, i)
             in_bullish_fvg := true
             break
 
-if array.size(bearish_fvg_boxes) > 0
-    for i = 0 to array.size(bearish_fvg_boxes) - 1
-        b = array.get(bearish_fvg_boxes, i)
-        if close >= box.get_bottom(b) and close <= box.get_top(b)
+in_bearish_fvg = false
+if array.size(sfvg_top) > 0
+    for i = 0 to array.size(sfvg_top) - 1
+        if close >= array.get(sfvg_bot, i) and close <= array.get(sfvg_top, i)
             in_bearish_fvg := true
             break
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// ORDER BLOCKS
+// ORDER BLOCKS  — same pattern: float arrays for detection, boxes for display
 // ═══════════════════════════════════════════════════════════════════════════════
 
-var box[] bullish_ob_boxes = array.new<box>()
-var box[] bearish_ob_boxes = array.new<box>()
+var float[] bob_top = array.new<float>()
+var float[] bob_bot = array.new<float>()
+var float[] sob_top = array.new<float>()
+var float[] sob_bot = array.new<float>()
 
 bullish_ob_detected = false
 bullish_ob_high     = 0.0
@@ -186,51 +180,46 @@ if use_order_blocks
                 break
 
 if bullish_ob_detected
-    if array.size(bullish_ob_boxes) >= 2
-        box.delete(array.shift(bullish_ob_boxes))
-    new_box = box.new(bar_index, bullish_ob_high, bar_index + 30, bullish_ob_low,
-         bgcolor=color.new(color.blue, 80), border_color=color.new(color.blue, 30), border_width=2)
-    if not show_ob_boxes
-        box.delete(new_box)
-    else
-        array.push(bullish_ob_boxes, new_box)
+    if array.size(bob_top) >= 2
+        array.shift(bob_top)
+        array.shift(bob_bot)
+    array.push(bob_top, bullish_ob_high)
+    array.push(bob_bot, bullish_ob_low)
+    if show_ob_boxes
+        box.new(bar_index, bullish_ob_high, bar_index + 30, bullish_ob_low,
+             bgcolor=color.new(color.blue, 80), border_color=color.new(color.blue, 30), border_width=2)
 
 if bearish_ob_detected
-    if array.size(bearish_ob_boxes) >= 2
-        box.delete(array.shift(bearish_ob_boxes))
-    new_box = box.new(bar_index, bearish_ob_high, bar_index + 30, bearish_ob_low,
-         bgcolor=color.new(color.purple, 80), border_color=color.new(color.purple, 30), border_width=2)
-    if not show_ob_boxes
-        box.delete(new_box)
-    else
-        array.push(bearish_ob_boxes, new_box)
+    if array.size(sob_top) >= 2
+        array.shift(sob_top)
+        array.shift(sob_bot)
+    array.push(sob_top, bearish_ob_high)
+    array.push(sob_bot, bearish_ob_low)
+    if show_ob_boxes
+        box.new(bar_index, bearish_ob_high, bar_index + 30, bearish_ob_low,
+             bgcolor=color.new(color.purple, 80), border_color=color.new(color.purple, 30), border_width=2)
 
-var bool in_bullish_ob = false
-var bool in_bearish_ob = false
-in_bullish_ob := false
-in_bearish_ob := false
-
-if array.size(bullish_ob_boxes) > 0
-    for i = 0 to array.size(bullish_ob_boxes) - 1
-        b = array.get(bullish_ob_boxes, i)
-        if close >= box.get_bottom(b) and close <= box.get_top(b)
+in_bullish_ob = false
+if array.size(bob_top) > 0
+    for i = 0 to array.size(bob_top) - 1
+        if close >= array.get(bob_bot, i) and close <= array.get(bob_top, i)
             in_bullish_ob := true
             break
 
-if array.size(bearish_ob_boxes) > 0
-    for i = 0 to array.size(bearish_ob_boxes) - 1
-        b = array.get(bearish_ob_boxes, i)
-        if close >= box.get_bottom(b) and close <= box.get_top(b)
+in_bearish_ob = false
+if array.size(sob_top) > 0
+    for i = 0 to array.size(sob_top) - 1
+        if close >= array.get(sob_bot, i) and close <= array.get(sob_top, i)
             in_bearish_ob := true
             break
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// LIQUIDITY SWEEPS (logic only — no chart labels)
+// LIQUIDITY SWEEPS  (detection only — no chart labels for cleaner view)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-var float[] recent_highs    = array.new<float>()
+var float[] recent_highs     = array.new<float>()
 var int[]   recent_high_bars = array.new<int>()
-var float[] recent_lows     = array.new<float>()
+var float[] recent_lows      = array.new<float>()
 var int[]   recent_low_bars  = array.new<int>()
 
 if not na(swing_high)
@@ -247,10 +236,8 @@ if not na(swing_low)
         array.shift(recent_lows)
         array.shift(recent_low_bars)
 
-var bool bullish_sweep = false
-var bool bearish_sweep = false
-bullish_sweep := false
-bearish_sweep := false
+bullish_sweep = false
+bearish_sweep = false
 
 if use_liquidity and array.size(recent_lows) > 0
     for i = 0 to array.size(recent_lows) - 1
@@ -292,14 +279,13 @@ else if event_2_enabled and time < event_2_time
 // SIGNAL LOGIC
 // ═══════════════════════════════════════════════════════════════════════════════
 
-base_buy_signal  = ta.crossover(rsi, rsi_oversold)  and close > low[1]
+base_buy_signal  = ta.crossover(rsi, rsi_oversold)   and close > low[1]
 base_sell_signal = ta.crossunder(rsi, rsi_overbought) and close < high[1]
 
 regime_allows_long  = not use_regime_filter or regime_score >= -3
 regime_allows_short = not use_regime_filter or regime_score <= 3
 
-outside_dead_zone = not in_dead_zone
-can_trade         = outside_dead_zone and not news_pause
+can_trade = not in_dead_zone and not news_pause
 
 buy_conditions  = base_buy_signal  and regime_allows_long  and can_trade
 sell_conditions = base_sell_signal and regime_allows_short and can_trade
@@ -309,8 +295,11 @@ sl_short = na(last_swing_high) ? close + atr * sl_atr_mult : last_swing_high + a
 tp_long  = close + atr * tp_atr_mult
 tp_short = close - atr * tp_atr_mult
 
-rr_long  = (tp_long  - close) / (close  - sl_long)
-rr_short = (close    - tp_short) / (sl_short - close)
+risk_long  = close - sl_long
+risk_short = sl_short - close
+
+rr_long  = risk_long  > 0 ? (tp_long  - close) / risk_long  : 0.0
+rr_short = risk_short > 0 ? (close - tp_short)  / risk_short : 0.0
 
 buy_signal  = buy_conditions  and rr_long  >= min_risk_reward
 sell_signal = sell_conditions and rr_short >= min_risk_reward
@@ -319,18 +308,18 @@ sell_signal = sell_conditions and rr_short >= min_risk_reward
 var int signal_quality = 50
 
 if buy_signal or sell_signal
-    quality = 50
-    if in_kill_zone                          quality := quality + 15
-    if buy_signal  and in_bullish_fvg        quality := quality + 10
-    if sell_signal and in_bearish_fvg        quality := quality + 10
-    if buy_signal  and in_bullish_ob         quality := quality + 10
-    if sell_signal and in_bearish_ob         quality := quality + 10
-    if buy_signal  and bullish_sweep         quality := quality + 15
-    if sell_signal and bearish_sweep         quality := quality + 15
-    if high_volume                           quality := quality + 5
-    if rsi_4h < 30 and buy_signal            quality := quality + 10
-    if rsi_4h > 70 and sell_signal           quality := quality + 10
-    signal_quality := math.min(quality, 95)
+    q = 50
+    if in_kill_zone                   q := q + 15
+    if buy_signal  and in_bullish_fvg q := q + 10
+    if sell_signal and in_bearish_fvg q := q + 10
+    if buy_signal  and in_bullish_ob  q := q + 10
+    if sell_signal and in_bearish_ob  q := q + 10
+    if buy_signal  and bullish_sweep  q := q + 15
+    if sell_signal and bearish_sweep  q := q + 15
+    if high_volume                    q := q + 5
+    if rsi_4h < 30 and buy_signal     q := q + 10
+    if rsi_4h > 70 and sell_signal    q := q + 10
+    signal_quality := math.min(q, 95)
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TRADE STATE MANAGEMENT
@@ -341,7 +330,6 @@ var float  entry_price     = 0.0
 var float  tp_price        = 0.0
 var float  sl_price        = 0.0
 var int    trade_confidence = 0
-var int    trade_quality    = 0
 
 if buy_signal and active_trade == "NONE"
     active_trade     := "LONG"
@@ -349,14 +337,14 @@ if buy_signal and active_trade == "NONE"
     tp_price         := tp_long
     sl_price         := sl_long
     trade_confidence := signal_quality
-    trade_quality    := signal_quality
 
-    // Clean signal label — entry, TP, SL only
     label.new(bar_index, low,
-         "▲ BUY\nEntry: " + str.tostring(entry_price, "#.00") +
-         "\nTP: "         + str.tostring(tp_price,    "#.00") +
-         "\nSL: "         + str.tostring(sl_price,    "#.00") +
-         "\nConf: "       + str.tostring(trade_confidence) + "%",
+         "🟢 BUY" +
+         "\nEntry: " + str.tostring(close,    "#.00") +
+         "\nTP: "    + str.tostring(tp_long,  "#.00") +
+         "\nSL: "    + str.tostring(sl_long,  "#.00") +
+         "\nConf: "  + str.tostring(signal_quality) + "%" +
+         (in_kill_zone ? " 🎯" : ""),
          style=label.style_label_up,
          color=color.new(color.green, 0),
          textcolor=color.white,
@@ -368,13 +356,14 @@ if sell_signal and active_trade == "NONE"
     tp_price         := tp_short
     sl_price         := sl_short
     trade_confidence := signal_quality
-    trade_quality    := signal_quality
 
     label.new(bar_index, high,
-         "▼ SELL\nEntry: " + str.tostring(entry_price, "#.00") +
-         "\nTP: "          + str.tostring(tp_price,    "#.00") +
-         "\nSL: "          + str.tostring(sl_price,    "#.00") +
-         "\nConf: "        + str.tostring(trade_confidence) + "%",
+         "🔴 SELL" +
+         "\nEntry: " + str.tostring(close,    "#.00") +
+         "\nTP: "    + str.tostring(tp_short, "#.00") +
+         "\nSL: "    + str.tostring(sl_short, "#.00") +
+         "\nConf: "  + str.tostring(signal_quality) + "%" +
+         (in_kill_zone ? " 🎯" : ""),
          style=label.style_label_down,
          color=color.new(color.red, 0),
          textcolor=color.white,
@@ -386,166 +375,157 @@ if active_trade == "SHORT" and (low  <= tp_price or high >= sl_price)
     active_trade := "NONE"
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// TP / SL LINES (per signal)
+// TP / SL LINES
 // ═══════════════════════════════════════════════════════════════════════════════
 
 if buy_signal
-    line.new(bar_index, sl_long, bar_index + 20, sl_long,
-         color=color.new(color.red, 20), width=2, style=line.style_dashed)
-    line.new(bar_index, entry_price, bar_index + 20, entry_price,
-         color=color.new(color.white, 40), width=1, style=line.style_dotted)
-    line.new(bar_index, tp_long,  bar_index + 20, tp_long,
+    line.new(bar_index, sl_long,     bar_index + 20, sl_long,
+         color=color.new(color.red,  20), width=2, style=line.style_dashed)
+    line.new(bar_index, close,       bar_index + 20, close,
+         color=color.new(color.gray, 60), width=1, style=line.style_dotted)
+    line.new(bar_index, tp_long,     bar_index + 20, tp_long,
          color=color.new(color.lime, 20), width=2, style=line.style_solid)
 
 if sell_signal
-    line.new(bar_index, sl_short, bar_index + 20, sl_short,
-         color=color.new(color.red, 20), width=2, style=line.style_dashed)
-    line.new(bar_index, entry_price, bar_index + 20, entry_price,
-         color=color.new(color.white, 40), width=1, style=line.style_dotted)
-    line.new(bar_index, tp_short, bar_index + 20, tp_short,
+    line.new(bar_index, sl_short,    bar_index + 20, sl_short,
+         color=color.new(color.red,  20), width=2, style=line.style_dashed)
+    line.new(bar_index, close,       bar_index + 20, close,
+         color=color.new(color.gray, 60), width=1, style=line.style_dotted)
+    line.new(bar_index, tp_short,    bar_index + 20, tp_short,
          color=color.new(color.lime, 20), width=2, style=line.style_solid)
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// DASHBOARD
+// DASHBOARD  (4 cols × 10 rows — structure unchanged from original)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-var table hub = table.new(position.bottom_left, 4, 11,
-     bgcolor=color.rgb(10, 10, 15),
-     border_color=color.new(color.gray, 60),
-     border_width=1,
-     frame_color=color.new(color.gray, 30),
-     frame_width=1)
+var table hub = table.new(position.bottom_left, 4, 10,
+     bgcolor=color.rgb(10, 10, 10), border_color=color.gray, border_width=1)
 
 if barstate.islast
-    // ── Header ──────────────────────────────────────────────────────────────
-    table.cell(hub, 0, 0, "⚡ ELITE ULTIMATE LITE — NY",
-         text_color=color.white,
-         bgcolor=color.rgb(20, 40, 80),
-         text_size=size.normal)
+    // Row 0 — Header
+    table.cell(hub, 0, 0, "ELITE ULTIMATE LITE - NY",
+         text_color=color.white, bgcolor=color.new(color.blue, 20), text_size=size.normal)
     table.merge_cells(hub, 0, 0, 3, 0)
 
-    // ── Signal ──────────────────────────────────────────────────────────────
-    sig_bg    = active_trade == "LONG"  ? color.rgb(0, 60, 0)  :
-                active_trade == "SHORT" ? color.rgb(70, 0, 0)  : color.rgb(40, 40, 0)
-    sig_color = active_trade == "LONG"  ? color.lime  :
-                active_trade == "SHORT" ? color.red   : color.yellow
+    // Row 1 — Signal
+    sig_color = active_trade == "LONG"  ? color.lime :
+                active_trade == "SHORT" ? color.red  : color.yellow
     sig_text  = active_trade == "LONG"  ? "▲  LONG" :
                 active_trade == "SHORT" ? "▼  SHORT" : "— WAITING"
-
-    table.cell(hub, 0, 1, "SIGNAL", text_color=color.new(color.gray, 20), text_size=size.small, bgcolor=color.rgb(15,15,20))
-    table.cell(hub, 1, 1, sig_text, text_color=sig_color, text_size=size.large, bgcolor=sig_bg)
+    table.cell(hub, 0, 1, "SIGNAL", text_color=color.gray, text_size=size.small)
+    table.cell(hub, 1, 1, sig_text,  text_color=sig_color,  text_size=size.normal)
     table.merge_cells(hub, 1, 1, 3, 1)
 
-    // ── Confidence ──────────────────────────────────────────────────────────
-    conf_color = trade_confidence > 80 ? color.lime :
-                 trade_confidence > 65 ? color.yellow : color.orange
-    table.cell(hub, 0, 2, "CONFIDENCE", text_color=color.new(color.gray, 20), text_size=size.small, bgcolor=color.rgb(15,15,20))
-    table.cell(hub, 1, 2, str.tostring(trade_confidence) + "%", text_color=conf_color, text_size=size.normal)
+    // Row 2 — Confidence | Session
+    conf_color = trade_confidence > 75 ? color.lime :
+                 trade_confidence > 60 ? color.yellow : color.orange
+    table.cell(hub, 0, 2, "CONFIDENCE", text_color=color.gray, text_size=size.small)
+    table.cell(hub, 1, 2, str.tostring(trade_confidence) + "%",
+         text_color=conf_color, text_size=size.normal)
 
-    session_text  = in_ny_kz     ? "NY  🎯"  :
+    session_text  = in_ny_kz     ? "NY 🎯"   :
                     in_london_kz ? "LONDON"   :
-                    in_dead_zone ? "DEAD  🛑" : "Asian"
+                    in_dead_zone ? "DEAD 🛑"  : "Asian"
     session_color = in_ny_kz     ? color.lime :
                     in_london_kz ? color.aqua :
                     in_dead_zone ? color.red  : color.gray
-    table.cell(hub, 2, 2, "SESSION", text_color=color.new(color.gray, 20), text_size=size.small, bgcolor=color.rgb(15,15,20))
-    table.cell(hub, 3, 2, session_text, text_color=session_color, text_size=size.normal)
+    table.cell(hub, 2, 2, "SESSION",     text_color=color.gray,  text_size=size.small)
+    table.cell(hub, 3, 2, session_text,  text_color=session_color, text_size=size.normal)
 
-    // ── Entry ───────────────────────────────────────────────────────────────
-    table.cell(hub, 0, 3, "ENTRY", text_color=color.new(color.gray, 20), text_size=size.small, bgcolor=color.rgb(15,15,20))
-    entry_text = active_trade != "NONE" ? str.tostring(entry_price, "#.00") : "—"
-    table.cell(hub, 1, 3, entry_text, text_color=color.white, text_size=size.normal)
+    // Row 3 — Entry | 4H RSI
+    table.cell(hub, 0, 3, "ENTRY", text_color=color.gray, text_size=size.small)
+    entry_disp = active_trade != "NONE" ? str.tostring(entry_price, "#.00") : "WAIT"
+    table.cell(hub, 1, 3, entry_disp, text_color=color.white, text_size=size.normal)
 
-    table.cell(hub, 2, 3, "4H RSI", text_color=color.new(color.gray, 20), text_size=size.small, bgcolor=color.rgb(15,15,20))
     rsi_color = rsi_4h < 30 ? color.lime : rsi_4h > 70 ? color.red : color.yellow
-    table.cell(hub, 3, 3, str.tostring(rsi_4h, "#.0"), text_color=rsi_color, text_size=size.normal)
+    table.cell(hub, 2, 3, "4H RSI",                          text_color=color.gray,  text_size=size.small)
+    table.cell(hub, 3, 3, str.tostring(rsi_4h, "#.0"),       text_color=rsi_color,   text_size=size.normal)
 
-    // ── Take Profit ─────────────────────────────────────────────────────────
-    table.cell(hub, 0, 4, "TAKE PROFIT", text_color=color.new(color.gray, 20), text_size=size.small, bgcolor=color.rgb(15,15,20))
-    tp_text = active_trade != "NONE" ? str.tostring(tp_price, "#.00") : "—"
-    table.cell(hub, 1, 4, tp_text, text_color=color.lime, text_size=size.normal)
+    // Row 4 — Take Profit (full width)
+    table.cell(hub, 0, 4, "TAKE PROFIT", text_color=color.gray, text_size=size.small)
+    tp_disp = active_trade != "NONE" ? str.tostring(tp_price, "#.00") : "—"
+    table.cell(hub, 1, 4, tp_disp, text_color=color.lime, text_size=size.normal)
     table.merge_cells(hub, 1, 4, 3, 4)
 
-    // ── Stop Loss ───────────────────────────────────────────────────────────
-    table.cell(hub, 0, 5, "STOP LOSS", text_color=color.new(color.gray, 20), text_size=size.small, bgcolor=color.rgb(15,15,20))
-    sl_text = active_trade != "NONE" ? str.tostring(sl_price, "#.00") : "—"
-    table.cell(hub, 1, 5, sl_text, text_color=color.red, text_size=size.normal)
+    // Row 5 — Stop Loss (full width)
+    table.cell(hub, 0, 5, "STOP LOSS", text_color=color.gray, text_size=size.small)
+    sl_disp = active_trade != "NONE" ? str.tostring(sl_price, "#.00") : "—"
+    table.cell(hub, 1, 5, sl_disp, text_color=color.red, text_size=size.normal)
     table.merge_cells(hub, 1, 5, 3, 5)
 
-    // ── Regime / Smart Money ────────────────────────────────────────────────
-    regime_text  = regime_score > 3 ? "BULL 🐂" : regime_score < -3 ? "BEAR 🐻" : "NEUTRAL"
-    regime_color = regime_score > 3 ? color.lime : regime_score < -3 ? color.red : color.yellow
-    table.cell(hub, 0, 6, "REGIME", text_color=color.new(color.gray, 20), text_size=size.small, bgcolor=color.rgb(15,15,20))
+    // Row 6 — Regime | Smart Money
+    regime_text  = regime_score > 3  ? "BULL 🐂" :
+                   regime_score < -3 ? "BEAR 🐻" : "NEUTRAL"
+    regime_color = regime_score > 3  ? color.lime :
+                   regime_score < -3 ? color.red  : color.yellow
+    table.cell(hub, 0, 6, "REGIME",    text_color=color.gray, text_size=size.small)
     table.cell(hub, 1, 6, regime_text, text_color=regime_color, text_size=size.normal)
 
     smart_active = in_bullish_fvg or in_bearish_fvg or in_bullish_ob or in_bearish_ob
-    table.cell(hub, 2, 6, "SMART $", text_color=color.new(color.gray, 20), text_size=size.small, bgcolor=color.rgb(15,15,20))
+    table.cell(hub, 2, 6, "SMART $", text_color=color.gray, text_size=size.small)
     table.cell(hub, 3, 6, smart_active ? "ACTIVE" : "Clear",
          text_color=smart_active ? color.lime : color.gray, text_size=size.normal)
 
-    // ── Trend Bias ──────────────────────────────────────────────────────────
-    bias_text  = close > ema200 ? "▲ Bullish" : close < ema200 ? "▼ Bearish" : "◆ Ranging"
-    bias_color = close > ema200 ? color.lime  : close < ema200 ? color.red   : color.yellow
-    table.cell(hub, 0, 7, "BIAS", text_color=color.new(color.gray, 20), text_size=size.small, bgcolor=color.rgb(15,15,20))
-    table.cell(hub, 1, 7, bias_text, text_color=bias_color, text_size=size.normal)
-    table.merge_cells(hub, 1, 7, 3, 7)
-
-    // ── News ─────────────────────────────────────────────────────────────────
-    table.cell(hub, 0, 8, "NEWS", text_color=color.new(color.gray, 20), text_size=size.small, bgcolor=color.rgb(15,15,20))
-    if next_event != ""
-        table.cell(hub, 1, 8, next_event, text_color=color.yellow, text_size=size.small)
-    else
-        table.cell(hub, 1, 8, "Clear ✅", text_color=color.lime, text_size=size.small)
-    table.merge_cells(hub, 1, 8, 3, 8)
-
-    // ── Status ───────────────────────────────────────────────────────────────
-    status_text  = news_pause      ? "PRE-EVENT  🛑"  :
-                   in_dead_zone    ? "DEAD ZONE  🛑"  :
-                   in_ny_kz        ? "NY LIVE  🎯"    :
-                   in_london_kz    ? "LONDON  🟢"     : "Monitoring"
+    // Row 7 — Status (full width)
+    status_text  = news_pause   ? "PRE-EVENT 🛑"  :
+                   in_dead_zone ? "DEAD ZONE 🛑"  :
+                   in_ny_kz     ? "NY LIVE 🎯"    :
+                   in_london_kz ? "LONDON 🟢"     : "Monitoring"
     status_color = news_pause or in_dead_zone ? color.red :
                    in_kill_zone ? color.lime : color.yellow
-    table.cell(hub, 0, 9, "STATUS", text_color=color.new(color.gray, 20), text_size=size.small, bgcolor=color.rgb(15,15,20))
-    table.cell(hub, 1, 9, status_text, text_color=status_color, text_size=size.normal)
-    table.merge_cells(hub, 1, 9, 3, 9)
+    table.cell(hub, 0, 7, "STATUS",     text_color=color.gray, text_size=size.small)
+    table.cell(hub, 1, 7, status_text,  text_color=status_color, text_size=size.normal)
+    table.merge_cells(hub, 1, 7, 3, 7)
 
-    // ── Footer ───────────────────────────────────────────────────────────────
-    table.cell(hub, 0, 10, "10-20 signals/day  |  NY 13:00 UTC  |  Simple + Smart",
-         text_color=color.new(color.gray, 40), text_size=size.tiny,
-         bgcolor=color.rgb(10, 10, 15))
-    table.merge_cells(hub, 0, 10, 3, 10)
+    // Row 8 — Bias (full width)
+    bias_text  = close > ema200 ? "▲ Bullish Trend" :
+                 close < ema200 ? "▼ Bearish Trend" : "◆ Ranging"
+    bias_color = close > ema200 ? color.lime :
+                 close < ema200 ? color.red  : color.yellow
+    table.cell(hub, 0, 8, "BIAS",     text_color=color.gray, text_size=size.small)
+    table.cell(hub, 1, 8, bias_text,  text_color=bias_color, text_size=size.small)
+    table.merge_cells(hub, 1, 8, 3, 8)
+
+    // Row 9 — News
+    table.cell(hub, 0, 9, "NEWS", text_color=color.gray, text_size=size.small)
+    if next_event != ""
+        table.cell(hub, 1, 9, next_event, text_color=color.yellow, text_size=size.tiny)
+        table.merge_cells(hub, 1, 9, 3, 9)
+    else
+        table.cell(hub, 1, 9, "Clear ✅", text_color=color.lime, text_size=size.small)
+        table.merge_cells(hub, 1, 9, 3, 9)
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// ALERTS  (const string — CE10123 fix)
+// ALERTS  — const string only (fixes CE10123)
 // ═══════════════════════════════════════════════════════════════════════════════
 
 alertcondition(buy_signal,
      "Buy Signal",
-     "BUY Signal fired — check dashboard for Entry / TP / SL")
+     "🟢 BUY — Check dashboard for Entry / TP / SL")
 
 alertcondition(sell_signal,
      "Sell Signal",
-     "SELL Signal fired — check dashboard for Entry / TP / SL")
+     "🔴 SELL — Check dashboard for Entry / TP / SL")
 
 alertcondition(in_ny_kz and not in_ny_kz[1],
      "NY Session Start",
-     "NY KILL ZONE ACTIVE (13:00 UTC) — Prime trading time!")
+     "🇺🇸 NY KILL ZONE ACTIVE (13:00 UTC) - Prime trading time!")
 
 alertcondition(in_london_kz and not in_london_kz[1],
      "London Session Start",
-     "LONDON KILL ZONE ACTIVE (08:00 UTC)")
+     "🇬🇧 LONDON KILL ZONE ACTIVE (08:00 UTC)")
 
 alertcondition(bullish_sweep,
      "Bullish Sweep",
-     "LIQUIDITY SWEEP UP — Bullish reversal likely")
+     "LIQUIDITY SWEEP ↑ - Reversal likely")
 
 alertcondition(bearish_sweep,
      "Bearish Sweep",
-     "LIQUIDITY SWEEP DOWN — Bearish reversal likely")
+     "LIQUIDITY SWEEP ↓ - Reversal likely")
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // EMA PLOTS
 // ═══════════════════════════════════════════════════════════════════════════════
 
-plot(ema50,  "EMA 50",  color=color.new(color.blue,   40), linewidth=1)
-plot(ema200, "EMA 200", color=color.new(color.orange, 40), linewidth=2)
+plot(ema50,  "EMA 50",  color=color.new(color.blue,   50), linewidth=1)
+plot(ema200, "EMA 200", color=color.new(color.orange, 50), linewidth=2)
