@@ -547,8 +547,9 @@ if show_sessions and (current_hour == london_start or current_hour == ny_start)
          size=size.small)
 
 // Highlight kill zones — bgcolor must be at global scope (CE10188)
-bgcolor(show_kill_zones and in_killzone  ? color.new(color.green, 95) : na, title="Kill Zone")
-bgcolor(show_kill_zones and in_dead_zone ? color.new(color.red,   95) : na, title="Dead Zone")
+// color(na) used explicitly so Pine Script v6 can infer the color type (plain `na` is ambiguous)
+bgcolor(show_kill_zones and in_killzone  ? color.new(color.green, 95) : color(na), title="Kill Zone")
+bgcolor(show_kill_zones and in_dead_zone ? color.new(color.red,   95) : color(na), title="Dead Zone")
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // LIQUIDITY CONCEPTS - EQUAL HIGHS/LOWS & SWEEPS
@@ -1175,5 +1176,7 @@ alertcondition(bullish_divergence, "Bullish Divergence", "BULLISH DIVERGENCE - R
 alertcondition(bearish_divergence, "Bearish Divergence", "BEARISH DIVERGENCE - Reversal signal")
 alertcondition(daily_limit_hit, "Daily Limit Hit", "⛔ DAILY LOSS LIMIT REACHED - STOP TRADING")
 
-plot(final_score, "Signal Score", display=display.none)
+// Signal Score: 100%-transparent so invisible on chart, but a non-display.none plot()
+// satisfies CE10246 (indicator must have at least one output function)
+plot(final_score, "Signal Score", color=color.new(color.gray, 100))
 plot(impact_level == "EXTREME" ? 1 : impact_level == "HIGH" ? 2 : impact_level == "MODERATE" ? 3 : 4, "Impact", display=display.none)
