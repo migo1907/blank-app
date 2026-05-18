@@ -551,9 +551,7 @@ news_shock_detected = atr_shock and volume_shock
 
 var string impact_level = "NORMAL"
 if news_shock_detected
-    impact_level := velocity_per_minute > velocity_extreme  ? "EXTREME"  :
-                    velocity_per_minute > velocity_high     ? "HIGH"     :
-                    velocity_per_minute > velocity_moderate ? "MODERATE" : "NORMAL"
+    impact_level := velocity_per_minute > velocity_extreme ? "EXTREME" : velocity_per_minute > velocity_high ? "HIGH" : velocity_per_minute > velocity_moderate ? "MODERATE" : "NORMAL"
 
 var int bars_since_shock = 999
 bars_since_shock := news_shock_detected ? 0 : bars_since_shock + 1
