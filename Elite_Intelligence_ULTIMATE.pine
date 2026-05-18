@@ -1022,72 +1022,75 @@ buy_signal = final_score >= buy_threshold and rr_long >= min_risk_reward and not
 sell_signal = final_score <= sell_threshold and rr_short >= min_risk_reward and not trading_paused
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// DASHBOARD
+// DASHBOARD  (table-based — locked to chart corner, not bar/price position)
 // ═══════════════════════════════════════════════════════════════════════════════
+
+// Declared at global scope so it persists across bar evaluations
+var table dashboard_tbl = na
 
 if show_dashboard and barstate.islast
     dashboard_text = ""
-    
+
     dashboard_text := dashboard_text + "═════════════════════════════\n"
     dashboard_text := dashboard_text + "ELITE INTELLIGENCE ULTIMATE\n"
     dashboard_text := dashboard_text + "Timeframe: " + tf_display + " (Auto-Optimized)\n"
     dashboard_text := dashboard_text + "═════════════════════════════\n\n"
-    
+
     // Fundamental
     dashboard_text := dashboard_text + "📊 FUNDAMENTAL (" + str.tostring(fundamental_score, "#.0") + ")\n"
     dashboard_text := dashboard_text + "Regime: " + (fundamental_score > 0 ? "BULLISH" : fundamental_score < 0 ? "BEARISH" : "NEUTRAL") + "\n"
     dashboard_text := dashboard_text + "Confidence: " + str.tostring(intelligence_confidence) + "%\n\n"
-    
+
     // Technical
     dashboard_text := dashboard_text + "📈 TECHNICAL (" + str.tostring(technical_score, "#.1") + ")\n"
     dashboard_text := dashboard_text + "4H RSI: " + str.tostring(rsi_4h, "#.1")
-    dashboard_text := dashboard_text + (rsi_4h < 25 ? " (EXTREME OS) 🟢" : rsi_4h < 30 ? " (OS) 🟡" : 
+    dashboard_text := dashboard_text + (rsi_4h < 25 ? " (EXTREME OS) 🟢" : rsi_4h < 30 ? " (OS) 🟡" :
                                         rsi_4h > 75 ? " (EXTREME OB) 🔴" : rsi_4h > 70 ? " (OB) 🟠" : " ⚪") + "\n"
     dashboard_text := dashboard_text + "Structure: " + market_structure + "\n"
     dashboard_text := dashboard_text + (conflicting ? "⚠️ CONFLICT\n\n" : "✅ ALIGNED\n\n")
-    
+
     // Smart Money
     dashboard_text := dashboard_text + "💎 SMART MONEY\n"
-    dashboard_text := dashboard_text + (in_bullish_fvg ? "In Bullish FVG ✅\n" : 
+    dashboard_text := dashboard_text + (in_bullish_fvg ? "In Bullish FVG ✅\n" :
                                         in_bearish_fvg ? "In Bearish FVG ⚠️\n" : "No FVG\n")
-    dashboard_text := dashboard_text + (in_bullish_ob ? "In Bullish OB ✅\n" : 
+    dashboard_text := dashboard_text + (in_bullish_ob ? "In Bullish OB ✅\n" :
                                         in_bearish_ob ? "In Bearish OB ⚠️\n" : "No OB\n")
     dashboard_text := dashboard_text + (bullish_sweep_detected ? "Bullish Sweep! 🟢\n" :
                                         bearish_sweep_detected ? "Bearish Sweep! 🔴\n" : "")
     dashboard_text := dashboard_text + (bullish_divergence ? "Bullish Div ✅\n" :
                                         bearish_divergence ? "Bearish Div ⚠️\n" : "")
     dashboard_text := dashboard_text + "\n"
-    
+
     // Session
     dashboard_text := dashboard_text + "🕐 SESSION\n"
     dashboard_text := dashboard_text + (in_london_killzone ? "London Kill Zone 🎯\n" :
                                         in_ny_killzone ? "NY Kill Zone 🎯\n" :
                                         in_dead_zone ? "DEAD ZONE 🛑\n" : "Normal Hours\n")
     dashboard_text := dashboard_text + "\n"
-    
+
     // Calendar
     dashboard_text := dashboard_text + "📅 CALENDAR\n"
     if next_event_name != ""
         dashboard_text := dashboard_text + "Next: " + next_event_name + "\n"
     dashboard_text := dashboard_text + (calendar_pause_active ? "PRE-EVENT 🛑\n\n" : "Clear ✅\n\n")
-    
+
     // Volatility
     dashboard_text := dashboard_text + "⚡ VOLATILITY\n"
     dashboard_text := dashboard_text + "Impact: " + impact_level
-    dashboard_text := dashboard_text + (impact_level == "EXTREME" ? " 🔴" : 
-                                        impact_level == "HIGH" ? " 🟠" : 
+    dashboard_text := dashboard_text + (impact_level == "EXTREME" ? " 🔴" :
+                                        impact_level == "HIGH" ? " 🟠" :
                                         impact_level == "MODERATE" ? " 🟡" : " ✅") + "\n"
     dashboard_text := dashboard_text + (shock_pause_active ? "Shock Pause: " + str.tostring(pause_duration - bars_since_shock) + " bars\n\n" : "\n")
-    
+
     // Protection
     if enable_protection
         dashboard_text := dashboard_text + "🛡️ PROTECTION\n"
         dashboard_text := dashboard_text + (daily_limit_hit ? "⛔ DAILY LIMIT HIT\n\n" : "Active ✅\n\n")
-    
+
     // Final Signal
     dashboard_text := dashboard_text + "🎯 SIGNAL (" + str.tostring(final_score, "#.1") + ")\n"
     dashboard_text := dashboard_text + "Strength: " + signal_strength + "\n"
-    
+
     if trading_paused
         pause_reason = calendar_pause_active ? "PRE-EVENT" :
                        shock_pause_active ? "NEWS SHOCK" :
@@ -1109,22 +1112,31 @@ if show_dashboard and barstate.islast
         dashboard_text := dashboard_text + "R:R: " + str.tostring(rr_short, "#.1") + ":1\n"
     else
         dashboard_text := dashboard_text + "⚪ NO SIGNAL\n"
-    
-    dashboard_color = buy_signal ? color.new(color.green, 10) :
-                      sell_signal ? color.new(color.red, 10) :
+
+    dashboard_color = buy_signal  ? color.new(color.green,  10) :
+                      sell_signal ? color.new(color.red,    10) :
                       trading_paused ? color.new(color.orange, 10) :
                       color.new(color.gray, 10)
-    
-    var label dashboard_label = na
-    label.delete(dashboard_label)
-    dashboard_label := label.new(
-         x=bar_index + (dashboard_position == "Top Right" or dashboard_position == "Bottom Right" ? 2 : -40),
-         y=dashboard_position == "Top Right" or dashboard_position == "Top Left" ? high : low,
-         text=dashboard_text,
-         style=label.style_label_left,
-         color=dashboard_color,
-         textcolor=color.white,
-         size=size.small)
+
+    // Map setting string to position constant
+    tbl_pos = dashboard_position == "Top Right"    ? position.top_right    :
+              dashboard_position == "Top Left"     ? position.top_left     :
+              dashboard_position == "Bottom Right" ? position.bottom_right :
+                                                     position.bottom_left
+
+    // Create table once; update the single cell on every subsequent tick
+    if na(dashboard_tbl)
+        dashboard_tbl := table.new(tbl_pos, 1, 1,
+             border_width=1,
+             border_color=color.gray,
+             frame_width=1,
+             frame_color=color.gray)
+
+    table.cell(dashboard_tbl, 0, 0, dashboard_text,
+         text_color=color.white,
+         text_size=size.small,
+         bgcolor=dashboard_color,
+         text_halign=text.align_left)
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SIGNALS ON CHART
