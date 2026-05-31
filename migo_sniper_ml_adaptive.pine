@@ -101,14 +101,15 @@ clampW(w) =>
 
 // Weighted Lorentzian distance across 8 features
 wLorDist(a1, a2, a3, a4, a5, a6, a7, a8, b1, b2, b3, b4, b5, b6, b7, b8, _w1, _w2, _w3, _w4, _w5, _w6, _w7, _w8) =>
-    _w1 * math.log(1.0 + math.abs(a1 - b1)) +
-    _w2 * math.log(1.0 + math.abs(a2 - b2)) +
-    _w3 * math.log(1.0 + math.abs(a3 - b3)) +
-    _w4 * math.log(1.0 + math.abs(a4 - b4)) +
-    _w5 * math.log(1.0 + math.abs(a5 - b5)) +
-    _w6 * math.log(1.0 + math.abs(a6 - b6)) +
-    _w7 * math.log(1.0 + math.abs(a7 - b7)) +
-    _w8 * math.log(1.0 + math.abs(a8 - b8))
+    float _d = _w1 * math.log(1.0 + math.abs(a1 - b1))
+    _d += _w2 * math.log(1.0 + math.abs(a2 - b2))
+    _d += _w3 * math.log(1.0 + math.abs(a3 - b3))
+    _d += _w4 * math.log(1.0 + math.abs(a4 - b4))
+    _d += _w5 * math.log(1.0 + math.abs(a5 - b5))
+    _d += _w6 * math.log(1.0 + math.abs(a6 - b6))
+    _d += _w7 * math.log(1.0 + math.abs(a7 - b7))
+    _d += _w8 * math.log(1.0 + math.abs(a8 - b8))
+    _d
 
 // Rational Quadratic Kernel regression
 rqKernel(src, h, alpha, window) =>
