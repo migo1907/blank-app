@@ -1,80 +1,176 @@
+"""
+GitHub-based persistence layer.
+Reads/writes JSON files in your GitHub repo instead of a database.
+No Supabase needed — 100% free.
+
+Files stored in repo (branch: data or main):
+  data/weights.json       — adaptive KNN weights (one object)
+  data/trade_history.json — array of all trade outcomes
+  data/news_cache.json    — recent news sentiment items
+  data/signals.json       — recent generated signals
+"""
 import os
-from supabase import create_client, Client
+import json
+import base64
+import httpx
+from datetime import datetime, timezone, timedelta
 from dotenv import load_dotenv
 
 load_dotenv()
 
-_client: Client | None = None
+GITHUB_TOKEN  = os.environ.get("GITHUB_TOKEN", "")
+GITHUB_REPO   = os.environ.get("GITHUB_REPO", "")        # e.g. "migo1907/blank-app"
+GITHUB_BRANCH = os.environ.get("GITHUB_BRANCH", "data")  # dedicated data branch
+
+BASE_URL = "https://api.github.com"
+HEADERS  = {
+    "Authorization": f"Bearer {GITHUB_TOKEN}",
+    "Accept": "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28",
+}
+
+# Default weights file content
+DEFAULT_WEIGHTS = {
+    "symbol": "XAUUSD",
+    "w1": 1.0, "w2": 1.0, "w3": 1.0, "w4": 1.0,
+    "w5": 1.0, "w6": 1.0, "w7": 1.0, "w8": 1.0,
+    "total_wins": 0,
+    "total_losses": 0,
+    "updated_at": datetime.now(timezone.utc).isoformat(),
+}
 
 
-def get_db() -> Client:
-    global _client
-    if _client is None:
-        url = os.environ["SUPABASE_URL"]
-        key = os.environ["SUPABASE_SERVICE_KEY"]
-        _client = create_client(url, key)
-    return _client
+# ── Low-level GitHub file API ─────────────────────────────────────────────────
+
+def _get_file(path: str) -> tuple[dict | list | None, str | None]:
+    """Returns (content, sha). sha is needed for updates."""
+    with httpx.Client(timeout=10) as client:
+        resp = client.get(
+            f"{BASE_URL}/repos/{GITHUB_REPO}/contents/{path}",
+            headers=HEADERS,
+            params={"ref": GITHUB_BRANCH},
+        )
+    if resp.status_code == 404:
+        return None, None
+    resp.raise_for_status()
+    data = resp.json()
+    content = json.loads(base64.b64decode(data["content"]).decode())
+    return content, data["sha"]
 
 
-# ── Weights ──────────────────────────────────────────────────
+def _put_file(path: str, content: dict | list, sha: str | None, message: str) -> None:
+    """Create or update a file in the repo."""
+    encoded = base64.b64encode(json.dumps(content, indent=2).encode()).decode()
+    payload: dict = {
+        "message": message,
+        "content": encoded,
+        "branch": GITHUB_BRANCH,
+    }
+    if sha:
+        payload["sha"] = sha
+    with httpx.Client(timeout=15) as client:
+        resp = client.put(
+            f"{BASE_URL}/repos/{GITHUB_REPO}/contents/{path}",
+            headers=HEADERS,
+            json=payload,
+        )
+    resp.raise_for_status()
+
+
+# ── Weights ───────────────────────────────────────────────────────────────────
 
 def load_weights(symbol: str = "XAUUSD") -> dict:
-    db = get_db()
-    row = db.table("model_weights").select("*").eq("symbol", symbol).single().execute()
-    return row.data
+    data, _ = _get_file("data/weights.json")
+    if data is None:
+        print("[db] weights.json not found — using defaults.")
+        return dict(DEFAULT_WEIGHTS)
+    return data
 
 
 def save_weights(symbol: str, weights: dict) -> None:
-    db = get_db()
-    db.table("model_weights").update({**weights, "updated_at": "now()"}).eq("symbol", symbol).execute()
+    _, sha = _get_file("data/weights.json")
+    weights["updated_at"] = datetime.now(timezone.utc).isoformat()
+    weights["symbol"] = symbol
+    _put_file(
+        "data/weights.json",
+        weights,
+        sha,
+        f"chore: update adaptive weights — wins={weights.get('total_wins',0)} losses={weights.get('total_losses',0)}",
+    )
 
 
-# ── Trade outcomes ────────────────────────────────────────────
+# ── Trade outcomes ─────────────────────────────────────────────────────────────
 
 def insert_outcome(outcome: dict) -> None:
-    get_db().table("trade_outcomes").insert(outcome).execute()
+    history, sha = _get_file("data/trade_history.json")
+    if history is None:
+        history = []
+    outcome["id"] = len(history) + 1
+    outcome.setdefault("created_at", datetime.now(timezone.utc).isoformat())
+    history.append(outcome)
+    # Keep last 1000 trades to avoid huge files
+    if len(history) > 1000:
+        history = history[-1000:]
+    _put_file(
+        "data/trade_history.json",
+        history,
+        sha,
+        f"data: record {outcome['outcome']} {outcome.get('direction','')} trade",
+    )
 
 
 def recent_outcomes(symbol: str = "XAUUSD", limit: int = 200) -> list[dict]:
-    db = get_db()
-    result = (
-        db.table("trade_outcomes")
-        .select("*")
-        .eq("symbol", symbol)
-        .order("created_at", desc=True)
-        .limit(limit)
-        .execute()
-    )
-    return result.data
+    history, _ = _get_file("data/trade_history.json")
+    if not history:
+        return []
+    filtered = [t for t in history if t.get("symbol") == symbol]
+    return list(reversed(filtered))[:limit]
 
 
-# ── News sentiment ────────────────────────────────────────────
+# ── News sentiment ─────────────────────────────────────────────────────────────
 
 def insert_news(items: list[dict]) -> None:
-    if items:
-        get_db().table("news_sentiment").insert(items).execute()
+    if not items:
+        return
+    cache, sha = _get_file("data/news_cache.json")
+    if cache is None:
+        cache = []
+    now = datetime.now(timezone.utc)
+    for item in items:
+        item.setdefault("fetched_at", now.isoformat())
+    cache.extend(items)
+    # Keep last 200 news items
+    if len(cache) > 200:
+        cache = cache[-200:]
+    _put_file("data/news_cache.json", cache, sha, "data: update news sentiment cache")
 
 
 def recent_news(hours: int = 4) -> list[dict]:
-    db = get_db()
-    result = (
-        db.table("news_sentiment")
-        .select("sentiment_score, impact, headline, fetched_at")
-        .gte("fetched_at", f"now() - interval '{hours} hours'")
-        .order("fetched_at", desc=True)
-        .limit(50)
-        .execute()
-    )
-    return result.data
+    cache, _ = _get_file("data/news_cache.json")
+    if not cache:
+        return []
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
+    return [
+        n for n in cache
+        if datetime.fromisoformat(n.get("fetched_at", "2000-01-01")).replace(tzinfo=timezone.utc) >= cutoff
+    ]
 
 
-# ── Signals ───────────────────────────────────────────────────
+# ── Signals ────────────────────────────────────────────────────────────────────
 
 def insert_signal(signal: dict) -> dict:
-    result = get_db().table("signals").insert(signal).execute()
-    return result.data[0]
+    signals, sha = _get_file("data/signals.json")
+    if signals is None:
+        signals = []
+    signal["id"] = len(signals) + 1
+    signal.setdefault("created_at", datetime.now(timezone.utc).isoformat())
+    signals.append(signal)
+    if len(signals) > 100:
+        signals = signals[-100:]
+    _put_file("data/signals.json", signals, sha, f"data: new {signal.get('direction','?')} signal")
+    return signal
 
 
 def expire_old_signals(symbol: str = "XAUUSD") -> None:
-    db = get_db()
-    db.table("signals").update({"status": "EXPIRED"}).eq("symbol", symbol).eq("status", "ACTIVE").lt("expires_at", "now()").execute()
+    # Handled passively — old signals are just overwritten in the file
+    pass

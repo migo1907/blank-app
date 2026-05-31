@@ -1,100 +1,116 @@
 # Migo Sniper Pro — Level 2 Cloud Backend Setup
-
-## What This Does
+## Storage: GitHub (no database needed, 100% free)
 
 ```
 TradingView Pine Script
     │  trade closes (WIN/LOSS)
-    │  POST /webhook/trade-outcome  (JSON with features)
+    │  POST /webhook/trade-outcome
     ▼
 FastAPI Backend (Railway/Render — free)
     │
-    ├── Updates KNN weights in Supabase (persistent cross-session learning)
-    ├── Stores trade history in Supabase
-    ├── Every 15 min: fetches news → scores sentiment with Claude
-    └── Sends signals to your Telegram channel
+    ├── Reads/writes weights.json in your GitHub repo  ← persistent learning
+    ├── Appends trade to trade_history.json
+    ├── Every 15 min: fetches news → scores with Claude → updates news_cache.json
+    └── Sends BUY/SELL signals to your Telegram channel
+```
+
+### Data files auto-created in your repo (branch: `data`)
+```
+data/weights.json        ← adaptive KNN weights (survives forever)
+data/trade_history.json  ← every trade outcome ever recorded
+data/news_cache.json     ← recent news sentiment scores
+data/signals.json        ← generated signal log
 ```
 
 ---
 
-## Step 1 — Supabase Setup
+## Step 1 — Create GitHub Personal Access Token
 
-1. Go to **supabase.com** → New Project
-2. Open **SQL Editor** → New Query
-3. Paste the full contents of `supabase_schema.sql` and click **Run**
-4. Go to **Settings → API** and copy:
-   - `Project URL` → `SUPABASE_URL`
-   - `service_role` key (not anon) → `SUPABASE_SERVICE_KEY`
+1. GitHub → **Settings** → **Developer settings** → **Personal access tokens** → **Tokens (classic)**
+2. Click **Generate new token (classic)**
+3. Name: `migo-sniper-backend`
+4. Expiration: No expiration (or 1 year)
+5. Scopes: check only **`repo`** (full repo access)
+6. Click **Generate token** → copy it → `GITHUB_TOKEN`
 
 ---
 
-## Step 2 — Get API Keys
+## Step 2 — Create the `data` Branch
+
+In your repo (migo1907/blank-app), create a branch called `data`:
+```bash
+git checkout -b data
+git push origin data
+```
+Or on GitHub.com: click the branch dropdown → type `data` → Create branch.
+
+---
+
+## Step 3 — Get API Keys
 
 | Service | URL | Free Tier |
 |---------|-----|-----------|
 | NewsAPI | newsapi.org/register | 100 req/day |
-| Anthropic | console.anthropic.com | pay per use (~$0.72/month) |
-| Telegram | Create bot via @BotFather | Free |
+| Anthropic | console.anthropic.com | ~$0.72/month (haiku) |
+| Telegram | @BotFather on Telegram | Free |
 
 ### Create Telegram Bot
-1. Message **@BotFather** on Telegram → `/newbot`
-2. Copy the token → `TELEGRAM_BOT_TOKEN`
-3. Create a channel/group, add your bot as admin
-4. Get chat ID: send a message then visit `https://api.telegram.org/bot<TOKEN>/getUpdates`
-5. Copy the `chat.id` field → `TELEGRAM_CHAT_ID`
+1. Message **@BotFather** → `/newbot` → follow steps
+2. Copy token → `TELEGRAM_BOT_TOKEN`
+3. Create a Telegram channel, add your bot as admin
+4. Get chat ID: visit `https://api.telegram.org/bot<TOKEN>/getUpdates` after sending one message
+5. Copy `chat.id` → `TELEGRAM_CHAT_ID`
 
 ---
 
-## Step 3 — Deploy Backend
+## Step 4 — Deploy Backend
 
-### Option A: Railway (recommended, free tier)
-1. Push this repo to GitHub
-2. Go to railway.app → New Project → Deploy from GitHub
-3. Add environment variables from `.env.example`
-4. Railway gives you a public URL like `https://your-app.up.railway.app`
+### Option A: Railway (recommended)
+1. Go to **railway.app** → New Project → Deploy from GitHub repo
+2. Set root directory to `backend/`
+3. Add all environment variables from `.env.example`
+4. Railway gives you: `https://your-app.up.railway.app`
 
-### Option B: Run Locally (for testing)
+### Option B: Local + ngrok (for testing)
 ```bash
 cd backend
 pip install -r requirements.txt
 cp .env.example .env
-# fill in .env with your keys
+# edit .env with your real keys
 uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+# in another terminal:
+ngrok http 8000
 ```
 
-For public access while testing: use `ngrok http 8000` → copy the HTTPS URL
-
 ---
 
-## Step 4 — Configure Pine Script
+## Step 5 — Pine Script Setup
 
 1. Open `migo_sniper_ml_webhook.pine` in TradingView Pine Editor
-2. Add to chart on XAUUSD 5m
-3. In the **☁️ Cloud Backend** settings group, set:
-   - **Webhook Secret**: same as your `WEBHOOK_SECRET` env var
+2. Add to chart on **XAUUSD 5m**
+3. In the **☁️ Cloud Backend** input group, set **Webhook Secret** to your `WEBHOOK_SECRET`
 
 ---
 
-## Step 5 — Set Up TradingView Alert
+## Step 6 — TradingView Alert
 
-1. In TradingView, click the **Alerts** clock icon → **Create Alert**
-2. Condition: **Migo Sniper Pro [ML + Adaptive + Cloud]** → Any alert() function call
-3. **Alert actions**: enable **Webhook URL**
-4. Paste your backend URL: `https://your-app.up.railway.app/webhook/trade-outcome`
-5. Message field: leave as is (Pine's `alert()` call sends the JSON payload)
-6. Click **Create**
+1. TradingView → **Alerts** → **Create Alert**
+2. Condition: **Migo Sniper Pro [ML + Adaptive + Cloud]** → *Any alert() function call*
+3. Enable **Webhook URL** → paste: `https://your-app.up.railway.app/webhook/trade-outcome`
+4. Click **Create**
+
+That's it. Every trade close fires the webhook → Python updates `weights.json` in GitHub → weights persist across all sessions forever.
 
 ---
 
-## Step 6 — Verify It Works
+## Step 7 — Verify It Works
 
-Test the webhook manually:
 ```bash
 curl -X POST https://your-app.up.railway.app/webhook/trade-outcome \
   -H "Content-Type: application/json" \
   -d '{
     "secret": "your_secret",
-    "trade_id": "XAUUSD_test_123",
+    "trade_id": "XAUUSD_test_1",
     "direction": "LONG",
     "outcome": "WIN",
     "tp_stage": "TP3",
@@ -106,32 +122,12 @@ curl -X POST https://your-app.up.railway.app/webhook/trade-outcome \
   }'
 ```
 
-Expected response:
-```json
-{
-  "status": "ok",
-  "outcome": "WIN",
-  "new_weights": {"w1": 1.006, "w2": 1.006, ...},
-  "win_rate": 100.0
-}
-```
+Then check your repo — `data/weights.json` should appear with updated weights.
 
-Check the dashboard:
+Check dashboard:
 ```
 GET https://your-app.up.railway.app/dashboard?secret=your_secret
 ```
-
----
-
-## How Learning Works (Level 2)
-
-| Level 1 (Pine only) | Level 2 (Cloud) |
-|--------------------|-----------------|
-| Weights reset on chart reload | Weights persist forever in Supabase |
-| No news awareness | News sentiment from NewsAPI + Claude |
-| 8 features only | 8 features + news bias combined |
-| Signal on chart only | Signal pushed to Telegram every 15 min |
-| No trade history | Full audit trail in Supabase |
 
 ---
 
@@ -144,3 +140,16 @@ GET https://your-app.up.railway.app/dashboard?secret=your_secret
 | `/weights?secret=...` | GET | View current adaptive weights |
 | `/signal/now?secret=...` | GET | Trigger immediate signal cycle |
 | `/dashboard?secret=...` | GET | Full system status |
+
+---
+
+## Cost Summary
+
+| Service | Cost |
+|---------|------|
+| GitHub storage | **Free** |
+| Railway hosting | **Free** (500h/month) |
+| NewsAPI | **Free** (100 req/day) |
+| Claude haiku sentiment | ~**$0.72/month** |
+| Telegram | **Free** |
+| **Total** | **~$0.72/month** |
