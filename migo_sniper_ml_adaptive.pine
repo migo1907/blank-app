@@ -1,5 +1,5 @@
 //@version=6
-indicator("XAU/USD Migo VS Market Sniper Pro [ML + Adaptive]", overlay=true, max_labels_count=500)
+indicator("XAU/USD Migo VS Market Sniper Pro [ML + Adaptive]", overlay=true, max_labels_count=500, max_bars_back=5000)
 
 // ═══════════════════════════════════════════════════════
 // INPUTS
@@ -292,25 +292,33 @@ if activeTrade == "SHORT"
         activeTrade := "NONE", tp1Hit := false, tp2Hit := false
 
 // ═══════════════════════════════════════════════════════
+// GLOBAL SERIES — must be computed every bar (CW10002/CW10003)
+// ═══════════════════════════════════════════════════════
+float highest3     = ta.highest(high, 3)
+float lowest3      = ta.lowest(low, 3)
+bool  rsiBullCross = ta.crossover(rsiVal, 45)
+bool  rsiBearCross = ta.crossunder(rsiVal, 55)
+
+// ═══════════════════════════════════════════════════════
 // NEAR-TP1 PROXIMITY RESET
 // ═══════════════════════════════════════════════════════
 if activeTrade == "LONG" and not tp1Hit
     float tpRange     = tp1Price - entryPrice
     float nearTPLevel = entryPrice + tpRange * tpProximity
-    if ta.highest(high, 3) >= nearTPLevel and close < nearTPLevel
+    if highest3 >= nearTPLevel and close < nearTPLevel
         activeTrade := "NONE", tp1Hit := false, tp2Hit := false
 
 if activeTrade == "SHORT" and not tp1Hit
     float tpRange     = entryPrice - tp1Price
     float nearTPLevel = entryPrice - tpRange * tpProximity
-    if ta.lowest(low, 3) <= nearTPLevel and close > nearTPLevel
+    if lowest3 <= nearTPLevel and close > nearTPLevel
         activeTrade := "NONE", tp1Hit := false, tp2Hit := false
 
 // ═══════════════════════════════════════════════════════
 // ML-ENHANCED SIGNALS
 // ═══════════════════════════════════════════════════════
-bool buyBase    = not isSideways and ta.crossover(rsiVal, 45)  and close > low[1]
-bool sellBase   = not isSideways and ta.crossunder(rsiVal, 55) and close < high[1]
+bool buyBase    = not isSideways and rsiBullCross and close > low[1]
+bool sellBase   = not isSideways and rsiBearCross and close < high[1]
 bool buySignal  = buyBase  and mlBullish and (not useKernel or kernelUp)
 bool sellSignal = sellBase and mlBearish and (not useKernel or kernelDown)
 bool doBuy  = buySignal  and activeTrade != "LONG"
