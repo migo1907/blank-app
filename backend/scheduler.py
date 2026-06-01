@@ -75,6 +75,9 @@ async def _news_signal_cycle() -> None:
         else:
             print("[scheduler] Signal is NEUTRAL — not sending to Telegram.")
 
+        # ── Write health status to GitHub data branch every cycle ─────────────
+        asyncio.create_task(_write_health_status(signal, agg, velocity, len(fj_breaking)))
+
     except Exception as e:
         print(f"[scheduler] Cycle error: {e}")
         try:
@@ -82,6 +85,37 @@ async def _news_signal_cycle() -> None:
             await send_text(f"⚠️ Migo Sniper backend error: {e}")
         except Exception:
             pass
+
+
+async def _write_health_status(signal: dict, news_agg: float, velocity: dict, breaking_count: int) -> None:
+    """Write backend health snapshot to GitHub data branch every 15-min cycle."""
+    try:
+        from db import _get_file, _put_file
+        from datetime import datetime, timezone
+        from ml_model import get_model
+        from ml_ensemble import get_rf
+        from db import recent_outcomes
+        model  = get_model()
+        rf     = get_rf()
+        trades = recent_outcomes(limit=500)
+        status = {
+            "timestamp":      datetime.now(timezone.utc).isoformat(),
+            "signal":         signal["direction"],
+            "confidence":     round(signal["confidence"], 4),
+            "news_score":     round(news_agg, 4),
+            "velocity":       velocity.get("label", "NORMAL"),
+            "breaking_count": breaking_count,
+            "trades_total":   len(trades),
+            "rf_trained":     rf.is_trained,
+            "win_rate":       round(model.win_rate * 100, 1),
+            "knn_bearish_pct": round(signal.get("ml_score", 0) * 100, 1),
+            "scheduler":      "running",
+        }
+        _, sha = _get_file("data/health.json")
+        _put_file("data/health.json", status, sha, "chore: update health status")
+        print(f"[scheduler] Health status written to GitHub.")
+    except Exception as e:
+        print(f"[scheduler] Health write failed: {e}")
 
 
 def start_scheduler() -> AsyncIOScheduler:
