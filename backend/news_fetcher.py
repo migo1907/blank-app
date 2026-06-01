@@ -14,6 +14,7 @@ load_dotenv()
 
 NEWSAPI_KEY        = os.environ.get("NEWSAPI_KEY", "")
 FJ_SESSION_COOKIE  = os.environ.get("FJ_SESSION_COOKIE", "")
+FJ_ASPNET_SESSION  = os.environ.get("FJ_ASPNET_SESSION", "")
 FJ_RSS_URL         = "https://www.financialjuice.com/feed.ashx?xy=rss"
 
 # ── RSS feeds (no API key required, real-time) ───────────────────────────────
@@ -183,9 +184,13 @@ def _fetch_fj_rss() -> list[dict]:
     if not FJ_SESSION_COOKIE:
         return []
     try:
+        cookie_str = f".ASPXAUTH={FJ_SESSION_COOKIE}"
+        if FJ_ASPNET_SESSION:
+            cookie_str += f"; ASP.NET_SessionId={FJ_ASPNET_SESSION}"
         headers = {
-            "User-Agent": "Mozilla/5.0 (compatible; MigoSniperBot/1.0)",
-            "Cookie":     f".ASPXAUTH={FJ_SESSION_COOKIE}",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+            "Cookie":     cookie_str,
+            "Referer":    "https://www.financialjuice.com/",
         }
         with httpx.Client(timeout=10, follow_redirects=True) as client:
             resp = client.get(FJ_RSS_URL, headers=headers)
