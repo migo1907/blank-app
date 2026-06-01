@@ -33,6 +33,7 @@ bool  useDXY        = input.bool(true, "Enable DXY Inverse (f17)",      group="�
 bool  useVolDelta   = input.bool(true, "Enable Volume Delta (f18)",      group="🧠 SMC Features")
 bool  useRSIDiv     = input.bool(true, "Enable RSI Divergence (f19)",    group="🧠 SMC Features")
 bool  useFib        = input.bool(true, "Enable Fibonacci Position (f20)", group="🧠 SMC Features")
+bool  useVWAP       = input.bool(true, "Enable VWAP Distance (f21)",      group="🧠 SMC Features")
 string webhookSecret = input.string("your_secret_here", "Webhook Secret", group="☁️ Cloud Backend")
 
 // ═══════════════════════════════════════════════════════
@@ -181,11 +182,17 @@ bool  inGoldenSel = close >= (highest100 - range100 * 0.618) and close <= (highe
 float f20_raw     = inGoldenBuy ? 0.8 : inGoldenSel ? -0.8 : math.max(-1.0, math.min(1.0, (close - fib50) / (range100 * 0.5)))
 float f20 = useFib ? f20_raw : 0.0
 
+// f21: VWAP Distance — price above VWAP = institutional buying bias, below = selling
+// VWAP is the most-watched intraday level by institutions and algos
+float vwapVal    = ta.vwap(hlc3)
+float f21_raw    = math.max(-1.0, math.min(1.0, (close - vwapVal) / math.max(atr * 3.0, 0.0001)))
+float f21        = useVWAP ? f21_raw : 0.0
+
 // ═══════════════════════════════════════════════════════
 // ADAPTIVE WEIGHTS — 20-element array
 // ═══════════════════════════════════════════════════════
-var float[] weights       = array.new_float(20, 1.0)
-var float[] entryFeatures = array.new_float(20, 0.0)
+var float[] weights       = array.new_float(21, 1.0)
+var float[] entryFeatures = array.new_float(21, 0.0)
 var int totalWins   = 0
 var int totalLosses = 0
 
@@ -194,7 +201,7 @@ clampW(w) => math.max(0.2, math.min(3.0, w))
 
 // ─── fill current feature vector (local, not persisted) ─
 // used in KNN search
-float[] curFeats = array.from(f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15, f16, f17, f18, f19, f20)
+float[] curFeats = array.from(f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15, f16, f17, f18, f19, f20, f21)
 
 // ═══════════════════════════════════════════════════════
 // LORENTZIAN DISTANCE (array-based)
@@ -235,7 +242,7 @@ if bar_index > mlK * 2 + mlLag
     for i = mlLag + step to searchLen by step
         bool dataOk = not na(f1[i]) and not na(f2[i]) and not na(f9[i])
         if dataOk
-            float[] histFeats = array.from(f1[i], f2[i], f3[i], f4[i], f5[i], f6[i], f7[i], f8[i], f9[i], f10[i], f11[i], f12[i], f13[i], f14[i], f15[i], f16[i], f17[i], f18[i], f19[i], f20[i])
+            float[] histFeats = array.from(f1[i], f2[i], f3[i], f4[i], f5[i], f6[i], f7[i], f8[i], f9[i], f10[i], f11[i], f12[i], f13[i], f14[i], f15[i], f16[i], f17[i], f18[i], f19[i], f20[i], f21[i])
             float d = lorDist(curFeats, histFeats, weights)
             int   farIdx  = 0
             float farDist = array.get(kDist, 0)
@@ -335,8 +342,9 @@ buildPayload(dir, outcome, stage, entPx, exitPx, mlSc) =>
     string ef17 = str.tostring(array.get(entryFeatures, 17), "#.####")
     string ef18 = str.tostring(array.get(entryFeatures, 18), "#.####")
     string ef19 = str.tostring(array.get(entryFeatures, 19), "#.####")
+    string ef20 = str.tostring(array.get(entryFeatures, 20), "#.####")
     string p8 = ',"f11":' + ef10 + ',"f12":' + ef11 + ',"f13":' + ef12 + ',"f14":' + ef13 + ',"f15":' + ef14
-    string p9 = ',"f16":' + ef15 + ',"f17":' + ef16 + ',"f18":' + ef17 + ',"f19":' + ef18 + ',"f20":' + ef19 + '}'
+    string p9 = ',"f16":' + ef15 + ',"f17":' + ef16 + ',"f18":' + ef17 + ',"f19":' + ef18 + ',"f20":' + ef19 + ',"f21":' + ef20 + '}'
     p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9
 
 // ═══════════════════════════════════════════════════════
@@ -530,6 +538,7 @@ if doBuy
     array.set(entryFeatures, 17, f18)
     array.set(entryFeatures, 18, f19)
     array.set(entryFeatures, 19, f20)
+    array.set(entryFeatures, 20, f21)
     label.new(bar_index, low, "🤖 BUY [" + buyTrig + "] " + buyTier + "\nML:" + str.tostring(tradeConf) + "%  Ent:" + str.tostring(entryPrice, "#.##") + "\nTP1:" + str.tostring(tp1Price, "#.##") + "  TP2:" + str.tostring(tp2Price, "#.##") + "\nTP3:" + str.tostring(tp3Price, "#.##") + "  SL:" + str.tostring(slPrice, "#.##"), color=buyCol, textcolor=color.white, style=label.style_label_up, size=size.small)
 
 if doSell
@@ -563,6 +572,7 @@ if doSell
     array.set(entryFeatures, 17, f18)
     array.set(entryFeatures, 18, f19)
     array.set(entryFeatures, 19, f20)
+    array.set(entryFeatures, 20, f21)
     label.new(bar_index, high, "🤖 SELL [" + sellTrig + "] " + sellTier + "\nML:" + str.tostring(tradeConf) + "%  Ent:" + str.tostring(entryPrice, "#.##") + "\nTP1:" + str.tostring(tp1Price, "#.##") + "  TP2:" + str.tostring(tp2Price, "#.##") + "\nTP3:" + str.tostring(tp3Price, "#.##") + "  SL:" + str.tostring(slPrice, "#.##"), color=sellCol, textcolor=color.white, style=label.style_label_down, size=size.small)
 
 // ═══════════════════════════════════════════════════════
@@ -683,7 +693,7 @@ if barstate.islast
     table.cell(hub, 0, 9, "WIN RATE 📊", text_color=color.gray, text_size=size.small)
     table.cell(hub, 1, 9, totalTrades > 0 ? str.tostring(math.round(winRate)) + "%" : "NO DATA", text_color=wrColor)
     table.cell(hub, 2, 9, "20F SCORE", text_color=color.gray, text_size=size.small)
-    float totalFeat = f1+f2+f3+f4+f5+f6+f7+f8+f9+f10+f11+f12+f13+f14+f15+f16+f17+f18+f19+f20
+    float totalFeat = f1+f2+f3+f4+f5+f6+f7+f8+f9+f10+f11+f12+f13+f14+f15+f16+f17+f18+f19+f20+f21
     table.cell(hub, 3, 9, str.tostring(math.round(totalFeat * 10) / 10.0, "#.#"), text_color=totalFeat > 0 ? color.lime : totalFeat < 0 ? color.red : color.gray)
 
     table.cell(hub, 0, 10, "TOP 1", text_color=color.gray, text_size=size.small)

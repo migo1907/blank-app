@@ -88,6 +88,7 @@ class TradeOutcomePayload(BaseModel):
     f18: float = 0.0
     f19: float = 0.0
     f20: float = 0.0
+    f21: float = 0.0
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -123,6 +124,7 @@ async def trade_outcome(payload: TradeOutcomePayload):
         f9=payload.f9,   f10=payload.f10, f11=payload.f11, f12=payload.f12,
         f13=payload.f13, f14=payload.f14, f15=payload.f15, f16=payload.f16,
         f17=payload.f17, f18=payload.f18, f19=payload.f19, f20=payload.f20,
+        f21=payload.f21,
     )
 
     model.update_on_outcome(features, payload.direction, payload.outcome)

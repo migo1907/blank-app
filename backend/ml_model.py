@@ -32,9 +32,10 @@ FEATURE_NAMES = [
     "f18_vold",    # Volume Delta
     "f19_rsidiv",  # RSI Divergence
     "f20_fib",     # Fibonacci Position
+    "f21_vwap",    # VWAP Distance
 ]
 
-N_FEATURES = 20
+N_FEATURES = 21
 
 
 @dataclass
@@ -59,6 +60,7 @@ class Features:
     f18: float = 0.0   # Volume Delta
     f19: float = 0.0   # RSI Divergence
     f20: float = 0.0   # Fibonacci Position
+    f21: float = 0.0   # VWAP Distance
 
     def as_list(self) -> list[float]:
         return [
@@ -66,6 +68,7 @@ class Features:
             self.f6,  self.f7,  self.f8,  self.f9,  self.f10,
             self.f11, self.f12, self.f13, self.f14, self.f15,
             self.f16, self.f17, self.f18, self.f19, self.f20,
+            self.f21,
         ]
 
     @classmethod
@@ -92,6 +95,7 @@ class Features:
             f18=float(payload.get("f18", 0.0)),
             f19=float(payload.get("f19", 0.0)),
             f20=float(payload.get("f20", 0.0)),
+            f21=float(payload.get("f21", 0.0)),
         )
 
     def as_db_dict(self) -> dict:
