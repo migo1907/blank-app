@@ -239,7 +239,7 @@ async def dashboard(secret: str = ""):
     from ml_model import get_model
     from ml_ensemble import get_rf
     from db import recent_outcomes, recent_news
-    from scheduler import get_latest_news_sentiment
+    from scheduler import get_latest_news_sentiment, get_latest_velocity, get_latest_event
 
     model = get_model()
     rf    = get_rf()
@@ -259,6 +259,8 @@ async def dashboard(secret: str = ""):
             "top_features": [{"name": n, "importance": round(v, 4)} for n, v in rf.top_features(3)],
         },
         "news_sentiment":    round(get_latest_news_sentiment(), 4),
+        "news_velocity":     get_latest_velocity(),
+        "high_impact_event": get_latest_event(),
         "recent_news_count": len(recent_news_items),
         "recent_trades": [
             {"direction": t["direction"], "outcome": t["outcome"], "created_at": t["created_at"]}

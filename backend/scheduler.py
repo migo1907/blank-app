@@ -1,5 +1,5 @@
 """
-APScheduler: runs the news → sentiment → signal pipeline every N minutes.
+APScheduler: runs the news → velocity → sentiment → signal pipeline every N minutes.
 """
 import asyncio
 import os
@@ -8,17 +8,25 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-_scheduler: AsyncIOScheduler | None = None
-_latest_news_agg: float = 0.0   # shared state between scheduler and signal endpoint
+_scheduler:          AsyncIOScheduler | None = None
+_latest_news_agg:    float = 0.0
+_latest_velocity:    dict  = {"multiplier": 1.0, "label": "NORMAL"}
+_latest_event:       dict  = {"detected": False, "event_type": "", "urgency": 0.0}
 
 
 def get_latest_news_sentiment() -> float:
     return _latest_news_agg
 
+def get_latest_velocity() -> dict:
+    return _latest_velocity
+
+def get_latest_event() -> dict:
+    return _latest_event
+
 
 async def _news_signal_cycle() -> None:
-    global _latest_news_agg
-    print("[scheduler] Starting news + signal cycle…")
+    global _latest_news_agg, _latest_velocity, _latest_event
+    print("[scheduler] Starting news + velocity + signal cycle…")
 
     try:
         from news_fetcher import run_news_cycle
@@ -26,14 +34,34 @@ async def _news_signal_cycle() -> None:
         from signal_engine import generate_signal
         from telegram_bot import send_signal, send_text
 
-        scored_items, agg = run_news_cycle()
+        # Pass previous aggregation so velocity can measure acceleration
+        scored_items, agg, velocity, event = run_news_cycle(previous_agg=_latest_news_agg)
 
         if scored_items:
             insert_news(scored_items)
             _latest_news_agg = agg
+            _latest_velocity = velocity
+            _latest_event    = event
 
-        signal = generate_signal(news_agg=_latest_news_agg)
-        print(f"[scheduler] Signal: {signal['direction']} conf={signal['confidence']:.2f}")
+        # Alert on high-impact breaking news
+        if event.get("detected") and event.get("urgency", 0) >= 0.9:
+            print(f"[scheduler] ⚡ HIGH-IMPACT EVENT: {event['event_type']}")
+            await send_text(
+                f"⚡ BREAKING: {event['event_type']} detected!\n"
+                f"Headlines: {', '.join(event.get('headlines', []))[:200]}\n"
+                f"News sentiment: {agg:+.3f} | Velocity: {velocity['label']} ×{velocity['multiplier']}"
+            )
+
+        signal = generate_signal(
+            news_agg=_latest_news_agg,
+            news_velocity=_latest_velocity,
+            high_impact_event=_latest_event,
+        )
+        print(
+            f"[scheduler] Signal: {signal['direction']} "
+            f"conf={signal['confidence']:.2f} "
+            f"velocity={signal['news_velocity']} ×{signal['velocity_mult']}"
+        )
 
         if signal["direction"] != "NEUTRAL":
             sent = await send_signal(signal)
@@ -53,7 +81,7 @@ async def _news_signal_cycle() -> None:
 
 def start_scheduler() -> AsyncIOScheduler:
     global _scheduler
-    interval = int(os.environ.get("SIGNAL_INTERVAL_MINUTES", "15"))
+    interval   = int(os.environ.get("SIGNAL_INTERVAL_MINUTES", "15"))
     _scheduler = AsyncIOScheduler()
     _scheduler.add_job(
         _news_signal_cycle,
