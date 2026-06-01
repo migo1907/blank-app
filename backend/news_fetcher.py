@@ -12,7 +12,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-NEWSAPI_KEY = os.environ.get("NEWSAPI_KEY", "")
+NEWSAPI_KEY        = os.environ.get("NEWSAPI_KEY", "")
+FJ_SESSION_COOKIE  = os.environ.get("FJ_SESSION_COOKIE", "")
+FJ_RSS_URL         = "https://www.financialjuice.com/feed.ashx?xy=rss"
 
 # ── RSS feeds (no API key required, real-time) ───────────────────────────────
 RSS_FEEDS = [
@@ -141,7 +143,20 @@ def fetch_rss_headlines() -> list[dict]:
     articles  = []
     seen      = set()
 
+    # Pull FinancialJuice into main feed if cookie is set
+    fj_rss = _fetch_fj_rss()
+
     with httpx.Client(timeout=10, follow_redirects=True) as client:
+        # Inject FJ items first (highest quality source)
+        for item in fj_rss[:30]:
+            title = item["title"]
+            key   = title[:60].lower()
+            lower = title.lower()
+            if key not in seen and len(title) >= 15:
+                if any(t in lower for t in RELEVANCE_TERMS) and not any(t in lower for t in CRYPTO_NOISE_TERMS):
+                    seen.add(key)
+                    articles.append(item)
+
         for source_name, url in RSS_FEEDS:
             try:
                 resp = client.get(url, headers={"User-Agent": "Mozilla/5.0 (compatible; MigoSniperBot/1.0)"})
@@ -163,39 +178,73 @@ def fetch_rss_headlines() -> list[dict]:
     return articles[:30]
 
 
+def _fetch_fj_rss() -> list[dict]:
+    """Fetch FinancialJuice RSS using session cookie. Returns [] on failure."""
+    if not FJ_SESSION_COOKIE:
+        return []
+    try:
+        headers = {
+            "User-Agent": "Mozilla/5.0 (compatible; MigoSniperBot/1.0)",
+            "Cookie":     f".ASPXAUTH={FJ_SESSION_COOKIE}",
+        }
+        with httpx.Client(timeout=10, follow_redirects=True) as client:
+            resp = client.get(FJ_RSS_URL, headers=headers)
+            if resp.status_code == 200:
+                items = _parse_rss(resp.text, "FinancialJuice")
+                # Strip "FinancialJuice: " prefix FJ adds to every title
+                for item in items:
+                    if item["title"].startswith("FinancialJuice: "):
+                        item["title"] = item["title"][len("FinancialJuice: "):]
+                print(f"[breaking] FinancialJuice: {len(items)} items")
+                return items
+            else:
+                print(f"[breaking] FinancialJuice HTTP {resp.status_code} — falling back to ForexLive")
+    except Exception as e:
+        print(f"[breaking] FinancialJuice fetch error: {e}")
+    return []
+
+
 def fetch_breaking_news() -> list[dict]:
     """
-    Fetch ForexLive + FXStreet RSS and return only high-impact items.
-    These are sent immediately to Telegram as breaking news alerts.
-    Also included in sentiment scoring for ML signal weighting.
+    Fetch breaking news — FinancialJuice RSS (if cookie set) else ForexLive + FXStreet.
+    Returns only high-impact items for instant Telegram alerts.
     """
     breaking = []
     seen = set()
-    try:
-        with httpx.Client(timeout=8, follow_redirects=True) as client:
-            for source_name, url in BREAKING_NEWS_FEEDS:
-                try:
-                    resp = client.get(url, headers={"User-Agent": "Mozilla/5.0 (compatible; MigoSniperBot/1.0)"})
-                    if resp.status_code != 200:
-                        print(f"[breaking] {source_name} HTTP {resp.status_code}")
-                        continue
-                    items = _parse_rss(resp.text, source_name)
-                    for item in items[:20]:
-                        title = item["title"]
-                        key   = title[:60].lower()
-                        if key in seen:
-                            continue
-                        lower = title.lower()
-                        if any(kw in lower for kw in FINANCIALJUICE_HIGH_IMPACT):
-                            if not any(t in lower for t in CRYPTO_NOISE_TERMS):
-                                seen.add(key)
-                                breaking.append({**item, "fj_breaking": True})
-                except Exception as e:
-                    print(f"[breaking] {source_name} failed: {e}")
 
-        print(f"[breaking] {len(breaking)} high-impact items")
-    except Exception as e:
-        print(f"[breaking] Failed: {e}")
+    # Try FinancialJuice first (best quality)
+    fj_items = _fetch_fj_rss()
+    source_items = fj_items if fj_items else []
+
+    # Fall back to ForexLive/FXStreet if FJ unavailable
+    if not fj_items:
+        try:
+            with httpx.Client(timeout=8, follow_redirects=True) as client:
+                for source_name, url in BREAKING_NEWS_FEEDS:
+                    try:
+                        resp = client.get(url, headers={"User-Agent": "Mozilla/5.0 (compatible; MigoSniperBot/1.0)"})
+                        if resp.status_code != 200:
+                            print(f"[breaking] {source_name} HTTP {resp.status_code}")
+                            continue
+                        source_items.extend(_parse_rss(resp.text, source_name))
+                    except Exception as e:
+                        print(f"[breaking] {source_name} failed: {e}")
+        except Exception as e:
+            print(f"[breaking] fallback fetch error: {e}")
+
+    try:
+        for item in source_items[:50]:
+            title = item["title"]
+            key   = title[:60].lower()
+            if key in seen:
+                continue
+            lower = title.lower()
+            if any(kw in lower for kw in FINANCIALJUICE_HIGH_IMPACT):
+                if not any(t in lower for t in CRYPTO_NOISE_TERMS):
+                    seen.add(key)
+                    breaking.append({**item, "fj_breaking": True})
+
+    print(f"[breaking] {len(breaking)} high-impact items")
     return breaking[:10]
 
 
