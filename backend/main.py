@@ -436,7 +436,7 @@ async def railway_status(secret: str = ""):
           }
         }
         """
-        async with httpx.AsyncClient(timeout=15) as client:
+        async with httpx.AsyncClient(timeout=30) as client:
             r = await client.post(
                 "https://backboard.railway.app/graphql/v2",
                 headers=headers,
@@ -460,14 +460,14 @@ async def railway_status(secret: str = ""):
         # ── 2. Get logs for latest deployment ─────────────────────────────────
         logs_query = """
         query($deploymentId: String!) {
-          deploymentLogs(deploymentId: $deploymentId, limit: 50) {
+          deploymentLogs(deploymentId: $deploymentId, limit: 30) {
             timestamp
             message
             severity
           }
         }
         """
-        async with httpx.AsyncClient(timeout=15) as client:
+        async with httpx.AsyncClient(timeout=30) as client:
             r2 = await client.post(
                 "https://backboard.railway.app/graphql/v2",
                 headers=headers,
