@@ -35,6 +35,9 @@ async def send_signal(signal: dict) -> bool:
     win_rate   = signal.get("win_rate", 0.0)
     weights    = signal.get("weights", [1.0] * 8)
     top_feat   = signal.get("top_feature", "—")
+    velocity   = signal.get("news_velocity", "NORMAL")
+    v_mult     = signal.get("velocity_mult", 1.0)
+    event      = signal.get("high_impact_event", "")
 
     dir_emoji  = DIRECTION_EMOJI.get(direction, "⚪")
     conf_emoji = CONF_EMOJI(confidence)
@@ -61,6 +64,12 @@ async def send_signal(signal: dict) -> bool:
         f"📈 *Session Stats*\n"
         f"  Wins: {wins}  Losses: {losses}  Win Rate: {win_rate*100:.1f}%\n\n"
     )
+
+    velocity_emoji = "🚨" if velocity == "HIGH VELOCITY" else "📈" if velocity == "ELEVATED" else "📊"
+    msg += f"{velocity_emoji} *News Velocity:* {velocity} ×{v_mult:.1f}\n"
+    if event:
+        msg += f"⚡ *BREAKING EVENT:* {event}\n"
+    msg += "\n"
 
     if reasoning:
         msg += f"💬 _{reasoning}_\n\n"

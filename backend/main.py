@@ -105,6 +105,20 @@ async def health():
     return {"status": "ok", "version": "3.0.0-20F"}
 
 
+@app.get("/test-telegram")
+async def test_telegram(secret: str = ""):
+    """Send a test message to Telegram to verify bot connection."""
+    _validate_secret(secret)
+    from telegram_bot import send_text
+    import os
+    token   = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+    chat_id = os.environ.get("TELEGRAM_CHAT_ID", "")
+    if not token or not chat_id:
+        return {"status": "error", "detail": "TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID not set in environment."}
+    await send_text("✅ Migo Sniper Pro — Telegram test OK!\n\n🤖 Backend connected.\n📡 Signals will appear here every 15 min.")
+    return {"status": "sent", "chat_id": chat_id, "token_prefix": token[:10] + "..."}
+
+
 @app.post("/webhook/trade-outcome")
 async def trade_outcome(payload: TradeOutcomePayload):
     """
