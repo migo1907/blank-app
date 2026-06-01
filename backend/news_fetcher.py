@@ -26,7 +26,7 @@ RSS_FEEDS = [
 ]
 
 # FinancialJuice RSS — real-time breaking news, fetched separately for instant alerts
-FINANCIALJUICE_RSS = "https://feed.financialjuice.com/rss"
+FINANCIALJUICE_RSS = "https://feed.financialjuice.com/feed/rss"
 
 # FinancialJuice high-impact keywords — these map to "red" breaking news
 FINANCIALJUICE_HIGH_IMPACT = [
