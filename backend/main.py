@@ -151,7 +151,7 @@ def _validate_secret(secret: str) -> None:
 
 # ── Routes ───────────────────────────────────────────────────────────────────
 
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "POST", "HEAD"])
 async def health():
     return {"status": "ok", "version": "3.0.0-20F"}
 
