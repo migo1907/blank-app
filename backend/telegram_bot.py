@@ -61,7 +61,7 @@ async def send_entry_signal(s: dict) -> bool:
         f"{dir_emoji} <b>{direction} SIGNAL</b> — {symbol_clean}\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
         f"⏱ Timeframe: {tf}\n"
-        f"⚡ Quality: {tier}\n\n"
+        f"Strength:  {tier}\n\n"
         f"📍 Entry:  {entry:.2f}\n"
         f"🎯 TP1:    {tp1:.2f}\n"
         f"🎯 TP2:    {tp2:.2f}\n"
