@@ -53,6 +53,22 @@ def _save_seen_headlines() -> None:
         print(f"[scheduler] Could not save seen headlines: {e}")
 
 
+async def _breaking_news_cycle() -> None:
+    """Runs every 2 minutes — fetches breaking news and fires Telegram instantly."""
+    global _fj_seen_headlines
+    try:
+        from news_fetcher import fetch_breaking_news
+        from telegram_bot import send_breaking_news
+        items = fetch_breaking_news()
+        if items:
+            updated = await send_breaking_news(items, _fj_seen_headlines)
+            if updated != _fj_seen_headlines:
+                _fj_seen_headlines = updated
+                asyncio.create_task(asyncio.to_thread(_save_seen_headlines))
+    except Exception as e:
+        print(f"[scheduler] Breaking news cycle error: {e}")
+
+
 async def _news_signal_cycle() -> None:
     global _latest_news_agg, _latest_velocity, _latest_event, _fj_seen_headlines
     print("[scheduler] Starting news + velocity + signal cycle…")
@@ -71,11 +87,6 @@ async def _news_signal_cycle() -> None:
             _latest_news_agg = agg
             _latest_velocity = velocity
             _latest_event    = event
-
-        # ── FinancialJuice red breaking news → instant Telegram alert ──────────
-        if fj_breaking:
-            _fj_seen_headlines = await send_breaking_news(fj_breaking, _fj_seen_headlines)
-            asyncio.create_task(asyncio.to_thread(_save_seen_headlines))
 
         # ── High-impact event alert (NFP, FOMC, war etc.) ──────────────────────
         if event.get("detected") and event.get("urgency", 0) >= 0.9:
@@ -159,8 +170,15 @@ def start_scheduler() -> AsyncIOScheduler:
         id="news_signal_cycle",
         replace_existing=True,
     )
+    _scheduler.add_job(
+        _breaking_news_cycle,
+        trigger="interval",
+        minutes=2,
+        id="breaking_news_cycle",
+        replace_existing=True,
+    )
     _scheduler.start()
-    print(f"[scheduler] Started — running every {interval} minutes.")
+    print(f"[scheduler] Started — signal every {interval} min, breaking news every 2 min.")
     return _scheduler
 
 
