@@ -1,109 +1,5 @@
 [
   {
-    "source": "BusinessLine",
-    "headline": "India\u2019s growth outlook for FY27 remains positive: RBI Annual Report",
-    "url": "https://www.thehindubusinessline.com/economy/indias-growth-outlook-for-fy27-remains-positive-rbi-annual-report/article71036284.ece",
-    "sentiment_score": 0.2,
-    "impact": "LOW",
-    "keywords": [
-      "growth outlook",
-      "India",
-      "positive sentiment"
-    ],
-    "fetched_at": "2026-06-01T10:48:04.781711+00:00"
-  },
-  {
-    "source": "Al Jazeera English",
-    "headline": "The strait may reopen, but global confidence may not return",
-    "url": "https://www.aljazeera.com/opinions/2026/5/31/the-strait-may-reopen-but-global-confidence-may-not-return",
-    "sentiment_score": 0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "geopolitical tension",
-      "confidence loss",
-      "safe haven"
-    ],
-    "fetched_at": "2026-06-01T10:48:04.781711+00:00"
-  },
-  {
-    "source": "Naturalnews.com",
-    "headline": "Bitcoin Hash Rate Flattens as Miners Face AI Squeeze, Fidelity Report Says",
-    "url": "https://www.naturalnews.com/2026-05-31-bitcoin-hash-rate-flattens-miners-ai-squeeze.html",
-    "sentiment_score": -0.2,
-    "impact": "LOW",
-    "keywords": [
-      "Bitcoin mining",
-      "hash rate",
-      "AI pressure"
-    ],
-    "fetched_at": "2026-06-01T10:48:04.781711+00:00"
-  },
-  {
-    "source": "The Times of India",
-    "headline": "Market Outlook: US-Iran talks, crude oil among 5 factors to drive D-St in first week of June",
-    "url": "https://economictimes.indiatimes.com/markets/stocks/news/market-outlook-us-iran-talks-crude-oil-among-5-factors-to-drive-d-st-in-first-week-of-june/articleshow/131418464.cms",
-    "sentiment_score": 0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "geopolitical risk",
-      "crude oil",
-      "uncertainty"
-    ],
-    "fetched_at": "2026-06-01T10:48:04.781711+00:00"
-  },
-  {
-    "source": "MarketWatch Top",
-    "headline": "Another dire problem for Social Security: Trustees may be calculating the birth rate wrong",
-    "url": "https://www.marketwatch.com/story/another-dire-problem-for-social-security-trustees-may-be-calculating-the-birth-rate-wrong-955d1930?mod=mw_rss_topstories",
-    "sentiment_score": 0.3,
-    "impact": "LOW",
-    "keywords": [
-      "Social Security",
-      "demographics",
-      "fiscal"
-    ],
-    "fetched_at": "2026-06-01T10:54:07.862265+00:00"
-  },
-  {
-    "source": "Investing.com Gold",
-    "headline": "Bank of England\u2019s Greene sees tokenised deposits replacing stablecoins",
-    "url": "https://www.investing.com/news/cryptocurrency-news/bank-of-englands-greene-sees-tokenised-deposits-replacing-stablecoins-93CH-4717925",
-    "sentiment_score": -0.2,
-    "impact": "LOW",
-    "keywords": [
-      "tokenization",
-      "stablecoin",
-      "regulation"
-    ],
-    "fetched_at": "2026-06-01T10:54:07.862265+00:00"
-  },
-  {
-    "source": "Investing.com Gold",
-    "headline": "Fed\u2019s Waller says stablecoins extend US monetary policy reach",
-    "url": "https://www.investing.com/news/cryptocurrency-news/feds-waller-says-stablecoins-extend-us-monetary-policy-reach-4717919",
-    "sentiment_score": -0.3,
-    "impact": "LOW",
-    "keywords": [
-      "stablecoin",
-      "monetary policy",
-      "Fed"
-    ],
-    "fetched_at": "2026-06-01T10:54:07.862265+00:00"
-  },
-  {
-    "source": "Investing.com Gold",
-    "headline": "Bitcoin subdued near $74k as ETF demand cools; analyst warns downturn may extend",
-    "url": "https://www.investing.com/news/cryptocurrency-news/bitcoin-slips-as-etf-demand-cools-analyst-warns-downturn-may-extend-4717596",
-    "sentiment_score": -0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "Bitcoin weakness",
-      "ETF demand",
-      "risk-off"
-    ],
-    "fetched_at": "2026-06-01T10:54:07.862265+00:00"
-  },
-  {
     "source": "Investing.com Gold",
     "headline": "Bitcoin set for May decline on expectations of higher-for-longer interest rates",
     "url": "https://www.investing.com/news/cryptocurrency-news/bitcoin-rises-near-74k-after-7wk-low-on-iran-truce-extension-hopes-4715939",
@@ -2598,5 +2494,109 @@
       "technology"
     ],
     "fetched_at": "2026-06-01T14:47:31.890056+00:00"
+  },
+  {
+    "source": "MarketWatch Top",
+    "headline": "Another dire problem for Social Security: Trustees may be calculating the birth rate wrong",
+    "url": "https://www.marketwatch.com/story/another-dire-problem-for-social-security-trustees-may-be-calculating-the-birth-rate-wrong-955d1930?mod=mw_rss_topstories",
+    "sentiment_score": 0.3,
+    "impact": "LOW",
+    "keywords": [
+      "Social Security",
+      "fiscal uncertainty",
+      "inflation pressure"
+    ],
+    "fetched_at": "2026-06-01T15:02:33.917022+00:00"
+  },
+  {
+    "source": "MarketWatch Top",
+    "headline": "Global oil prices jump 5% to above $95 a barrel after Iran reportedly suspends talks with U.S. and fully closes Strait of Hormuz",
+    "url": "https://www.marketwatch.com/story/oil-prices-rise-after-fresh-wave-of-attacks-between-u-s-and-iran-fbcdd5ed?mod=mw_rss_topstories",
+    "sentiment_score": 0.7,
+    "impact": "HIGH",
+    "keywords": [
+      "geopolitical risk",
+      "oil shock",
+      "safe-haven demand"
+    ],
+    "fetched_at": "2026-06-01T15:02:33.917022+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "U.S. dollar treads water amid Iran ceasefire uncertainty",
+    "url": "https://www.investing.com/news/forex-news/asia-fx-dollar-subdued-amid-iran-ceasefire-uncertainty-china-mixed-pmi-in-focus-4718007",
+    "sentiment_score": 0.2,
+    "impact": "LOW",
+    "keywords": [
+      "dollar weakness",
+      "geopolitical uncertainty",
+      "mixed signals"
+    ],
+    "fetched_at": "2026-06-01T15:02:33.917022+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "US may offer Turkey dollar swap line before election, says Jefferies",
+    "url": "https://www.investing.com/news/forex-news/us-may-offer-turkey-dollar-swap-line-before-election-says-jefferies-93CH-4718955",
+    "sentiment_score": -0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "dollar support",
+      "currency intervention",
+      "USD strength"
+    ],
+    "fetched_at": "2026-06-01T15:02:33.917022+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "What lies ahead for the Indian rupee in a higher oil price environment?",
+    "url": "https://www.investing.com/news/forex-news/what-lies-ahead-for-the-indian-rupee-in-a-higher-oil-price-environment-4717786",
+    "sentiment_score": -0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "oil prices",
+      "rupee weakness",
+      "emerging market stress"
+    ],
+    "fetched_at": "2026-06-01T15:02:33.917022+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "U.S. dollar slips amid risk-on sentiment, but set for May advance on higher rates",
+    "url": "https://www.investing.com/news/forex-news/asia-fx-dollar-tepid-as-traders-weigh-iran-peace-prospects-soft-tokyo-cpi-4715924",
+    "sentiment_score": -0.6,
+    "impact": "HIGH",
+    "keywords": [
+      "higher rates",
+      "dollar strength",
+      "risk-off headwind"
+    ],
+    "fetched_at": "2026-06-01T15:02:33.917022+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Zijin\u2019s $4B acquisition of Allied Gold faces delay in China: FT",
+    "url": "https://www.mining.com/zijins-4b-acquisition-of-allied-gold-faces-delay-in-china-ft/",
+    "sentiment_score": -0.3,
+    "impact": "MEDIUM",
+    "keywords": [
+      "supply increase",
+      "M&A delay",
+      "production growth"
+    ],
+    "fetched_at": "2026-06-01T15:02:33.917022+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Edinburgh researchers license tech to extract gold and copper from electronic waste",
+    "url": "https://www.mining.com/edinburgh-researchers-license-tech-to-extract-gold-and-copper-from-electronic-waste/",
+    "sentiment_score": -0.2,
+    "impact": "LOW",
+    "keywords": [
+      "supply increase",
+      "waste recovery",
+      "long-term oversupply"
+    ],
+    "fetched_at": "2026-06-01T15:02:33.917022+00:00"
   }
 ]
