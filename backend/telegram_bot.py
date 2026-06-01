@@ -53,31 +53,24 @@ async def send_entry_signal(s: dict) -> bool:
     velocity  = s.get("velocity", "NORMAL")
     event     = s.get("event", "")
 
-    dir_emoji  = "🟢" if direction == "LONG"  else "🔴"
-    tier_emoji = "⭐" if tier == "HIGH"        else "✅" if tier == "MED" else "⚡"
-    news_label = "📰 Bullish" if news > 0.2   else "📰 Bearish" if news < -0.2 else "📰 Neutral"
+    dir_emoji    = "🟢" if direction == "LONG" else "🔴"
+    tier_emoji   = "⭐" if tier == "HIGH"      else "✅" if tier == "MED" else "⚡"
     trigger_name = TRIGGER_NAMES.get(trigger, trigger)
-
-    now = datetime.now(timezone.utc).strftime("%H:%M UTC — %d %b %Y")
+    now          = datetime.now(timezone.utc).strftime("%H:%M UTC — %d %b %Y")
 
     msg = (
         f"{dir_emoji} <b>{direction} SIGNAL</b> — {symbol}\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
-        f"⏱ <b>Timeframe:</b> {tf}\n"
-        f"{tier_emoji} <b>Quality:</b> {tier}  |  🤖 ML Score: {ml_score*100:.0f}%\n"
-        f"🎯 <b>Trigger:</b> {trigger_name}\n\n"
-        f"📍 <b>Entry:</b>  {entry:.2f}\n"
-        f"🎯 <b>TP1:</b>    {tp1:.2f}\n"
-        f"🎯 <b>TP2:</b>    {tp2:.2f}\n"
-        f"🚀 <b>TP3:</b>    {tp3:.2f}\n"
-        f"🛑 <b>SL:</b>     {sl:.2f}\n\n"
-        f"{news_label} ({news:+.3f})  |  📡 {velocity}\n"
+        f"⏱ Timeframe: {tf}\n"
+        f"{tier_emoji} Quality: {tier}\n"
+        f"🎯 Trigger: {trigger_name}\n\n"
+        f"📍 Entry:  {entry:.2f}\n"
+        f"🎯 TP1:    {tp1:.2f}\n"
+        f"🎯 TP2:    {tp2:.2f}\n"
+        f"🚀 TP3:    {tp3:.2f}\n"
+        f"🛑 SL:     {sl:.2f}\n\n"
+        f"⏰ {now}"
     )
-
-    if event:
-        msg += f"⚡ <b>BREAKING:</b> {event}\n"
-
-    msg += f"\n⏰ {now}"
     return await _send(msg)
 
 
