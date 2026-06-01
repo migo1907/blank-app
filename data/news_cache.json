@@ -1,135 +1,5 @@
 [
   {
-    "source": "Yahoo Entertainment",
-    "headline": "Jim Cramer on Home Depot: \u201cI Was Honestly Bracing for the Worst Here\u201d",
-    "url": "https://finance.yahoo.com/markets/stocks/articles/jim-cramer-home-depot-honestly-150837316.html",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "Home Depot",
-      "retail",
-      "unrelated"
-    ],
-    "fetched_at": "2026-06-01T10:33:05.076574+00:00"
-  },
-  {
-    "source": "The Times of India",
-    "headline": "Why Indian investors need global exposure today",
-    "url": "https://economictimes.indiatimes.com/markets/stocks/news/why-indian-investors-need-global-exposure-today/articleshow/131418566.cms",
-    "sentiment_score": 0.2,
-    "impact": "LOW",
-    "keywords": [
-      "global exposure",
-      "diversification",
-      "mild bullish"
-    ],
-    "fetched_at": "2026-06-01T10:33:05.076574+00:00"
-  },
-  {
-    "source": "Barchart.com",
-    "headline": "Dollar Falls as Stocks Rally on Iran Deal Optimism",
-    "url": "https://www.barchart.com/story/news/2206710/dollar-falls-as-stocks-rally-on-iran-deal-optimism",
-    "sentiment_score": 0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "dollar weakness",
-      "risk appetite",
-      "gold positive"
-    ],
-    "fetched_at": "2026-06-01T10:33:05.076574+00:00"
-  },
-  {
-    "source": "Unbiasthenews.com",
-    "headline": "Show HN: Simple news aggregator with source bias meters",
-    "url": "https://unbiasthenews.com",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "news aggregator",
-      "bias meter",
-      "unrelated"
-    ],
-    "fetched_at": "2026-06-01T10:33:05.076574+00:00"
-  },
-  {
-    "source": "Crypto Briefing",
-    "headline": "Strait of Hormuz drama sends Bitcoin on a wild round trip",
-    "url": "https://cryptobriefing.com/strait-hormuz-bitcoin-wild-round-trip/",
-    "sentiment_score": 0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "geopolitical risk",
-      "Iran",
-      "safe haven"
-    ],
-    "fetched_at": "2026-06-01T10:33:05.076574+00:00"
-  },
-  {
-    "source": "BusinessLine",
-    "headline": "India\u2019s growth outlook for FY27 remains positive: RBI Annual Report",
-    "url": "https://www.thehindubusinessline.com/economy/indias-growth-outlook-for-fy27-remains-positive-rbi-annual-report/article71036284.ece",
-    "sentiment_score": 0.1,
-    "impact": "LOW",
-    "keywords": [
-      "India growth",
-      "RBI positive",
-      "minor positive"
-    ],
-    "fetched_at": "2026-06-01T10:33:05.076574+00:00"
-  },
-  {
-    "source": "Al Jazeera English",
-    "headline": "The strait may reopen, but global confidence may not return",
-    "url": "https://www.aljazeera.com/opinions/2026/5/31/the-strait-may-reopen-but-global-confidence-may-not-return",
-    "sentiment_score": 0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "geopolitical uncertainty",
-      "confidence loss",
-      "safe haven"
-    ],
-    "fetched_at": "2026-06-01T10:33:05.076574+00:00"
-  },
-  {
-    "source": "Naturalnews.com",
-    "headline": "Bitcoin Hash Rate Flattens as Miners Face AI Squeeze, Fidelity Report Says",
-    "url": "https://www.naturalnews.com/2026-05-31-bitcoin-hash-rate-flattens-miners-ai-squeeze.html",
-    "sentiment_score": -0.2,
-    "impact": "LOW",
-    "keywords": [
-      "Bitcoin miners",
-      "hash rate",
-      "AI competition"
-    ],
-    "fetched_at": "2026-06-01T10:33:05.076574+00:00"
-  },
-  {
-    "source": "The Times of India",
-    "headline": "Market Outlook: US-Iran talks, crude oil among 5 factors to drive D-St in first week of June",
-    "url": "https://economictimes.indiatimes.com/markets/stocks/news/market-outlook-us-iran-talks-crude-oil-among-5-factors-to-drive-d-st-in-first-week-of-june/articleshow/131418464.cms",
-    "sentiment_score": 0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "US-Iran talks",
-      "geopolitics",
-      "crude oil uncertainty"
-    ],
-    "fetched_at": "2026-06-01T10:33:05.076574+00:00"
-  },
-  {
-    "source": "MarketWatch Top",
-    "headline": "Another dire problem for Social Security: Trustees may be calculating the birth rate wrong",
-    "url": "https://www.marketwatch.com/story/another-dire-problem-for-social-security-trustees-may-be-calculating-the-birth-rate-wrong-955d1930?mod=mw_rss_topstories",
-    "sentiment_score": 0.7,
-    "impact": "MEDIUM",
-    "keywords": [
-      "Social Security",
-      "fiscal concerns",
-      "inflation pressure"
-    ],
-    "fetched_at": "2026-06-01T10:48:04.781711+00:00"
-  },
-  {
     "source": "Investing.com Gold",
     "headline": "Bank of England\u2019s Greene sees tokenised deposits replacing stablecoins",
     "url": "https://www.investing.com/news/cryptocurrency-news/bank-of-englands-greene-sees-tokenised-deposits-replacing-stablecoins-93CH-4717925",
@@ -2598,5 +2468,135 @@
       "secular demand"
     ],
     "fetched_at": "2026-06-01T14:04:41.353049+00:00"
+  },
+  {
+    "source": "MarketWatch Top",
+    "headline": "Global oil prices jump 5% to above $95 a barrel after Iran reportedly suspends talks with U.S. and fully closes Strait of Hormuz",
+    "url": "https://www.marketwatch.com/story/oil-prices-rise-after-fresh-wave-of-attacks-between-u-s-and-iran-fbcdd5ed?mod=mw_rss_topstories",
+    "sentiment_score": 0.7,
+    "impact": "HIGH",
+    "keywords": [
+      "geopolitical tension",
+      "oil spike",
+      "risk-off"
+    ],
+    "fetched_at": "2026-06-01T14:17:33.390856+00:00"
+  },
+  {
+    "source": "MarketWatch Top",
+    "headline": "ServiceNow, Adobe stocks jump as Nvidia\u2019s new AI chip sparks software rally",
+    "url": "https://www.marketwatch.com/story/servicenow-adobe-stocks-jump-as-nvidias-new-ai-chip-sparks-software-rally-5b404831?mod=mw_rss_topstories",
+    "sentiment_score": -0.3,
+    "impact": "LOW",
+    "keywords": [
+      "AI optimism",
+      "risk-on",
+      "tech rally"
+    ],
+    "fetched_at": "2026-06-01T14:17:33.390856+00:00"
+  },
+  {
+    "source": "Investing.com Comm",
+    "headline": "UBS warns of tech concentration risk as stocks hit new highs",
+    "url": "https://www.investing.com/news/stock-market-news/ubs-warns-of-tech-concentration-risk-as-stocks-hit-new-highs-4719580",
+    "sentiment_score": 0.2,
+    "impact": "MEDIUM",
+    "keywords": [
+      "market concentration",
+      "correction risk",
+      "volatility"
+    ],
+    "fetched_at": "2026-06-01T14:17:33.390856+00:00"
+  },
+  {
+    "source": "Investing.com Comm",
+    "headline": "Wall St opens near record highs as AI optimism counters US-Iran war worries",
+    "url": "https://www.investing.com/news/stock-market-news/wall-st-opens-near-record-highs-as-ai-optimism-counters-usiran-war-worries-4719537",
+    "sentiment_score": -0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "AI optimism",
+      "risk appetite",
+      "equities"
+    ],
+    "fetched_at": "2026-06-01T14:17:33.390856+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "U.S. dollar treads water amid Iran ceasefire uncertainty",
+    "url": "https://www.investing.com/news/forex-news/asia-fx-dollar-subdued-amid-iran-ceasefire-uncertainty-china-mixed-pmi-in-focus-4718007",
+    "sentiment_score": 0.3,
+    "impact": "MEDIUM",
+    "keywords": [
+      "USD weakness",
+      "geopolitical uncertainty",
+      "haven demand"
+    ],
+    "fetched_at": "2026-06-01T14:17:33.390856+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "US may offer Turkey dollar swap line before election, says Jefferies",
+    "url": "https://www.investing.com/news/forex-news/us-may-offer-turkey-dollar-swap-line-before-election-says-jefferies-93CH-4718955",
+    "sentiment_score": -0.2,
+    "impact": "LOW",
+    "keywords": [
+      "dollar swap",
+      "currency intervention",
+      "USD support"
+    ],
+    "fetched_at": "2026-06-01T14:17:33.390856+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "What lies ahead for the Indian rupee in a higher oil price environment?",
+    "url": "https://www.investing.com/news/forex-news/what-lies-ahead-for-the-indian-rupee-in-a-higher-oil-price-environment-4717786",
+    "sentiment_score": 0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "oil prices",
+      "inflation",
+      "emerging markets"
+    ],
+    "fetched_at": "2026-06-01T14:17:33.390856+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "U.S. dollar slips amid risk-on sentiment, but set for May advance on higher rates",
+    "url": "https://www.investing.com/news/forex-news/asia-fx-dollar-tepid-as-traders-weigh-iran-peace-prospects-soft-tokyo-cpi-4715924",
+    "sentiment_score": -0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "higher rates",
+      "USD strength",
+      "risk-on"
+    ],
+    "fetched_at": "2026-06-01T14:17:33.390856+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Zijin\u2019s $4B acquisition of Allied Gold faces delay in China: FT",
+    "url": "https://www.mining.com/zijins-4b-acquisition-of-allied-gold-faces-delay-in-china-ft/",
+    "sentiment_score": 0.1,
+    "impact": "LOW",
+    "keywords": [
+      "gold M&A",
+      "mining sector",
+      "supply neutral"
+    ],
+    "fetched_at": "2026-06-01T14:17:33.390856+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Edinburgh researchers license tech to extract gold and copper from electronic waste",
+    "url": "https://www.mining.com/edinburgh-researchers-license-tech-to-extract-gold-and-copper-from-electronic-waste/",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "tech innovation",
+      "electronic waste",
+      "supply-side"
+    ],
+    "fetched_at": "2026-06-01T14:17:33.390856+00:00"
   }
 ]
