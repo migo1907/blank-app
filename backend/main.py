@@ -14,7 +14,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-WEBHOOK_SECRET = os.environ.get("WEBHOOK_SECRET", "")
+WEBHOOK_SECRET    = os.environ.get("WEBHOOK_SECRET", "")
+RAILWAY_API_TOKEN = os.environ.get("RAILWAY_API_TOKEN", "")
+RAILWAY_PROJECT_ID = os.environ.get("RAILWAY_PROJECT_ID", "")
+RAILWAY_SERVICE_ID = os.environ.get("RAILWAY_SERVICE_ID", "")
 
 
 # ── Lifespan: start scheduler, load ML model, prime RF ──────────────────────
@@ -395,6 +398,69 @@ async def signal_now(secret: str = ""):
     from scheduler import _news_signal_cycle
     asyncio.create_task(_news_signal_cycle())
     return {"status": "signal cycle triggered"}
+
+
+@app.get("/railway-status")
+async def railway_status(secret: str = ""):
+    """Query Railway API for live service status and recent logs."""
+    _validate_secret(secret)
+    if not RAILWAY_API_TOKEN:
+        return {"error": "RAILWAY_API_TOKEN not set"}
+
+    import httpx
+
+    headers = {
+        "Authorization": f"Bearer {RAILWAY_API_TOKEN}",
+        "Content-Type": "application/json",
+    }
+
+    # Step 1: get project + service IDs if not set
+    me_query = """
+    query {
+      me {
+        projects {
+          edges {
+            node {
+              id
+              name
+              services {
+                edges {
+                  node {
+                    id
+                    name
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    """
+    try:
+        async with httpx.AsyncClient(timeout=15) as client:
+            r = await client.post(
+                "https://backboard.railway.app/graphql/v2",
+                headers=headers,
+                json={"query": me_query},
+            )
+            data = r.json()
+
+        projects = data.get("data", {}).get("me", {}).get("projects", {}).get("edges", [])
+        result = []
+        for p in projects:
+            proj = p["node"]
+            services = [s["node"] for s in proj.get("services", {}).get("edges", [])]
+            result.append({
+                "project_id":   proj["id"],
+                "project_name": proj["name"],
+                "services":     services,
+            })
+
+        return {"status": "ok", "projects": result}
+
+    except Exception as e:
+        return {"error": str(e)}
 
 
 @app.get("/dashboard")
