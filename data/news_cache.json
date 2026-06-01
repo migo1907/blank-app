@@ -1,135 +1,5 @@
 [
   {
-    "source": "MarketWatch Top",
-    "headline": "Another dire problem for Social Security: Trustees may be calculating the birth rate wrong",
-    "url": "https://www.marketwatch.com/story/another-dire-problem-for-social-security-trustees-may-be-calculating-the-birth-rate-wrong-955d1930?mod=mw_rss_topstories",
-    "sentiment_score": 0.1,
-    "impact": "LOW",
-    "keywords": [
-      "Social Security",
-      "demographic",
-      "fiscal policy"
-    ],
-    "fetched_at": "2026-06-01T11:29:41.238712+00:00"
-  },
-  {
-    "source": "Investing.com Gold",
-    "headline": "Bank of England\u2019s Greene sees tokenised deposits replacing stablecoins",
-    "url": "https://www.investing.com/news/cryptocurrency-news/bank-of-englands-greene-sees-tokenised-deposits-replacing-stablecoins-93CH-4717925",
-    "sentiment_score": -0.2,
-    "impact": "LOW",
-    "keywords": [
-      "tokenization",
-      "stablecoin",
-      "monetary innovation"
-    ],
-    "fetched_at": "2026-06-01T11:29:41.238712+00:00"
-  },
-  {
-    "source": "Investing.com Gold",
-    "headline": "Fed\u2019s Waller says stablecoins extend US monetary policy reach",
-    "url": "https://www.investing.com/news/cryptocurrency-news/feds-waller-says-stablecoins-extend-us-monetary-policy-reach-4717919",
-    "sentiment_score": -0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "stablecoin adoption",
-      "USD strength",
-      "monetary reach"
-    ],
-    "fetched_at": "2026-06-01T11:29:41.238712+00:00"
-  },
-  {
-    "source": "Investing.com Gold",
-    "headline": "Bitcoin subdued near $74k as ETF demand cools; analyst warns downturn may extend",
-    "url": "https://www.investing.com/news/cryptocurrency-news/bitcoin-slips-as-etf-demand-cools-analyst-warns-downturn-may-extend-4717596",
-    "sentiment_score": -0.1,
-    "impact": "LOW",
-    "keywords": [
-      "Bitcoin weakness",
-      "crypto sentiment",
-      "tangential"
-    ],
-    "fetched_at": "2026-06-01T11:29:41.238712+00:00"
-  },
-  {
-    "source": "Investing.com Gold",
-    "headline": "Bitcoin set for May decline on expectations of higher-for-longer interest rates",
-    "url": "https://www.investing.com/news/cryptocurrency-news/bitcoin-rises-near-74k-after-7wk-low-on-iran-truce-extension-hopes-4715939",
-    "sentiment_score": -0.6,
-    "impact": "HIGH",
-    "keywords": [
-      "higher-for-longer rates",
-      "USD strength",
-      "real yields"
-    ],
-    "fetched_at": "2026-06-01T11:29:41.238712+00:00"
-  },
-  {
-    "source": "MarketWatch Top",
-    "headline": "Oil prices rise after fresh wave of attacks between U.S. and Iran",
-    "url": "https://www.marketwatch.com/story/oil-prices-rise-after-fresh-wave-of-attacks-between-u-s-and-iran-fbcdd5ed?mod=mw_rss_topstories",
-    "sentiment_score": 0.7,
-    "impact": "HIGH",
-    "keywords": [
-      "geopolitical risk",
-      "safe haven",
-      "conflict escalation"
-    ],
-    "fetched_at": "2026-06-01T11:38:53.513605+00:00"
-  },
-  {
-    "source": "MarketWatch Top",
-    "headline": "Another dire problem for Social Security: Trustees may be calculating the birth rate wrong",
-    "url": "https://www.marketwatch.com/story/another-dire-problem-for-social-security-trustees-may-be-calculating-the-birth-rate-wrong-955d1930?mod=mw_rss_topstories",
-    "sentiment_score": -0.3,
-    "impact": "LOW",
-    "keywords": [
-      "fiscal policy",
-      "inflation concern",
-      "demographic"
-    ],
-    "fetched_at": "2026-06-01T11:38:53.513605+00:00"
-  },
-  {
-    "source": "Investing.com Gold",
-    "headline": "Bank of England\u2019s Greene sees tokenised deposits replacing stablecoins",
-    "url": "https://www.investing.com/news/cryptocurrency-news/bank-of-englands-greene-sees-tokenised-deposits-replacing-stablecoins-93CH-4717925",
-    "sentiment_score": -0.2,
-    "impact": "LOW",
-    "keywords": [
-      "digital currency",
-      "monetary innovation",
-      "stablecoin"
-    ],
-    "fetched_at": "2026-06-01T11:38:53.513605+00:00"
-  },
-  {
-    "source": "Investing.com Gold",
-    "headline": "Fed\u2019s Waller says stablecoins extend US monetary policy reach",
-    "url": "https://www.investing.com/news/cryptocurrency-news/feds-waller-says-stablecoins-extend-us-monetary-policy-reach-4717919",
-    "sentiment_score": -0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "monetary policy",
-      "USD strength",
-      "stablecoin expansion"
-    ],
-    "fetched_at": "2026-06-01T11:38:53.513605+00:00"
-  },
-  {
-    "source": "Investing.com Gold",
-    "headline": "Bitcoin subdued near $74k as ETF demand cools; analyst warns downturn may extend",
-    "url": "https://www.investing.com/news/cryptocurrency-news/bitcoin-slips-as-etf-demand-cools-analyst-warns-downturn-may-extend-4717596",
-    "sentiment_score": 0.2,
-    "impact": "LOW",
-    "keywords": [
-      "risk sentiment",
-      "crypto weakness",
-      "demand cooling"
-    ],
-    "fetched_at": "2026-06-01T11:38:53.513605+00:00"
-  },
-  {
     "source": "Investing.com Gold",
     "headline": "Bitcoin set for May decline on expectations of higher-for-longer interest rates",
     "url": "https://www.investing.com/news/cryptocurrency-news/bitcoin-rises-near-74k-after-7wk-low-on-iran-truce-extension-hopes-4715939",
@@ -2598,5 +2468,135 @@
       "long-term neutral"
     ],
     "fetched_at": "2026-06-01T16:19:22.295577+00:00"
+  },
+  {
+    "source": "MarketWatch Top",
+    "headline": "Global oil prices jump 7% to top $97 a barrel after Iran reportedly suspends talks with U.S. and fully closes Strait of Hormuz",
+    "url": "https://www.marketwatch.com/story/oil-prices-rise-after-fresh-wave-of-attacks-between-u-s-and-iran-fbcdd5ed?mod=mw_rss_topstories",
+    "sentiment_score": 0.6,
+    "impact": "HIGH",
+    "keywords": [
+      "geopolitical risk",
+      "oil spike",
+      "safe-haven"
+    ],
+    "fetched_at": "2026-06-01T16:22:31.433576+00:00"
+  },
+  {
+    "source": "MarketWatch Top",
+    "headline": "Another dire problem for Social Security: Trustees may be calculating the birth rate wrong",
+    "url": "https://www.marketwatch.com/story/another-dire-problem-for-social-security-trustees-may-be-calculating-the-birth-rate-wrong-955d1930?mod=mw_rss_topstories",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "Social Security",
+      "demographics",
+      "unrelated"
+    ],
+    "fetched_at": "2026-06-01T16:22:31.433576+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "U.S. dollar treads water amid Iran ceasefire uncertainty",
+    "url": "https://www.investing.com/news/forex-news/asia-fx-dollar-subdued-amid-iran-ceasefire-uncertainty-china-mixed-pmi-in-focus-4718007",
+    "sentiment_score": 0.2,
+    "impact": "MEDIUM",
+    "keywords": [
+      "USD weakness",
+      "uncertainty",
+      "mixed signals"
+    ],
+    "fetched_at": "2026-06-01T16:22:31.433576+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "US may offer Turkey dollar swap line before election, says Jefferies",
+    "url": "https://www.investing.com/news/forex-news/us-may-offer-turkey-dollar-swap-line-before-election-says-jefferies-93CH-4718955",
+    "sentiment_score": -0.3,
+    "impact": "MEDIUM",
+    "keywords": [
+      "USD support",
+      "liquidity",
+      "currency swap"
+    ],
+    "fetched_at": "2026-06-01T16:22:31.433576+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "What lies ahead for the Indian rupee in a higher oil price environment?",
+    "url": "https://www.investing.com/news/forex-news/what-lies-ahead-for-the-indian-rupee-in-a-higher-oil-price-environment-4717786",
+    "sentiment_score": 0.1,
+    "impact": "LOW",
+    "keywords": [
+      "oil prices",
+      "rupee",
+      "indirect impact"
+    ],
+    "fetched_at": "2026-06-01T16:22:31.433576+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "U.S. dollar slips amid risk-on sentiment, but set for May advance on higher rates",
+    "url": "https://www.investing.com/news/forex-news/asia-fx-dollar-tepid-as-traders-weigh-iran-peace-prospects-soft-tokyo-cpi-4715924",
+    "sentiment_score": -0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "USD strength",
+      "higher rates",
+      "headwind"
+    ],
+    "fetched_at": "2026-06-01T16:22:31.433576+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Gold price falls nearly 2% as Middle East tensions escalate again",
+    "url": "https://www.mining.com/gold-falls-nearly-2-as-middle-east-tensions-escalate-again/",
+    "sentiment_score": -0.7,
+    "impact": "HIGH",
+    "keywords": [
+      "escalation",
+      "risk-off reversal",
+      "selling pressure"
+    ],
+    "fetched_at": "2026-06-01T16:22:31.433576+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Iamgold boosts contained gold at Ontario\u2019s C\u00f4t\u00e9 mine",
+    "url": "https://www.mining.com/iamgold-boosts-contained-gold-at-ontarios-cote-mine/",
+    "sentiment_score": 0.3,
+    "impact": "LOW",
+    "keywords": [
+      "supply",
+      "mine production",
+      "micro event"
+    ],
+    "fetched_at": "2026-06-01T16:22:31.433576+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Zijin\u2019s $4B acquisition of Allied Gold faces delay in China: FT",
+    "url": "https://www.mining.com/zijins-4b-acquisition-of-allied-gold-faces-delay-in-china-ft/",
+    "sentiment_score": 0.1,
+    "impact": "LOW",
+    "keywords": [
+      "M&A",
+      "supply",
+      "regulatory delay"
+    ],
+    "fetched_at": "2026-06-01T16:22:31.433576+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Edinburgh researchers license tech to extract gold and copper from electronic waste",
+    "url": "https://www.mining.com/edinburgh-researchers-license-tech-to-extract-gold-and-copper-from-electronic-waste/",
+    "sentiment_score": 0.2,
+    "impact": "LOW",
+    "keywords": [
+      "recycling",
+      "supply",
+      "secondary source"
+    ],
+    "fetched_at": "2026-06-01T16:22:31.433576+00:00"
   }
 ]
