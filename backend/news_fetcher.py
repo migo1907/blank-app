@@ -147,13 +147,13 @@ def fetch_rss_headlines() -> list[dict]:
     fj_rss = _fetch_fj_rss()
 
     with httpx.Client(timeout=10, follow_redirects=True) as client:
-        # Inject FJ items first (highest quality source)
-        for item in fj_rss[:30]:
+        # Inject ALL FJ items — no relevance filter, FJ is already curated market news
+        for item in fj_rss[:60]:
             title = item["title"]
             key   = title[:60].lower()
             lower = title.lower()
-            if key not in seen and len(title) >= 15:
-                if any(t in lower for t in RELEVANCE_TERMS) and not any(t in lower for t in CRYPTO_NOISE_TERMS):
+            if key not in seen and len(title) >= 10:
+                if not any(t in lower for t in CRYPTO_NOISE_TERMS):
                     seen.add(key)
                     articles.append(item)
 
@@ -175,7 +175,7 @@ def fetch_rss_headlines() -> list[dict]:
                 print(f"[rss] {source_name} failed: {e}")
 
     print(f"[rss] {len(articles)} relevant articles from RSS")
-    return articles[:30]
+    return articles[:80]
 
 
 def _fetch_fj_rss() -> list[dict]:
