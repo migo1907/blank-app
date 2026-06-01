@@ -448,14 +448,53 @@ if activeTrade == "SHORT" and not tp1Hit
         tp2Hit := false
 
 // ═══════════════════════════════════════════════════════
-// ML-ENHANCED SIGNALS
+// MULTI-TRIGGER ENTRY SYSTEM
+// 5 trigger types fire independently (OR logic) → MORE signals
+// ML grades each signal HIGH/MED/LOW → no signals blocked
 // ═══════════════════════════════════════════════════════
-bool buyBase    = not isSideways and rsiBullCross and close > low[1]
-bool sellBase   = not isSideways and rsiBearCross and close < high[1]
-bool buySignal  = buyBase  and mlBullish and (not useKernel or kernelUp)
-bool sellSignal = sellBase and mlBearish and (not useKernel or kernelDown)
+
+// Trigger 1 — RSI momentum cross (original)
+bool trigRSI_B  = rsiBullCross and close > low[1]
+bool trigRSI_S  = rsiBearCross and close < high[1]
+
+// Trigger 2 — Fair Value Gap fill (price closes into imbalance)
+bool trigFVG_B  = f9 > 0.5 and close > open and close > close[1]
+bool trigFVG_S  = f9 < -0.5 and close < open and close < close[1]
+
+// Trigger 3 — Liquidity sweep + reversal (stop hunt complete)
+bool trigLiq_B  = f12 > 0.5 and close > open
+bool trigLiq_S  = f12 < -0.5 and close < open
+
+// Trigger 4 — Order Block touch + bounce
+bool trigOB_B   = f10 > 0.5 and close > open and low <= low[1]
+bool trigOB_S   = f10 < -0.5 and close < open and high >= high[1]
+
+// Trigger 5 — BOS + MTF aligned pullback
+bool trigBOS_B  = f11 > 0.5 and f16 > 0 and close > close[2]
+bool trigBOS_S  = f11 < -0.5 and f16 < 0 and close < close[2]
+
+// Combined: any trigger fires the signal (OR logic = max frequency)
+bool buyBase  = not isSideways and (trigRSI_B or trigFVG_B or trigLiq_B or trigOB_B or trigBOS_B)
+bool sellBase = not isSideways and (trigRSI_S or trigFVG_S or trigLiq_S or trigOB_S or trigBOS_S)
+
+// Kernel confirmation (optional)
+bool buySignal  = buyBase  and (not useKernel or kernelUp)
+bool sellSignal = sellBase and (not useKernel or kernelDown)
 bool doBuy  = buySignal  and activeTrade != "LONG"
 bool doSell = sellSignal and activeTrade != "SHORT"
+
+// ── Signal quality tiers (ALL fire, different label color) ──────────────────
+// HIGH ≥ 0.70  → bright green / red   (best setups, size up)
+// MED  ≥ 0.55  → normal green / red   (standard setups)
+// LOW  ≥ 0.45  → yellow               (early/weak — ML still learns from them)
+string buyTier  = mlBull >= 0.70 ? "⭐ HIGH" : mlBull >= 0.55 ? "✅ MED" : "⚡ LOW"
+string sellTier = mlBear >= 0.70 ? "⭐ HIGH" : mlBear >= 0.55 ? "✅ MED" : "⚡ LOW"
+color  buyCol   = mlBull >= 0.70 ? color.new(color.lime, 0) : mlBull >= 0.55 ? color.green : color.yellow
+color  sellCol  = mlBear >= 0.70 ? color.new(color.red, 0)  : mlBear >= 0.55 ? color.red   : color.orange
+
+// Trigger type tag (for dashboard awareness)
+string buyTrig  = trigBOS_B ? "BOS" : trigLiq_B ? "LIQ" : trigOB_B ? "OB" : trigFVG_B ? "FVG" : "RSI"
+string sellTrig = trigBOS_S ? "BOS" : trigLiq_S ? "LIQ" : trigOB_S ? "OB" : trigFVG_S ? "FVG" : "RSI"
 
 // ═══════════════════════════════════════════════════════
 // TRADE ENTRY
@@ -491,7 +530,7 @@ if doBuy
     array.set(entryFeatures, 17, f18)
     array.set(entryFeatures, 18, f19)
     array.set(entryFeatures, 19, f20)
-    label.new(bar_index, low, "🤖 BUY  ML:" + str.tostring(tradeConf) + "%\nEnt: " + str.tostring(entryPrice, "#.##") + "\nTP1: " + str.tostring(tp1Price, "#.##") + "\nTP2: " + str.tostring(tp2Price, "#.##") + "\nTP3: " + str.tostring(tp3Price, "#.##") + "\nSL:  " + str.tostring(slPrice, "#.##"), color=color.green, textcolor=color.white, style=label.style_label_up, size=size.small)
+    label.new(bar_index, low, "🤖 BUY [" + buyTrig + "] " + buyTier + "\nML:" + str.tostring(tradeConf) + "%  Ent:" + str.tostring(entryPrice, "#.##") + "\nTP1:" + str.tostring(tp1Price, "#.##") + "  TP2:" + str.tostring(tp2Price, "#.##") + "\nTP3:" + str.tostring(tp3Price, "#.##") + "  SL:" + str.tostring(slPrice, "#.##"), color=buyCol, textcolor=color.white, style=label.style_label_up, size=size.small)
 
 if doSell
     activeTrade := "SHORT"
@@ -524,7 +563,7 @@ if doSell
     array.set(entryFeatures, 17, f18)
     array.set(entryFeatures, 18, f19)
     array.set(entryFeatures, 19, f20)
-    label.new(bar_index, high, "🤖 SELL  ML:" + str.tostring(tradeConf) + "%\nEnt: " + str.tostring(entryPrice, "#.##") + "\nTP1: " + str.tostring(tp1Price, "#.##") + "\nTP2: " + str.tostring(tp2Price, "#.##") + "\nTP3: " + str.tostring(tp3Price, "#.##") + "\nSL:  " + str.tostring(slPrice, "#.##"), color=color.red, textcolor=color.white, style=label.style_label_down, size=size.small)
+    label.new(bar_index, high, "🤖 SELL [" + sellTrig + "] " + sellTier + "\nML:" + str.tostring(tradeConf) + "%  Ent:" + str.tostring(entryPrice, "#.##") + "\nTP1:" + str.tostring(tp1Price, "#.##") + "  TP2:" + str.tostring(tp2Price, "#.##") + "\nTP3:" + str.tostring(tp3Price, "#.##") + "  SL:" + str.tostring(slPrice, "#.##"), color=sellCol, textcolor=color.white, style=label.style_label_down, size=size.small)
 
 // ═══════════════════════════════════════════════════════
 // WIN RATE
