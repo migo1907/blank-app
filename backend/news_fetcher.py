@@ -25,8 +25,11 @@ RSS_FEEDS = [
     ("Mining.com",        "https://www.mining.com/feed/"),
 ]
 
-# FinancialJuice RSS — real-time breaking news, fetched separately for instant alerts
-FINANCIALJUICE_RSS = "https://feed.financialjuice.com/feed/rss"
+# Breaking news RSS feeds — fetched separately for instant Telegram alerts
+BREAKING_NEWS_FEEDS = [
+    ("ForexLive",   "https://www.forexlive.com/feed/"),
+    ("FXStreet",    "https://www.fxstreet.com/rss/news"),
+]
 
 # FinancialJuice high-impact keywords — these map to "red" breaking news
 FINANCIALJUICE_HIGH_IMPACT = [
@@ -160,35 +163,39 @@ def fetch_rss_headlines() -> list[dict]:
     return articles[:30]
 
 
-def fetch_financialjuice_breaking() -> list[dict]:
+def fetch_breaking_news() -> list[dict]:
     """
-    Fetch FinancialJuice RSS and return only high-impact (red) items.
+    Fetch ForexLive + FXStreet RSS and return only high-impact items.
     These are sent immediately to Telegram as breaking news alerts.
     Also included in sentiment scoring for ML signal weighting.
     """
     breaking = []
+    seen = set()
     try:
         with httpx.Client(timeout=8, follow_redirects=True) as client:
-            resp = client.get(
-                FINANCIALJUICE_RSS,
-                headers={"User-Agent": "Mozilla/5.0 (compatible; MigoSniperBot/1.0)"},
-            )
-            if resp.status_code != 200:
-                print(f"[financialjuice] HTTP {resp.status_code}")
-                return []
+            for source_name, url in BREAKING_NEWS_FEEDS:
+                try:
+                    resp = client.get(url, headers={"User-Agent": "Mozilla/5.0 (compatible; MigoSniperBot/1.0)"})
+                    if resp.status_code != 200:
+                        print(f"[breaking] {source_name} HTTP {resp.status_code}")
+                        continue
+                    items = _parse_rss(resp.text, source_name)
+                    for item in items[:20]:
+                        title = item["title"]
+                        key   = title[:60].lower()
+                        if key in seen:
+                            continue
+                        lower = title.lower()
+                        if any(kw in lower for kw in FINANCIALJUICE_HIGH_IMPACT):
+                            if not any(t in lower for t in CRYPTO_NOISE_TERMS):
+                                seen.add(key)
+                                breaking.append({**item, "fj_breaking": True})
+                except Exception as e:
+                    print(f"[breaking] {source_name} failed: {e}")
 
-            items = _parse_rss(resp.text, "FinancialJuice")
-            for item in items[:30]:
-                title = item["title"]
-                lower = title.lower()
-                # Only keep high-impact items (equivalent to red highlights)
-                if any(kw in lower for kw in FINANCIALJUICE_HIGH_IMPACT):
-                    if not any(t in lower for t in CRYPTO_NOISE_TERMS):
-                        breaking.append({**item, "fj_breaking": True})
-
-        print(f"[financialjuice] {len(breaking)} high-impact items")
+        print(f"[breaking] {len(breaking)} high-impact items")
     except Exception as e:
-        print(f"[financialjuice] Failed: {e}")
+        print(f"[breaking] Failed: {e}")
     return breaking[:10]
 
 
@@ -410,7 +417,7 @@ def run_news_cycle(previous_agg: float = 0.0) -> tuple[list[dict], float, dict, 
     Returns: (scored_items, aggregate_score, velocity, event, fj_breaking_items)
     fj_breaking_items — FinancialJuice high-impact items for instant Telegram alert
     """
-    fj_breaking  = fetch_financialjuice_breaking()
+    fj_breaking  = fetch_breaking_news()
     rss_articles = fetch_rss_headlines()
     api_articles = fetch_newsapi_headlines()
 

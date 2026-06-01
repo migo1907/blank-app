@@ -479,22 +479,6 @@ async def railway_status(secret: str = ""):
         l = r2.json()
         logs = (l.get("data") or {}).get("deploymentLogs", [])
 
-        # ── 3. Test FinancialJuice URLs ───────────────────────────────────────
-        fj_results = {}
-        fj_urls = [
-            "https://feed.financialjuice.com/feed/rss",
-            "https://feed.financialjuice.com/rss",
-            "https://feed.financialjuice.com/",
-            "https://www.financialjuice.com/feed",
-        ]
-        async with httpx.AsyncClient(timeout=8, follow_redirects=True) as client:
-            for url in fj_urls:
-                try:
-                    tr = await client.get(url, headers={"User-Agent": "Mozilla/5.0"})
-                    fj_results[url] = f"{tr.status_code} — {tr.text[:80]}"
-                except Exception as fe:
-                    fj_results[url] = f"ERROR: {fe}"
-
         return {
             "deployment": {
                 "id":        deploy_id,
@@ -505,7 +489,6 @@ async def railway_status(secret: str = ""):
                 f"[{lg.get('severity','INFO')}] {lg.get('timestamp','')} {lg.get('message','')}"
                 for lg in logs[-30:]
             ],
-            "fj_url_test": fj_results,
             "log_errors": l.get("errors"),
         }
 
