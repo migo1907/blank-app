@@ -134,7 +134,7 @@ async def send_breaking_news(items: list[dict], seen_headlines: set) -> set:
         f"🚨 <b>BREAKING NEWS</b> — {now}\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
         f"{lines}\n\n"
-        f"⚡ <i>High-impact market news via FinancialJuice</i>"
+        f"⚡ <i>High-impact market news via ForexLive</i>"
     )
     await _send(msg)
 
