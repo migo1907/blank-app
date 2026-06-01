@@ -734,5 +734,19 @@
     "expires_at": "2026-06-01T09:21:58.344301+00:00",
     "id": 55,
     "created_at": "2026-06-01T08:51:58.708574+00:00"
+  },
+  {
+    "symbol": "XAUUSD",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "ml_score": 0.8,
+    "rf_score": 0.5,
+    "news_score": 0.0506,
+    "combined_score": -0.2248,
+    "reasoning": "KNN is bearish (-60%), RF is bearish (+0%), news is neutral (+0.051). Combined: -0.225.",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-01T09:36:56.775396+00:00",
+    "id": 56,
+    "created_at": "2026-06-01T09:06:57.123503+00:00"
   }
 ]
