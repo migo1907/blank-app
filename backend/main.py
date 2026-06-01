@@ -414,20 +414,47 @@ async def railway_status(secret: str = ""):
             "Authorization": f"Bearer {RAILWAY_API_TOKEN}",
             "Content-Type": "application/json",
         }
-        me_query = "query { me { name email } }"
+        # Use projects query directly — works with team/project-scoped tokens
+        query = """
+        query {
+          projects(first: 10) {
+            edges {
+              node {
+                id
+                name
+                services {
+                  edges {
+                    node {
+                      id
+                      name
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        """
 
         async with httpx.AsyncClient(timeout=15) as client:
             r = await client.post(
                 "https://backboard.railway.app/graphql/v2",
                 headers=headers,
-                json={"query": me_query},
+                json={"query": query},
             )
 
+        data = r.json()
+        projects_raw = (data.get("data") or {}).get("projects", {}).get("edges", [])
+        projects = []
+        for p in projects_raw:
+            node = p["node"]
+            services = [s["node"] for s in node.get("services", {}).get("edges", [])]
+            projects.append({"id": node["id"], "name": node["name"], "services": services})
+
         return {
-            "http_code":    r.status_code,
-            "token_set":    bool(RAILWAY_API_TOKEN),
-            "token_prefix": RAILWAY_API_TOKEN[:8] + "..." if RAILWAY_API_TOKEN else "none",
-            "response_text": r.text[:500],
+            "http_code": r.status_code,
+            "projects":  projects,
+            "raw_errors": data.get("errors"),
         }
 
     except Exception as e:
