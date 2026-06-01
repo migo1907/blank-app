@@ -444,20 +444,10 @@ async def railway_status(secret: str = ""):
                 headers=headers,
                 json={"query": me_query},
             )
-            data = r.json()
+            raw = r.json()
 
-        projects = data.get("data", {}).get("me", {}).get("projects", {}).get("edges", [])
-        result = []
-        for p in projects:
-            proj = p["node"]
-            services = [s["node"] for s in proj.get("services", {}).get("edges", [])]
-            result.append({
-                "project_id":   proj["id"],
-                "project_name": proj["name"],
-                "services":     services,
-            })
-
-        return {"status": "ok", "projects": result}
+        # Return full raw response so we can see exact structure
+        return {"status": "ok", "http_code": r.status_code, "raw": raw}
 
     except Exception as e:
         return {"error": str(e)}
