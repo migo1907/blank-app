@@ -15,9 +15,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 WEBHOOK_SECRET    = os.environ.get("WEBHOOK_SECRET", "")
-RAILWAY_API_TOKEN = os.environ.get("RAILWAY_API_TOKEN", "")
-RAILWAY_PROJECT_ID = os.environ.get("RAILWAY_PROJECT_ID", "")
-RAILWAY_SERVICE_ID = os.environ.get("RAILWAY_SERVICE_ID", "")
+RAILWAY_API_TOKEN  = os.environ.get("RAILWAY_API_TOKEN", "")
+RAILWAY_PROJECT_ID = os.environ.get("RAILWAY_PROJECT_ID", "bcc5442d-2f19-4dfa-ad25-219a5c70868a")
+RAILWAY_SERVICE_ID = os.environ.get("RAILWAY_SERVICE_ID", "e4310b2b-3a37-440e-a3b7-a14ea476f8a1")
 
 
 # ── Lifespan: start scheduler, load ML model, prime RF ──────────────────────
@@ -409,52 +409,87 @@ async def railway_status(secret: str = ""):
 
     import httpx, traceback
 
+    if not RAILWAY_API_TOKEN:
+        return {"error": "RAILWAY_API_TOKEN not set"}
+
+    headers = {
+        "Authorization": f"Bearer {RAILWAY_API_TOKEN}",
+        "Content-Type": "application/json",
+    }
+
     try:
-        headers = {
-            "Authorization": f"Bearer {RAILWAY_API_TOKEN}",
-            "Content-Type": "application/json",
-        }
-        # Use projects query directly — works with team/project-scoped tokens
-        query = """
-        query {
-          projects(first: 10) {
+        # ── 1. Get latest deployment ID ───────────────────────────────────────
+        deploy_query = """
+        query($serviceId: String!, $projectId: String!) {
+          deployments(
+            first: 1
+            input: { serviceId: $serviceId, projectId: $projectId }
+          ) {
             edges {
               node {
                 id
-                name
-                services {
-                  edges {
-                    node {
-                      id
-                      name
-                    }
-                  }
-                }
+                status
+                createdAt
+                meta
               }
             }
           }
         }
         """
-
         async with httpx.AsyncClient(timeout=15) as client:
             r = await client.post(
                 "https://backboard.railway.app/graphql/v2",
                 headers=headers,
-                json={"query": query},
+                json={
+                    "query": deploy_query,
+                    "variables": {
+                        "serviceId": RAILWAY_SERVICE_ID,
+                        "projectId": RAILWAY_PROJECT_ID,
+                    },
+                },
             )
+        d = r.json()
+        deployments = (d.get("data") or {}).get("deployments", {}).get("edges", [])
 
-        data = r.json()
-        projects_raw = (data.get("data") or {}).get("projects", {}).get("edges", [])
-        projects = []
-        for p in projects_raw:
-            node = p["node"]
-            services = [s["node"] for s in node.get("services", {}).get("edges", [])]
-            projects.append({"id": node["id"], "name": node["name"], "services": services})
+        if not deployments:
+            return {"error": "No deployments found", "raw": d}
+
+        deploy = deployments[0]["node"]
+        deploy_id = deploy["id"]
+
+        # ── 2. Get logs for latest deployment ─────────────────────────────────
+        logs_query = """
+        query($deploymentId: String!) {
+          deploymentLogs(deploymentId: $deploymentId, limit: 50) {
+            timestamp
+            message
+            severity
+          }
+        }
+        """
+        async with httpx.AsyncClient(timeout=15) as client:
+            r2 = await client.post(
+                "https://backboard.railway.app/graphql/v2",
+                headers=headers,
+                json={
+                    "query": logs_query,
+                    "variables": {"deploymentId": deploy_id},
+                },
+            )
+        l = r2.json()
+        logs = (l.get("data") or {}).get("deploymentLogs", [])
 
         return {
-            "http_code": r.status_code,
-            "projects":  projects,
-            "raw_errors": data.get("errors"),
+            "deployment": {
+                "id":        deploy_id,
+                "status":    deploy["status"],
+                "createdAt": deploy["createdAt"],
+            },
+            "logs": [
+                f"[{lg.get('severity','INFO')}] {lg.get('timestamp','')} {lg.get('message','')}"
+                for lg in logs[-30:]
+            ],
+            "log_errors": l.get("errors"),
         }
 
     except Exception as e:
