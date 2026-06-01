@@ -8,19 +8,6 @@
     "combined_score": -0.6035,
     "reasoning": "ML model is bearish (-100%), news sentiment is neutral (-0.009). Combined: -0.603.",
     "status": "ACTIVE",
-    "expires_at": "2026-05-31T22:34:56.583063+00:00",
-    "id": 10,
-    "created_at": "2026-05-31T22:04:56.872378+00:00"
-  },
-  {
-    "symbol": "XAUUSD",
-    "direction": "SHORT",
-    "confidence": 0.6035,
-    "ml_score": 1.0,
-    "news_score": -0.0087,
-    "combined_score": -0.6035,
-    "reasoning": "ML model is bearish (-100%), news sentiment is neutral (-0.009). Combined: -0.603.",
-    "status": "ACTIVE",
     "expires_at": "2026-05-31T22:49:56.553681+00:00",
     "id": 11,
     "created_at": "2026-05-31T22:19:56.831476+00:00"
@@ -1373,5 +1360,19 @@
     "expires_at": "2026-06-01T18:25:55.286681+00:00",
     "id": 101,
     "created_at": "2026-06-01T17:55:55.698386+00:00"
+  },
+  {
+    "symbol": "XAUUSD",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "ml_score": 0.6207,
+    "rf_score": 0.5,
+    "news_score": 0.0946,
+    "combined_score": -0.0904,
+    "reasoning": "KNN is bearish (-24%), RF is bearish (+0%), news is neutral (+0.095). Velocity: CONFLICTED \u00d70.6 (news weight 20%). Combined: -0.090.",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-01T18:44:38.438708+00:00",
+    "id": 101,
+    "created_at": "2026-06-01T18:14:38.884250+00:00"
   }
 ]
