@@ -1,6 +1,6 @@
 import os
-import asyncio
 import httpx
+from datetime import datetime, timezone
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -8,81 +8,26 @@ load_dotenv()
 TOKEN   = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 
-DIRECTION_EMOJI = {"LONG": "🟢", "SHORT": "🔴", "NEUTRAL": "⚪"}
-CONF_EMOJI = lambda c: "🔥" if c >= 0.75 else "✅" if c >= 0.60 else "⚠️"
+TRIGGER_NAMES = {
+    "RSI":  "RSI Momentum Cross",
+    "FVG":  "Fair Value Gap",
+    "LIQ":  "Liquidity Sweep",
+    "OB":   "Order Block Bounce",
+    "BOS":  "Break of Structure",
+}
 
 
-def _sentiment_bar(score: float) -> str:
-    """Visual bar: -1..+1 → 10-char bar."""
-    filled = round((score + 1) / 2 * 10)
-    return "█" * filled + "░" * (10 - filled)
-
-
-async def send_signal(signal: dict) -> bool:
-    """Send a trading signal message to the Telegram channel."""
+async def _send(text: str) -> bool:
     if not TOKEN or not CHAT_ID:
         print("[telegram] TOKEN or CHAT_ID not set — skipping.")
         return False
-
-    direction  = signal.get("direction", "NEUTRAL")
-    confidence = signal.get("confidence", 0.0)
-    ml_score   = signal.get("ml_score", 0.5)
-    news_score = signal.get("news_score", 0.0)
-    combined   = signal.get("combined_score", 0.5)
-    reasoning  = signal.get("reasoning", "")
-    wins       = signal.get("total_wins", 0)
-    losses     = signal.get("total_losses", 0)
-    win_rate   = signal.get("win_rate", 0.0)
-    weights    = signal.get("weights", [1.0] * 8)
-    top_feat   = signal.get("top_feature", "—")
-    velocity   = signal.get("news_velocity", "NORMAL")
-    v_mult     = signal.get("velocity_mult", 1.0)
-    event      = signal.get("high_impact_event", "")
-
-    dir_emoji  = DIRECTION_EMOJI.get(direction, "⚪")
-    conf_emoji = CONF_EMOJI(confidence)
-
-    weight_line = "  ".join(
-        f"W{i+1}:{w:.2f}" for i, w in enumerate(weights)
-    )
-
-    news_bar  = _sentiment_bar(news_score)
-    news_label = "📰 Bullish for XAU" if news_score > 0.2 else "📰 Bearish for XAU" if news_score < -0.2 else "📰 Neutral"
-
-    msg = (
-        f"*🤖 MIGO SNIPER PRO — ML + ADAPTIVE*\n"
-        f"━━━━━━━━━━━━━━━━━━━━\n"
-        f"{dir_emoji} *{direction}* {conf_emoji}  Confidence: *{confidence*100:.0f}%*\n\n"
-        f"📊 *Scores*\n"
-        f"  ML Bull/Bear : {ml_score*100:.0f}%\n"
-        f"  News Sentiment: `{news_bar}` {news_score:+.3f}\n"
-        f"  {news_label}\n"
-        f"  Combined Score: *{combined:+.3f}*\n\n"
-        f"🧠 *Adaptive Weights*\n"
-        f"  {weight_line}\n"
-        f"  Top Feature: *{top_feat}*\n\n"
-        f"📈 *Session Stats*\n"
-        f"  Wins: {wins}  Losses: {losses}  Win Rate: {win_rate*100:.1f}%\n\n"
-    )
-
-    velocity_emoji = "🚨" if velocity == "HIGH VELOCITY" else "📈" if velocity == "ELEVATED" else "📊"
-    msg += f"{velocity_emoji} *News Velocity:* {velocity} ×{v_mult:.1f}\n"
-    if event:
-        msg += f"⚡ *BREAKING EVENT:* {event}\n"
-    msg += "\n"
-
-    if reasoning:
-        msg += f"💬 _{reasoning}_\n\n"
-
-    msg += f"⏰ XAU/USD · 5m · {signal.get('timestamp', '')}"
-
     url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
     try:
         async with httpx.AsyncClient(timeout=10) as client:
             resp = await client.post(url, json={
-                "chat_id": CHAT_ID,
-                "text": msg,
-                "parse_mode": "Markdown",
+                "chat_id":    CHAT_ID,
+                "text":       text,
+                "parse_mode": "HTML",
             })
             resp.raise_for_status()
             return True
@@ -91,13 +36,91 @@ async def send_signal(signal: dict) -> bool:
         return False
 
 
+async def send_entry_signal(s: dict) -> bool:
+    """Send a clean entry signal message — fires instantly when trade opens."""
+    direction = s.get("direction", "LONG")
+    tf        = s.get("timeframe", "5m")
+    trigger   = s.get("trigger", "RSI")
+    symbol    = s.get("symbol", "XAUUSD")
+    entry     = s.get("entry_price", 0.0)
+    tp1       = s.get("tp1", 0.0)
+    tp2       = s.get("tp2", 0.0)
+    tp3       = s.get("tp3", 0.0)
+    sl        = s.get("sl", 0.0)
+    ml_score  = s.get("ml_score", 0.5)
+    tier      = s.get("tier", "MED")
+    news      = s.get("news_score", 0.0)
+    velocity  = s.get("velocity", "NORMAL")
+    event     = s.get("event", "")
+
+    dir_emoji  = "🟢" if direction == "LONG"  else "🔴"
+    tier_emoji = "⭐" if tier == "HIGH"        else "✅" if tier == "MED" else "⚡"
+    news_label = "📰 Bullish" if news > 0.2   else "📰 Bearish" if news < -0.2 else "📰 Neutral"
+    trigger_name = TRIGGER_NAMES.get(trigger, trigger)
+
+    now = datetime.now(timezone.utc).strftime("%H:%M UTC — %d %b %Y")
+
+    msg = (
+        f"{dir_emoji} <b>{direction} SIGNAL</b> — {symbol}\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n"
+        f"⏱ <b>Timeframe:</b> {tf}\n"
+        f"{tier_emoji} <b>Quality:</b> {tier}  |  🤖 ML Score: {ml_score*100:.0f}%\n"
+        f"🎯 <b>Trigger:</b> {trigger_name}\n\n"
+        f"📍 <b>Entry:</b>  {entry:.2f}\n"
+        f"🎯 <b>TP1:</b>    {tp1:.2f}\n"
+        f"🎯 <b>TP2:</b>    {tp2:.2f}\n"
+        f"🚀 <b>TP3:</b>    {tp3:.2f}\n"
+        f"🛑 <b>SL:</b>     {sl:.2f}\n\n"
+        f"{news_label} ({news:+.3f})  |  📡 {velocity}\n"
+    )
+
+    if event:
+        msg += f"⚡ <b>BREAKING:</b> {event}\n"
+
+    msg += f"\n⏰ {now}"
+    return await _send(msg)
+
+
+async def send_signal(signal: dict) -> bool:
+    """Send a scheduler-generated signal (15-min cycle)."""
+    direction  = signal.get("direction", "NEUTRAL")
+    confidence = signal.get("confidence", 0.0)
+    ml_score   = signal.get("ml_score", 0.5)
+    news_score = signal.get("news_score", 0.0)
+    combined   = signal.get("combined_score", 0.0)
+    reasoning  = signal.get("reasoning", "")
+    wins       = signal.get("total_wins", 0)
+    losses     = signal.get("total_losses", 0)
+    win_rate   = signal.get("win_rate", 0.0)
+    top_feat   = signal.get("top_feature", "—")
+    velocity   = signal.get("news_velocity", "NORMAL")
+    v_mult     = signal.get("velocity_mult", 1.0)
+    event      = signal.get("high_impact_event", "")
+
+    dir_emoji  = "🟢" if direction == "LONG" else "🔴"
+    conf_emoji = "🔥" if confidence >= 0.75 else "✅" if confidence >= 0.60 else "⚠️"
+    news_label = "📰 Bullish" if news_score > 0.2 else "📰 Bearish" if news_score < -0.2 else "📰 Neutral"
+    now        = signal.get("timestamp", datetime.now(timezone.utc).strftime("%H:%M UTC — %d %b %Y"))
+
+    msg = (
+        f"{dir_emoji} <b>{direction}</b> {conf_emoji}  Confidence: <b>{confidence*100:.0f}%</b>\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n"
+        f"🤖 ML Score: {ml_score*100:.0f}%  |  Combined: {combined:+.3f}\n"
+        f"{news_label} ({news_score:+.3f})  |  📡 {velocity} ×{v_mult:.1f}\n"
+        f"🏆 Top Feature: <b>{top_feat}</b>\n\n"
+        f"📈 Wins: {wins}  Losses: {losses}  Win Rate: {win_rate*100:.1f}%\n"
+    )
+
+    if event:
+        msg += f"⚡ <b>BREAKING:</b> {event}\n"
+
+    if reasoning:
+        msg += f"\n💬 <i>{reasoning}</i>\n"
+
+    msg += f"\n⏰ {now}  |  XAU/USD"
+    return await _send(msg)
+
+
 async def send_text(text: str) -> None:
     """Send a plain text message."""
-    if not TOKEN or not CHAT_ID:
-        return
-    url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
-    async with httpx.AsyncClient(timeout=10) as client:
-        try:
-            await client.post(url, json={"chat_id": CHAT_ID, "text": text})
-        except Exception:
-            pass
+    await _send(text)

@@ -312,6 +312,18 @@ penalizeWeightsShort(float penalty) =>
         array.set(weights, i, clampW(w - learnRate * (ef <= 0.0 ? 1.0 : -1.0) * penalty))
 
 // ═══════════════════════════════════════════════════════
+// ENTRY PAYLOAD BUILDER — fires on trade open → Telegram
+// ═══════════════════════════════════════════════════════
+buildEntryPayload(dir, tf, trig, entPx, t1, t2, t3, stopPx, mlSc, tierStr) =>
+    string e1 = '{"secret":"' + webhookSecret + '"'
+    string e2 = ',"direction":"' + dir + '","timeframe":"' + tf + '","trigger":"' + trig + '"'
+    string e3 = ',"symbol":"' + syminfo.tickerid + '"'
+    string e4 = ',"entry_price":' + str.tostring(entPx, "#.##") + ',"tp1":' + str.tostring(t1, "#.##")
+    string e5 = ',"tp2":' + str.tostring(t2, "#.##") + ',"tp3":' + str.tostring(t3, "#.##")
+    string e6 = ',"sl":' + str.tostring(stopPx, "#.##") + ',"ml_score":' + str.tostring(mlSc, "#.####") + ',"tier":"' + tierStr + '"}'
+    e1 + e2 + e3 + e4 + e5 + e6
+
+// ═══════════════════════════════════════════════════════
 // PAYLOAD BUILDER — split strings to avoid CE10156
 // ═══════════════════════════════════════════════════════
 buildPayload(dir, outcome, stage, entPx, exitPx, mlSc) =>
@@ -540,6 +552,7 @@ if doBuy
     array.set(entryFeatures, 19, f20)
     array.set(entryFeatures, 20, f21)
     label.new(bar_index, low, "🤖 BUY [" + buyTrig + "] " + buyTier + "\nML:" + str.tostring(tradeConf) + "%  Ent:" + str.tostring(entryPrice, "#.##") + "\nTP1:" + str.tostring(tp1Price, "#.##") + "  TP2:" + str.tostring(tp2Price, "#.##") + "\nTP3:" + str.tostring(tp3Price, "#.##") + "  SL:" + str.tostring(slPrice, "#.##"), color=buyCol, textcolor=color.white, style=label.style_label_up, size=size.small)
+    alert(buildEntryPayload("LONG", timeframe.period, buyTrig, entryPrice, tp1Price, tp2Price, tp3Price, slPrice, mlBull, buyTier), alert.freq_once_per_bar_close)
 
 if doSell
     activeTrade := "SHORT"
@@ -574,6 +587,7 @@ if doSell
     array.set(entryFeatures, 19, f20)
     array.set(entryFeatures, 20, f21)
     label.new(bar_index, high, "🤖 SELL [" + sellTrig + "] " + sellTier + "\nML:" + str.tostring(tradeConf) + "%  Ent:" + str.tostring(entryPrice, "#.##") + "\nTP1:" + str.tostring(tp1Price, "#.##") + "  TP2:" + str.tostring(tp2Price, "#.##") + "\nTP3:" + str.tostring(tp3Price, "#.##") + "  SL:" + str.tostring(slPrice, "#.##"), color=sellCol, textcolor=color.white, style=label.style_label_down, size=size.small)
+    alert(buildEntryPayload("SHORT", timeframe.period, sellTrig, entryPrice, tp1Price, tp2Price, tp3Price, slPrice, mlBear, sellTier), alert.freq_once_per_bar_close)
 
 // ═══════════════════════════════════════════════════════
 // WIN RATE

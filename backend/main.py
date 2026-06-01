@@ -67,7 +67,6 @@ class TradeOutcomePayload(BaseModel):
     entry_price: float
     exit_price:  float
     ml_score:    float = 0.5
-    # 20 feature snapshot at entry
     f1:  float = 0.0
     f2:  float = 0.0
     f3:  float = 0.0
@@ -89,6 +88,21 @@ class TradeOutcomePayload(BaseModel):
     f19: float = 0.0
     f20: float = 0.0
     f21: float = 0.0
+
+
+class SignalEntryPayload(BaseModel):
+    secret:      str
+    direction:   Literal["LONG", "SHORT"]
+    timeframe:   str = "5m"
+    trigger:     str = "RSI"
+    symbol:      str = "XAUUSD"
+    entry_price: float
+    tp1:         float
+    tp2:         float
+    tp3:         float
+    sl:          float
+    ml_score:    float = 0.5
+    tier:        str = "MED"
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -174,6 +188,34 @@ async def trade_outcome(payload: TradeOutcomePayload):
         "total_losses": model._total_losses,
         "win_rate":     round(model.win_rate * 100, 1),
     }
+
+
+@app.post("/webhook/signal-entry")
+async def signal_entry(payload: SignalEntryPayload):
+    """
+    Called by TradingView on trade ENTRY.
+    Sends formatted signal instantly to Telegram.
+    """
+    _validate_secret(payload.secret)
+    from telegram_bot import send_entry_signal
+    from scheduler import get_latest_news_sentiment, get_latest_velocity, get_latest_event
+    asyncio.create_task(send_entry_signal({
+        "direction":   payload.direction,
+        "timeframe":   payload.timeframe,
+        "trigger":     payload.trigger,
+        "symbol":      payload.symbol,
+        "entry_price": payload.entry_price,
+        "tp1":         payload.tp1,
+        "tp2":         payload.tp2,
+        "tp3":         payload.tp3,
+        "sl":          payload.sl,
+        "ml_score":    payload.ml_score,
+        "tier":        payload.tier,
+        "news_score":  get_latest_news_sentiment(),
+        "velocity":    get_latest_velocity().get("label", "NORMAL"),
+        "event":       get_latest_event().get("event_type", ""),
+    }))
+    return {"status": "ok", "direction": payload.direction, "timeframe": payload.timeframe}
 
 
 @app.get("/weights")
