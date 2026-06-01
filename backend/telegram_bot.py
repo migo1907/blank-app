@@ -53,17 +53,15 @@ async def send_entry_signal(s: dict) -> bool:
     velocity  = s.get("velocity", "NORMAL")
     event     = s.get("event", "")
 
-    dir_emoji    = "🟢" if direction == "LONG" else "🔴"
-    tier_emoji   = "⭐" if tier == "HIGH"      else "✅" if tier == "MED" else "⚡"
-    trigger_name = TRIGGER_NAMES.get(trigger, trigger)
+    dir_emoji   = "🟢" if direction == "LONG" else "🔴"
+    symbol_clean = symbol.split(":")[-1]
     now          = datetime.now(timezone.utc).strftime("%H:%M UTC — %d %b %Y")
 
     msg = (
-        f"{dir_emoji} <b>{direction} SIGNAL</b> — {symbol}\n"
+        f"{dir_emoji} <b>{direction} SIGNAL</b> — {symbol_clean}\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
         f"⏱ Timeframe: {tf}\n"
-        f"⚡ Quality: {tier_emoji} {tier}\n"
-        f"🎯 Trigger: {trigger_name}\n\n"
+        f"⚡ Quality: {tier}\n\n"
         f"📍 Entry:  {entry:.2f}\n"
         f"🎯 TP1:    {tp1:.2f}\n"
         f"🎯 TP2:    {tp2:.2f}\n"
