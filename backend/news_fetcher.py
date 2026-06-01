@@ -232,17 +232,16 @@ def fetch_breaking_news() -> list[dict]:
         except Exception as e:
             print(f"[breaking] fallback fetch error: {e}")
 
-    try:
-        for item in source_items[:50]:
-            title = item["title"]
-            key   = title[:60].lower()
-            if key in seen:
-                continue
-            lower = title.lower()
-            if any(kw in lower for kw in FINANCIALJUICE_HIGH_IMPACT):
-                if not any(t in lower for t in CRYPTO_NOISE_TERMS):
-                    seen.add(key)
-                    breaking.append({**item, "fj_breaking": True})
+    for item in source_items[:50]:
+        title = item["title"]
+        key   = title[:60].lower()
+        if key in seen:
+            continue
+        lower = title.lower()
+        if any(kw in lower for kw in FINANCIALJUICE_HIGH_IMPACT):
+            if not any(t in lower for t in CRYPTO_NOISE_TERMS):
+                seen.add(key)
+                breaking.append({**item, "fj_breaking": True})
 
     print(f"[breaking] {len(breaking)} high-impact items")
     return breaking[:10]
