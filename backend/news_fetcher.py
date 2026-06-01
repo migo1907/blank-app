@@ -16,21 +16,30 @@ NEWSAPI_KEY = os.environ.get("NEWSAPI_KEY", "")
 
 # ── RSS feeds (no API key required, real-time) ───────────────────────────────
 RSS_FEEDS = [
-    ("Reuters Business",  "https://feeds.reuters.com/reuters/businessNews"),
-    ("Reuters Markets",   "https://feeds.reuters.com/reuters/UKmarkets"),
-    ("Kitco Gold",        "https://www.kitco.com/rss/"),
-    ("FXStreet",          "https://www.fxstreet.com/rss/news"),
+    ("Kitco Gold News",   "https://www.kitco.com/rss/"),
+    ("FXStreet Gold",     "https://www.fxstreet.com/rss/news"),
     ("MarketWatch Top",   "https://feeds.marketwatch.com/marketwatch/topstories/"),
-    ("Investing.com Gold","https://www.investing.com/rss/news_301.rss"),
+    ("Investing.com Comm","https://www.investing.com/rss/news_25.rss"),   # Commodities
+    ("Investing.com Forex","https://www.investing.com/rss/news_1.rss"),   # Forex
+    ("BullionVault",      "https://www.bullionvault.com/gold-news/rss.do"),
+    ("Mining.com",        "https://www.mining.com/feed/"),
 ]
 
 # Gold/forex relevance filter
 RELEVANCE_TERMS = [
-    "gold", "xau", "dollar", "fed", "rate", "inflation", "cpi", "fomc",
+    "gold", "xau", "silver", "precious metal", "bullion",
+    "dollar", "usd", "dxy", "fed", "federal reserve", "rate", "inflation", "cpi", "fomc",
     "powell", "treasury", "yuan", "war", "conflict", "sanction", "china",
-    "economy", "gdp", "nfp", "payroll", "ism", "pmi", "ecb", "dxy",
+    "economy", "gdp", "nfp", "nonfarm", "payroll", "ism", "pmi", "ecb",
     "oil", "crude", "geopolit", "ukraine", "russia", "middle east",
-    "safe haven", "risk", "recession", "bank", "bond", "yield",
+    "safe haven", "risk off", "recession", "bond", "yield", "10-year",
+]
+
+# Terms that indicate crypto-only news — skip these even if other terms match
+CRYPTO_NOISE_TERMS = [
+    "bitcoin", "ethereum", "crypto", "blockchain", "stablecoin",
+    "defi", "nft", "altcoin", "solana", "binance", "coinbase",
+    "tokenis", "web3", "metaverse",
 ]
 
 # NewsAPI search queries
@@ -127,7 +136,7 @@ def fetch_rss_headlines() -> list[dict]:
                         if key in seen or len(title) < 15:
                             continue
                         lower = title.lower()
-                        if any(t in lower for t in RELEVANCE_TERMS):
+                        if any(t in lower for t in RELEVANCE_TERMS) and not any(t in lower for t in CRYPTO_NOISE_TERMS):
                             seen.add(key)
                             articles.append(item)
             except Exception as e:
