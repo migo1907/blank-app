@@ -1,83 +1,5 @@
 [
   {
-    "source": "MarketWatch Top",
-    "headline": "Another dire problem for Social Security: Trustees may be calculating the birth rate wrong",
-    "url": "https://www.marketwatch.com/story/another-dire-problem-for-social-security-trustees-may-be-calculating-the-birth-rate-wrong-955d1930?mod=mw_rss_topstories",
-    "sentiment_score": 0.6,
-    "impact": "MEDIUM",
-    "keywords": [
-      "Social Security",
-      "fiscal concerns",
-      "inflation pressure"
-    ],
-    "fetched_at": "2026-06-01T10:06:59.927504+00:00"
-  },
-  {
-    "source": "Investing.com Gold",
-    "headline": "Bank of England\u2019s Greene sees tokenised deposits replacing stablecoins",
-    "url": "https://www.investing.com/news/cryptocurrency-news/bank-of-englands-greene-sees-tokenised-deposits-replacing-stablecoins-93CH-4717925",
-    "sentiment_score": -0.3,
-    "impact": "LOW",
-    "keywords": [
-      "tokenized deposits",
-      "stablecoin replacement",
-      "monetary policy"
-    ],
-    "fetched_at": "2026-06-01T10:06:59.927504+00:00"
-  },
-  {
-    "source": "Investing.com Gold",
-    "headline": "Fed\u2019s Waller says stablecoins extend US monetary policy reach",
-    "url": "https://www.investing.com/news/cryptocurrency-news/feds-waller-says-stablecoins-extend-us-monetary-policy-reach-4717919",
-    "sentiment_score": -0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "stablecoins",
-      "monetary policy",
-      "USD reach"
-    ],
-    "fetched_at": "2026-06-01T10:06:59.927504+00:00"
-  },
-  {
-    "source": "Investing.com Gold",
-    "headline": "Bitcoin subdued near $74k as ETF demand cools; analyst warns downturn may extend",
-    "url": "https://www.investing.com/news/cryptocurrency-news/bitcoin-slips-as-etf-demand-cools-analyst-warns-downturn-may-extend-4717596",
-    "sentiment_score": -0.2,
-    "impact": "LOW",
-    "keywords": [
-      "Bitcoin",
-      "ETF demand",
-      "crypto weakness"
-    ],
-    "fetched_at": "2026-06-01T10:06:59.927504+00:00"
-  },
-  {
-    "source": "Investing.com Gold",
-    "headline": "Bitcoin set for May decline on expectations of higher-for-longer interest rates",
-    "url": "https://www.investing.com/news/cryptocurrency-news/bitcoin-rises-near-74k-after-7wk-low-on-iran-truce-extension-hopes-4715939",
-    "sentiment_score": -0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "higher rates",
-      "Bitcoin decline",
-      "interest rates"
-    ],
-    "fetched_at": "2026-06-01T10:06:59.927504+00:00"
-  },
-  {
-    "source": "CoinDesk",
-    "headline": "Crypto Long & Short: How the GENIUS Act repriced bitcoin's monetary premium",
-    "url": "https://www.coindesk.com/coindesk-indices/2026/05/27/crypto-long-and-short-how-the-genius-act-repriced-bitcoin-s-monetary-premium",
-    "sentiment_score": -0.1,
-    "impact": "LOW",
-    "keywords": [
-      "Bitcoin",
-      "monetary premium",
-      "crypto pricing"
-    ],
-    "fetched_at": "2026-06-01T10:06:59.927504+00:00"
-  },
-  {
     "source": "Cointelegraph",
     "headline": "Bitcoin analysis eyes sharp rebound after BTC collapses below M2 supply 'fair value'",
     "url": "https://cointelegraph.com/markets/bitcoin-analysis-eyes-sharp-rebound-after-btc-collapses-below-m2-supply-fair-value",
@@ -2595,5 +2517,83 @@
       "market drivers"
     ],
     "fetched_at": "2026-06-01T11:14:45.204654+00:00"
+  },
+  {
+    "source": "MarketWatch Top",
+    "headline": "Oil prices rise after fresh wave of attacks between U.S. and Iran",
+    "url": "https://www.marketwatch.com/story/oil-prices-rise-after-fresh-wave-of-attacks-between-u-s-and-iran-fbcdd5ed?mod=mw_rss_topstories",
+    "sentiment_score": 0.7,
+    "impact": "HIGH",
+    "keywords": [
+      "geopolitical tension",
+      "safe-haven demand",
+      "risk-off"
+    ],
+    "fetched_at": "2026-06-01T11:29:41.238712+00:00"
+  },
+  {
+    "source": "MarketWatch Top",
+    "headline": "Another dire problem for Social Security: Trustees may be calculating the birth rate wrong",
+    "url": "https://www.marketwatch.com/story/another-dire-problem-for-social-security-trustees-may-be-calculating-the-birth-rate-wrong-955d1930?mod=mw_rss_topstories",
+    "sentiment_score": 0.1,
+    "impact": "LOW",
+    "keywords": [
+      "Social Security",
+      "demographic",
+      "fiscal policy"
+    ],
+    "fetched_at": "2026-06-01T11:29:41.238712+00:00"
+  },
+  {
+    "source": "Investing.com Gold",
+    "headline": "Bank of England\u2019s Greene sees tokenised deposits replacing stablecoins",
+    "url": "https://www.investing.com/news/cryptocurrency-news/bank-of-englands-greene-sees-tokenised-deposits-replacing-stablecoins-93CH-4717925",
+    "sentiment_score": -0.2,
+    "impact": "LOW",
+    "keywords": [
+      "tokenization",
+      "stablecoin",
+      "monetary innovation"
+    ],
+    "fetched_at": "2026-06-01T11:29:41.238712+00:00"
+  },
+  {
+    "source": "Investing.com Gold",
+    "headline": "Fed\u2019s Waller says stablecoins extend US monetary policy reach",
+    "url": "https://www.investing.com/news/cryptocurrency-news/feds-waller-says-stablecoins-extend-us-monetary-policy-reach-4717919",
+    "sentiment_score": -0.3,
+    "impact": "MEDIUM",
+    "keywords": [
+      "stablecoin adoption",
+      "USD strength",
+      "monetary reach"
+    ],
+    "fetched_at": "2026-06-01T11:29:41.238712+00:00"
+  },
+  {
+    "source": "Investing.com Gold",
+    "headline": "Bitcoin subdued near $74k as ETF demand cools; analyst warns downturn may extend",
+    "url": "https://www.investing.com/news/cryptocurrency-news/bitcoin-slips-as-etf-demand-cools-analyst-warns-downturn-may-extend-4717596",
+    "sentiment_score": -0.1,
+    "impact": "LOW",
+    "keywords": [
+      "Bitcoin weakness",
+      "crypto sentiment",
+      "tangential"
+    ],
+    "fetched_at": "2026-06-01T11:29:41.238712+00:00"
+  },
+  {
+    "source": "Investing.com Gold",
+    "headline": "Bitcoin set for May decline on expectations of higher-for-longer interest rates",
+    "url": "https://www.investing.com/news/cryptocurrency-news/bitcoin-rises-near-74k-after-7wk-low-on-iran-truce-extension-hopes-4715939",
+    "sentiment_score": -0.6,
+    "impact": "HIGH",
+    "keywords": [
+      "higher-for-longer rates",
+      "USD strength",
+      "real yields"
+    ],
+    "fetched_at": "2026-06-01T11:29:41.238712+00:00"
   }
 ]
