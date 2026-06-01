@@ -25,6 +25,20 @@ RSS_FEEDS = [
     ("Mining.com",        "https://www.mining.com/feed/"),
 ]
 
+# FinancialJuice RSS — real-time breaking news, fetched separately for instant alerts
+FINANCIALJUICE_RSS = "https://feed.financialjuice.com/rss"
+
+# FinancialJuice high-impact keywords — these map to "red" breaking news
+FINANCIALJUICE_HIGH_IMPACT = [
+    "fed", "fomc", "powell", "rate decision", "rate cut", "rate hike",
+    "nfp", "non-farm", "payroll", "cpi", "inflation", "gdp",
+    "war", "attack", "invasion", "strike", "nuclear", "sanction",
+    "gold", "xau", "dollar", "dxy", "treasury", "yield",
+    "recession", "crisis", "crash", "default", "bank",
+    "china", "russia", "ukraine", "middle east", "iran", "opec",
+    "emergency", "breaking", "flash", "urgent", "halt",
+]
+
 # Gold/forex relevance filter
 RELEVANCE_TERMS = [
     "gold", "xau", "silver", "precious metal", "bullion",
@@ -144,6 +158,38 @@ def fetch_rss_headlines() -> list[dict]:
 
     print(f"[rss] {len(articles)} relevant articles from RSS")
     return articles[:30]
+
+
+def fetch_financialjuice_breaking() -> list[dict]:
+    """
+    Fetch FinancialJuice RSS and return only high-impact (red) items.
+    These are sent immediately to Telegram as breaking news alerts.
+    Also included in sentiment scoring for ML signal weighting.
+    """
+    breaking = []
+    try:
+        with httpx.Client(timeout=8, follow_redirects=True) as client:
+            resp = client.get(
+                FINANCIALJUICE_RSS,
+                headers={"User-Agent": "Mozilla/5.0 (compatible; MigoSniperBot/1.0)"},
+            )
+            if resp.status_code != 200:
+                print(f"[financialjuice] HTTP {resp.status_code}")
+                return []
+
+            items = _parse_rss(resp.text, "FinancialJuice")
+            for item in items[:30]:
+                title = item["title"]
+                lower = title.lower()
+                # Only keep high-impact items (equivalent to red highlights)
+                if any(kw in lower for kw in FINANCIALJUICE_HIGH_IMPACT):
+                    if not any(t in lower for t in CRYPTO_NOISE_TERMS):
+                        breaking.append({**item, "fj_breaking": True})
+
+        print(f"[financialjuice] {len(breaking)} high-impact items")
+    except Exception as e:
+        print(f"[financialjuice] Failed: {e}")
+    return breaking[:10]
 
 
 def fetch_newsapi_headlines(max_articles: int = 20) -> list[dict]:
@@ -351,24 +397,27 @@ def aggregate_sentiment(scored_items: list[dict]) -> float:
 
 # ── Main cycle ────────────────────────────────────────────────────────────────
 
-def run_news_cycle(previous_agg: float = 0.0) -> tuple[list[dict], float, dict, dict]:
+def run_news_cycle(previous_agg: float = 0.0) -> tuple[list[dict], float, dict, dict, list[dict]]:
     """
     Full enhanced cycle:
-      1. Fetch RSS (real-time) + NewsAPI
-      2. Deduplicate & merge
-      3. Score with Claude Haiku
-      4. Calculate velocity
-      5. Detect high-impact events
+      1. Fetch FinancialJuice breaking news (red highlights) — highest priority
+      2. Fetch RSS feeds + NewsAPI
+      3. Deduplicate & merge
+      4. Score with Claude Haiku
+      5. Calculate velocity
+      6. Detect high-impact events
 
-    Returns: (scored_items, aggregate_score, velocity, event)
+    Returns: (scored_items, aggregate_score, velocity, event, fj_breaking_items)
+    fj_breaking_items — FinancialJuice high-impact items for instant Telegram alert
     """
+    fj_breaking  = fetch_financialjuice_breaking()
     rss_articles = fetch_rss_headlines()
     api_articles = fetch_newsapi_headlines()
 
-    # Merge & deduplicate
+    # Merge & deduplicate — FJ first so it takes priority
     seen    = set()
     unique  = []
-    for a in rss_articles + api_articles:
+    for a in fj_breaking + rss_articles + api_articles:
         key = a["title"][:60].lower()
         if key not in seen:
             seen.add(key)
@@ -378,7 +427,7 @@ def run_news_cycle(previous_agg: float = 0.0) -> tuple[list[dict], float, dict, 
         print("[news] No articles fetched.")
         empty_velocity = {"multiplier": 0.3, "volume": 0, "consistency": 0.0,
                           "acceleration": 0.0, "label": "SILENT", "high_count": 0, "total_count": 0}
-        return [], 0.0, empty_velocity, {"detected": False, "event_type": "", "urgency": 0.0}
+        return [], 0.0, empty_velocity, {"detected": False, "event_type": "", "urgency": 0.0}, []
 
     print(f"[news] Scoring {len(unique)} unique headlines with Claude…")
     scored   = score_headlines_with_claude(unique)
@@ -389,6 +438,7 @@ def run_news_cycle(previous_agg: float = 0.0) -> tuple[list[dict], float, dict, 
     print(
         f"[news] Sentiment: {agg:+.3f} | "
         f"Velocity: {velocity['label']} ×{velocity['multiplier']} | "
-        f"Event: {event.get('event_type') or 'none'}"
+        f"Event: {event.get('event_type') or 'none'} | "
+        f"FJ Breaking: {len(fj_breaking)}"
     )
-    return scored, agg, velocity, event
+    return scored, agg, velocity, event, fj_breaking

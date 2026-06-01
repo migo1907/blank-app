@@ -115,3 +115,30 @@ async def send_signal(signal: dict) -> bool:
 async def send_text(text: str) -> None:
     """Send a plain text message."""
     await _send(text)
+
+
+async def send_breaking_news(items: list[dict], seen_headlines: set) -> set:
+    """
+    Send FinancialJuice high-impact (red) breaking news to Telegram.
+    Only sends headlines not seen in previous cycle to avoid duplicates.
+    Returns updated seen_headlines set.
+    """
+    new_items = [i for i in items if i["title"][:80] not in seen_headlines]
+    if not new_items:
+        return seen_headlines
+
+    now = datetime.now(timezone.utc).strftime("%H:%M UTC")
+    lines = "\n".join(f"🔴 {item['title']}" for item in new_items[:5])
+
+    msg = (
+        f"🚨 <b>BREAKING NEWS</b> — {now}\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n"
+        f"{lines}\n\n"
+        f"⚡ <i>High-impact market news via FinancialJuice</i>"
+    )
+    await _send(msg)
+
+    for item in new_items:
+        seen_headlines.add(item["title"][:80])
+
+    return seen_headlines

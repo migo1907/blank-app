@@ -12,6 +12,7 @@ _scheduler:          AsyncIOScheduler | None = None
 _latest_news_agg:    float = 0.0
 _latest_velocity:    dict  = {"multiplier": 1.0, "label": "NORMAL"}
 _latest_event:       dict  = {"detected": False, "event_type": "", "urgency": 0.0}
+_fj_seen_headlines:  set   = set()   # dedup FinancialJuice breaking news across cycles
 
 
 def get_latest_news_sentiment() -> float:
@@ -25,17 +26,17 @@ def get_latest_event() -> dict:
 
 
 async def _news_signal_cycle() -> None:
-    global _latest_news_agg, _latest_velocity, _latest_event
+    global _latest_news_agg, _latest_velocity, _latest_event, _fj_seen_headlines
     print("[scheduler] Starting news + velocity + signal cycle…")
 
     try:
         from news_fetcher import run_news_cycle
         from db import insert_news
         from signal_engine import generate_signal
-        from telegram_bot import send_signal, send_text
+        from telegram_bot import send_signal, send_text, send_breaking_news
 
         # Pass previous aggregation so velocity can measure acceleration
-        scored_items, agg, velocity, event = run_news_cycle(previous_agg=_latest_news_agg)
+        scored_items, agg, velocity, event, fj_breaking = run_news_cycle(previous_agg=_latest_news_agg)
 
         if scored_items:
             insert_news(scored_items)
@@ -43,11 +44,15 @@ async def _news_signal_cycle() -> None:
             _latest_velocity = velocity
             _latest_event    = event
 
-        # Alert on high-impact breaking news
+        # ── FinancialJuice red breaking news → instant Telegram alert ──────────
+        if fj_breaking:
+            _fj_seen_headlines = await send_breaking_news(fj_breaking, _fj_seen_headlines)
+
+        # ── High-impact event alert (NFP, FOMC, war etc.) ──────────────────────
         if event.get("detected") and event.get("urgency", 0) >= 0.9:
             print(f"[scheduler] ⚡ HIGH-IMPACT EVENT: {event['event_type']}")
             await send_text(
-                f"⚡ BREAKING: {event['event_type']} detected!\n"
+                f"⚡ <b>HIGH IMPACT EVENT: {event['event_type']}</b>\n"
                 f"Headlines: {', '.join(event.get('headlines', []))[:200]}\n"
                 f"News sentiment: {agg:+.3f} | Velocity: {velocity['label']} ×{velocity['multiplier']}"
             )
