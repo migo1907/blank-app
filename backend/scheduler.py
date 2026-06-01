@@ -12,7 +12,10 @@ _scheduler:          AsyncIOScheduler | None = None
 _latest_news_agg:    float = 0.0
 _latest_velocity:    dict  = {"multiplier": 1.0, "label": "NORMAL"}
 _latest_event:       dict  = {"detected": False, "event_type": "", "urgency": 0.0}
-_fj_seen_headlines:  set   = set()   # dedup FinancialJuice breaking news across cycles
+_fj_seen_headlines:  set   = set()   # dedup breaking news across cycles (persisted to GitHub)
+
+_SEEN_HEADLINES_PATH = "data/seen_headlines.json"
+_SEEN_HEADLINES_MAX  = 500          # cap size to avoid growing forever
 
 
 def get_latest_news_sentiment() -> float:
@@ -23,6 +26,31 @@ def get_latest_velocity() -> dict:
 
 def get_latest_event() -> dict:
     return _latest_event
+
+
+def _load_seen_headlines() -> set:
+    """Load previously seen headlines from GitHub data branch (survives restarts)."""
+    global _fj_seen_headlines
+    try:
+        from db import _get_file
+        data, _ = _get_file(_SEEN_HEADLINES_PATH)
+        if isinstance(data, list):
+            _fj_seen_headlines = set(data)
+            print(f"[scheduler] Loaded {len(_fj_seen_headlines)} seen headlines from GitHub.")
+    except Exception as e:
+        print(f"[scheduler] Could not load seen headlines (first run?): {e}")
+        _fj_seen_headlines = set()
+
+
+def _save_seen_headlines() -> None:
+    """Persist seen headlines to GitHub data branch."""
+    try:
+        from db import _get_file, _put_file
+        headlines_list = list(_fj_seen_headlines)[-_SEEN_HEADLINES_MAX:]
+        _, sha = _get_file(_SEEN_HEADLINES_PATH)
+        _put_file(_SEEN_HEADLINES_PATH, headlines_list, sha, "chore: update seen headlines")
+    except Exception as e:
+        print(f"[scheduler] Could not save seen headlines: {e}")
 
 
 async def _news_signal_cycle() -> None:
@@ -47,6 +75,7 @@ async def _news_signal_cycle() -> None:
         # ── FinancialJuice red breaking news → instant Telegram alert ──────────
         if fj_breaking:
             _fj_seen_headlines = await send_breaking_news(fj_breaking, _fj_seen_headlines)
+            asyncio.create_task(asyncio.to_thread(_save_seen_headlines))
 
         # ── High-impact event alert (NFP, FOMC, war etc.) ──────────────────────
         if event.get("detected") and event.get("urgency", 0) >= 0.9:
@@ -120,6 +149,7 @@ async def _write_health_status(signal: dict, news_agg: float, velocity: dict, br
 
 def start_scheduler() -> AsyncIOScheduler:
     global _scheduler
+    _load_seen_headlines()
     interval   = int(os.environ.get("SIGNAL_INTERVAL_MINUTES", "15"))
     _scheduler = AsyncIOScheduler()
     _scheduler.add_job(
