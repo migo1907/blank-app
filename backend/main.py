@@ -407,50 +407,31 @@ async def railway_status(secret: str = ""):
     if not RAILWAY_API_TOKEN:
         return {"error": "RAILWAY_API_TOKEN not set"}
 
-    import httpx
+    import httpx, traceback
 
-    headers = {
-        "Authorization": f"Bearer {RAILWAY_API_TOKEN}",
-        "Content-Type": "application/json",
-    }
-
-    # Step 1: get project + service IDs if not set
-    me_query = """
-    query {
-      me {
-        projects {
-          edges {
-            node {
-              id
-              name
-              services {
-                edges {
-                  node {
-                    id
-                    name
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    """
     try:
+        headers = {
+            "Authorization": f"Bearer {RAILWAY_API_TOKEN}",
+            "Content-Type": "application/json",
+        }
+        me_query = "query { me { name email } }"
+
         async with httpx.AsyncClient(timeout=15) as client:
             r = await client.post(
                 "https://backboard.railway.app/graphql/v2",
                 headers=headers,
                 json={"query": me_query},
             )
-            raw = r.json()
 
-        # Return full raw response so we can see exact structure
-        return {"status": "ok", "http_code": r.status_code, "raw": raw}
+        return {
+            "http_code":    r.status_code,
+            "token_set":    bool(RAILWAY_API_TOKEN),
+            "token_prefix": RAILWAY_API_TOKEN[:8] + "..." if RAILWAY_API_TOKEN else "none",
+            "response_text": r.text[:500],
+        }
 
     except Exception as e:
-        return {"error": str(e)}
+        return {"error": str(e), "trace": traceback.format_exc()[-500:]}
 
 
 @app.get("/dashboard")
