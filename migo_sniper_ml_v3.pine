@@ -1,0 +1,685 @@
+//@version=6
+indicator("XAU/USD Migo VS Market Sniper Pro [ML + Adaptive + ☁️ v3·20F]", overlay=true, max_labels_count=500, max_bars_back=5000)
+
+// ═══════════════════════════════════════════════════════
+// INPUTS
+// ═══════════════════════════════════════════════════════
+int   lookback      = input.int(50,    "Structural Lookback",        group="⚙️ Trade")
+float atrMultTP1    = input.float(1.5, "TP1 ATR Multiplier",         group="⚙️ Trade")
+float atrMultTP2    = input.float(2.5, "TP2 ATR Multiplier",         group="⚙️ Trade")
+float atrMultTP3    = input.float(4.0, "TP3 ATR Multiplier Runner",  group="⚙️ Trade")
+float atrMultSL     = input.float(1.5, "SL ATR Multiplier",          group="⚙️ Trade")
+float trailMult     = input.float(1.2, "Trail Stop Multiplier",      group="⚙️ Trade")
+float tpProximity   = input.float(80.0,"Near-TP Reset %",            group="⚙️ Trade", minval=50, maxval=99) / 100.0
+int   adxLen        = input.int(14,    "ADX Length",                 group="🔎 Filters")
+float adxThreshold  = input.float(20.0,"ADX Sideways Threshold",     group="🔎 Filters")
+float atrRangeRatio = input.float(0.75,"ATR Range Ratio",            group="🔎 Filters")
+float emaBandPct    = input.float(0.3, "EMA Band %",                 group="🔎 Filters")
+int   mlK           = input.int(8,     "K Neighbors",                group="🤖 KNN", minval=3, maxval=20)
+int   mlDepth       = input.int(2000,  "History Depth",              group="🤖 KNN", minval=500, maxval=5000)
+int   mlLag         = input.int(4,     "Forward Lag",                group="🤖 KNN", minval=1, maxval=20)
+float mlMinScore    = input.float(0.55,"Min Score",                  group="🤖 KNN", minval=0.50, maxval=0.90, step=0.05)
+float learnRate     = input.float(0.05,"Learning Rate",              group="🧠 Adaptive", minval=0.01, maxval=0.30, step=0.01)
+float winReward     = input.float(0.15,"Win Reward",                 group="🧠 Adaptive", minval=0.05, maxval=0.50, step=0.05)
+float lossPenalty   = input.float(0.20,"Loss Penalty",               group="🧠 Adaptive", minval=0.05, maxval=0.50, step=0.05)
+bool  useKernel     = input.bool(true, "Kernel Regression",          group="📈 Kernel")
+int   kWin          = input.int(8,     "Kernel Window",              group="📈 Kernel", minval=3, maxval=50)
+float kH            = input.float(8.0, "Bandwidth h",                group="📈 Kernel", minval=1.0, maxval=50.0)
+float kAlpha        = input.float(1.0, "Alpha",                      group="📈 Kernel", minval=0.1, maxval=5.0)
+bool  useSMC        = input.bool(true, "Enable SMC Features (f9-f14)", group="🧠 SMC Features")
+bool  useSession    = input.bool(true, "Enable Session Kill Zone (f15)", group="🧠 SMC Features")
+bool  useMTF        = input.bool(true, "Enable MTF Alignment (f16)",    group="🧠 SMC Features")
+bool  useDXY        = input.bool(true, "Enable DXY Inverse (f17)",      group="🧠 SMC Features")
+bool  useVolDelta   = input.bool(true, "Enable Volume Delta (f18)",      group="🧠 SMC Features")
+bool  useRSIDiv     = input.bool(true, "Enable RSI Divergence (f19)",    group="🧠 SMC Features")
+bool  useFib        = input.bool(true, "Enable Fibonacci Position (f20)", group="🧠 SMC Features")
+string webhookSecret = input.string("your_secret_here", "Webhook Secret", group="☁️ Cloud Backend")
+
+// ═══════════════════════════════════════════════════════
+// INDICATORS — BASE
+// ═══════════════════════════════════════════════════════
+float rsiVal    = ta.rsi(close, 14)
+float maLong    = ta.ema(close, 200)
+float maShort   = ta.ema(close, 50)
+float atr       = ta.atr(14)
+float atrSma    = ta.sma(atr, 20)
+[diPlus, diMinus, adxVal] = ta.dmi(adxLen, adxLen)
+float macdLine  = ta.ema(close, 12) - ta.ema(close, 26)
+float macdHist  = macdLine - ta.ema(macdLine, 9)
+[bbUp, bbMid, bbLow_] = ta.bb(close, 20, 2.0)
+float bbPct     = (close - bbLow_) / math.max(bbUp - bbLow_, 0.0001)
+float willR     = ta.wpr(14)
+float cmo       = ta.cmo(close, 14) / 100.0
+
+// ── MTF data ────────────────────────────────────────────
+float ma50_1h   = request.security(syminfo.tickerid, "60",  ta.ema(close, 50))
+float ma200_1h  = request.security(syminfo.tickerid, "60",  ta.ema(close, 200))
+float ma50_4h   = request.security(syminfo.tickerid, "240", ta.ema(close, 50))
+float rsi_1h    = request.security(syminfo.tickerid, "60",  ta.rsi(close, 14))
+
+// ── DXY ─────────────────────────────────────────────────
+float dxyClose  = request.security("DXY", timeframe.period, close)
+float dxyEma5   = request.security("DXY", timeframe.period, ta.ema(close, 5))
+float dxyEma20  = request.security("DXY", timeframe.period, ta.ema(close, 20))
+
+// ── Market regime ────────────────────────────────────────
+string mainTrend   = close > ma50_1h and rsi_1h > 50 ? "UPTREND" : close < ma50_1h and rsi_1h < 50 ? "DOWNTREND" : "SIDEWAYS"
+bool adxFlat       = adxVal < adxThreshold
+bool atrCompressed = atr < atrSma * atrRangeRatio
+bool emaTooClose   = math.abs(maShort - maLong) / maLong * 100.0 < emaBandPct
+bool isSideways    = (adxFlat ? 1 : 0) + (atrCompressed ? 1 : 0) + (emaTooClose ? 1 : 0) >= 2
+
+// ═══════════════════════════════════════════════════════
+// GLOBAL ta.* SERIES (CW10002 / CW10003)
+// ═══════════════════════════════════════════════════════
+float highest3      = ta.highest(high, 3)
+float lowest3       = ta.lowest(low, 3)
+float swingHigh20   = ta.highest(high, 20)
+float swingLow20    = ta.lowest(low, 20)
+float highest10High = ta.highest(high, 10)
+float lowest10Low   = ta.lowest(low, 10)
+float highest50     = ta.highest(high, 50)
+float lowest50      = ta.lowest(low, 50)
+float highest100    = ta.highest(high, 100)
+float lowest100     = ta.lowest(low, 100)
+float rsiHigh14     = ta.highest(rsiVal, 14)
+float rsiLow14      = ta.lowest(rsiVal, 14)
+float highestHigh14 = ta.highest(high, 14)
+float lowestLow14   = ta.lowest(low, 14)
+bool  rsiBullCross  = ta.crossover(rsiVal, 45)
+bool  rsiBearCross  = ta.crossunder(rsiVal, 55)
+
+// ═══════════════════════════════════════════════════════
+// 8 ORIGINAL FEATURES (f1-f8)
+// ═══════════════════════════════════════════════════════
+float f1 = (rsiVal - 50.0) / 50.0
+float f2 = math.min(adxVal / 50.0, 1.0) * (diPlus > diMinus ? 1.0 : -1.0)
+float f3 = math.max(-1.0, math.min(1.0, (atr / atrSma - 1.0) * 2.0))
+float f4 = math.max(-1.0, math.min(1.0, (bbPct - 0.5) * 2.0))
+float f5 = math.max(-1.0, math.min(1.0, macdHist / math.max(atr * 0.1, 0.0001)))
+float f6 = -(willR + 50.0) / 50.0
+float f7 = cmo
+float f8 = math.max(-1.0, math.min(1.0, (close - maLong) / (atr * 5.0)))
+
+// ═══════════════════════════════════════════════════════
+// SMC FEATURES (f9-f14)
+// ═══════════════════════════════════════════════════════
+
+// f9: Fair Value Gap
+float f9_raw = low > high[2] ? 1.0 : high < low[2] ? -1.0 : 0.0
+float f9 = useSMC ? f9_raw : 0.0
+
+// f10: Order Block — last bearish candle before bullish impulse / last bullish before bearish
+bool bullImpulse   = close > high[1] and close > open
+bool bearImpulse   = close < low[1]  and close < open
+float f10_raw      = bullImpulse and close[1] < open[1] ? 1.0 : bearImpulse and close[1] > open[1] ? -1.0 : 0.0
+float f10 = useSMC ? f10_raw : 0.0
+
+// f11: Break of Structure — price breaks above/below 20-bar swing
+float f11_raw = close > swingHigh20[1] ? 1.0 : close < swingLow20[1] ? -1.0 : 0.0
+float f11 = useSMC ? f11_raw : 0.0
+
+// f12: Liquidity Sweep — wick below 10-bar low but closed above (bullish sweep) or wick above 10-bar high closed below
+float f12_raw = low < lowest10Low[1] and close > lowest10Low[1] ? 1.0 : high > highest10High[1] and close < highest10High[1] ? -1.0 : 0.0
+float f12 = useSMC ? f12_raw : 0.0
+
+// f13: Premium / Discount — price vs 50-bar midpoint
+float midpoint50  = (highest50 + lowest50) / 2.0
+float range50     = math.max(highest50 - lowest50, 0.0001)
+float f13_raw     = math.max(-1.0, math.min(1.0, (midpoint50 - close) / (range50 * 0.5)))
+float f13 = useSMC ? f13_raw : 0.0
+
+// f14: Change of Character — higher low after downtrend / lower high after uptrend
+bool higherLow  = low > low[1] and low[1] < low[2] and close < maShort
+bool lowerHigh  = high < high[1] and high[1] > high[2] and close > maShort
+float f14_raw   = higherLow ? 0.7 : lowerHigh ? -0.7 : 0.0
+float f14 = useSMC ? f14_raw : 0.0
+
+// ═══════════════════════════════════════════════════════
+// CONFLUENCE FEATURES (f15-f17)
+// ═══════════════════════════════════════════════════════
+
+// f15: Session Kill Zone — using UTC hour
+int utcHour = hour(time, "UTC")
+float f15_raw = utcHour >= 13 and utcHour < 16 ? 1.0 : (utcHour >= 8 and utcHour < 13) or (utcHour >= 13 and utcHour < 22) ? 0.5 : -0.5
+float f15 = useSession ? f15_raw : 0.0
+
+// f16: MTF Alignment — 1H EMA50 > 1H EMA200 AND price > 4H EMA50
+bool bullAlign = ma50_1h > ma200_1h and close > ma50_4h
+bool bearAlign = ma50_1h < ma200_1h and close < ma50_4h
+float f16_raw  = bullAlign ? 1.0 : bearAlign ? -1.0 : 0.0
+float f16 = useMTF ? f16_raw : 0.0
+
+// f17: DXY Inverse — DXY rising = bearish gold, DXY falling = bullish gold
+float f17_raw = dxyEma5 < dxyEma20 ? 1.0 : dxyEma5 > dxyEma20 ? -1.0 : 0.0
+float f17 = useDXY ? f17_raw : 0.0
+
+// ═══════════════════════════════════════════════════════
+// ADVANCED FEATURES (f18-f20)
+// ═══════════════════════════════════════════════════════
+
+// f18: Volume Delta — (buyVol - sellVol) / avgVol
+float candleRange = math.max(high - low, 0.0001)
+float buyVol      = volume * (close - low)  / candleRange
+float sellVol     = volume * (high - close) / candleRange
+float avgVol      = ta.sma(volume, 20)
+float f18_raw     = math.max(-1.0, math.min(1.0, (buyVol - sellVol) / math.max(avgVol, 0.0001)))
+float f18 = useVolDelta ? f18_raw : 0.0
+
+// f19: RSI Divergence — price at 14-bar low but RSI above RSI low = bullish; price at 14-bar high but RSI below RSI high = bearish
+bool bullDiv = low <= lowestLow14   and rsiVal > rsiLow14
+bool bearDiv = high >= highestHigh14 and rsiVal < rsiHigh14
+float f19_raw = bullDiv ? 1.0 : bearDiv ? -1.0 : 0.0
+float f19 = useRSIDiv ? f19_raw : 0.0
+
+// f20: Fibonacci Position — relative to 0.5/0.618 of 100-bar range
+float range100    = math.max(highest100 - lowest100, 0.0001)
+float fib50       = lowest100 + range100 * 0.500
+float fib618      = lowest100 + range100 * 0.618
+bool  inGoldenBuy = close >= fib50 and close <= fib618
+bool  inGoldenSel = close >= (highest100 - range100 * 0.618) and close <= (highest100 - range100 * 0.500)
+float f20_raw     = inGoldenBuy ? 0.8 : inGoldenSel ? -0.8 : math.max(-1.0, math.min(1.0, (close - fib50) / (range100 * 0.5)))
+float f20 = useFib ? f20_raw : 0.0
+
+// ═══════════════════════════════════════════════════════
+// ADAPTIVE WEIGHTS — 20-element array
+// ═══════════════════════════════════════════════════════
+var float[] weights       = array.new_float(20, 1.0)
+var float[] entryFeatures = array.new_float(20, 0.0)
+var int totalWins   = 0
+var int totalLosses = 0
+
+// ── Helper ────────────────────────────────────────────
+clampW(w) => math.max(0.2, math.min(3.0, w))
+
+// ─── fill current feature vector (local, not persisted) ─
+// used in KNN search
+float[] curFeats = array.from(f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15, f16, f17, f18, f19, f20)
+
+// ═══════════════════════════════════════════════════════
+// LORENTZIAN DISTANCE (array-based)
+// ═══════════════════════════════════════════════════════
+lorDist(float[] a, float[] b, float[] w) =>
+    float d = 0.0
+    for i = 0 to array.size(a) - 1
+        d += array.get(w, i) * math.log(1.0 + math.abs(array.get(a, i) - array.get(b, i)))
+    d
+
+// ═══════════════════════════════════════════════════════
+// KERNEL REGRESSION
+// ═══════════════════════════════════════════════════════
+rqKernel(src, h, alpha, window) =>
+    float num = 0.0
+    float den = 0.0
+    for i = 0 to window - 1
+        float wk = math.pow(1.0 + float(i * i) / (2.0 * alpha * h * h), -alpha)
+        num += src[i] * wk
+        den += wk
+    den > 0.0 ? num / den : src[0]
+
+float kernelEst  = useKernel ? rqKernel(close, kH, kAlpha, kWin) : maShort
+bool  kernelUp   = kernelEst > kernelEst[2]
+bool  kernelDown = kernelEst < kernelEst[2]
+
+// ═══════════════════════════════════════════════════════
+// KNN CLASSIFIER (20-feature, array-based)
+// ═══════════════════════════════════════════════════════
+var float mlBull = 0.5
+var float mlBear = 0.5
+
+if bar_index > mlK * 2 + mlLag
+    float[] kDist = array.new_float(mlK, 1.0e10)
+    int[]   kLbl  = array.new_int(mlK, 0)
+    int searchLen = math.min(mlDepth, bar_index - mlLag - 1)
+    int step      = math.max(1, math.round(float(searchLen) / 400.0))
+    for i = mlLag + step to searchLen by step
+        bool dataOk = not na(f1[i]) and not na(f2[i]) and not na(f9[i])
+        if dataOk
+            float[] histFeats = array.from(f1[i], f2[i], f3[i], f4[i], f5[i], f6[i], f7[i], f8[i], f9[i], f10[i], f11[i], f12[i], f13[i], f14[i], f15[i], f16[i], f17[i], f18[i], f19[i], f20[i])
+            float d = lorDist(curFeats, histFeats, weights)
+            int   farIdx  = 0
+            float farDist = array.get(kDist, 0)
+            for j = 1 to mlK - 1
+                float kd = array.get(kDist, j)
+                if kd > farDist
+                    farDist := kd
+                    farIdx  := j
+            if d < farDist
+                array.set(kDist, farIdx, d)
+                int lbl = close[i - mlLag] > close[i] ? 1 : -1
+                array.set(kLbl, farIdx, lbl)
+    int bulls = 0
+    int bears = 0
+    for j = 0 to mlK - 1
+        if array.get(kDist, j) < 1.0e9
+            if array.get(kLbl, j) == 1
+                bulls += 1
+            else
+                bears += 1
+    int total = bulls + bears
+    mlBull := total > 0 ? float(bulls) / float(total) : 0.5
+    mlBear := total > 0 ? float(bears) / float(total) : 0.5
+
+bool mlBullish = mlBull >= mlMinScore
+bool mlBearish = mlBear >= mlMinScore
+
+// ═══════════════════════════════════════════════════════
+// TRADE STATE
+// ═══════════════════════════════════════════════════════
+var string activeTrade = "NONE"
+var float  entryPrice  = 0.0
+var float  tp1Price    = 0.0
+var float  tp2Price    = 0.0
+var float  tp3Price    = 0.0
+var float  slPrice     = 0.0
+var int    tradeConf   = 0
+var bool   tp1Hit      = false
+var bool   tp2Hit      = false
+var float  trailSL     = 0.0
+
+// ═══════════════════════════════════════════════════════
+// WEIGHT UPDATE HELPERS
+// ═══════════════════════════════════════════════════════
+updateWeightsLong(float reward) =>
+    for i = 0 to 19
+        float ef = array.get(entryFeatures, i)
+        float w  = array.get(weights, i)
+        array.set(weights, i, clampW(w + learnRate * (ef >= 0.0 ? 1.0 : -1.0) * reward))
+
+updateWeightsShort(float reward) =>
+    for i = 0 to 19
+        float ef = array.get(entryFeatures, i)
+        float w  = array.get(weights, i)
+        array.set(weights, i, clampW(w + learnRate * (ef <= 0.0 ? 1.0 : -1.0) * reward))
+
+penalizeWeightsLong(float penalty) =>
+    for i = 0 to 19
+        float ef = array.get(entryFeatures, i)
+        float w  = array.get(weights, i)
+        array.set(weights, i, clampW(w - learnRate * (ef >= 0.0 ? 1.0 : -1.0) * penalty))
+
+penalizeWeightsShort(float penalty) =>
+    for i = 0 to 19
+        float ef = array.get(entryFeatures, i)
+        float w  = array.get(weights, i)
+        array.set(weights, i, clampW(w - learnRate * (ef <= 0.0 ? 1.0 : -1.0) * penalty))
+
+// ═══════════════════════════════════════════════════════
+// PAYLOAD BUILDER — split strings to avoid CE10156
+// ═══════════════════════════════════════════════════════
+buildPayload(dir, outcome, stage, entPx, exitPx, mlSc) =>
+    string p1 = '{"secret":"' + webhookSecret + '"'
+    string p2 = ',"trade_id":"' + syminfo.tickerid + '_' + str.tostring(timenow) + '"'
+    string p3 = ',"direction":"' + dir + '","outcome":"' + outcome + '","tp_stage":"' + stage + '"'
+    string p4 = ',"entry_price":' + str.tostring(entPx, "#.####") + ',"exit_price":' + str.tostring(exitPx, "#.####")
+    string p5 = ',"ml_score":' + str.tostring(mlSc, "#.####")
+    string ef0  = str.tostring(array.get(entryFeatures, 0),  "#.####")
+    string ef1s = str.tostring(array.get(entryFeatures, 1),  "#.####")
+    string ef2s = str.tostring(array.get(entryFeatures, 2),  "#.####")
+    string ef3s = str.tostring(array.get(entryFeatures, 3),  "#.####")
+    string ef4s = str.tostring(array.get(entryFeatures, 4),  "#.####")
+    string ef5s = str.tostring(array.get(entryFeatures, 5),  "#.####")
+    string ef6s = str.tostring(array.get(entryFeatures, 6),  "#.####")
+    string ef7s = str.tostring(array.get(entryFeatures, 7),  "#.####")
+    string ef8s = str.tostring(array.get(entryFeatures, 8),  "#.####")
+    string ef9s = str.tostring(array.get(entryFeatures, 9),  "#.####")
+    string p6 = ',"f1":' + ef0 + ',"f2":' + ef1s + ',"f3":' + ef2s + ',"f4":' + ef3s + ',"f5":' + ef4s
+    string p7 = ',"f6":' + ef5s + ',"f7":' + ef6s + ',"f8":' + ef7s + ',"f9":' + ef8s + ',"f10":' + ef9s
+    string ef10 = str.tostring(array.get(entryFeatures, 10), "#.####")
+    string ef11 = str.tostring(array.get(entryFeatures, 11), "#.####")
+    string ef12 = str.tostring(array.get(entryFeatures, 12), "#.####")
+    string ef13 = str.tostring(array.get(entryFeatures, 13), "#.####")
+    string ef14 = str.tostring(array.get(entryFeatures, 14), "#.####")
+    string ef15 = str.tostring(array.get(entryFeatures, 15), "#.####")
+    string ef16 = str.tostring(array.get(entryFeatures, 16), "#.####")
+    string ef17 = str.tostring(array.get(entryFeatures, 17), "#.####")
+    string ef18 = str.tostring(array.get(entryFeatures, 18), "#.####")
+    string ef19 = str.tostring(array.get(entryFeatures, 19), "#.####")
+    string p8 = ',"f11":' + ef10 + ',"f12":' + ef11 + ',"f13":' + ef12 + ',"f14":' + ef13 + ',"f15":' + ef14
+    string p9 = ',"f16":' + ef15 + ',"f17":' + ef16 + ',"f18":' + ef17 + ',"f19":' + ef18 + ',"f20":' + ef19 + '}'
+    p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9
+
+// ═══════════════════════════════════════════════════════
+// TRAIL STOP
+// ═══════════════════════════════════════════════════════
+if activeTrade == "LONG" and tp1Hit
+    trailSL := math.max(trailSL, high - atr * trailMult)
+    slPrice  := trailSL
+
+if activeTrade == "SHORT" and tp1Hit
+    trailSL := math.min(trailSL, low + atr * trailMult)
+    slPrice  := trailSL
+
+// ═══════════════════════════════════════════════════════
+// LONG EXITS + ADAPTIVE UPDATE + WEBHOOK
+// ═══════════════════════════════════════════════════════
+if activeTrade == "LONG"
+    if not tp1Hit and high >= tp1Price
+        tp1Hit  := true
+        trailSL := close - atr * trailMult
+        slPrice := trailSL
+        label.new(bar_index, high, "TP1 ✓\nTrail ON", color=color.new(color.green, 40), textcolor=color.white, style=label.style_label_down, size=size.tiny)
+
+    if tp1Hit and not tp2Hit and high >= tp2Price
+        tp2Hit := true
+        label.new(bar_index, high, "TP2 ✓", color=color.new(color.green, 20), textcolor=color.white, style=label.style_label_down, size=size.tiny)
+
+    if tp1Hit and tp2Hit and high >= tp3Price
+        totalWins += 1
+        updateWeightsLong(winReward)
+        alert(buildPayload(activeTrade, "WIN", "TP3", entryPrice, high, mlBull), alert.freq_once_per_bar_close)
+        activeTrade := "NONE"
+        tp1Hit := false
+        tp2Hit := false
+        label.new(bar_index, high, "TP3 ✓\nFULL RUN! ☁️", color=color.green, textcolor=color.white, style=label.style_label_down, size=size.small)
+
+    if low <= slPrice
+        string exitLbl = tp1Hit ? (tp2Hit ? "SL (after TP2)" : "SL (after TP1)") : "SL HIT"
+        string outcome = tp1Hit ? "PARTIAL" : "LOSS"
+        string stage   = tp2Hit ? "SL_TP2" : (tp1Hit ? "SL_TP1" : "SL")
+        if not tp1Hit
+            totalLosses += 1
+            penalizeWeightsLong(lossPenalty)
+        else
+            totalWins += 1
+            updateWeightsLong(winReward * 0.4)
+        alert(buildPayload(activeTrade, outcome, stage, entryPrice, low, mlBull), alert.freq_once_per_bar_close)
+        label.new(bar_index, low, exitLbl + " ☁️", color=color.red, textcolor=color.white, style=label.style_label_up, size=size.tiny)
+        activeTrade := "NONE"
+        tp1Hit := false
+        tp2Hit := false
+
+// ═══════════════════════════════════════════════════════
+// SHORT EXITS + ADAPTIVE UPDATE + WEBHOOK
+// ═══════════════════════════════════════════════════════
+if activeTrade == "SHORT"
+    if not tp1Hit and low <= tp1Price
+        tp1Hit  := true
+        trailSL := close + atr * trailMult
+        slPrice := trailSL
+        label.new(bar_index, low, "TP1 ✓\nTrail ON", color=color.new(color.green, 40), textcolor=color.white, style=label.style_label_up, size=size.tiny)
+
+    if tp1Hit and not tp2Hit and low <= tp2Price
+        tp2Hit := true
+        label.new(bar_index, low, "TP2 ✓", color=color.new(color.green, 20), textcolor=color.white, style=label.style_label_up, size=size.tiny)
+
+    if tp1Hit and tp2Hit and low <= tp3Price
+        totalWins += 1
+        updateWeightsShort(winReward)
+        alert(buildPayload(activeTrade, "WIN", "TP3", entryPrice, low, mlBear), alert.freq_once_per_bar_close)
+        activeTrade := "NONE"
+        tp1Hit := false
+        tp2Hit := false
+        label.new(bar_index, low, "TP3 ✓\nFULL RUN! ☁️", color=color.green, textcolor=color.white, style=label.style_label_up, size=size.small)
+
+    if high >= slPrice
+        string exitLbl = tp1Hit ? (tp2Hit ? "SL (after TP2)" : "SL (after TP1)") : "SL HIT"
+        string outcome = tp1Hit ? "PARTIAL" : "LOSS"
+        string stage   = tp2Hit ? "SL_TP2" : (tp1Hit ? "SL_TP1" : "SL")
+        if not tp1Hit
+            totalLosses += 1
+            penalizeWeightsShort(lossPenalty)
+        else
+            totalWins += 1
+            updateWeightsShort(winReward * 0.4)
+        alert(buildPayload(activeTrade, outcome, stage, entryPrice, high, mlBear), alert.freq_once_per_bar_close)
+        label.new(bar_index, high, exitLbl + " ☁️", color=color.red, textcolor=color.white, style=label.style_label_down, size=size.tiny)
+        activeTrade := "NONE"
+        tp1Hit := false
+        tp2Hit := false
+
+// ═══════════════════════════════════════════════════════
+// NEAR-TP1 PROXIMITY RESET
+// ═══════════════════════════════════════════════════════
+if activeTrade == "LONG" and not tp1Hit
+    float tpRange     = tp1Price - entryPrice
+    float nearTPLevel = entryPrice + tpRange * tpProximity
+    if highest3 >= nearTPLevel and close < nearTPLevel
+        activeTrade := "NONE"
+        tp1Hit := false
+        tp2Hit := false
+
+if activeTrade == "SHORT" and not tp1Hit
+    float tpRange     = entryPrice - tp1Price
+    float nearTPLevel = entryPrice - tpRange * tpProximity
+    if lowest3 <= nearTPLevel and close > nearTPLevel
+        activeTrade := "NONE"
+        tp1Hit := false
+        tp2Hit := false
+
+// ═══════════════════════════════════════════════════════
+// ML-ENHANCED SIGNALS
+// ═══════════════════════════════════════════════════════
+bool buyBase    = not isSideways and rsiBullCross and close > low[1]
+bool sellBase   = not isSideways and rsiBearCross and close < high[1]
+bool buySignal  = buyBase  and mlBullish and (not useKernel or kernelUp)
+bool sellSignal = sellBase and mlBearish and (not useKernel or kernelDown)
+bool doBuy  = buySignal  and activeTrade != "LONG"
+bool doSell = sellSignal and activeTrade != "SHORT"
+
+// ═══════════════════════════════════════════════════════
+// TRADE ENTRY
+// ═══════════════════════════════════════════════════════
+if doBuy
+    activeTrade := "LONG"
+    entryPrice  := close
+    tp1Price    := close + atr * atrMultTP1
+    tp2Price    := close + atr * atrMultTP2
+    tp3Price    := close + atr * atrMultTP3
+    slPrice     := close - atr * atrMultSL
+    trailSL     := close - atr * atrMultSL
+    tp1Hit      := false
+    tp2Hit      := false
+    tradeConf   := math.round(mlBull * 100)
+    array.set(entryFeatures, 0,  f1)
+    array.set(entryFeatures, 1,  f2)
+    array.set(entryFeatures, 2,  f3)
+    array.set(entryFeatures, 3,  f4)
+    array.set(entryFeatures, 4,  f5)
+    array.set(entryFeatures, 5,  f6)
+    array.set(entryFeatures, 6,  f7)
+    array.set(entryFeatures, 7,  f8)
+    array.set(entryFeatures, 8,  f9)
+    array.set(entryFeatures, 9,  f10)
+    array.set(entryFeatures, 10, f11)
+    array.set(entryFeatures, 11, f12)
+    array.set(entryFeatures, 12, f13)
+    array.set(entryFeatures, 13, f14)
+    array.set(entryFeatures, 14, f15)
+    array.set(entryFeatures, 15, f16)
+    array.set(entryFeatures, 16, f17)
+    array.set(entryFeatures, 17, f18)
+    array.set(entryFeatures, 18, f19)
+    array.set(entryFeatures, 19, f20)
+    label.new(bar_index, low, "🤖 BUY  ML:" + str.tostring(tradeConf) + "%\nEnt: " + str.tostring(entryPrice, "#.##") + "\nTP1: " + str.tostring(tp1Price, "#.##") + "\nTP2: " + str.tostring(tp2Price, "#.##") + "\nTP3: " + str.tostring(tp3Price, "#.##") + "\nSL:  " + str.tostring(slPrice, "#.##"), color=color.green, textcolor=color.white, style=label.style_label_up, size=size.small)
+
+if doSell
+    activeTrade := "SHORT"
+    entryPrice  := close
+    tp1Price    := close - atr * atrMultTP1
+    tp2Price    := close - atr * atrMultTP2
+    tp3Price    := close - atr * atrMultTP3
+    slPrice     := close + atr * atrMultSL
+    trailSL     := close + atr * atrMultSL
+    tp1Hit      := false
+    tp2Hit      := false
+    tradeConf   := math.round(mlBear * 100)
+    array.set(entryFeatures, 0,  f1)
+    array.set(entryFeatures, 1,  f2)
+    array.set(entryFeatures, 2,  f3)
+    array.set(entryFeatures, 3,  f4)
+    array.set(entryFeatures, 4,  f5)
+    array.set(entryFeatures, 5,  f6)
+    array.set(entryFeatures, 6,  f7)
+    array.set(entryFeatures, 7,  f8)
+    array.set(entryFeatures, 8,  f9)
+    array.set(entryFeatures, 9,  f10)
+    array.set(entryFeatures, 10, f11)
+    array.set(entryFeatures, 11, f12)
+    array.set(entryFeatures, 12, f13)
+    array.set(entryFeatures, 13, f14)
+    array.set(entryFeatures, 14, f15)
+    array.set(entryFeatures, 15, f16)
+    array.set(entryFeatures, 16, f17)
+    array.set(entryFeatures, 17, f18)
+    array.set(entryFeatures, 18, f19)
+    array.set(entryFeatures, 19, f20)
+    label.new(bar_index, high, "🤖 SELL  ML:" + str.tostring(tradeConf) + "%\nEnt: " + str.tostring(entryPrice, "#.##") + "\nTP1: " + str.tostring(tp1Price, "#.##") + "\nTP2: " + str.tostring(tp2Price, "#.##") + "\nTP3: " + str.tostring(tp3Price, "#.##") + "\nSL:  " + str.tostring(slPrice, "#.##"), color=color.red, textcolor=color.white, style=label.style_label_down, size=size.small)
+
+// ═══════════════════════════════════════════════════════
+// WIN RATE
+// ═══════════════════════════════════════════════════════
+int   totalTrades = totalWins + totalLosses
+float winRate     = totalTrades > 0 ? float(totalWins) / float(totalTrades) * 100.0 : 0.0
+
+// ═══════════════════════════════════════════════════════
+// VISUALS
+// ═══════════════════════════════════════════════════════
+bgcolor(isSideways                   ? color.new(color.yellow, 90) : na, title="Ranging Zone")
+bgcolor(mlBullish and not isSideways ? color.new(color.green,  96) : na, title="ML Bull Zone")
+bgcolor(mlBearish and not isSideways ? color.new(color.red,    96) : na, title="ML Bear Zone")
+plot(maLong,  color=color.new(color.green, 50), linewidth=1, title="EMA 200")
+plot(maShort, color=color.new(#0d64ac,     50), linewidth=1, title="EMA 50")
+plot(useKernel ? kernelEst : na, color=kernelUp ? color.new(color.teal, 10) : color.new(color.purple, 10), linewidth=2, title="Kernel Estimate")
+plot(activeTrade != "NONE" and tp1Hit ? slPrice : na, color=color.orange, style=plot.style_stepline, linewidth=2, title="Trail Stop")
+
+// ═══════════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════════
+
+// Find top-3 feature names by weight
+string[] featNames = array.from("F1·RSI","F2·ADX","F3·ATR","F4·BB","F5·MACD","F6·WR","F7·CMO","F8·EMA","F9·FVG","F10·OB","F11·BOS","F12·Liq","F13·P/D","F14·CHoCH","F15·Sess","F16·MTF","F17·DXY","F18·VolD","F19·RSIDiv","F20·Fib")
+
+float wMax1 = -1.0
+float wMax2 = -1.0
+float wMax3 = -1.0
+int   iMax1 = 0
+int   iMax2 = 1
+int   iMax3 = 2
+
+for i = 0 to 19
+    float w = array.get(weights, i)
+    if w > wMax1
+        wMax3 := wMax2
+        iMax3 := iMax2
+        wMax2 := wMax1
+        iMax2 := iMax1
+        wMax1 := w
+        iMax1 := i
+    else if w > wMax2
+        wMax3 := wMax2
+        iMax3 := iMax2
+        wMax2 := w
+        iMax2 := i
+    else if w > wMax3
+        wMax3 := w
+        iMax3 := i
+
+string top1 = array.get(featNames, iMax1)
+string top2 = array.get(featNames, iMax2)
+string top3 = array.get(featNames, iMax3)
+
+string tpStage    = not tp1Hit ? "Targeting TP1" : not tp2Hit ? "TP1✓→TP2" : "TP2✓→TP3🚀"
+color  stageColor = not tp1Hit ? color.white : not tp2Hit ? color.lime : color.aqua
+
+// SMC confluence summary
+float smcScore = (f9 + f10 + f11 + f12 + f13 + f14) / 6.0
+string smcStr  = smcScore > 0.3 ? "BULLISH" : smcScore < -0.3 ? "BEARISH" : "NEUTRAL"
+color  smcCol  = smcScore > 0.3 ? color.lime : smcScore < -0.3 ? color.red : color.gray
+
+// DXY sentiment display
+string dxyStr  = f17 > 0.0 ? "FALLING (Gold+)" : f17 < 0.0 ? "RISING (Gold-)" : "FLAT"
+color  dxyCol  = f17 > 0.0 ? color.lime : f17 < 0.0 ? color.red : color.gray
+
+var table hub = table.new(position.bottom_left, 4, 18, bgcolor=color.rgb(15,15,15), border_color=color.gray, border_width=1)
+
+if barstate.islast
+    table.cell(hub, 0, 0, "MIGO SNIPER  [ML + ADAPTIVE + ☁️ v3·20F]", text_color=color.white, bgcolor=color.rgb(65,14,58))
+    table.merge_cells(hub, 0, 0, 3, 0)
+
+    string mktState      = isSideways ? "⚠ RANGING" : mainTrend == "UPTREND" ? "▲ UPTREND" : "▼ DOWNTREND"
+    color  mktStateColor = isSideways ? color.yellow : mainTrend == "UPTREND" ? color.green : color.red
+    table.cell(hub, 0, 1, "MKT STATE", text_color=color.gray, text_size=size.small)
+    table.cell(hub, 1, 1, mktState,    text_color=mktStateColor)
+    table.merge_cells(hub, 1, 1, 3, 1)
+
+    table.cell(hub, 0, 2, "ML BULL 🐂", text_color=color.gray, text_size=size.small)
+    table.cell(hub, 1, 2, str.tostring(math.round(mlBull * 100)) + "%", text_color=mlBullish ? color.lime : color.white)
+    table.cell(hub, 2, 2, "ML BEAR 🐻", text_color=color.gray, text_size=size.small)
+    table.cell(hub, 3, 2, str.tostring(math.round(mlBear * 100)) + "%", text_color=mlBearish ? color.red : color.white)
+
+    string kernelStr   = not useKernel ? "OFF" : kernelUp ? "▲ Rising" : "▼ Falling"
+    color  kernelColor = not useKernel ? color.gray : kernelUp ? color.teal : color.purple
+    table.cell(hub, 0, 3, "KERNEL", text_color=color.gray, text_size=size.small)
+    table.cell(hub, 1, 3, kernelStr, text_color=kernelColor)
+    table.cell(hub, 2, 3, "CONF",   text_color=color.gray, text_size=size.small)
+    table.cell(hub, 3, 3, isSideways ? "-" : str.tostring(tradeConf) + "%", text_color=color.yellow)
+
+    table.cell(hub, 0, 4, "SIGNAL", text_color=color.gray, text_size=size.small)
+    table.cell(hub, 1, 4, isSideways ? "BLOCKED" : activeTrade, text_color=isSideways ? color.yellow : activeTrade == "LONG" ? color.green : activeTrade == "SHORT" ? color.red : color.yellow)
+    table.cell(hub, 2, 4, "STAGE",  text_color=color.gray, text_size=size.small)
+    table.cell(hub, 3, 4, activeTrade != "NONE" ? tpStage : "-", text_color=stageColor)
+
+    table.cell(hub, 0, 5, "ENTRY",    text_color=color.gray, text_size=size.small)
+    table.cell(hub, 1, 5, activeTrade != "NONE" ? str.tostring(entryPrice, "#.##") : "WAIT", text_color=color.white)
+    table.cell(hub, 2, 5, "TRAIL SL", text_color=color.gray, text_size=size.small)
+    table.cell(hub, 3, 5, activeTrade != "NONE" and tp1Hit ? str.tostring(slPrice, "#.##") : "-", text_color=color.orange)
+
+    table.cell(hub, 0, 6, "TP1", text_color=color.gray, text_size=size.small)
+    table.cell(hub, 1, 6, activeTrade != "NONE" ? str.tostring(tp1Price, "#.##") : "-", text_color=tp1Hit ? color.lime : color.green)
+    table.cell(hub, 2, 6, "SL",  text_color=color.gray, text_size=size.small)
+    table.cell(hub, 3, 6, activeTrade != "NONE" ? str.tostring(slPrice, "#.##") : "-", text_color=color.red)
+
+    table.cell(hub, 0, 7, "TP2",    text_color=color.gray, text_size=size.small)
+    table.cell(hub, 1, 7, activeTrade != "NONE" ? str.tostring(tp2Price, "#.##") : "-", text_color=tp2Hit ? color.lime : color.green)
+    table.cell(hub, 2, 7, "TP3 🚀", text_color=color.gray, text_size=size.small)
+    table.cell(hub, 3, 7, activeTrade != "NONE" ? str.tostring(tp3Price, "#.##") : "-", text_color=color.aqua)
+
+    table.cell(hub, 0, 8, "WINS",   text_color=color.gray, text_size=size.small)
+    table.cell(hub, 1, 8, str.tostring(totalWins),   text_color=color.lime)
+    table.cell(hub, 2, 8, "LOSSES", text_color=color.gray, text_size=size.small)
+    table.cell(hub, 3, 8, str.tostring(totalLosses), text_color=color.red)
+
+    color wrColor = winRate >= 60.0 ? color.lime : winRate >= 45.0 ? color.yellow : color.red
+    table.cell(hub, 0, 9, "WIN RATE 📊", text_color=color.gray, text_size=size.small)
+    table.cell(hub, 1, 9, totalTrades > 0 ? str.tostring(math.round(winRate)) + "%" : "NO DATA", text_color=wrColor)
+    table.cell(hub, 2, 9, "20F SCORE", text_color=color.gray, text_size=size.small)
+    float totalFeat = f1+f2+f3+f4+f5+f6+f7+f8+f9+f10+f11+f12+f13+f14+f15+f16+f17+f18+f19+f20
+    table.cell(hub, 3, 9, str.tostring(math.round(totalFeat * 10) / 10.0, "#.#"), text_color=totalFeat > 0 ? color.lime : totalFeat < 0 ? color.red : color.gray)
+
+    table.cell(hub, 0, 10, "TOP 1", text_color=color.gray, text_size=size.small)
+    table.cell(hub, 1, 10, top1,    text_color=color.yellow)
+    table.cell(hub, 2, 10, "TOP 2", text_color=color.gray, text_size=size.small)
+    table.cell(hub, 3, 10, top2,    text_color=color.yellow)
+
+    table.cell(hub, 0, 11, "TOP 3", text_color=color.gray, text_size=size.small)
+    table.cell(hub, 1, 11, top3,    text_color=color.yellow)
+    table.cell(hub, 2, 11, "SMC",   text_color=color.gray, text_size=size.small)
+    table.cell(hub, 3, 11, smcStr,  text_color=smcCol)
+
+    table.cell(hub, 0, 12, "DXY", text_color=color.gray, text_size=size.small)
+    table.cell(hub, 1, 12, dxyStr, text_color=dxyCol)
+    table.cell(hub, 2, 12, "MTF", text_color=color.gray, text_size=size.small)
+    table.cell(hub, 3, 12, f16 > 0.5 ? "BULL ALIGN" : f16 < -0.5 ? "BEAR ALIGN" : "MIXED", text_color=f16 > 0.5 ? color.lime : f16 < -0.5 ? color.red : color.gray)
+
+    float  volRatio  = atr / atrSma
+    string volStatus = volRatio > 1.5 ? "HIGH VOL" : volRatio < 0.7 ? "LOW VOL" : "STABLE"
+    color  volColor  = volStatus == "HIGH VOL" ? color.red : volStatus == "LOW VOL" ? color.aqua : color.green
+    table.cell(hub, 0, 13, "MKT IMPACT", text_color=color.gray, text_size=size.small)
+    table.cell(hub, 1, 13, volStatus, text_color=volColor)
+    table.merge_cells(hub, 1, 13, 3, 13)
+
+    string adxInfo = "ADX:" + str.tostring(math.round(adxVal, 1)) + (adxFlat ? "✗" : "✓") + "  ATR:" + (atrCompressed ? "✗" : "✓") + "  EMA:" + (emaTooClose ? "✗" : "✓")
+    table.cell(hub, 0, 14, adxInfo, text_color=color.new(color.gray, 30), text_size=size.small)
+    table.merge_cells(hub, 0, 14, 3, 14)
+
+    string mlInfo = "k=" + str.tostring(mlK) + "  lag=" + str.tostring(mlLag) + "  min=" + str.tostring(math.round(mlMinScore * 100)) + "%  lr=" + str.tostring(learnRate)
+    table.cell(hub, 0, 15, mlInfo, text_color=color.new(color.gray, 40), text_size=size.tiny)
+    table.merge_cells(hub, 0, 15, 3, 15)
+
+    string smcToggle = "SMC:" + (useSMC ? "ON" : "OFF") + " Sess:" + (useSession ? "ON" : "OFF") + " MTF:" + (useMTF ? "ON" : "OFF") + " DXY:" + (useDXY ? "ON" : "OFF")
+    table.cell(hub, 0, 16, smcToggle, text_color=color.new(color.aqua, 30), text_size=size.tiny)
+    table.merge_cells(hub, 0, 16, 3, 16)
+
+    table.cell(hub, 0, 17, "☁️ CLOUD SYNC ACTIVE — 20F outcomes sent to backend", text_color=color.new(color.aqua, 40), text_size=size.tiny)
+    table.merge_cells(hub, 0, 17, 3, 17)
