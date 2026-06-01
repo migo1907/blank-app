@@ -1,83 +1,5 @@
 [
   {
-    "source": "Barchart.com",
-    "headline": "Dollar Falls as Stocks Rally on Iran Deal Optimism",
-    "url": "https://www.barchart.com/story/news/2206710/dollar-falls-as-stocks-rally-on-iran-deal-optimism",
-    "sentiment_score": -0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "dollar weakness",
-      "stock rally",
-      "risk sentiment"
-    ],
-    "fetched_at": "2026-06-01T10:06:59.927504+00:00"
-  },
-  {
-    "source": "Unbiasthenews.com",
-    "headline": "Show HN: Simple news aggregator with source bias meters",
-    "url": "https://unbiasthenews.com",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "news aggregator",
-      "technical",
-      "unrelated"
-    ],
-    "fetched_at": "2026-06-01T10:06:59.927504+00:00"
-  },
-  {
-    "source": "Crypto Briefing",
-    "headline": "Strait of Hormuz drama sends Bitcoin on a wild round trip",
-    "url": "https://cryptobriefing.com/strait-hormuz-bitcoin-wild-round-trip/",
-    "sentiment_score": -0.2,
-    "impact": "LOW",
-    "keywords": [
-      "Strait of Hormuz",
-      "geopolitical",
-      "Bitcoin volatility"
-    ],
-    "fetched_at": "2026-06-01T10:06:59.927504+00:00"
-  },
-  {
-    "source": "BusinessLine",
-    "headline": "India\u2019s growth outlook for FY27 remains positive: RBI Annual Report",
-    "url": "https://www.thehindubusinessline.com/economy/indias-growth-outlook-for-fy27-remains-positive-rbi-annual-report/article71036284.ece",
-    "sentiment_score": 0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "India growth",
-      "positive outlook",
-      "emerging market strength"
-    ],
-    "fetched_at": "2026-06-01T10:06:59.927504+00:00"
-  },
-  {
-    "source": "Al Jazeera English",
-    "headline": "The strait may reopen, but global confidence may not return",
-    "url": "https://www.aljazeera.com/opinions/2026/5/31/the-strait-may-reopen-but-global-confidence-may-not-return",
-    "sentiment_score": 0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "geopolitical risk",
-      "confidence crisis",
-      "safe haven demand"
-    ],
-    "fetched_at": "2026-06-01T10:06:59.927504+00:00"
-  },
-  {
-    "source": "Naturalnews.com",
-    "headline": "Bitcoin Hash Rate Flattens as Miners Face AI Squeeze, Fidelity Report Says",
-    "url": "https://www.naturalnews.com/2026-05-31-bitcoin-hash-rate-flattens-miners-ai-squeeze.html",
-    "sentiment_score": -0.2,
-    "impact": "LOW",
-    "keywords": [
-      "Bitcoin miners",
-      "hash rate",
-      "AI competition"
-    ],
-    "fetched_at": "2026-06-01T10:06:59.927504+00:00"
-  },
-  {
     "source": "The Times of India",
     "headline": "Market Outlook: US-Iran talks, crude oil among 5 factors to drive D-St in first week of June",
     "url": "https://economictimes.indiatimes.com/markets/stocks/news/market-outlook-us-iran-talks-crude-oil-among-5-factors-to-drive-d-st-in-first-week-of-june/articleshow/131418464.cms",
@@ -2595,5 +2517,83 @@
       "inflation expectations"
     ],
     "fetched_at": "2026-06-01T11:49:08.838640+00:00"
+  },
+  {
+    "source": "MarketWatch Top",
+    "headline": "Oil prices rise after fresh wave of attacks between U.S. and Iran",
+    "url": "https://www.marketwatch.com/story/oil-prices-rise-after-fresh-wave-of-attacks-between-u-s-and-iran-fbcdd5ed?mod=mw_rss_topstories",
+    "sentiment_score": 0.7,
+    "impact": "HIGH",
+    "keywords": [
+      "geopolitical risk",
+      "safe-haven demand",
+      "Middle East tension"
+    ],
+    "fetched_at": "2026-06-01T12:04:08.522251+00:00"
+  },
+  {
+    "source": "MarketWatch Top",
+    "headline": "Another dire problem for Social Security: Trustees may be calculating the birth rate wrong",
+    "url": "https://www.marketwatch.com/story/another-dire-problem-for-social-security-trustees-may-be-calculating-the-birth-rate-wrong-955d1930?mod=mw_rss_topstories",
+    "sentiment_score": -0.2,
+    "impact": "LOW",
+    "keywords": [
+      "fiscal policy",
+      "social security",
+      "demographic"
+    ],
+    "fetched_at": "2026-06-01T12:04:08.522251+00:00"
+  },
+  {
+    "source": "Investing.com Gold",
+    "headline": "Bank of England\u2019s Greene sees tokenised deposits replacing stablecoins",
+    "url": "https://www.investing.com/news/cryptocurrency-news/bank-of-englands-greene-sees-tokenised-deposits-replacing-stablecoins-93CH-4717925",
+    "sentiment_score": -0.3,
+    "impact": "MEDIUM",
+    "keywords": [
+      "tokenisation",
+      "stablecoins",
+      "digital currency"
+    ],
+    "fetched_at": "2026-06-01T12:04:08.522251+00:00"
+  },
+  {
+    "source": "Investing.com Gold",
+    "headline": "Fed\u2019s Waller says stablecoins extend US monetary policy reach",
+    "url": "https://www.investing.com/news/cryptocurrency-news/feds-waller-says-stablecoins-extend-us-monetary-policy-reach-4717919",
+    "sentiment_score": -0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "monetary policy",
+      "stablecoins",
+      "Fed reach"
+    ],
+    "fetched_at": "2026-06-01T12:04:08.522251+00:00"
+  },
+  {
+    "source": "Investing.com Gold",
+    "headline": "Bitcoin subdued near $74k as ETF demand cools; analyst warns downturn may extend",
+    "url": "https://www.investing.com/news/cryptocurrency-news/bitcoin-slips-as-etf-demand-cools-analyst-warns-downturn-may-extend-4717596",
+    "sentiment_score": 0.2,
+    "impact": "LOW",
+    "keywords": [
+      "Bitcoin",
+      "ETF demand",
+      "crypto correlation"
+    ],
+    "fetched_at": "2026-06-01T12:04:08.522251+00:00"
+  },
+  {
+    "source": "Investing.com Gold",
+    "headline": "Bitcoin set for May decline on expectations of higher-for-longer interest rates",
+    "url": "https://www.investing.com/news/cryptocurrency-news/bitcoin-rises-near-74k-after-7wk-low-on-iran-truce-extension-hopes-4715939",
+    "sentiment_score": -0.6,
+    "impact": "HIGH",
+    "keywords": [
+      "higher-for-longer rates",
+      "Fed policy",
+      "interest rates"
+    ],
+    "fetched_at": "2026-06-01T12:04:08.522251+00:00"
   }
 ]
