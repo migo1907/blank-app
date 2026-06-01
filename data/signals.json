@@ -414,5 +414,18 @@
     "expires_at": "2026-06-01T04:04:56.588760+00:00",
     "id": 32,
     "created_at": "2026-06-01T03:34:56.962803+00:00"
+  },
+  {
+    "symbol": "XAUUSD",
+    "direction": "SHORT",
+    "confidence": 0.6035,
+    "ml_score": 1.0,
+    "news_score": -0.0087,
+    "combined_score": -0.6035,
+    "reasoning": "ML model is bearish (-100%), news sentiment is neutral (-0.009). Combined: -0.603.",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-01T04:19:56.765298+00:00",
+    "id": 33,
+    "created_at": "2026-06-01T03:49:57.126982+00:00"
   }
 ]
