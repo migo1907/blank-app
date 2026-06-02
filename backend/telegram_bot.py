@@ -121,11 +121,11 @@ async def send_breaking_news(items: list[dict], seen_headlines: set) -> set:
     """
     Send FinancialJuice high-impact (red) breaking news to Telegram instantly.
     Only skips headlines already sent before (dedup by title).
-    Returns updated seen_headlines set.
+    Returns a NEW set (copy + new items) so the caller can detect changes via !=.
     """
     new_items = [i for i in items if i["title"][:80] not in seen_headlines]
     if not new_items:
-        return seen_headlines
+        return seen_headlines  # same object → caller knows nothing changed
 
     now = datetime.now(timezone.utc).strftime("%H:%M UTC")
     lines = "\n".join(f"🔴 {item['title']}" for item in new_items[:5])
@@ -138,7 +138,9 @@ async def send_breaking_news(items: list[dict], seen_headlines: set) -> set:
     )
     await _send(msg)
 
+    # Return a NEW set so the caller's identity check (updated != _fj_seen_headlines)
+    # correctly detects that new headlines were added and GitHub must be saved.
+    updated = set(seen_headlines)
     for item in new_items:
-        seen_headlines.add(item["title"][:80])
-
-    return seen_headlines
+        updated.add(item["title"][:80])
+    return updated
