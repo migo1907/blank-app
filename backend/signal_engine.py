@@ -78,7 +78,7 @@ def _confluence_score(features: Features | None, direction: str) -> float:
     - f9  FVG  1.0  → bullish FVG present
     - f10 OB   1.0  → bullish order block active
     - f11 BOS  1.0  → bullish break of structure
-    - f13 PD  > 0   → price in discount zone → bull setup
+    - f13 PD  < 0   → price in discount zone → bull setup  (f13>0 = premium = bearish)
     - f16 MTF  1.0  → higher timeframe bullish
     - f21 VWAP > 0  → above VWAP → bull
     (all reversed for SHORT)
@@ -98,12 +98,13 @@ def _confluence_score(features: Features | None, direction: str) -> float:
         features.f9  * sign > 0,   # FVG
         features.f10 * sign > 0,   # Order Block
         features.f11 * sign > 0,   # BOS
+        features.f13 * sign < 0,   # P/D: discount zone (f13<0) is bullish for LONG
         features.f16 * sign > 0,   # MTF alignment
         features.f21 * sign > 0,   # VWAP side
     ]
     score = sum(checks) / len(checks)   # 0.0 → 1.0
 
-    # Map to multiplier: 0% agreement=0.70, 50%=1.00, 100%=1.40
+    # 0% agreement=0.70, 50%=1.05, 100%=1.40
     return 0.70 + score * 0.70
 
 
