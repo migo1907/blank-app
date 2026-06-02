@@ -274,6 +274,23 @@ async def _hourly_system_check() -> None:
     else:
         issues.append("Telegram TOKEN or CHAT_ID missing ❌")
 
+    # ── 11. Railway keep-alive / cold-start check ─────────────────────────────
+    try:
+        import httpx as _httpx
+        domain = _os.environ.get("RAILWAY_PUBLIC_DOMAIN", "")
+        if domain:
+            url = f"https://{domain}/health"
+            async with _httpx.AsyncClient(timeout=8) as client:
+                r = await client.get(url)
+            if r.status_code == 200:
+                ok.append(f"Railway keep-alive reachable — {url} ✅")
+            else:
+                issues.append(f"Railway /health returned {r.status_code} ⚠️")
+        else:
+            issues.append("RAILWAY_PUBLIC_DOMAIN not set — keep-alive disabled ⚠️")
+    except Exception as e:
+        issues.append(f"Railway keep-alive check failed: {e} ❌")
+
     # ── 9. News velocity state ────────────────────────────────────────────────
     v_label = _latest_velocity.get("label", "UNKNOWN")
     v_mult  = _latest_velocity.get("multiplier", 1.0)
