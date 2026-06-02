@@ -5,20 +5,6 @@
     "confidence": 0.0,
     "ml_score": 0.6207,
     "rf_score": 0.5,
-    "news_score": 0.0946,
-    "combined_score": -0.0904,
-    "reasoning": "KNN is bearish (-24%), RF is bearish (+0%), news is neutral (+0.095). Velocity: CONFLICTED \u00d70.6 (news weight 20%). Combined: -0.090.",
-    "status": "ACTIVE",
-    "expires_at": "2026-06-01T18:44:38.438708+00:00",
-    "id": 101,
-    "created_at": "2026-06-01T18:14:38.884250+00:00"
-  },
-  {
-    "symbol": "XAUUSD",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "ml_score": 0.6207,
-    "rf_score": 0.5,
     "news_score": -0.1046,
     "combined_score": -0.1279,
     "reasoning": "KNN is bearish (-24%), RF is bearish (+0%), news is neutral (-0.105). Velocity: NORMAL \u00d71.0 (news weight 30%). Combined: -0.128.",
@@ -1547,5 +1533,24 @@
     "expires_at": "2026-06-03T00:05:55.770901+00:00",
     "id": 101,
     "created_at": "2026-06-02T23:35:56.216821+00:00"
+  },
+  {
+    "symbol": "XAUUSD",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.4138,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "news_score": 0.3647,
+    "combined_score": 0.0684,
+    "session": "OFF",
+    "regime": "UNKNOWN",
+    "regime_label": "NORMAL",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:UNKNOWN(NORMAL)\u00d71.00 | sess:OFF\u00d70.65 | confluence\u00d71.00 | cluster\u00d71.00 | news:bullish(+0.365) | combined:+0.068 \u2192 conf:0.000",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-03T00:20:56.279218+00:00",
+    "id": 101,
+    "created_at": "2026-06-02T23:50:56.697946+00:00"
   }
 ]
