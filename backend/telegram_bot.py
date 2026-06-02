@@ -120,10 +120,28 @@ async def send_text(text: str) -> None:
 async def send_breaking_news(items: list[dict], seen_headlines: set) -> set:
     """
     Send FinancialJuice high-impact (red) breaking news to Telegram.
-    Only sends headlines not seen in previous cycle to avoid duplicates.
+    Only sends headlines not seen before AND published within the last 30 minutes.
     Returns updated seen_headlines set.
     """
-    new_items = [i for i in items if i["title"][:80] not in seen_headlines]
+    from datetime import timedelta
+    cutoff = datetime.now(timezone.utc) - timedelta(minutes=30)
+
+    fresh_items = []
+    for item in items:
+        if item["title"][:80] in seen_headlines:
+            continue
+        pub = item.get("pub_date") or item.get("fetched_at", "")
+        try:
+            dt = datetime.fromisoformat(pub.replace("Z", "+00:00"))
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            if dt < cutoff:
+                continue
+        except Exception:
+            pass  # no date — allow through (live FJ items have no pub_date sometimes)
+        fresh_items.append(item)
+
+    new_items = fresh_items
     if not new_items:
         return seen_headlines
 
