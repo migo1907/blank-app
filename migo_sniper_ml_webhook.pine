@@ -26,7 +26,6 @@ bool  useKernel     = input.bool(true, "Kernel Regression",          group="📈
 int   kWin          = input.int(8,     "Kernel Window",              group="📈 Kernel", minval=3, maxval=50)
 float kH            = input.float(8.0, "Bandwidth h",                group="📈 Kernel", minval=1.0, maxval=50.0)
 float kAlpha        = input.float(1.0, "Alpha",                      group="📈 Kernel", minval=0.1, maxval=5.0)
-// ── Cloud backend (Level 2) ─────────────────────────────────────────────────
 string webhookSecret = input.string("your_secret_here", "Webhook Secret", group="☁️ Cloud Backend")
 
 // ═══════════════════════════════════════════════════════
@@ -65,7 +64,7 @@ float f7 = cmo
 float f8 = math.max(-1.0, math.min(1.0, (close - maLong) / (atr * 5.0)))
 
 // ═══════════════════════════════════════════════════════
-// ADAPTIVE WEIGHTS (in-session, mirrors cloud weights)
+// ADAPTIVE WEIGHTS
 // ═══════════════════════════════════════════════════════
 var float w1 = 1.0
 var float w2 = 1.0
@@ -110,6 +109,17 @@ rqKernel(src, h, alpha, window) =>
         num += src[i] * wk
         den += wk
     den > 0.0 ? num / den : src[0]
+
+// ═══════════════════════════════════════════════════════
+// WEBHOOK PAYLOAD BUILDERS
+// ═══════════════════════════════════════════════════════
+buildEntryPayload(dir, entPx, t1, t2, t3, sl, mlSc, tf, trigger, tier) =>
+    string s = '{"secret":"' + webhookSecret + '","direction":"' + dir + '","symbol":"XAUUSD","timeframe":"' + tf + '","trigger":"' + trigger + '","tier":"' + tier + '","entry_price":' + str.tostring(entPx, "#.####") + ',"tp1":' + str.tostring(t1, "#.####") + ',"tp2":' + str.tostring(t2, "#.####") + ',"tp3":' + str.tostring(t3, "#.####") + ',"sl":' + str.tostring(sl, "#.####") + ',"ml_score":' + str.tostring(mlSc, "#.####") + '}'
+    s
+
+buildPayload(dir, outcome, stage, entPx, exitPx, mlSc) =>
+    string s = '{"secret":"' + webhookSecret + '","trade_id":"' + syminfo.tickerid + '_' + str.tostring(timenow) + '","direction":"' + dir + '","outcome":"' + outcome + '","tp_stage":"' + stage + '","entry_price":' + str.tostring(entPx, "#.####") + ',"exit_price":' + str.tostring(exitPx, "#.####") + ',"ml_score":' + str.tostring(mlSc, "#.####") + ',"f1":' + str.tostring(ef1, "#.####") + ',"f2":' + str.tostring(ef2, "#.####") + ',"f3":' + str.tostring(ef3, "#.####") + ',"f4":' + str.tostring(ef4, "#.####") + ',"f5":' + str.tostring(ef5, "#.####") + ',"f6":' + str.tostring(ef6, "#.####") + ',"f7":' + str.tostring(ef7, "#.####") + ',"f8":' + str.tostring(ef8, "#.####") + '}'
+    s
 
 // ═══════════════════════════════════════════════════════
 // KNN CLASSIFIER
@@ -171,41 +181,6 @@ var int    tradeConf   = 0
 var bool   tp1Hit      = false
 var bool   tp2Hit      = false
 var float  trailSL     = 0.0
-
-// ═══════════════════════════════════════════════════════
-// WEBHOOK PAYLOAD BUILDERS
-// ═══════════════════════════════════════════════════════
-buildEntryPayload(dir, entPx, t1, t2, t3, sl, mlSc, tf, trigger, tier) =>
-    '{"secret":"' + webhookSecret + '"' +
-    ',"direction":"' + dir + '"' +
-    ',"symbol":"XAUUSD"' +
-    ',"timeframe":"' + tf + '"' +
-    ',"trigger":"' + trigger + '"' +
-    ',"tier":"' + tier + '"' +
-    ',"entry_price":' + str.tostring(entPx, "#.####") +
-    ',"tp1":' + str.tostring(t1, "#.####") +
-    ',"tp2":' + str.tostring(t2, "#.####") +
-    ',"tp3":' + str.tostring(t3, "#.####") +
-    ',"sl":' + str.tostring(sl, "#.####") +
-    ',"ml_score":' + str.tostring(mlSc, "#.####") + '}'
-
-buildPayload(dir, outcome, stage, entPx, exitPx, mlSc) =>
-    '{"secret":"' + webhookSecret + '"' +
-    ',"trade_id":"' + syminfo.tickerid + '_' + str.tostring(timenow) + '"' +
-    ',"direction":"' + dir + '"' +
-    ',"outcome":"' + outcome + '"' +
-    ',"tp_stage":"' + stage + '"' +
-    ',"entry_price":' + str.tostring(entPx, "#.####") +
-    ',"exit_price":' + str.tostring(exitPx, "#.####") +
-    ',"ml_score":' + str.tostring(mlSc, "#.####") +
-    ',"f1":' + str.tostring(ef1, "#.####") +
-    ',"f2":' + str.tostring(ef2, "#.####") +
-    ',"f3":' + str.tostring(ef3, "#.####") +
-    ',"f4":' + str.tostring(ef4, "#.####") +
-    ',"f5":' + str.tostring(ef5, "#.####") +
-    ',"f6":' + str.tostring(ef6, "#.####") +
-    ',"f7":' + str.tostring(ef7, "#.####") +
-    ',"f8":' + str.tostring(ef8, "#.####") + '}'
 
 // ═══════════════════════════════════════════════════════
 // TRAIL STOP
@@ -333,7 +308,7 @@ if activeTrade == "SHORT"
         activeTrade := "NONE", tp1Hit := false, tp2Hit := false
 
 // ═══════════════════════════════════════════════════════
-// GLOBAL SERIES (CW10002 / CW10003)
+// GLOBAL SERIES
 // ═══════════════════════════════════════════════════════
 float highest3     = ta.highest(high, 3)
 float lowest3      = ta.lowest(low, 3)
