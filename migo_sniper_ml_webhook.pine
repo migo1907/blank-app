@@ -317,7 +317,7 @@ penalizeWeightsShort(float penalty) =>
 buildEntryPayload(dir, tf, trig, entPx, t1, t2, t3, stopPx, mlSc, tierStr) =>
     string e1 = '{"secret":"' + webhookSecret + '"'
     string e2 = ',"direction":"' + dir + '","timeframe":"' + tf + '","trigger":"' + trig + '"'
-    string e3 = ',"symbol":"' + syminfo.tickerid + '"'
+    string e3 = ',"symbol":"' + syminfo.ticker + '"'
     string e4 = ',"entry_price":' + str.tostring(entPx, "#.##") + ',"tp1":' + str.tostring(t1, "#.##")
     string e5 = ',"tp2":' + str.tostring(t2, "#.##") + ',"tp3":' + str.tostring(t3, "#.##")
     string e6 = ',"sl":' + str.tostring(stopPx, "#.##") + ',"ml_score":' + str.tostring(mlSc, "#.####") + ',"tier":"' + tierStr + '"}'
@@ -328,7 +328,7 @@ buildEntryPayload(dir, tf, trig, entPx, t1, t2, t3, stopPx, mlSc, tierStr) =>
 // ═══════════════════════════════════════════════════════
 buildPayload(dir, outcome, stage, entPx, exitPx, mlSc) =>
     string p1 = '{"secret":"' + webhookSecret + '"'
-    string p2 = ',"trade_id":"' + syminfo.tickerid + '_' + str.tostring(timenow) + '"'
+    string p2 = ',"trade_id":"' + syminfo.ticker + '_' + str.tostring(timenow) + '"'
     string p3 = ',"direction":"' + dir + '","outcome":"' + outcome + '","tp_stage":"' + stage + '"'
     string p4 = ',"entry_price":' + str.tostring(entPx, "#.####") + ',"exit_price":' + str.tostring(exitPx, "#.####")
     string p5 = ',"ml_score":' + str.tostring(mlSc, "#.####")
