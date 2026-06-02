@@ -88,15 +88,6 @@ async def _news_signal_cycle() -> None:
             _latest_velocity = velocity
             _latest_event    = event
 
-        # ── High-impact event alert (NFP, FOMC, war etc.) ──────────────────────
-        if event.get("detected") and event.get("urgency", 0) >= 0.9:
-            print(f"[scheduler] ⚡ HIGH-IMPACT EVENT: {event['event_type']}")
-            await send_text(
-                f"⚡ <b>HIGH IMPACT EVENT: {event['event_type']}</b>\n"
-                f"Headlines: {', '.join(event.get('headlines', []))[:200]}\n"
-                f"News sentiment: {agg:+.3f} | Velocity: {velocity['label']} ×{velocity['multiplier']}"
-            )
-
         signal = generate_signal(
             news_agg=_latest_news_agg,
             news_velocity=_latest_velocity,
