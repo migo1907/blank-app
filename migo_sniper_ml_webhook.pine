@@ -500,10 +500,8 @@ bool sellBase = not isSideways and (trigRSI_S or trigFVG_S or trigLiq_S or trigO
 // Kernel confirmation (optional)
 bool buySignal  = buyBase  and (not useKernel or kernelUp)
 bool sellSignal = sellBase and (not useKernel or kernelDown)
-// Require ML to at least not strongly disagree (≥50%) + 21F score must lean same way
-float totalFeat21 = f1+f2+f3+f4+f5+f6+f7+f8+f9+f10+f11+f12+f13+f14+f15+f16+f17+f18+f19+f20+f21
-bool doBuy  = buySignal  and mlBull >= 0.50 and totalFeat21 >= 0.0 and activeTrade != "LONG"
-bool doSell = sellSignal and mlBear >= 0.50 and totalFeat21 <= 0.0 and activeTrade != "SHORT"
+bool doBuy  = buySignal  and activeTrade != "LONG"
+bool doSell = sellSignal and activeTrade != "SHORT"
 
 // ── Signal quality tiers (ALL fire, different label color) ──────────────────
 // HIGH ≥ 0.70  → bright green / red   (best setups, size up)
