@@ -5,20 +5,6 @@
     "confidence": 0.0,
     "ml_score": 0.8,
     "rf_score": 0.5,
-    "news_score": 0.0506,
-    "combined_score": -0.2248,
-    "reasoning": "KNN is bearish (-60%), RF is bearish (+0%), news is neutral (+0.051). Combined: -0.225.",
-    "status": "ACTIVE",
-    "expires_at": "2026-06-01T09:36:56.775396+00:00",
-    "id": 56,
-    "created_at": "2026-06-01T09:06:57.123503+00:00"
-  },
-  {
-    "symbol": "XAUUSD",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "ml_score": 0.8,
-    "rf_score": 0.5,
     "news_score": 0.1794,
     "combined_score": -0.1862,
     "reasoning": "KNN is bearish (-60%), RF is bearish (+0%), news is neutral (+0.179). Velocity: NORMAL \u00d71.0 (news weight 30%). Combined: -0.186.",
@@ -1436,5 +1422,21 @@
     "expires_at": "2026-06-02T11:52:27.379684+00:00",
     "id": 101,
     "created_at": "2026-06-02T11:22:27.820416+00:00"
+  },
+  {
+    "symbol": "XAUUSD",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.5,
+    "news_score": 0.0812,
+    "combined_score": 0.0,
+    "session": "N/A",
+    "reasoning": "News velocity CONFLICTED \u2014 holding off",
+    "status": "NEUTRAL",
+    "expires_at": "2026-06-02T12:07:28.141245+00:00",
+    "id": 101,
+    "created_at": "2026-06-02T11:37:28.560682+00:00"
   }
 ]
