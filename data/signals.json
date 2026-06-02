@@ -5,20 +5,6 @@
     "confidence": 0.0,
     "ml_score": 0.8333,
     "rf_score": 0.5,
-    "news_score": -0.0197,
-    "combined_score": -0.3071,
-    "reasoning": "KNN is bearish (-67%), RF is bearish (+0%), news is neutral (-0.020). Velocity: CONFLICTED \u00d70.6 (news weight 20%). Combined: -0.307.",
-    "status": "ACTIVE",
-    "expires_at": "2026-06-01T10:56:44.215928+00:00",
-    "id": 64,
-    "created_at": "2026-06-01T10:26:44.669203+00:00"
-  },
-  {
-    "symbol": "XAUUSD",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "ml_score": 0.8333,
-    "rf_score": 0.5,
     "news_score": -0.0955,
     "combined_score": -0.3226,
     "reasoning": "KNN is bearish (-67%), RF is bearish (+0%), news is neutral (-0.096). Velocity: CONFLICTED \u00d70.6 (news weight 20%). Combined: -0.323.",
@@ -1452,5 +1438,21 @@
     "expires_at": "2026-06-02T13:39:05.629216+00:00",
     "id": 101,
     "created_at": "2026-06-02T13:09:06.160978+00:00"
+  },
+  {
+    "symbol": "XAUUSD",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.55,
+    "rf_score": 0.5,
+    "news_score": 0.0,
+    "combined_score": -0.0275,
+    "session": "NEW_YORK",
+    "reasoning": "KNN bearish (-10%) | RF bearish (+0%) | News neutral (+0.000) | Session NEW_YORK \u00d71.20 | Confluence \u00d71.00 | Velocity LOW \u00d71.2 | Combined -0.028 \u2192 conf 0.000 \u26a1 NFP",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-02T13:54:08.488113+00:00",
+    "id": 101,
+    "created_at": "2026-06-02T13:24:08.971456+00:00"
   }
 ]
