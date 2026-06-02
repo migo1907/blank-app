@@ -8,19 +8,6 @@
     "combined_score": -0.6035,
     "reasoning": "ML model is bearish (-100%), news sentiment is neutral (-0.009). Combined: -0.603.",
     "status": "ACTIVE",
-    "expires_at": "2026-06-01T03:19:56.589623+00:00",
-    "id": 29,
-    "created_at": "2026-06-01T02:49:56.967047+00:00"
-  },
-  {
-    "symbol": "XAUUSD",
-    "direction": "SHORT",
-    "confidence": 0.6035,
-    "ml_score": 1.0,
-    "news_score": -0.0087,
-    "combined_score": -0.6035,
-    "reasoning": "ML model is bearish (-100%), news sentiment is neutral (-0.009). Combined: -0.603.",
-    "status": "ACTIVE",
     "expires_at": "2026-06-01T03:34:56.560612+00:00",
     "id": 30,
     "created_at": "2026-06-01T03:04:56.933312+00:00"
@@ -1392,5 +1379,19 @@
     "expires_at": "2026-06-02T07:25:52.211168+00:00",
     "id": 101,
     "created_at": "2026-06-02T06:55:52.503705+00:00"
+  },
+  {
+    "symbol": "XAUUSD",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "ml_score": 0.5135,
+    "rf_score": 0.5,
+    "news_score": 0.0377,
+    "combined_score": -0.0007,
+    "reasoning": "KNN is bearish (-3%), RF is bearish (+0%), news is neutral (+0.038). Velocity: CONFLICTED \u00d70.9 (news weight 28%). Combined: -0.001. \u26a1 WAR/CONFLICT EVENT DETECTED!",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-02T07:40:52.625340+00:00",
+    "id": 101,
+    "created_at": "2026-06-02T07:10:52.952621+00:00"
   }
 ]
