@@ -1,6 +1,6 @@
 """
 Lorentzian KNN classifier with GitHub-persistent adaptive weights.
-Expanded to 20 features (v3).
+Expanded to 25 features (v3·25F).
 Weights survive across sessions — true cross-session learning.
 """
 import math
@@ -33,9 +33,13 @@ FEATURE_NAMES = [
     "f19_rsidiv",  # RSI Divergence
     "f20_fib",     # Fibonacci Position
     "f21_vwap",    # VWAP Distance
+    "f22_body",    # Candle Body Ratio
+    "f23_rsiacc",  # RSI Acceleration
+    "f24_fvgq",    # FVG Quality (post-sweep)
+    "f25_tod",     # Time-of-Day sine
 ]
 
-N_FEATURES = 21
+N_FEATURES = 25
 
 
 @dataclass
@@ -61,6 +65,10 @@ class Features:
     f19: float = 0.0   # RSI Divergence
     f20: float = 0.0   # Fibonacci Position
     f21: float = 0.0   # VWAP Distance
+    f22: float = 0.0   # Candle Body Ratio
+    f23: float = 0.0   # RSI Acceleration
+    f24: float = 0.0   # FVG Quality (post-sweep)
+    f25: float = 0.0   # Time-of-Day sine
 
     def as_list(self) -> list[float]:
         return [
@@ -68,12 +76,12 @@ class Features:
             self.f6,  self.f7,  self.f8,  self.f9,  self.f10,
             self.f11, self.f12, self.f13, self.f14, self.f15,
             self.f16, self.f17, self.f18, self.f19, self.f20,
-            self.f21,
+            self.f21, self.f22, self.f23, self.f24, self.f25,
         ]
 
     @classmethod
     def from_payload(cls, payload: dict) -> "Features":
-        """Build Features from a webhook payload dict (f1..f20 keys)."""
+        """Build Features from a webhook payload dict (f1..f25 keys)."""
         return cls(
             f1=float(payload.get("f1", 0.0)),
             f2=float(payload.get("f2", 0.0)),
@@ -96,6 +104,10 @@ class Features:
             f19=float(payload.get("f19", 0.0)),
             f20=float(payload.get("f20", 0.0)),
             f21=float(payload.get("f21", 0.0)),
+            f22=float(payload.get("f22", 0.0)),
+            f23=float(payload.get("f23", 0.0)),
+            f24=float(payload.get("f24", 0.0)),
+            f25=float(payload.get("f25", 0.0)),
         )
 
     def as_db_dict(self) -> dict:
@@ -138,7 +150,7 @@ class AdaptiveKNN:
         self._total_wins = row.get("total_wins", 0)
         self._total_losses = row.get("total_losses", 0)
         self._dirty = False
-        print(f"[ml] Loaded weights (20F) from storage: {[round(w, 3) for w in self._weights]}")
+        print(f"[ml] Loaded weights (25F) from storage: {[round(w, 3) for w in self._weights]}")
 
     def save(self, symbol: str = SYMBOL) -> None:
         if not self._dirty:
@@ -222,6 +234,7 @@ class AdaptiveKNN:
             "RSI", "ADX", "ATR", "BB%", "MACD", "WillR", "CMO", "EMA-dist",
             "FVG", "OB", "BOS", "Liq", "P/D", "CHoCH",
             "Session", "MTF", "DXY", "VolDelta", "RSIDiv", "Fib", "VWAP",
+            "Body", "RSIAcc", "FVGq", "ToD",
         ]
         paired = list(zip(short_names, self._weights))
         paired.sort(key=lambda x: x[1], reverse=True)

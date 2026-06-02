@@ -1,5 +1,5 @@
 """
-XAU/USD Migo Sniper Pro — Level 3 ML Backend (v3·20F)
+XAU/USD Migo Sniper Pro — Level 3 ML Backend (v3·25F)
 FastAPI app that receives TradingView webhooks, updates adaptive weights
 in GitHub storage, runs RF ensemble, fetches news sentiment, sends signals to Telegram.
 """
@@ -24,7 +24,7 @@ RAILWAY_SERVICE_ID = os.environ.get("RAILWAY_SERVICE_ID", "e4310b2b-3a37-440e-a3
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("[startup] Loading ML model (20F) from storage…")
+    print("[startup] Loading ML model (25F) from storage…")
     from ml_model import get_model
     get_model()
 
@@ -54,8 +54,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Migo Sniper Pro — ML Backend v3·20F",
-    description="Adaptive KNN + Random Forest ensemble + news sentiment for XAU/USD",
+    title="Migo Sniper Pro — ML Backend v3·25F",
+    description="Adaptive KNN + RF + GBM ensemble + news sentiment for XAU/USD",
     version="3.0.0",
     lifespan=lifespan,
 )
@@ -93,6 +93,10 @@ class TradeOutcomePayload(BaseModel):
     f19: float = 0.0
     f20: float = 0.0
     f21: float = 0.0
+    f22: float = 0.0
+    f23: float = 0.0
+    f24: float = 0.0
+    f25: float = 0.0
 
     class Config:
         extra = "ignore"
@@ -141,7 +145,8 @@ class UnifiedPayload(BaseModel):
     f9:  float = 0.0; f10: float = 0.0; f11: float = 0.0; f12: float = 0.0
     f13: float = 0.0; f14: float = 0.0; f15: float = 0.0; f16: float = 0.0
     f17: float = 0.0; f18: float = 0.0; f19: float = 0.0; f20: float = 0.0
-    f21: float = 0.0
+    f21: float = 0.0; f22: float = 0.0; f23: float = 0.0; f24: float = 0.0
+    f25: float = 0.0
 
     class Config:
         extra = "ignore"
@@ -158,7 +163,7 @@ def _validate_secret(secret: str) -> None:
 
 @app.api_route("/health", methods=["GET", "POST", "HEAD"])
 async def health():
-    return {"status": "ok", "version": "3.0.0-20F"}
+    return {"status": "ok", "version": "3.0.0-25F"}
 
 
 @app.get("/test-telegram")
@@ -194,7 +199,8 @@ async def trade_outcome(payload: TradeOutcomePayload):
         f9=payload.f9,   f10=payload.f10, f11=payload.f11, f12=payload.f12,
         f13=payload.f13, f14=payload.f14, f15=payload.f15, f16=payload.f16,
         f17=payload.f17, f18=payload.f18, f19=payload.f19, f20=payload.f20,
-        f21=payload.f21,
+        f21=payload.f21, f22=payload.f22, f23=payload.f23, f24=payload.f24,
+        f25=payload.f25,
     )
 
     model.update_on_outcome(features, payload.direction, payload.outcome)
@@ -210,7 +216,7 @@ async def trade_outcome(payload: TradeOutcomePayload):
         "pnl_pct":       round((payload.exit_price - payload.entry_price) / max(payload.entry_price, 0.0001) * 100, 4),
         "ml_bull_score": payload.ml_score,
     }
-    # Add all 20 feature columns
+    # Add all 25 feature columns
     outcome_row.update(features.as_db_dict())
     insert_outcome(outcome_row)
 
@@ -306,7 +312,8 @@ async def unified_webhook(payload: UnifiedPayload):
             f9=payload.f9, f10=payload.f10, f11=payload.f11, f12=payload.f12,
             f13=payload.f13, f14=payload.f14, f15=payload.f15, f16=payload.f16,
             f17=payload.f17, f18=payload.f18, f19=payload.f19, f20=payload.f20,
-            f21=payload.f21,
+            f21=payload.f21, f22=payload.f22, f23=payload.f23, f24=payload.f24,
+            f25=payload.f25,
         )
         model.update_on_outcome(features, payload.direction, payload.outcome)
         model.save()
@@ -326,6 +333,7 @@ async def unified_webhook(payload: UnifiedPayload):
             history = recent_outcomes(limit=500)
             if len(history) >= 15:
                 get_rf().retrain(history)
+                get_gbm().train(history)
         asyncio.create_task(_retrain())
 
         return {"status": "ok", "routed_to": "trade-outcome", "outcome": payload.outcome}

@@ -33,8 +33,11 @@ HEADERS  = {
 # Default weights file content
 DEFAULT_WEIGHTS = {
     "symbol": "XAUUSD",
-    "w1": 1.0, "w2": 1.0, "w3": 1.0, "w4": 1.0,
-    "w5": 1.0, "w6": 1.0, "w7": 1.0, "w8": 1.0,
+    "w1": 1.0,  "w2": 1.0,  "w3": 1.0,  "w4": 1.0,  "w5": 1.0,
+    "w6": 1.0,  "w7": 1.0,  "w8": 1.0,  "w9": 1.0,  "w10": 1.0,
+    "w11": 1.0, "w12": 1.0, "w13": 1.0, "w14": 1.0, "w15": 1.0,
+    "w16": 1.0, "w17": 1.0, "w18": 1.0, "w19": 1.0, "w20": 1.0,
+    "w21": 1.0, "w22": 1.0, "w23": 1.0, "w24": 1.0, "w25": 1.0,
     "total_wins": 0,
     "total_losses": 0,
     "updated_at": datetime.now(timezone.utc).isoformat(),
