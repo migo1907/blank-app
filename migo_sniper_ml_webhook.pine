@@ -173,8 +173,22 @@ var bool   tp2Hit      = false
 var float  trailSL     = 0.0
 
 // ═══════════════════════════════════════════════════════
-// WEBHOOK PAYLOAD BUILDER
+// WEBHOOK PAYLOAD BUILDERS
 // ═══════════════════════════════════════════════════════
+buildEntryPayload(dir, entPx, t1, t2, t3, sl, mlSc, tf, trigger, tier) =>
+    '{"secret":"' + webhookSecret + '"' +
+    ',"direction":"' + dir + '"' +
+    ',"symbol":"XAUUSD"' +
+    ',"timeframe":"' + tf + '"' +
+    ',"trigger":"' + trigger + '"' +
+    ',"tier":"' + tier + '"' +
+    ',"entry_price":' + str.tostring(entPx, "#.####") +
+    ',"tp1":' + str.tostring(t1, "#.####") +
+    ',"tp2":' + str.tostring(t2, "#.####") +
+    ',"tp3":' + str.tostring(t3, "#.####") +
+    ',"sl":' + str.tostring(sl, "#.####") +
+    ',"ml_score":' + str.tostring(mlSc, "#.####") + '}'
+
 buildPayload(dir, outcome, stage, entPx, exitPx, mlSc) =>
     '{"secret":"' + webhookSecret + '"' +
     ',"trade_id":"' + syminfo.tickerid + '_' + str.tostring(timenow) + '"' +
@@ -368,6 +382,8 @@ if doBuy
     ef1 := f1, ef2 := f2, ef3 := f3, ef4 := f4
     ef5 := f5, ef6 := f6, ef7 := f7, ef8 := f8
     label.new(bar_index, low, "🤖 BUY  ML:" + str.tostring(tradeConf) + "%\nEnt: " + str.tostring(entryPrice, "#.##") + "\nTP1: " + str.tostring(tp1Price, "#.##") + "\nTP2: " + str.tostring(tp2Price, "#.##") + "\nTP3: " + str.tostring(tp3Price, "#.##") + "\nSL:  " + str.tostring(slPrice, "#.##"), color=color.green, textcolor=color.white, style=label.style_label_up, size=size.small)
+    string _tier = tradeConf >= 75 ? "HIGH" : tradeConf >= 55 ? "MED" : "LOW"
+    alert(buildEntryPayload("LONG", close, tp1Price, tp2Price, tp3Price, slPrice, mlBull, timeframe.period, "ML", _tier), alert.freq_once_per_bar_close)
 
 if doSell
     activeTrade := "SHORT"
@@ -383,6 +399,8 @@ if doSell
     ef1 := f1, ef2 := f2, ef3 := f3, ef4 := f4
     ef5 := f5, ef6 := f6, ef7 := f7, ef8 := f8
     label.new(bar_index, high, "🤖 SELL  ML:" + str.tostring(tradeConf) + "%\nEnt: " + str.tostring(entryPrice, "#.##") + "\nTP1: " + str.tostring(tp1Price, "#.##") + "\nTP2: " + str.tostring(tp2Price, "#.##") + "\nTP3: " + str.tostring(tp3Price, "#.##") + "\nSL:  " + str.tostring(slPrice, "#.##"), color=color.red, textcolor=color.white, style=label.style_label_down, size=size.small)
+    string _tier = tradeConf >= 75 ? "HIGH" : tradeConf >= 55 ? "MED" : "LOW"
+    alert(buildEntryPayload("SHORT", close, tp1Price, tp2Price, tp3Price, slPrice, mlBear, timeframe.period, "ML", _tier), alert.freq_once_per_bar_close)
 
 // ═══════════════════════════════════════════════════════
 // WIN RATE
