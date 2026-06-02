@@ -1,5 +1,6 @@
 """
 APScheduler: runs the news → velocity → sentiment → signal pipeline every N minutes.
+Also runs an hourly full system health check and reports to Telegram.
 """
 import asyncio
 import os
@@ -149,6 +150,180 @@ async def _write_health_status(signal: dict, news_agg: float, velocity: dict, br
         print(f"[scheduler] Health write failed: {e}")
 
 
+async def _hourly_system_check() -> None:
+    """
+    Full system audit — runs every 60 minutes.
+    Checks every subsystem and sends a Telegram report.
+    """
+    from datetime import datetime, timezone
+    from telegram_bot import send_text
+
+    now = datetime.now(timezone.utc).strftime("%H:%M UTC — %d %b %Y")
+    issues: list[str] = []
+    ok:     list[str] = []
+
+    # ── 1. GitHub persistence (db layer) ─────────────────────────────────────
+    try:
+        from db import _get_file
+        weights, _ = _get_file("data/weights.json")
+        if weights and "w1" in weights:
+            ok.append("GitHub weights.json ✅")
+        else:
+            issues.append("weights.json missing or corrupt ❌")
+
+        history, _ = _get_file("data/trade_history.json")
+        trade_count = len(history) if isinstance(history, list) else 0
+        if trade_count >= 15:
+            ok.append(f"trade_history.json — {trade_count} trades ✅")
+        elif trade_count > 0:
+            issues.append(f"trade_history.json — only {trade_count} trades (need 15 for RF) ⚠️")
+        else:
+            issues.append("trade_history.json empty ❌")
+    except Exception as e:
+        issues.append(f"GitHub db layer error: {e} ❌")
+
+    # ── 2. KNN model ─────────────────────────────────────────────────────────
+    try:
+        from ml_model import get_model
+        model = get_model()
+        wins  = model._total_wins
+        losses = model._total_losses
+        wr    = model.win_rate
+        top   = model.top_feature()
+        if wins + losses > 0:
+            ok.append(f"KNN model — W{wins}/L{losses} WR:{wr*100:.0f}% top:{top} ✅")
+        else:
+            issues.append("KNN model — no trade history loaded ⚠️")
+    except Exception as e:
+        issues.append(f"KNN model error: {e} ❌")
+
+    # ── 3. Random Forest ─────────────────────────────────────────────────────
+    try:
+        from ml_ensemble import get_rf
+        rf = get_rf()
+        if rf.is_trained:
+            top_rf = rf.top_features(1)
+            top_rf_name = top_rf[0][0] if top_rf else "?"
+            ok.append(f"RF ensemble trained — top feature: {top_rf_name} ✅")
+        else:
+            issues.append("RF ensemble NOT trained yet ⚠️")
+    except Exception as e:
+        issues.append(f"RF ensemble error: {e} ❌")
+
+    # ── 4. News pipeline ─────────────────────────────────────────────────────
+    try:
+        from db import _get_file
+        from datetime import timedelta
+        news_cache, _ = _get_file("data/news_cache.json")
+        if isinstance(news_cache, list) and len(news_cache) > 0:
+            cutoff = datetime.now(timezone.utc) - timedelta(hours=2)
+            recent = [
+                n for n in news_cache
+                if datetime.fromisoformat(n.get("fetched_at", "2000-01-01T00:00:00+00:00").replace("Z", "+00:00")) >= cutoff
+            ]
+            ok.append(f"News cache — {len(news_cache)} total, {len(recent)} in last 2h ✅")
+        else:
+            issues.append("News cache empty ⚠️")
+    except Exception as e:
+        issues.append(f"News cache error: {e} ❌")
+
+    # ── 5. Breaking news dedup ────────────────────────────────────────────────
+    try:
+        from db import _get_file
+        seen, _ = _get_file("data/seen_headlines.json")
+        seen_count = len(seen) if isinstance(seen, list) else len(_fj_seen_headlines)
+        ok.append(f"Breaking news dedup — {seen_count} headlines tracked ✅")
+    except Exception as e:
+        # Fall back to in-memory count
+        ok.append(f"Breaking news dedup — {len(_fj_seen_headlines)} in memory ✅")
+
+    # ── 6. Latest signal ──────────────────────────────────────────────────────
+    try:
+        from db import _get_file
+        signals, _ = _get_file("data/signals.json")
+        if isinstance(signals, list) and len(signals) > 0:
+            last = signals[-1]
+            last_dir  = last.get("direction", "?")
+            last_conf = last.get("confidence", 0.0)
+            last_ts   = last.get("created_at", "?")[:16]
+            last_sess = last.get("session", "?")
+            ok.append(f"Last signal — {last_dir} conf:{last_conf:.2f} sess:{last_sess} @ {last_ts} ✅")
+        else:
+            issues.append("signals.json empty — no signals generated yet ⚠️")
+    except Exception as e:
+        issues.append(f"signals.json error: {e} ❌")
+
+    # ── 7. Scheduler health (self-check) ─────────────────────────────────────
+    try:
+        if _scheduler and _scheduler.running:
+            jobs = _scheduler.get_jobs()
+            job_ids = [j.id for j in jobs]
+            expected = {"news_signal_cycle", "breaking_news_cycle", "hourly_system_check"}
+            missing = expected - set(job_ids)
+            if not missing:
+                ok.append(f"Scheduler — {len(jobs)} jobs running ✅")
+            else:
+                issues.append(f"Scheduler — missing jobs: {missing} ⚠️")
+        else:
+            issues.append("Scheduler NOT running ❌")
+    except Exception as e:
+        issues.append(f"Scheduler check error: {e} ❌")
+
+    # ── 8. Telegram connectivity ─────────────────────────────────────────────
+    import os as _os
+    tg_token   = _os.environ.get("TELEGRAM_BOT_TOKEN", "")
+    tg_chat_id = _os.environ.get("TELEGRAM_CHAT_ID", "")
+    if tg_token and tg_chat_id:
+        ok.append("Telegram credentials present ✅")
+    else:
+        issues.append("Telegram TOKEN or CHAT_ID missing ❌")
+
+    # ── 9. News velocity state ────────────────────────────────────────────────
+    v_label = _latest_velocity.get("label", "UNKNOWN")
+    v_mult  = _latest_velocity.get("multiplier", 1.0)
+    news_agg_val = _latest_news_agg
+    ok.append(f"News velocity — {v_label} ×{v_mult:.1f} | agg: {news_agg_val:+.3f} ✅")
+
+    # ── 10. Feature check — ensure f9-f21 in stored trades ───────────────────
+    try:
+        from db import _get_file
+        history, _ = _get_file("data/trade_history.json")
+        if isinstance(history, list) and len(history) > 0:
+            last_trade = history[-1]
+            f21_present = "f21_vwap" in last_trade
+            f9_present  = "f9_fvg"  in last_trade
+            if f21_present and f9_present:
+                ok.append("Feature vector f1-f21 present in latest trade ✅")
+            else:
+                missing_f = []
+                if not f9_present:  missing_f.append("f9-f14")
+                if not f21_present: missing_f.append("f21")
+                issues.append(f"Latest trade missing features: {missing_f} — old data ⚠️")
+    except Exception as e:
+        issues.append(f"Feature check error: {e} ❌")
+
+    # ── Build report ──────────────────────────────────────────────────────────
+    total   = len(ok) + len(issues)
+    n_ok    = len(ok)
+    n_issue = len(issues)
+    status_icon = "✅" if n_issue == 0 else ("⚠️" if n_issue <= 2 else "🚨")
+
+    lines = [f"🔍 <b>SYSTEM CHECK</b> {status_icon} — {now}",
+             f"━━━━━━━━━━━━━━━━━━━━",
+             f"Checks: {n_ok}/{total} passed"]
+    if issues:
+        lines.append("\n<b>Issues:</b>")
+        for iss in issues:
+            lines.append(f"  • {iss}")
+    lines.append("\n<b>OK:</b>")
+    for item in ok:
+        lines.append(f"  • {item}")
+
+    report = "\n".join(lines)
+    print(f"[system_check] {n_ok}/{total} checks passed. Issues: {n_issue}")
+    await send_text(report)
+
+
 def start_scheduler() -> AsyncIOScheduler:
     global _scheduler
     _load_seen_headlines()
@@ -168,8 +343,15 @@ def start_scheduler() -> AsyncIOScheduler:
         id="breaking_news_cycle",
         replace_existing=True,
     )
+    _scheduler.add_job(
+        _hourly_system_check,
+        trigger="interval",
+        hours=1,
+        id="hourly_system_check",
+        replace_existing=True,
+    )
     _scheduler.start()
-    print(f"[scheduler] Started — signal every {interval} min, breaking news every 2 min.")
+    print(f"[scheduler] Started — signal every {interval} min, breaking news every 2 min, system check every 60 min.")
     return _scheduler
 
 
