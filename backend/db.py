@@ -12,6 +12,7 @@ Files stored in repo (branch: data or main):
 import os
 import json
 import base64
+import uuid
 import httpx
 from datetime import datetime, timezone, timedelta
 from dotenv import load_dotenv
@@ -105,7 +106,8 @@ def insert_outcome(outcome: dict) -> None:
     history, sha = _get_file("data/trade_history.json")
     if history is None:
         history = []
-    outcome["id"] = len(history) + 1
+    # UUID prevents duplicate IDs when concurrent webhooks fire simultaneously
+    outcome["id"] = str(uuid.uuid4())[:8]
     outcome.setdefault("created_at", datetime.now(timezone.utc).isoformat())
     history.append(outcome)
     # Keep last 1000 trades to avoid huge files

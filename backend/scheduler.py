@@ -290,11 +290,47 @@ async def _hourly_system_check() -> None:
     except Exception as e:
         issues.append(f"Feature check error: {e} ❌")
 
-    # ── Log only — no Telegram ───────────────────────────────────────────────
+    # ── Log results ──────────────────────────────────────────────────────────
     n_issue = len(issues)
     print(f"[system_check] {len(ok)}/{len(ok)+n_issue} checks passed.")
     for iss in issues:
         print(f"[system_check] ISSUE: {iss}")
+
+    # ── Auto-heal: deduplicate trade history ──────────────────────────────────
+    try:
+        from db import _get_file, _put_file
+        history, sha = _get_file("data/trade_history.json")
+        if isinstance(history, list) and len(history) > 0:
+            seen_ids = set()
+            deduped = []
+            for trade in history:
+                tid = str(trade.get("id", "")) + trade.get("created_at", "")
+                if tid not in seen_ids:
+                    seen_ids.add(tid)
+                    deduped.append(trade)
+            if len(deduped) < len(history):
+                removed = len(history) - len(deduped)
+                _put_file("data/trade_history.json", deduped, sha, f"chore: deduplicate {removed} duplicate trades")
+                print(f"[system_check] Auto-fixed: removed {removed} duplicate trades.")
+            else:
+                print(f"[system_check] Trade history clean — no duplicates.")
+    except Exception as e:
+        print(f"[system_check] Dedup auto-fix failed: {e}")
+
+    # ── Auto-heal: retrain RF if new trades available ─────────────────────────
+    try:
+        from ml_ensemble import get_rf
+        from db import recent_outcomes
+        rf = get_rf()
+        trades = recent_outcomes(limit=500)
+        if len(trades) >= 15 and not rf.is_trained:
+            rf.train(trades)
+            print(f"[system_check] Auto-fixed: RF retrained on {len(trades)} trades.")
+        elif len(trades) >= 15:
+            rf.train(trades)
+            print(f"[system_check] RF refreshed on {len(trades)} trades.")
+    except Exception as e:
+        print(f"[system_check] RF retrain failed: {e}")
 
 
 def start_scheduler() -> AsyncIOScheduler:
