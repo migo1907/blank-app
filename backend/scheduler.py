@@ -158,7 +158,6 @@ async def _hourly_system_check() -> None:
     Silent when all checks pass. Only sends Telegram alert when issues are found.
     """
     from datetime import datetime, timezone
-    from telegram_bot import send_text
 
     now = datetime.now(timezone.utc).strftime("%H:%M UTC — %d %b %Y")
     issues: list[str] = []
@@ -304,17 +303,11 @@ async def _hourly_system_check() -> None:
     except Exception as e:
         issues.append(f"Feature check error: {e} ❌")
 
-    # ── Silent when clean — only alert on issues ─────────────────────────────
+    # ── Log only — no Telegram ───────────────────────────────────────────────
     n_issue = len(issues)
-    print(f"[system_check] {len(ok)}/{len(ok)+n_issue} checks passed. Issues: {n_issue}")
-
-    if issues:
-        status_icon = "⚠️" if n_issue <= 2 else "🚨"
-        lines = [f"{status_icon} <b>SYSTEM ISSUE DETECTED</b> — {now}",
-                 f"━━━━━━━━━━━━━━━━━━━━"]
-        for iss in issues:
-            lines.append(f"  • {iss}")
-        await send_text("\n".join(lines))
+    print(f"[system_check] {len(ok)}/{len(ok)+n_issue} checks passed.")
+    for iss in issues:
+        print(f"[system_check] ISSUE: {iss}")
 
 
 def start_scheduler() -> AsyncIOScheduler:
