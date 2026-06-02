@@ -55,21 +55,8 @@ def _save_seen_headlines() -> None:
 
 
 async def _breaking_news_cycle() -> None:
-    """Runs every 2 minutes — fetches breaking news and fires Telegram instantly."""
-    global _fj_seen_headlines
-    try:
-        from news_fetcher import fetch_breaking_news
-        from telegram_bot import send_breaking_news
-        items = fetch_breaking_news()
-        if items:
-            updated = await send_breaking_news(items, _fj_seen_headlines)
-            # send_breaking_news returns the SAME object when nothing new was sent,
-            # and a NEW set when new headlines were added — use identity check.
-            if updated is not _fj_seen_headlines:
-                _fj_seen_headlines = updated
-                asyncio.create_task(asyncio.to_thread(_save_seen_headlines))
-    except Exception as e:
-        print(f"[scheduler] Breaking news cycle error: {e}")
+    """Runs every 2 minutes — fetches breaking news. Telegram sending paused."""
+    pass
 
 
 async def _news_signal_cycle() -> None:
