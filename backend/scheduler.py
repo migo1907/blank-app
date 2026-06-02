@@ -55,8 +55,16 @@ def _save_seen_headlines() -> None:
 
 
 async def _breaking_news_cycle() -> None:
-    """Runs every 2 minutes — fetches breaking news. Telegram sending paused."""
-    pass
+    """Runs every 2 minutes — keep-alive heartbeat to prevent Railway cold starts."""
+    import httpx, os
+    try:
+        base = os.environ.get("RAILWAY_PUBLIC_DOMAIN", "")
+        if base:
+            url = f"https://{base}/health"
+            async with httpx.AsyncClient(timeout=5) as client:
+                await client.get(url)
+    except Exception:
+        pass
 
 
 async def _news_signal_cycle() -> None:
