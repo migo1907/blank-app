@@ -33,7 +33,7 @@ async def lifespan(app: FastAPI):
     from db import recent_outcomes
     rf = get_rf()
     history = recent_outcomes(limit=500)
-    if len(history) >= 30:
+    if len(history) >= 15:
         rf.retrain(history)
         print(f"[startup] RF trained on {len(history)} trades.")
     else:
@@ -215,7 +215,7 @@ async def trade_outcome(payload: TradeOutcomePayload):
     # Opportunistic RF retrain (async, non-blocking)
     async def _retrain():
         history = recent_outcomes(limit=500)
-        if len(history) >= 30:
+        if len(history) >= 15:
             get_rf().retrain(history)
 
     asyncio.create_task(_retrain())
@@ -321,7 +321,7 @@ async def unified_webhook(payload: UnifiedPayload):
 
         async def _retrain():
             history = recent_outcomes(limit=500)
-            if len(history) >= 30:
+            if len(history) >= 15:
                 get_rf().retrain(history)
         asyncio.create_task(_retrain())
 

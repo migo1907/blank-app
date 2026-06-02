@@ -8,7 +8,7 @@ from __future__ import annotations
 import threading
 from typing import Optional
 
-MIN_TRADES = 30  # minimum history before RF will train
+MIN_TRADES = 15  # minimum history before RF will train
 
 # Lazy import so the module can be imported even without scikit-learn installed
 # (falls back to 0.5 probability gracefully)
