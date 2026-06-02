@@ -342,20 +342,21 @@ async def _hourly_system_check() -> None:
     except Exception as e:
         print(f"[system_check] Dedup auto-fix failed: {e}")
 
-    # ── Auto-heal: retrain RF if new trades available ─────────────────────────
+    # ── Auto-heal: retrain RF + GBM on every hourly cycle ────────────────────
     try:
-        from ml_ensemble import get_rf
+        from ml_ensemble import get_rf, get_gbm
         from db import recent_outcomes
-        rf = get_rf()
+        rf     = get_rf()
+        gbm    = get_gbm()
         trades = recent_outcomes(limit=500)
-        if len(trades) >= 15 and not rf.is_trained:
+        if len(trades) >= 15:
             rf.train(trades)
-            print(f"[system_check] Auto-fixed: RF retrained on {len(trades)} trades.")
-        elif len(trades) >= 15:
-            rf.train(trades)
-            print(f"[system_check] RF refreshed on {len(trades)} trades.")
+            gbm.train(trades)
+            print(f"[system_check] RF + GBM refreshed on {len(trades)} trades.")
+        else:
+            print(f"[system_check] Not enough trades ({len(trades)}) for ensemble retrain.")
     except Exception as e:
-        print(f"[system_check] RF retrain failed: {e}")
+        print(f"[system_check] Ensemble retrain failed: {e}")
 
 
 def start_scheduler() -> AsyncIOScheduler:

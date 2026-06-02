@@ -28,16 +28,18 @@ async def lifespan(app: FastAPI):
     from ml_model import get_model
     get_model()
 
-    print("[startup] Priming Random Forest ensemble…")
-    from ml_ensemble import get_rf
+    print("[startup] Priming RF + GBM ensembles…")
+    from ml_ensemble import get_rf, get_gbm
     from db import recent_outcomes
-    rf = get_rf()
+    rf  = get_rf()
+    gbm = get_gbm()
     history = recent_outcomes(limit=500)
     if len(history) >= 15:
         rf.retrain(history)
-        print(f"[startup] RF trained on {len(history)} trades.")
+        gbm.train(history)
+        print(f"[startup] RF + GBM trained on {len(history)} trades.")
     else:
-        print(f"[startup] RF not enough data ({len(history)} trades) — will train later.")
+        print(f"[startup] Not enough data ({len(history)} trades) — will train later.")
 
     print("[startup] Starting scheduler…")
     from scheduler import start_scheduler, _news_signal_cycle
@@ -217,6 +219,7 @@ async def trade_outcome(payload: TradeOutcomePayload):
         history = recent_outcomes(limit=500)
         if len(history) >= 15:
             get_rf().retrain(history)
+            get_gbm().train(history)
 
     asyncio.create_task(_retrain())
 
@@ -294,7 +297,7 @@ async def unified_webhook(payload: UnifiedPayload):
 
     if is_outcome:
         from ml_model import get_model, Features
-        from ml_ensemble import get_rf
+        from ml_ensemble import get_rf, get_gbm
         from db import insert_outcome, recent_outcomes
         model    = get_model()
         features = Features(
