@@ -123,7 +123,8 @@ def recent_outcomes(symbol: str = "XAUUSD", limit: int = 200) -> list[dict]:
     history, _ = _get_file("data/trade_history.json")
     if not history:
         return []
-    filtered = [t for t in history if t.get("symbol") == symbol]
+    # Include trades with matching symbol OR backtest trades (no symbol field)
+    filtered = [t for t in history if t.get("symbol", symbol) == symbol]
     return list(reversed(filtered))[:limit]
 
 
