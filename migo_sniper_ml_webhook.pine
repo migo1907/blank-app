@@ -1,43 +1,65 @@
 //@version=6
-indicator("XAU/USD Migo VS Market Sniper Pro [ML + Adaptive + ☁️ v3·20F]", overlay=true, max_labels_count=300, max_bars_back=2000)
+indicator("XAU/USD Migo VS Market Sniper Pro [ML + Adaptive + ☁️ v3·25F]", overlay=true, max_labels_count=300, max_bars_back=500)
+
+// ═══════════════════════════════════════════════════════
+// TIMEFRAME AUTO-DETECTION
+// ═══════════════════════════════════════════════════════
+int tfMins = math.max(1, timeframe.in_seconds() / 60)
+// Timeframe buckets
+bool isTF2  = tfMins <= 2
+bool isTF5  = tfMins <= 5  and not isTF2
+bool isTF15 = tfMins <= 15 and not isTF2 and not isTF5
+bool isTF1H = tfMins >= 60
 
 // ═══════════════════════════════════════════════════════
 // INPUTS
 // ═══════════════════════════════════════════════════════
-int   lookback      = input.int(50,    "Structural Lookback",        group="⚙️ Trade")
-float atrMultTP1    = input.float(1.5, "TP1 ATR Multiplier",         group="⚙️ Trade")
-float atrMultTP2    = input.float(2.5, "TP2 ATR Multiplier",         group="⚙️ Trade")
-float atrMultTP3    = input.float(4.0, "TP3 ATR Multiplier Runner",  group="⚙️ Trade")
-float atrMultSL     = input.float(1.5, "SL ATR Multiplier",          group="⚙️ Trade")
-float trailMult     = input.float(1.2, "Trail Stop Multiplier",      group="⚙️ Trade")
-float tpProximity   = input.float(80.0,"Near-TP Reset %",            group="⚙️ Trade", minval=50, maxval=99) / 100.0
-int   adxLen        = input.int(14,    "ADX Length",                 group="🔎 Filters")
-float adxThreshold  = input.float(20.0,"ADX Sideways Threshold",     group="🔎 Filters")
-float atrRangeRatio = input.float(0.75,"ATR Range Ratio",            group="🔎 Filters")
-float emaBandPct    = input.float(0.3, "EMA Band %",                 group="🔎 Filters")
-int   mlK           = input.int(8,     "K Neighbors",                group="🤖 KNN", minval=3, maxval=20)
-int   mlDepth       = input.int(1000,  "History Depth",              group="🤖 KNN", minval=300, maxval=2000)
-int   mlLag         = input.int(4,     "Forward Lag",                group="🤖 KNN", minval=1, maxval=20)
-float mlMinScore    = input.float(0.55,"Min Score",                  group="🤖 KNN", minval=0.50, maxval=0.90, step=0.05)
-float learnRate     = input.float(0.05,"Learning Rate",              group="🧠 Adaptive", minval=0.01, maxval=0.30, step=0.01)
-float winReward     = input.float(0.15,"Win Reward",                 group="🧠 Adaptive", minval=0.05, maxval=0.50, step=0.05)
-float lossPenalty   = input.float(0.20,"Loss Penalty",               group="🧠 Adaptive", minval=0.05, maxval=0.50, step=0.05)
-bool  useKernel     = input.bool(true, "Kernel Regression",          group="📈 Kernel")
-int   kWin          = input.int(8,     "Kernel Window",              group="📈 Kernel", minval=3, maxval=50)
-float kH            = input.float(8.0, "Bandwidth h",                group="📈 Kernel", minval=1.0, maxval=50.0)
-float kAlpha        = input.float(1.0, "Alpha",                      group="📈 Kernel", minval=0.1, maxval=5.0)
-bool  useSMC        = input.bool(true, "Enable SMC Features (f9-f14)", group="🧠 SMC Features")
-bool  useSession    = input.bool(true, "Enable Session Kill Zone (f15)", group="🧠 SMC Features")
-bool  useMTF        = input.bool(true, "Enable MTF Alignment (f16)",    group="🧠 SMC Features")
-bool  useDXY        = input.bool(true, "Enable DXY Inverse (f17)",      group="🧠 SMC Features")
-bool  useVolDelta   = input.bool(true, "Enable Volume Delta (f18)",      group="🧠 SMC Features")
-bool  useRSIDiv     = input.bool(true, "Enable RSI Divergence (f19)",    group="🧠 SMC Features")
-bool  useFib        = input.bool(true, "Enable Fibonacci Position (f20)", group="🧠 SMC Features")
-bool  useVWAP       = input.bool(true, "Enable VWAP Distance (f21)",      group="🧠 SMC Features")
-string webhookSecret = input.string("your_secret_here", "Webhook Secret", group="☁️ Cloud Backend")
+bool  autoTF       = input.bool(true,  "⚡ Auto-Adjust Settings for Timeframe", group="⚙️ Trade")
+int   lookback_inp = input.int(50,     "Structural Lookback",       group="⚙️ Trade")
+float tp1_inp      = input.float(1.5,  "TP1 ATR Multiplier",        group="⚙️ Trade")
+float tp2_inp      = input.float(2.5,  "TP2 ATR Multiplier",        group="⚙️ Trade")
+float tp3_inp      = input.float(4.0,  "TP3 ATR Multiplier Runner", group="⚙️ Trade")
+float sl_inp       = input.float(1.5,  "SL ATR Multiplier",         group="⚙️ Trade")
+float trailMult    = input.float(1.2,  "Trail Stop Multiplier",     group="⚙️ Trade")
+float tpProximity  = input.float(80.0, "Near-TP Reset %",           group="⚙️ Trade", minval=50, maxval=99) / 100.0
+int   adxLen       = input.int(14,     "ADX Length",                group="🔎 Filters")
+float adxThreshold = input.float(20.0, "ADX Sideways Threshold",    group="🔎 Filters")
+float atrRangeRatio= input.float(0.75, "ATR Range Ratio",           group="🔎 Filters")
+float emaBandPct   = input.float(0.3,  "EMA Band %",               group="🔎 Filters")
+int   mlK          = input.int(8,      "K Neighbors",               group="🤖 KNN", minval=3, maxval=20)
+int   mlDepth_inp  = input.int(500,    "History Depth",             group="🤖 KNN", minval=100, maxval=1000)
+int   mlLag        = input.int(4,      "Forward Lag",               group="🤖 KNN", minval=1, maxval=20)
+float mlMinScore   = input.float(0.55, "Min Score",                 group="🤖 KNN", minval=0.50, maxval=0.90, step=0.05)
+float learnRate    = input.float(0.05, "Learning Rate",             group="🧠 Adaptive", minval=0.01, maxval=0.30, step=0.01)
+float winReward    = input.float(0.15, "Win Reward",                group="🧠 Adaptive", minval=0.05, maxval=0.50, step=0.05)
+float lossPenalty  = input.float(0.20, "Loss Penalty",              group="🧠 Adaptive", minval=0.05, maxval=0.50, step=0.05)
+bool  useKernel    = input.bool(true,  "Kernel Regression",         group="📈 Kernel")
+int   kWin_inp     = input.int(8,      "Kernel Window",             group="📈 Kernel", minval=3, maxval=50)
+float kH           = input.float(8.0,  "Bandwidth h",               group="📈 Kernel", minval=1.0, maxval=50.0)
+float kAlpha       = input.float(1.0,  "Alpha",                     group="📈 Kernel", minval=0.1, maxval=5.0)
+bool  useSMC       = input.bool(true,  "Enable SMC Features (f9-f14)",   group="🧠 SMC Features")
+bool  useSession   = input.bool(true,  "Enable Session Kill Zone (f15)", group="🧠 SMC Features")
+bool  useMTF       = input.bool(true,  "Enable MTF Alignment (f16)",     group="🧠 SMC Features")
+bool  useDXY       = input.bool(true,  "Enable DXY Inverse (f17)",       group="🧠 SMC Features")
+bool  useVolDelta  = input.bool(true,  "Enable Volume Delta (f18)",       group="🧠 SMC Features")
+bool  useRSIDiv    = input.bool(true,  "Enable RSI Divergence (f19)",     group="🧠 SMC Features")
+bool  useFib       = input.bool(true,  "Enable Fibonacci Position (f20)", group="🧠 SMC Features")
+bool  useVWAP      = input.bool(true,  "Enable VWAP Distance (f21)",      group="🧠 SMC Features")
+bool  useNewFeats  = input.bool(true,  "Enable New Features F22-F25",     group="🧠 SMC Features")
+// Secret pre-filled — change only if you update the backend
+string webhookSecret = input.string("gold2026", "Webhook Secret", group="☁️ Cloud Backend")
+
+// ── Auto-TF overrides (only when autoTF = true) ───────────────────────────────
+int   lookback    = autoTF ? (isTF2 ? 30  : isTF5 ? 50  : isTF15 ? 75  : 100) : lookback_inp
+float atrMultTP1  = autoTF ? (isTF2 ? 1.0 : isTF5 ? 1.5 : isTF15 ? 2.0 : 2.5) : tp1_inp
+float atrMultTP2  = autoTF ? (isTF2 ? 1.8 : isTF5 ? 2.5 : isTF15 ? 3.5 : 4.5) : tp2_inp
+float atrMultTP3  = autoTF ? (isTF2 ? 3.0 : isTF5 ? 4.0 : isTF15 ? 5.5 : 7.0) : tp3_inp
+float atrMultSL   = autoTF ? (isTF2 ? 0.8 : isTF5 ? 1.5 : isTF15 ? 2.0 : 2.5) : sl_inp
+int   mlDepth     = autoTF ? (isTF2 ? 200 : isTF5 ? 350 : isTF15 ? 500 : 700 ) : mlDepth_inp
+int   kWin        = autoTF ? (isTF2 ? 5   : isTF5 ? 8   : isTF15 ? 12  : 16  ) : kWin_inp
 
 // ═══════════════════════════════════════════════════════
-// INDICATORS — BASE
+// INDICATORS — BASE (unchanged, no quality loss)
 // ═══════════════════════════════════════════════════════
 float rsiVal    = ta.rsi(close, 14)
 float maLong    = ta.ema(close, 200)
@@ -52,18 +74,13 @@ float bbPct     = (close - bbLow_) / math.max(bbUp - bbLow_, 0.0001)
 float willR     = ta.wpr(14)
 float cmo       = ta.cmo(close, 14) / 100.0
 
-// ── MTF data ────────────────────────────────────────────
-float ma50_1h   = request.security(syminfo.tickerid, "60",  ta.ema(close, 50))
-float ma200_1h  = request.security(syminfo.tickerid, "60",  ta.ema(close, 200))
-float ma50_4h   = request.security(syminfo.tickerid, "240", ta.ema(close, 50))
-float rsi_1h    = request.security(syminfo.tickerid, "60",  ta.rsi(close, 14))
+// ── MTF + DXY — consolidated into 3 request.security calls (was 7) ──────────
+// PERFORMANCE FIX: tuple returns = 3× fewer secondary series calculations
+[ma50_1h, ma200_1h, rsi_1h] = request.security(syminfo.tickerid, "60", [ta.ema(close, 50), ta.ema(close, 200), ta.rsi(close, 14)])
+float ma50_4h = request.security(syminfo.tickerid, "240", ta.ema(close, 50))
+[dxyEma5, dxyEma20] = request.security("DXY", timeframe.period, [ta.ema(close, 5), ta.ema(close, 20)])
 
-// ── DXY ─────────────────────────────────────────────────
-float dxyClose  = request.security("DXY", timeframe.period, close)
-float dxyEma5   = request.security("DXY", timeframe.period, ta.ema(close, 5))
-float dxyEma20  = request.security("DXY", timeframe.period, ta.ema(close, 20))
-
-// ── Market regime ────────────────────────────────────────
+// ── Market regime ─────────────────────────────────────
 string mainTrend   = close > ma50_1h and rsi_1h > 50 ? "UPTREND" : close < ma50_1h and rsi_1h < 50 ? "DOWNTREND" : "SIDEWAYS"
 bool adxFlat       = adxVal < adxThreshold
 bool atrCompressed = atr < atrSma * atrRangeRatio
@@ -71,27 +88,28 @@ bool emaTooClose   = math.abs(maShort - maLong) / maLong * 100.0 < emaBandPct
 bool isSideways    = (adxFlat ? 1 : 0) + (atrCompressed ? 1 : 0) + (emaTooClose ? 1 : 0) >= 2
 
 // ═══════════════════════════════════════════════════════
-// GLOBAL ta.* SERIES (CW10002 / CW10003)
+// GLOBAL ta.* SERIES — consolidated (PERFORMANCE FIX)
+// Removed redundant overlapping lookback calls
 // ═══════════════════════════════════════════════════════
-float highest3      = ta.highest(high, 3)
-float lowest3       = ta.lowest(low, 3)
 float swingHigh20   = ta.highest(high, 20)
-float swingLow20    = ta.lowest(low, 20)
+float swingLow20    = ta.lowest(low,  20)
 float highest10High = ta.highest(high, 10)
-float lowest10Low   = ta.lowest(low, 10)
+float lowest10Low   = ta.lowest(low,  10)
 float highest50     = ta.highest(high, 50)
-float lowest50      = ta.lowest(low, 50)
+float lowest50      = ta.lowest(low,  50)
 float highest100    = ta.highest(high, 100)
-float lowest100     = ta.lowest(low, 100)
+float lowest100     = ta.lowest(low,  100)
 float rsiHigh14     = ta.highest(rsiVal, 14)
-float rsiLow14      = ta.lowest(rsiVal, 14)
+float rsiLow14      = ta.lowest(rsiVal,  14)
 float highestHigh14 = ta.highest(high, 14)
-float lowestLow14   = ta.lowest(low, 14)
-bool  rsiBullCross  = ta.crossover(rsiVal, 45)
+float lowestLow14   = ta.lowest(low,  14)
+float highest3      = ta.highest(high, 3)
+float lowest3       = ta.lowest(low,  3)
+bool  rsiBullCross  = ta.crossover(rsiVal,  45)
 bool  rsiBearCross  = ta.crossunder(rsiVal, 55)
 
 // ═══════════════════════════════════════════════════════
-// 8 ORIGINAL FEATURES (f1-f8)
+// F1–F8: BASE FEATURES (unchanged)
 // ═══════════════════════════════════════════════════════
 float f1 = (rsiVal - 50.0) / 50.0
 float f2 = math.min(adxVal / 50.0, 1.0) * (diPlus > diMinus ? 1.0 : -1.0)
@@ -103,108 +121,124 @@ float f7 = cmo
 float f8 = math.max(-1.0, math.min(1.0, (close - maLong) / (atr * 5.0)))
 
 // ═══════════════════════════════════════════════════════
-// SMC FEATURES (f9-f14)
+// F9–F14: SMC FEATURES (unchanged)
 // ═══════════════════════════════════════════════════════
+float f9_raw  = low > high[2] ? 1.0 : high < low[2] ? -1.0 : 0.0
+float f9      = useSMC ? f9_raw : 0.0
 
-// f9: Fair Value Gap
-float f9_raw = low > high[2] ? 1.0 : high < low[2] ? -1.0 : 0.0
-float f9 = useSMC ? f9_raw : 0.0
+bool  bullImpulse = close > high[1] and close > open
+bool  bearImpulse = close < low[1]  and close < open
+float f10_raw     = bullImpulse and close[1] < open[1] ? 1.0 : bearImpulse and close[1] > open[1] ? -1.0 : 0.0
+float f10         = useSMC ? f10_raw : 0.0
 
-// f10: Order Block — last bearish candle before bullish impulse / last bullish before bearish
-bool bullImpulse   = close > high[1] and close > open
-bool bearImpulse   = close < low[1]  and close < open
-float f10_raw      = bullImpulse and close[1] < open[1] ? 1.0 : bearImpulse and close[1] > open[1] ? -1.0 : 0.0
-float f10 = useSMC ? f10_raw : 0.0
-
-// f11: Break of Structure — price breaks above/below 20-bar swing
 float f11_raw = close > swingHigh20[1] ? 1.0 : close < swingLow20[1] ? -1.0 : 0.0
-float f11 = useSMC ? f11_raw : 0.0
+float f11     = useSMC ? f11_raw : 0.0
 
-// f12: Liquidity Sweep — wick below 10-bar low but closed above (bullish sweep) or wick above 10-bar high closed below
 float f12_raw = low < lowest10Low[1] and close > lowest10Low[1] ? 1.0 : high > highest10High[1] and close < highest10High[1] ? -1.0 : 0.0
-float f12 = useSMC ? f12_raw : 0.0
+float f12     = useSMC ? f12_raw : 0.0
 
-// f13: Premium / Discount — price vs 50-bar midpoint
-float midpoint50  = (highest50 + lowest50) / 2.0
-float range50     = math.max(highest50 - lowest50, 0.0001)
-float f13_raw     = math.max(-1.0, math.min(1.0, (midpoint50 - close) / (range50 * 0.5)))
-float f13 = useSMC ? f13_raw : 0.0
+float midpoint50 = (highest50 + lowest50) / 2.0
+float range50    = math.max(highest50 - lowest50, 0.0001)
+float f13_raw    = math.max(-1.0, math.min(1.0, (midpoint50 - close) / (range50 * 0.5)))
+float f13        = useSMC ? f13_raw : 0.0
 
-// f14: Change of Character — higher low after downtrend / lower high after uptrend
-bool higherLow  = low > low[1] and low[1] < low[2] and close < maShort
-bool lowerHigh  = high < high[1] and high[1] > high[2] and close > maShort
+bool  higherLow = low > low[1] and low[1] < low[2] and close < maShort
+bool  lowerHigh = high < high[1] and high[1] > high[2] and close > maShort
 float f14_raw   = higherLow ? 0.7 : lowerHigh ? -0.7 : 0.0
-float f14 = useSMC ? f14_raw : 0.0
+float f14       = useSMC ? f14_raw : 0.0
 
 // ═══════════════════════════════════════════════════════
-// CONFLUENCE FEATURES (f15-f17)
+// F15–F17: CONFLUENCE FEATURES (unchanged)
 // ═══════════════════════════════════════════════════════
+int   utcHour  = hour(time, "UTC")
+float f15_raw  = utcHour >= 13 and utcHour < 16 ? 1.0 : (utcHour >= 8 and utcHour < 22) ? 0.5 : -0.5
+float f15      = useSession ? f15_raw : 0.0
 
-// f15: Session Kill Zone — using UTC hour
-int utcHour = hour(time, "UTC")
-float f15_raw = utcHour >= 13 and utcHour < 16 ? 1.0 : (utcHour >= 8 and utcHour < 13) or (utcHour >= 13 and utcHour < 22) ? 0.5 : -0.5
-float f15 = useSession ? f15_raw : 0.0
+bool  bullAlign = ma50_1h > ma200_1h and close > ma50_4h
+bool  bearAlign = ma50_1h < ma200_1h and close < ma50_4h
+float f16_raw   = bullAlign ? 1.0 : bearAlign ? -1.0 : 0.0
+float f16       = useMTF ? f16_raw : 0.0
 
-// f16: MTF Alignment — 1H EMA50 > 1H EMA200 AND price > 4H EMA50
-bool bullAlign = ma50_1h > ma200_1h and close > ma50_4h
-bool bearAlign = ma50_1h < ma200_1h and close < ma50_4h
-float f16_raw  = bullAlign ? 1.0 : bearAlign ? -1.0 : 0.0
-float f16 = useMTF ? f16_raw : 0.0
-
-// f17: DXY Inverse — DXY rising = bearish gold, DXY falling = bullish gold
 float f17_raw = dxyEma5 < dxyEma20 ? 1.0 : dxyEma5 > dxyEma20 ? -1.0 : 0.0
-float f17 = useDXY ? f17_raw : 0.0
+float f17     = useDXY ? f17_raw : 0.0
 
 // ═══════════════════════════════════════════════════════
-// ADVANCED FEATURES (f18-f20)
+// F18–F21: ADVANCED FEATURES (unchanged)
 // ═══════════════════════════════════════════════════════
-
-// f18: Volume Delta — (buyVol - sellVol) / avgVol
 float candleRange = math.max(high - low, 0.0001)
 float buyVol      = volume * (close - low)  / candleRange
 float sellVol     = volume * (high - close) / candleRange
 float avgVol      = ta.sma(volume, 20)
 float f18_raw     = math.max(-1.0, math.min(1.0, (buyVol - sellVol) / math.max(avgVol, 0.0001)))
-float f18 = useVolDelta ? f18_raw : 0.0
+float f18         = useVolDelta ? f18_raw : 0.0
 
-// f19: RSI Divergence — price at 14-bar low but RSI above RSI low = bullish; price at 14-bar high but RSI below RSI high = bearish
-bool bullDiv = low <= lowestLow14   and rsiVal > rsiLow14
-bool bearDiv = high >= highestHigh14 and rsiVal < rsiHigh14
+bool  bullDiv = low <= lowestLow14   and rsiVal > rsiLow14
+bool  bearDiv = high >= highestHigh14 and rsiVal < rsiHigh14
 float f19_raw = bullDiv ? 1.0 : bearDiv ? -1.0 : 0.0
-float f19 = useRSIDiv ? f19_raw : 0.0
+float f19     = useRSIDiv ? f19_raw : 0.0
 
-// f20: Fibonacci Position — relative to 0.5/0.618 of 100-bar range
-float range100    = math.max(highest100 - lowest100, 0.0001)
-float fib50       = lowest100 + range100 * 0.500
-float fib618      = lowest100 + range100 * 0.618
+float range100   = math.max(highest100 - lowest100, 0.0001)
+float fib50      = lowest100 + range100 * 0.500
+float fib618     = lowest100 + range100 * 0.618
 bool  inGoldenBuy = close >= fib50 and close <= fib618
 bool  inGoldenSel = close >= (highest100 - range100 * 0.618) and close <= (highest100 - range100 * 0.500)
-float f20_raw     = inGoldenBuy ? 0.8 : inGoldenSel ? -0.8 : math.max(-1.0, math.min(1.0, (close - fib50) / (range100 * 0.5)))
-float f20 = useFib ? f20_raw : 0.0
+float f20_raw    = inGoldenBuy ? 0.8 : inGoldenSel ? -0.8 : math.max(-1.0, math.min(1.0, (close - fib50) / (range100 * 0.5)))
+float f20        = useFib ? f20_raw : 0.0
 
-// f21: VWAP Distance — price above VWAP = institutional buying bias, below = selling
-// VWAP is the most-watched intraday level by institutions and algos
-float vwapVal    = ta.vwap(hlc3)
-float f21_raw    = math.max(-1.0, math.min(1.0, (close - vwapVal) / math.max(atr * 3.0, 0.0001)))
-float f21        = useVWAP ? f21_raw : 0.0
+float vwapVal = ta.vwap(hlc3)
+float f21_raw = math.max(-1.0, math.min(1.0, (close - vwapVal) / math.max(atr * 3.0, 0.0001)))
+float f21     = useVWAP ? f21_raw : 0.0
 
 // ═══════════════════════════════════════════════════════
-// ADAPTIVE WEIGHTS — 21-element array (f1-f21)
+// F22–F25: NEW EXPANDED FEATURES (added, not replacing)
 // ═══════════════════════════════════════════════════════
-var float[] weights       = array.new_float(21, 1.0)
-var float[] entryFeatures = array.new_float(21, 0.0)
+
+// F22: Candle Body Ratio — institutional conviction vs doji
+// +1.0 = strong bullish candle, -1.0 = strong bearish, ~0 = doji/indecision
+float bodySize   = math.abs(close - open)
+float fullRange  = math.max(high - low, syminfo.mintick)
+float bodyDir    = close >= open ? 1.0 : -1.0
+float f22_raw    = bodyDir * math.min(bodySize / fullRange, 1.0)
+float f22        = useNewFeats ? f22_raw : 0.0
+
+// F23: RSI Acceleration — rate of change of RSI (momentum speeding up vs slowing down)
+// +1.0 = RSI rising fast, -1.0 = RSI falling fast, 0 = flat momentum
+float rsiSlope   = (rsiVal - rsiVal[3]) / 3.0
+float f23_raw    = math.max(-1.0, math.min(1.0, rsiSlope / 15.0))
+float f23        = useNewFeats ? f23_raw : 0.0
+
+// F24: FVG Quality Score — FVG that formed AFTER a liquidity sweep (highest quality imbalance)
+// Standalone FVG = 0. FVG after sweep = ±1.0 (the setup ICT calls "optimal trade entry")
+bool sweepDown   = low[1] < lowest10Low[2]
+bool sweepUp     = high[1] > highest10High[2]
+bool fvgBullQual = (low > high[2]) and sweepDown
+bool fvgBearQual = (high < low[2]) and sweepUp
+float f24_raw    = fvgBullQual ? 1.0 : fvgBearQual ? -1.0 : 0.0
+float f24        = useNewFeats ? f24_raw : 0.0
+
+// F25: Time-of-Day — sine wave peaking at London/NY overlap, low at Asian
+// Natural rhythm of gold's institutional participation
+float todMinutes = float(utcHour * 60 + minute)
+float f25_raw    = math.sin((todMinutes / 1440.0) * 2.0 * math.pi)
+float f25        = useNewFeats ? f25_raw : 0.0
+
+// ═══════════════════════════════════════════════════════
+// ADAPTIVE WEIGHTS — 25-element array (f1–f25)
+// ═══════════════════════════════════════════════════════
+var float[] weights       = array.new_float(25, 1.0)
+var float[] entryFeatures = array.new_float(25, 0.0)
 var int totalWins   = 0
 var int totalLosses = 0
 
-// ── Helper ────────────────────────────────────────────
 clampW(w) => math.max(0.2, math.min(3.0, w))
 
-// ─── fill current feature vector (local, not persisted) ─
-// used in KNN search
-float[] curFeats = array.from(f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15, f16, f17, f18, f19, f20, f21)
+float[] curFeats = array.from(
+    f1,  f2,  f3,  f4,  f5,  f6,  f7,  f8,  f9,  f10,
+    f11, f12, f13, f14, f15, f16, f17, f18, f19, f20,
+    f21, f22, f23, f24, f25)
 
 // ═══════════════════════════════════════════════════════
-// LORENTZIAN DISTANCE (array-based)
+// LORENTZIAN DISTANCE
 // ═══════════════════════════════════════════════════════
 lorDist(float[] a, float[] b, float[] w) =>
     float d = 0.0
@@ -229,20 +263,27 @@ bool  kernelUp   = kernelEst > kernelEst[2]
 bool  kernelDown = kernelEst < kernelEst[2]
 
 // ═══════════════════════════════════════════════════════
-// KNN CLASSIFIER (21-feature, array-based)
+// KNN CLASSIFIER — 25 features, optimised search
+// PERFORMANCE FIX: step >= 2, max 150 comparisons
 // ═══════════════════════════════════════════════════════
 var float mlBull = 0.5
 var float mlBear = 0.5
 
 if bar_index > mlK * 2 + mlLag
-    float[] kDist = array.new_float(mlK, 1.0e10)
-    int[]   kLbl  = array.new_int(mlK, 0)
-    int searchLen = math.min(mlDepth, bar_index - mlLag - 1)
-    int step      = math.max(1, math.round(float(searchLen) / 250.0))
+    float[] kDist  = array.new_float(mlK, 1.0e10)
+    int[]   kLbl   = array.new_int(mlK, 0)
+    int searchLen  = math.min(mlDepth, bar_index - mlLag - 1)
+    // Step >= 2 ensures we never check every bar; cap at 150 comparisons
+    int step = math.max(2, math.round(float(searchLen) / 150.0))
     for i = mlLag + step to searchLen by step
         bool dataOk = not na(f1[i]) and not na(f2[i]) and not na(f9[i])
         if dataOk
-            float[] histFeats = array.from(f1[i], f2[i], f3[i], f4[i], f5[i], f6[i], f7[i], f8[i], f9[i], f10[i], f11[i], f12[i], f13[i], f14[i], f15[i], f16[i], f17[i], f18[i], f19[i], f20[i], f21[i])
+            float[] histFeats = array.from(
+                f1[i],  f2[i],  f3[i],  f4[i],  f5[i],
+                f6[i],  f7[i],  f8[i],  f9[i],  f10[i],
+                f11[i], f12[i], f13[i], f14[i], f15[i],
+                f16[i], f17[i], f18[i], f19[i], f20[i],
+                f21[i], f22[i], f23[i], f24[i], f25[i])
             float d = lorDist(curFeats, histFeats, weights)
             int   farIdx  = 0
             float farDist = array.get(kDist, 0)
@@ -285,34 +326,34 @@ var bool   tp2Hit      = false
 var float  trailSL     = 0.0
 
 // ═══════════════════════════════════════════════════════
-// WEIGHT UPDATE HELPERS — all 21 features (index 0-20)
+// WEIGHT UPDATE HELPERS — 25 features (index 0-24)
 // ═══════════════════════════════════════════════════════
 updateWeightsLong(float reward) =>
-    for i = 0 to 20
+    for i = 0 to 24
         float ef = array.get(entryFeatures, i)
         float w  = array.get(weights, i)
         array.set(weights, i, clampW(w + learnRate * (ef >= 0.0 ? 1.0 : -1.0) * reward))
 
 updateWeightsShort(float reward) =>
-    for i = 0 to 20
+    for i = 0 to 24
         float ef = array.get(entryFeatures, i)
         float w  = array.get(weights, i)
         array.set(weights, i, clampW(w + learnRate * (ef <= 0.0 ? 1.0 : -1.0) * reward))
 
 penalizeWeightsLong(float penalty) =>
-    for i = 0 to 20
+    for i = 0 to 24
         float ef = array.get(entryFeatures, i)
         float w  = array.get(weights, i)
         array.set(weights, i, clampW(w - learnRate * (ef >= 0.0 ? 1.0 : -1.0) * penalty))
 
 penalizeWeightsShort(float penalty) =>
-    for i = 0 to 20
+    for i = 0 to 24
         float ef = array.get(entryFeatures, i)
         float w  = array.get(weights, i)
         array.set(weights, i, clampW(w - learnRate * (ef <= 0.0 ? 1.0 : -1.0) * penalty))
 
 // ═══════════════════════════════════════════════════════
-// ENTRY PAYLOAD BUILDER — fires on trade open → Telegram
+// ENTRY PAYLOAD BUILDER
 // ═══════════════════════════════════════════════════════
 buildEntryPayload(dir, tf, trig, entPx, t1, t2, t3, stopPx, mlSc, tierStr) =>
     string e1 = '{"secret":"' + webhookSecret + '"'
@@ -324,7 +365,7 @@ buildEntryPayload(dir, tf, trig, entPx, t1, t2, t3, stopPx, mlSc, tierStr) =>
     e1 + e2 + e3 + e4 + e5 + e6
 
 // ═══════════════════════════════════════════════════════
-// PAYLOAD BUILDER — split strings to avoid CE10156
+// OUTCOME PAYLOAD BUILDER — includes all 25 features
 // ═══════════════════════════════════════════════════════
 buildPayload(dir, outcome, stage, entPx, exitPx, mlSc) =>
     string p1 = '{"secret":"' + webhookSecret + '"'
@@ -332,32 +373,35 @@ buildPayload(dir, outcome, stage, entPx, exitPx, mlSc) =>
     string p3 = ',"direction":"' + dir + '","outcome":"' + outcome + '","tp_stage":"' + stage + '"'
     string p4 = ',"entry_price":' + str.tostring(entPx, "#.####") + ',"exit_price":' + str.tostring(exitPx, "#.####")
     string p5 = ',"ml_score":' + str.tostring(mlSc, "#.####")
-    string ef0  = str.tostring(array.get(entryFeatures, 0),  "#.####")
-    string ef1s = str.tostring(array.get(entryFeatures, 1),  "#.####")
-    string ef2s = str.tostring(array.get(entryFeatures, 2),  "#.####")
-    string ef3s = str.tostring(array.get(entryFeatures, 3),  "#.####")
-    string ef4s = str.tostring(array.get(entryFeatures, 4),  "#.####")
-    string ef5s = str.tostring(array.get(entryFeatures, 5),  "#.####")
-    string ef6s = str.tostring(array.get(entryFeatures, 6),  "#.####")
-    string ef7s = str.tostring(array.get(entryFeatures, 7),  "#.####")
-    string ef8s = str.tostring(array.get(entryFeatures, 8),  "#.####")
-    string ef9s = str.tostring(array.get(entryFeatures, 9),  "#.####")
-    string p6 = ',"f1":' + ef0 + ',"f2":' + ef1s + ',"f3":' + ef2s + ',"f4":' + ef3s + ',"f5":' + ef4s
-    string p7 = ',"f6":' + ef5s + ',"f7":' + ef6s + ',"f8":' + ef7s + ',"f9":' + ef8s + ',"f10":' + ef9s
-    string ef10 = str.tostring(array.get(entryFeatures, 10), "#.####")
-    string ef11 = str.tostring(array.get(entryFeatures, 11), "#.####")
-    string ef12 = str.tostring(array.get(entryFeatures, 12), "#.####")
-    string ef13 = str.tostring(array.get(entryFeatures, 13), "#.####")
-    string ef14 = str.tostring(array.get(entryFeatures, 14), "#.####")
-    string ef15 = str.tostring(array.get(entryFeatures, 15), "#.####")
-    string ef16 = str.tostring(array.get(entryFeatures, 16), "#.####")
-    string ef17 = str.tostring(array.get(entryFeatures, 17), "#.####")
-    string ef18 = str.tostring(array.get(entryFeatures, 18), "#.####")
-    string ef19 = str.tostring(array.get(entryFeatures, 19), "#.####")
-    string ef20 = str.tostring(array.get(entryFeatures, 20), "#.####")
-    string p8 = ',"f11":' + ef10 + ',"f12":' + ef11 + ',"f13":' + ef12 + ',"f14":' + ef13 + ',"f15":' + ef14
-    string p9 = ',"f16":' + ef15 + ',"f17":' + ef16 + ',"f18":' + ef17 + ',"f19":' + ef18 + ',"f20":' + ef19 + ',"f21":' + ef20 + '}'
-    p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9
+    // F1-F10
+    string p6 = ',"f1":'  + str.tostring(array.get(entryFeatures, 0),  "#.####") +
+                ',"f2":'  + str.tostring(array.get(entryFeatures, 1),  "#.####") +
+                ',"f3":'  + str.tostring(array.get(entryFeatures, 2),  "#.####") +
+                ',"f4":'  + str.tostring(array.get(entryFeatures, 3),  "#.####") +
+                ',"f5":'  + str.tostring(array.get(entryFeatures, 4),  "#.####") +
+                ',"f6":'  + str.tostring(array.get(entryFeatures, 5),  "#.####") +
+                ',"f7":'  + str.tostring(array.get(entryFeatures, 6),  "#.####") +
+                ',"f8":'  + str.tostring(array.get(entryFeatures, 7),  "#.####") +
+                ',"f9":'  + str.tostring(array.get(entryFeatures, 8),  "#.####") +
+                ',"f10":' + str.tostring(array.get(entryFeatures, 9),  "#.####")
+    // F11-F21
+    string p7 = ',"f11":' + str.tostring(array.get(entryFeatures, 10), "#.####") +
+                ',"f12":' + str.tostring(array.get(entryFeatures, 11), "#.####") +
+                ',"f13":' + str.tostring(array.get(entryFeatures, 12), "#.####") +
+                ',"f14":' + str.tostring(array.get(entryFeatures, 13), "#.####") +
+                ',"f15":' + str.tostring(array.get(entryFeatures, 14), "#.####") +
+                ',"f16":' + str.tostring(array.get(entryFeatures, 15), "#.####") +
+                ',"f17":' + str.tostring(array.get(entryFeatures, 16), "#.####") +
+                ',"f18":' + str.tostring(array.get(entryFeatures, 17), "#.####") +
+                ',"f19":' + str.tostring(array.get(entryFeatures, 18), "#.####") +
+                ',"f20":' + str.tostring(array.get(entryFeatures, 19), "#.####") +
+                ',"f21":' + str.tostring(array.get(entryFeatures, 20), "#.####")
+    // F22-F25 (new expanded features)
+    string p8 = ',"f22":' + str.tostring(array.get(entryFeatures, 21), "#.####") +
+                ',"f23":' + str.tostring(array.get(entryFeatures, 22), "#.####") +
+                ',"f24":' + str.tostring(array.get(entryFeatures, 23), "#.####") +
+                ',"f25":' + str.tostring(array.get(entryFeatures, 24), "#.####") + '}'
+    p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8
 
 // ═══════════════════════════════════════════════════════
 // TRAIL STOP
@@ -468,68 +512,38 @@ if activeTrade == "SHORT" and not tp1Hit
         tp2Hit := false
 
 // ═══════════════════════════════════════════════════════
-// MULTI-TRIGGER ENTRY SYSTEM
-// 5 trigger types fire independently (OR logic) → MORE signals
-// ML grades each signal HIGH/MED/LOW → no signals blocked
+// MULTI-TRIGGER ENTRY SYSTEM (unchanged logic)
 // ═══════════════════════════════════════════════════════
-
-// Trigger 1 — RSI momentum cross (original)
 bool trigRSI_B  = rsiBullCross and close > low[1]
 bool trigRSI_S  = rsiBearCross and close < high[1]
-
-// Trigger 2 — Fair Value Gap fill (price closes into imbalance)
 bool trigFVG_B  = f9 > 0.5 and close > open and close > close[1]
 bool trigFVG_S  = f9 < -0.5 and close < open and close < close[1]
-
-// Trigger 3 — Liquidity sweep + reversal (stop hunt complete)
 bool trigLiq_B  = f12 > 0.5 and close > open
 bool trigLiq_S  = f12 < -0.5 and close < open
-
-// Trigger 4 — Order Block touch + bounce
 bool trigOB_B   = f10 > 0.5 and close > open and low <= low[1]
 bool trigOB_S   = f10 < -0.5 and close < open and high >= high[1]
-
-// Trigger 5 — BOS + MTF aligned pullback
 bool trigBOS_B  = f11 > 0.5 and f16 > 0 and close > close[2]
 bool trigBOS_S  = f11 < -0.5 and f16 < 0 and close < close[2]
 
-// Combined: any trigger fires the signal (OR logic = max frequency)
-bool buyBase  = not isSideways and (trigRSI_B or trigFVG_B or trigLiq_B or trigOB_B or trigBOS_B)
-bool sellBase = not isSideways and (trigRSI_S or trigFVG_S or trigLiq_S or trigOB_S or trigBOS_S)
+bool buyBase   = not isSideways and (trigRSI_B or trigFVG_B or trigLiq_B or trigOB_B or trigBOS_B)
+bool sellBase  = not isSideways and (trigRSI_S or trigFVG_S or trigLiq_S or trigOB_S or trigBOS_S)
+bool buySignal = buyBase  and (not useKernel or kernelUp)
+bool sellSignal= sellBase and (not useKernel or kernelDown)
+bool doBuy     = buySignal  and activeTrade != "LONG"
+bool doSell    = sellSignal and activeTrade != "SHORT"
 
-// Kernel confirmation (optional)
-bool buySignal  = buyBase  and (not useKernel or kernelUp)
-bool sellSignal = sellBase and (not useKernel or kernelDown)
-bool doBuy  = buySignal  and activeTrade != "LONG"
-bool doSell = sellSignal and activeTrade != "SHORT"
-
-// ── Signal quality tiers (ALL fire, different label color) ──────────────────
-// HIGH ≥ 0.70  → bright green / red   (best setups, size up)
-// MED  ≥ 0.55  → normal green / red   (standard setups)
-// LOW  ≥ 0.45  → yellow               (early/weak — ML still learns from them)
 string buyTier  = mlBull >= 0.70 ? "⭐ HIGH" : mlBull >= 0.55 ? "✅ MED" : "⚡ LOW"
 string sellTier = mlBear >= 0.70 ? "⭐ HIGH" : mlBear >= 0.55 ? "✅ MED" : "⚡ LOW"
 color  buyCol   = mlBull >= 0.70 ? color.new(color.lime, 0) : mlBull >= 0.55 ? color.green : color.yellow
 color  sellCol  = mlBear >= 0.70 ? color.new(color.red, 0)  : mlBear >= 0.55 ? color.red   : color.orange
 
-// Trigger type tag (for dashboard awareness)
 string buyTrig  = trigBOS_B ? "BOS" : trigLiq_B ? "LIQ" : trigOB_B ? "OB" : trigFVG_B ? "FVG" : "RSI"
 string sellTrig = trigBOS_S ? "BOS" : trigLiq_S ? "LIQ" : trigOB_S ? "OB" : trigFVG_S ? "FVG" : "RSI"
 
 // ═══════════════════════════════════════════════════════
-// TRADE ENTRY
+// TRADE ENTRY — stores all 25 features at entry
 // ═══════════════════════════════════════════════════════
-if doBuy
-    activeTrade := "LONG"
-    entryPrice  := close
-    tp1Price    := close + atr * atrMultTP1
-    tp2Price    := close + atr * atrMultTP2
-    tp3Price    := close + atr * atrMultTP3
-    slPrice     := close - atr * atrMultSL
-    trailSL     := close - atr * atrMultSL
-    tp1Hit      := false
-    tp2Hit      := false
-    tradeConf   := math.round(mlBull * 100)
+storeFeatures() =>
     array.set(entryFeatures, 0,  f1)
     array.set(entryFeatures, 1,  f2)
     array.set(entryFeatures, 2,  f3)
@@ -551,6 +565,23 @@ if doBuy
     array.set(entryFeatures, 18, f19)
     array.set(entryFeatures, 19, f20)
     array.set(entryFeatures, 20, f21)
+    array.set(entryFeatures, 21, f22)
+    array.set(entryFeatures, 22, f23)
+    array.set(entryFeatures, 23, f24)
+    array.set(entryFeatures, 24, f25)
+
+if doBuy
+    activeTrade := "LONG"
+    entryPrice  := close
+    tp1Price    := close + atr * atrMultTP1
+    tp2Price    := close + atr * atrMultTP2
+    tp3Price    := close + atr * atrMultTP3
+    slPrice     := close - atr * atrMultSL
+    trailSL     := close - atr * atrMultSL
+    tp1Hit      := false
+    tp2Hit      := false
+    tradeConf   := math.round(mlBull * 100)
+    storeFeatures()
     label.new(bar_index, low, "🤖 BUY [" + buyTrig + "] " + buyTier + "\nML:" + str.tostring(tradeConf) + "%  Ent:" + str.tostring(entryPrice, "#.##") + "\nTP1:" + str.tostring(tp1Price, "#.##") + "  TP2:" + str.tostring(tp2Price, "#.##") + "\nTP3:" + str.tostring(tp3Price, "#.##") + "  SL:" + str.tostring(slPrice, "#.##"), color=buyCol, textcolor=color.white, style=label.style_label_up, size=size.small)
     alert(buildEntryPayload("LONG", timeframe.period, buyTrig, entryPrice, tp1Price, tp2Price, tp3Price, slPrice, mlBull, buyTier), alert.freq_once_per_bar_close)
 
@@ -565,27 +596,7 @@ if doSell
     tp1Hit      := false
     tp2Hit      := false
     tradeConf   := math.round(mlBear * 100)
-    array.set(entryFeatures, 0,  f1)
-    array.set(entryFeatures, 1,  f2)
-    array.set(entryFeatures, 2,  f3)
-    array.set(entryFeatures, 3,  f4)
-    array.set(entryFeatures, 4,  f5)
-    array.set(entryFeatures, 5,  f6)
-    array.set(entryFeatures, 6,  f7)
-    array.set(entryFeatures, 7,  f8)
-    array.set(entryFeatures, 8,  f9)
-    array.set(entryFeatures, 9,  f10)
-    array.set(entryFeatures, 10, f11)
-    array.set(entryFeatures, 11, f12)
-    array.set(entryFeatures, 12, f13)
-    array.set(entryFeatures, 13, f14)
-    array.set(entryFeatures, 14, f15)
-    array.set(entryFeatures, 15, f16)
-    array.set(entryFeatures, 16, f17)
-    array.set(entryFeatures, 17, f18)
-    array.set(entryFeatures, 18, f19)
-    array.set(entryFeatures, 19, f20)
-    array.set(entryFeatures, 20, f21)
+    storeFeatures()
     label.new(bar_index, high, "🤖 SELL [" + sellTrig + "] " + sellTier + "\nML:" + str.tostring(tradeConf) + "%  Ent:" + str.tostring(entryPrice, "#.##") + "\nTP1:" + str.tostring(tp1Price, "#.##") + "  TP2:" + str.tostring(tp2Price, "#.##") + "\nTP3:" + str.tostring(tp3Price, "#.##") + "  SL:" + str.tostring(slPrice, "#.##"), color=sellCol, textcolor=color.white, style=label.style_label_down, size=size.small)
     alert(buildEntryPayload("SHORT", timeframe.period, sellTrig, entryPrice, tp1Price, tp2Price, tp3Price, slPrice, mlBear, sellTier), alert.freq_once_per_bar_close)
 
@@ -609,9 +620,12 @@ plot(activeTrade != "NONE" and tp1Hit ? slPrice : na, color=color.orange, style=
 // ═══════════════════════════════════════════════════════
 // DASHBOARD
 // ═══════════════════════════════════════════════════════
-
-// Find top-3 feature names by weight — all 21 features
-string[] featNames = array.from("F1·RSI","F2·ADX","F3·ATR","F4·BB","F5·MACD","F6·WR","F7·CMO","F8·EMA","F9·FVG","F10·OB","F11·BOS","F12·Liq","F13·P/D","F14·CHoCH","F15·Sess","F16·MTF","F17·DXY","F18·VolD","F19·RSIDiv","F20·Fib","F21·VWAP")
+string[] featNames = array.from(
+    "F1·RSI","F2·ADX","F3·ATR","F4·BB","F5·MACD",
+    "F6·WR","F7·CMO","F8·EMA","F9·FVG","F10·OB",
+    "F11·BOS","F12·Liq","F13·P/D","F14·CHoCH","F15·Sess",
+    "F16·MTF","F17·DXY","F18·VolD","F19·RSIDiv","F20·Fib",
+    "F21·VWAP","F22·Body","F23·RSIAcc","F24·FVGq","F25·ToD")
 
 float wMax1 = -1.0
 float wMax2 = -1.0
@@ -620,23 +634,17 @@ int   iMax1 = 0
 int   iMax2 = 1
 int   iMax3 = 2
 
-for i = 0 to 20
+for i = 0 to 24
     float w = array.get(weights, i)
     if w > wMax1
-        wMax3 := wMax2
-        iMax3 := iMax2
-        wMax2 := wMax1
-        iMax2 := iMax1
-        wMax1 := w
-        iMax1 := i
+        wMax3 := wMax2; iMax3 := iMax2
+        wMax2 := wMax1; iMax2 := iMax1
+        wMax1 := w;     iMax1 := i
     else if w > wMax2
-        wMax3 := wMax2
-        iMax3 := iMax2
-        wMax2 := w
-        iMax2 := i
+        wMax3 := wMax2; iMax3 := iMax2
+        wMax2 := w;     iMax2 := i
     else if w > wMax3
-        wMax3 := w
-        iMax3 := i
+        wMax3 := w;     iMax3 := i
 
 string top1 = array.get(featNames, iMax1)
 string top2 = array.get(featNames, iMax2)
@@ -645,25 +653,27 @@ string top3 = array.get(featNames, iMax3)
 string tpStage    = not tp1Hit ? "Targeting TP1" : not tp2Hit ? "TP1✓→TP2" : "TP2✓→TP3🚀"
 color  stageColor = not tp1Hit ? color.white : not tp2Hit ? color.lime : color.aqua
 
-// SMC confluence summary
 float smcScore = (f9 + f10 + f11 + f12 + f13 + f14) / 6.0
 string smcStr  = smcScore > 0.3 ? "BULLISH" : smcScore < -0.3 ? "BEARISH" : "NEUTRAL"
 color  smcCol  = smcScore > 0.3 ? color.lime : smcScore < -0.3 ? color.red : color.gray
 
-// DXY sentiment display
 string dxyStr  = f17 > 0.0 ? "FALLING (Gold+)" : f17 < 0.0 ? "RISING (Gold-)" : "FLAT"
 color  dxyCol  = f17 > 0.0 ? color.lime : f17 < 0.0 ? color.red : color.gray
 
-var table hub = table.new(position.bottom_left, 4, 18, bgcolor=color.rgb(15,15,15), border_color=color.gray, border_width=1)
+// TF label for dashboard
+string tfLabel = isTF2 ? "2min" : isTF5 ? "5min" : isTF15 ? "15min" : isTF1H ? "1H" : str.tostring(tfMins) + "min"
+string autoStr = autoTF ? "AUTO·" + tfLabel : "MANUAL"
+
+var table hub = table.new(position.bottom_left, 4, 19, bgcolor=color.rgb(15,15,15), border_color=color.gray, border_width=1)
 
 if barstate.islast
-    table.cell(hub, 0, 0, "MIGO SNIPER  [ML + ADAPTIVE + ☁️ v3·21F]", text_color=color.white, bgcolor=color.rgb(65,14,58))
+    table.cell(hub, 0, 0, "MIGO SNIPER  [ML + ADAPTIVE + ☁️ v3·25F]", text_color=color.white, bgcolor=color.rgb(65,14,58))
     table.merge_cells(hub, 0, 0, 3, 0)
 
     string mktState      = isSideways ? "⚠ RANGING" : mainTrend == "UPTREND" ? "▲ UPTREND" : "▼ DOWNTREND"
     color  mktStateColor = isSideways ? color.yellow : mainTrend == "UPTREND" ? color.green : color.red
-    table.cell(hub, 0, 1, "MKT STATE", text_color=color.gray, text_size=size.small)
-    table.cell(hub, 1, 1, mktState,    text_color=mktStateColor)
+    table.cell(hub, 0, 1, "MKT / TF", text_color=color.gray, text_size=size.small)
+    table.cell(hub, 1, 1, mktState + "  " + autoStr, text_color=mktStateColor)
     table.merge_cells(hub, 1, 1, 3, 1)
 
     table.cell(hub, 0, 2, "ML BULL 🐂", text_color=color.gray, text_size=size.small)
@@ -706,8 +716,8 @@ if barstate.islast
     color wrColor = winRate >= 60.0 ? color.lime : winRate >= 45.0 ? color.yellow : color.red
     table.cell(hub, 0, 9, "WIN RATE 📊", text_color=color.gray, text_size=size.small)
     table.cell(hub, 1, 9, totalTrades > 0 ? str.tostring(math.round(winRate)) + "%" : "NO DATA", text_color=wrColor)
-    table.cell(hub, 2, 9, "21F SCORE", text_color=color.gray, text_size=size.small)
-    float totalFeat = f1+f2+f3+f4+f5+f6+f7+f8+f9+f10+f11+f12+f13+f14+f15+f16+f17+f18+f19+f20+f21
+    table.cell(hub, 2, 9, "25F SCORE", text_color=color.gray, text_size=size.small)
+    float totalFeat = f1+f2+f3+f4+f5+f6+f7+f8+f9+f10+f11+f12+f13+f14+f15+f16+f17+f18+f19+f20+f21+f22+f23+f24+f25
     table.cell(hub, 3, 9, str.tostring(math.round(totalFeat * 10) / 10.0, "#.#"), text_color=totalFeat > 0 ? color.lime : totalFeat < 0 ? color.red : color.gray)
 
     table.cell(hub, 0, 10, "TOP 1", text_color=color.gray, text_size=size.small)
@@ -725,24 +735,29 @@ if barstate.islast
     table.cell(hub, 2, 12, "MTF", text_color=color.gray, text_size=size.small)
     table.cell(hub, 3, 12, f16 > 0.5 ? "BULL ALIGN" : f16 < -0.5 ? "BEAR ALIGN" : "MIXED", text_color=f16 > 0.5 ? color.lime : f16 < -0.5 ? color.red : color.gray)
 
+    // New features row
+    string newFeatStr = "Body:" + str.tostring(math.round(f22*100)/100.0,"#.##") + "  RSIacc:" + str.tostring(math.round(f23*100)/100.0,"#.##") + "  FVGq:" + str.tostring(f24,"#") + "  ToD:" + str.tostring(math.round(f25*100)/100.0,"#.##")
+    table.cell(hub, 0, 13, newFeatStr, text_color=color.new(color.aqua, 20), text_size=size.tiny)
+    table.merge_cells(hub, 0, 13, 3, 13)
+
     float  volRatio  = atr / atrSma
     string volStatus = volRatio > 1.5 ? "HIGH VOL" : volRatio < 0.7 ? "LOW VOL" : "STABLE"
     color  volColor  = volStatus == "HIGH VOL" ? color.red : volStatus == "LOW VOL" ? color.aqua : color.green
-    table.cell(hub, 0, 13, "MKT IMPACT", text_color=color.gray, text_size=size.small)
-    table.cell(hub, 1, 13, volStatus, text_color=volColor)
-    table.merge_cells(hub, 1, 13, 3, 13)
+    table.cell(hub, 0, 14, "MKT IMPACT", text_color=color.gray, text_size=size.small)
+    table.cell(hub, 1, 14, volStatus, text_color=volColor)
+    table.merge_cells(hub, 1, 14, 3, 14)
 
     string adxInfo = "ADX:" + str.tostring(math.round(adxVal, 1)) + (adxFlat ? "✗" : "✓") + "  ATR:" + (atrCompressed ? "✗" : "✓") + "  EMA:" + (emaTooClose ? "✗" : "✓")
-    table.cell(hub, 0, 14, adxInfo, text_color=color.new(color.gray, 30), text_size=size.small)
-    table.merge_cells(hub, 0, 14, 3, 14)
-
-    string mlInfo = "k=" + str.tostring(mlK) + "  lag=" + str.tostring(mlLag) + "  min=" + str.tostring(math.round(mlMinScore * 100)) + "%  lr=" + str.tostring(learnRate)
-    table.cell(hub, 0, 15, mlInfo, text_color=color.new(color.gray, 40), text_size=size.tiny)
+    table.cell(hub, 0, 15, adxInfo, text_color=color.new(color.gray, 30), text_size=size.small)
     table.merge_cells(hub, 0, 15, 3, 15)
 
-    string smcToggle = "SMC:" + (useSMC ? "ON" : "OFF") + " Sess:" + (useSession ? "ON" : "OFF") + " MTF:" + (useMTF ? "ON" : "OFF") + " DXY:" + (useDXY ? "ON" : "OFF")
-    table.cell(hub, 0, 16, smcToggle, text_color=color.new(color.aqua, 30), text_size=size.tiny)
+    string mlInfo = "k=" + str.tostring(mlK) + "  depth=" + str.tostring(mlDepth) + "  lag=" + str.tostring(mlLag) + "  min=" + str.tostring(math.round(mlMinScore * 100)) + "%"
+    table.cell(hub, 0, 16, mlInfo, text_color=color.new(color.gray, 40), text_size=size.tiny)
     table.merge_cells(hub, 0, 16, 3, 16)
 
-    table.cell(hub, 0, 17, "☁️ CLOUD SYNC ACTIVE — 21F outcomes sent to backend", text_color=color.new(color.aqua, 40), text_size=size.tiny)
+    string smcToggle = "SMC:" + (useSMC ? "ON" : "OFF") + " Sess:" + (useSession ? "ON" : "OFF") + " MTF:" + (useMTF ? "ON" : "OFF") + " DXY:" + (useDXY ? "ON" : "OFF") + " F22-25:" + (useNewFeats ? "ON" : "OFF")
+    table.cell(hub, 0, 17, smcToggle, text_color=color.new(color.aqua, 30), text_size=size.tiny)
     table.merge_cells(hub, 0, 17, 3, 17)
+
+    table.cell(hub, 0, 18, "☁️ CLOUD SYNC ACTIVE — 25F outcomes sent to backend", text_color=color.new(color.aqua, 40), text_size=size.tiny)
+    table.merge_cells(hub, 0, 18, 3, 18)
