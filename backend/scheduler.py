@@ -155,7 +155,7 @@ async def _write_health_status(signal: dict, news_agg: float, velocity: dict, br
 async def _hourly_system_check() -> None:
     """
     Full system audit — runs every 60 minutes.
-    Checks every subsystem and sends a Telegram report.
+    Silent when all checks pass. Only sends Telegram alert when issues are found.
     """
     from datetime import datetime, timezone
     from telegram_bot import send_text
@@ -304,26 +304,17 @@ async def _hourly_system_check() -> None:
     except Exception as e:
         issues.append(f"Feature check error: {e} ❌")
 
-    # ── Build report ──────────────────────────────────────────────────────────
-    total   = len(ok) + len(issues)
-    n_ok    = len(ok)
+    # ── Silent when clean — only alert on issues ─────────────────────────────
     n_issue = len(issues)
-    status_icon = "✅" if n_issue == 0 else ("⚠️" if n_issue <= 2 else "🚨")
+    print(f"[system_check] {len(ok)}/{len(ok)+n_issue} checks passed. Issues: {n_issue}")
 
-    lines = [f"🔍 <b>SYSTEM CHECK</b> {status_icon} — {now}",
-             f"━━━━━━━━━━━━━━━━━━━━",
-             f"Checks: {n_ok}/{total} passed"]
     if issues:
-        lines.append("\n<b>Issues:</b>")
+        status_icon = "⚠️" if n_issue <= 2 else "🚨"
+        lines = [f"{status_icon} <b>SYSTEM ISSUE DETECTED</b> — {now}",
+                 f"━━━━━━━━━━━━━━━━━━━━"]
         for iss in issues:
             lines.append(f"  • {iss}")
-    lines.append("\n<b>OK:</b>")
-    for item in ok:
-        lines.append(f"  • {item}")
-
-    report = "\n".join(lines)
-    print(f"[system_check] {n_ok}/{total} checks passed. Issues: {n_issue}")
-    await send_text(report)
+        await send_text("\n".join(lines))
 
 
 def start_scheduler() -> AsyncIOScheduler:
