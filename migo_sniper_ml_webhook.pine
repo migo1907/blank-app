@@ -52,7 +52,12 @@ bool emaTooClose   = math.abs(maShort - maLong) / maLong * 100.0 < emaBandPct
 bool isSideways    = (adxFlat ? 1 : 0) + (atrCompressed ? 1 : 0) + (emaTooClose ? 1 : 0) >= 2
 
 // ═══════════════════════════════════════════════════════
-// 8 FEATURES (normalized to [-1, +1])
+// VWAP
+// ═══════════════════════════════════════════════════════
+float vwapVal = ta.vwap(hlc3)
+
+// ═══════════════════════════════════════════════════════
+// F1–F8: CORE FEATURES
 // ═══════════════════════════════════════════════════════
 float f1 = (rsiVal - 50.0) / 50.0
 float f2 = math.min(adxVal / 50.0, 1.0) * (diPlus > diMinus ? 1.0 : -1.0)
@@ -62,6 +67,112 @@ float f5 = math.max(-1.0, math.min(1.0, macdHist / math.max(atr * 0.1, 0.0001)))
 float f6 = -(willR + 50.0) / 50.0
 float f7 = cmo
 float f8 = math.max(-1.0, math.min(1.0, (close - maLong) / (atr * 5.0)))
+
+// ═══════════════════════════════════════════════════════
+// F9: FAIR VALUE GAP (FVG)
+// gap up: low[0] > high[2]  gap down: high[0] < low[2]
+// ═══════════════════════════════════════════════════════
+float f9 = low > high[2] ? 1.0 : high < low[2] ? -1.0 : 0.0
+
+// ═══════════════════════════════════════════════════════
+// F10: ORDER BLOCK
+// bullish OB: bearish candle before strong up move
+// bearish OB: bullish candle before strong down move
+// ═══════════════════════════════════════════════════════
+bool bullOB = close[1] < open[1] and close > high[1] and (close - open) > atr * 0.5
+bool bearOB = close[1] > open[1] and close < low[1]  and (open - close) > atr * 0.5
+float f10   = bullOB ? 1.0 : bearOB ? -1.0 : 0.0
+
+// ═══════════════════════════════════════════════════════
+// F11: BREAK OF STRUCTURE (BOS)
+// bullish BOS: close breaks above recent swing high
+// bearish BOS: close breaks below recent swing low
+// ═══════════════════════════════════════════════════════
+float swingHigh = ta.highest(high, lookback)
+float swingLow  = ta.lowest(low,  lookback)
+bool  bosBull   = close > swingHigh[1]
+bool  bosBear   = close < swingLow[1]
+float f11       = bosBull ? 1.0 : bosBear ? -1.0 : 0.0
+
+// ═══════════════════════════════════════════════════════
+// F12: LIQUIDITY SWEEP
+// price wicks above swing high or below swing low then closes back
+// ═══════════════════════════════════════════════════════
+bool liqSweepHigh = high > swingHigh[1] and close < swingHigh[1]
+bool liqSweepLow  = low  < swingLow[1]  and close > swingLow[1]
+float f12         = liqSweepLow ? 1.0 : liqSweepHigh ? -1.0 : 0.0
+
+// ═══════════════════════════════════════════════════════
+// F13: PREMIUM / DISCOUNT
+// position of close within the recent swing range [-1=discount, +1=premium]
+// ═══════════════════════════════════════════════════════
+float rangeSize = math.max(swingHigh - swingLow, atr * 0.001)
+float f13       = math.max(-1.0, math.min(1.0, ((close - swingLow) / rangeSize - 0.5) * 2.0))
+
+// ═══════════════════════════════════════════════════════
+// F14: CHANGE OF CHARACTER (CHoCH)
+// higher-high after downtrend = bullish CHoCH; lower-low after uptrend = bearish
+// ═══════════════════════════════════════════════════════
+bool priorDowntrend = close[3] > close[2] and close[2] > close[1]
+bool priorUptrend   = close[3] < close[2] and close[2] < close[1]
+bool chochBull      = priorDowntrend and high > high[1]
+bool chochBear      = priorUptrend   and low  < low[1]
+float f14           = chochBull ? 1.0 : chochBear ? -1.0 : 0.0
+
+// ═══════════════════════════════════════════════════════
+// F15: SESSION KILL ZONE
+// Asia=-0.5  London=1.0  NY=0.5  Off=-1.0
+// ═══════════════════════════════════════════════════════
+int   hourUTC  = hour(time, "UTC")
+float f15      = (hourUTC >= 2  and hourUTC < 5)  ? -0.5 : (hourUTC >= 7  and hourUTC < 10) ? 1.0 : (hourUTC >= 13 and hourUTC < 16) ? 0.5 : -1.0
+
+// ═══════════════════════════════════════════════════════
+// F16: MULTI-TIMEFRAME ALIGNMENT (1h)
+// +1 = 1h bullish, -1 = 1h bearish, 0 = sideways
+// ═══════════════════════════════════════════════════════
+float f16 = close > ma50_1h and rsi_1h > 52 ? 1.0 : close < ma50_1h and rsi_1h < 48 ? -1.0 : 0.0
+
+// ═══════════════════════════════════════════════════════
+// F17: DXY PROXY (inverted correlation with gold)
+// use USD/CHF as DXY proxy — rising USD = bearish gold
+// ═══════════════════════════════════════════════════════
+float usdchf    = request.security("USDCHF", timeframe.period, close)
+float usdchfEma = request.security("USDCHF", timeframe.period, ta.ema(close, 20))
+float f17       = math.max(-1.0, math.min(1.0, -(usdchf - usdchfEma) / math.max(usdchfEma * 0.005, 0.0001)))
+
+// ═══════════════════════════════════════════════════════
+// F18: VOLUME DELTA (buying vs selling pressure)
+// positive = buying pressure, negative = selling pressure
+// ═══════════════════════════════════════════════════════
+float bullVol   = close > open ? volume : 0.0
+float bearVol   = close < open ? volume : 0.0
+float volDelta  = bullVol - bearVol
+float volDeltaMA = ta.sma(math.abs(volDelta), 20)
+float f18        = math.max(-1.0, math.min(1.0, volDelta / math.max(volDeltaMA, 1.0)))
+
+// ═══════════════════════════════════════════════════════
+// F19: RSI DIVERGENCE
+// bullish div: lower low price, higher low RSI
+// bearish div: higher high price, lower high RSI
+// ═══════════════════════════════════════════════════════
+bool rsiBullDiv = low < low[5]   and rsiVal > rsiVal[5]   and rsiVal < 45
+bool rsiBearDiv = high > high[5] and rsiVal < rsiVal[5] and rsiVal > 55
+float f19       = rsiBullDiv ? 1.0 : rsiBearDiv ? -1.0 : 0.0
+
+// ═══════════════════════════════════════════════════════
+// F20: FIBONACCI POSITION
+// position of close between recent swing low and high mapped to fib levels
+// +1 near 0.786 retracement (discount), -1 near 0.236 (premium)
+// ═══════════════════════════════════════════════════════
+float fibRange = math.max(swingHigh - swingLow, atr * 0.001)
+float fibPos   = (close - swingLow) / fibRange
+float f20      = math.max(-1.0, math.min(1.0, (fibPos - 0.5) * 2.0))
+
+// ═══════════════════════════════════════════════════════
+// F21: VWAP DISTANCE
+// normalized distance of close from VWAP
+// ═══════════════════════════════════════════════════════
+float f21 = math.max(-1.0, math.min(1.0, (close - vwapVal) / math.max(atr * 3.0, 0.0001)))
 
 // ═══════════════════════════════════════════════════════
 // ADAPTIVE WEIGHTS
@@ -76,14 +187,28 @@ var float w7 = 1.0
 var float w8 = 1.0
 var int totalWins   = 0
 var int totalLosses = 0
-var float ef1 = 0.0
-var float ef2 = 0.0
-var float ef3 = 0.0
-var float ef4 = 0.0
-var float ef5 = 0.0
-var float ef6 = 0.0
-var float ef7 = 0.0
-var float ef8 = 0.0
+// entry snapshot — all 21 features
+var float ef1  = 0.0
+var float ef2  = 0.0
+var float ef3  = 0.0
+var float ef4  = 0.0
+var float ef5  = 0.0
+var float ef6  = 0.0
+var float ef7  = 0.0
+var float ef8  = 0.0
+var float ef9  = 0.0
+var float ef10 = 0.0
+var float ef11 = 0.0
+var float ef12 = 0.0
+var float ef13 = 0.0
+var float ef14 = 0.0
+var float ef15 = 0.0
+var float ef16 = 0.0
+var float ef17 = 0.0
+var float ef18 = 0.0
+var float ef19 = 0.0
+var float ef20 = 0.0
+var float ef21 = 0.0
 
 // ═══════════════════════════════════════════════════════
 // HELPER FUNCTIONS
@@ -118,7 +243,7 @@ buildEntryPayload(dir, entPx, t1, t2, t3, sl, mlSc, tf, trigger, tier) =>
     s
 
 buildPayload(dir, outcome, stage, entPx, exitPx, mlSc) =>
-    string s = '{"secret":"' + webhookSecret + '","trade_id":"' + syminfo.tickerid + '_' + str.tostring(timenow) + '","direction":"' + dir + '","outcome":"' + outcome + '","tp_stage":"' + stage + '","entry_price":' + str.tostring(entPx, "#.####") + ',"exit_price":' + str.tostring(exitPx, "#.####") + ',"ml_score":' + str.tostring(mlSc, "#.####") + ',"f1":' + str.tostring(ef1, "#.####") + ',"f2":' + str.tostring(ef2, "#.####") + ',"f3":' + str.tostring(ef3, "#.####") + ',"f4":' + str.tostring(ef4, "#.####") + ',"f5":' + str.tostring(ef5, "#.####") + ',"f6":' + str.tostring(ef6, "#.####") + ',"f7":' + str.tostring(ef7, "#.####") + ',"f8":' + str.tostring(ef8, "#.####") + '}'
+    string s = '{"secret":"' + webhookSecret + '","trade_id":"' + syminfo.tickerid + '_' + str.tostring(timenow) + '","direction":"' + dir + '","outcome":"' + outcome + '","tp_stage":"' + stage + '","entry_price":' + str.tostring(entPx, "#.####") + ',"exit_price":' + str.tostring(exitPx, "#.####") + ',"ml_score":' + str.tostring(mlSc, "#.####") + ',"f1":' + str.tostring(ef1, "#.####") + ',"f2":' + str.tostring(ef2, "#.####") + ',"f3":' + str.tostring(ef3, "#.####") + ',"f4":' + str.tostring(ef4, "#.####") + ',"f5":' + str.tostring(ef5, "#.####") + ',"f6":' + str.tostring(ef6, "#.####") + ',"f7":' + str.tostring(ef7, "#.####") + ',"f8":' + str.tostring(ef8, "#.####") + ',"f9":' + str.tostring(ef9, "#.####") + ',"f10":' + str.tostring(ef10, "#.####") + ',"f11":' + str.tostring(ef11, "#.####") + ',"f12":' + str.tostring(ef12, "#.####") + ',"f13":' + str.tostring(ef13, "#.####") + ',"f14":' + str.tostring(ef14, "#.####") + ',"f15":' + str.tostring(ef15, "#.####") + ',"f16":' + str.tostring(ef16, "#.####") + ',"f17":' + str.tostring(ef17, "#.####") + ',"f18":' + str.tostring(ef18, "#.####") + ',"f19":' + str.tostring(ef19, "#.####") + ',"f20":' + str.tostring(ef20, "#.####") + ',"f21":' + str.tostring(ef21, "#.####") + '}'
     s
 
 // ═══════════════════════════════════════════════════════
@@ -341,7 +466,7 @@ bool doBuy  = buySignal  and activeTrade != "LONG"
 bool doSell = sellSignal and activeTrade != "SHORT"
 
 // ═══════════════════════════════════════════════════════
-// TRADE ENTRY
+// TRADE ENTRY — snapshot all 21 features
 // ═══════════════════════════════════════════════════════
 if doBuy
     activeTrade := "LONG"
@@ -354,8 +479,9 @@ if doBuy
     tp1Hit      := false
     tp2Hit      := false
     tradeConf   := math.round(mlBull * 100)
-    ef1 := f1, ef2 := f2, ef3 := f3, ef4 := f4
-    ef5 := f5, ef6 := f6, ef7 := f7, ef8 := f8
+    ef1 := f1,  ef2 := f2,  ef3 := f3,  ef4 := f4,  ef5 := f5,  ef6 := f6,  ef7 := f7
+    ef8 := f8,  ef9 := f9,  ef10 := f10, ef11 := f11, ef12 := f12, ef13 := f13, ef14 := f14
+    ef15 := f15, ef16 := f16, ef17 := f17, ef18 := f18, ef19 := f19, ef20 := f20, ef21 := f21
     label.new(bar_index, low, "🤖 BUY  ML:" + str.tostring(tradeConf) + "%\nEnt: " + str.tostring(entryPrice, "#.##") + "\nTP1: " + str.tostring(tp1Price, "#.##") + "\nTP2: " + str.tostring(tp2Price, "#.##") + "\nTP3: " + str.tostring(tp3Price, "#.##") + "\nSL:  " + str.tostring(slPrice, "#.##"), color=color.green, textcolor=color.white, style=label.style_label_up, size=size.small)
     string _tier = tradeConf >= 75 ? "HIGH" : tradeConf >= 55 ? "MED" : "LOW"
     alert(buildEntryPayload("LONG", close, tp1Price, tp2Price, tp3Price, slPrice, mlBull, timeframe.period, "ML", _tier), alert.freq_once_per_bar_close)
@@ -371,8 +497,9 @@ if doSell
     tp1Hit      := false
     tp2Hit      := false
     tradeConf   := math.round(mlBear * 100)
-    ef1 := f1, ef2 := f2, ef3 := f3, ef4 := f4
-    ef5 := f5, ef6 := f6, ef7 := f7, ef8 := f8
+    ef1 := f1,  ef2 := f2,  ef3 := f3,  ef4 := f4,  ef5 := f5,  ef6 := f6,  ef7 := f7
+    ef8 := f8,  ef9 := f9,  ef10 := f10, ef11 := f11, ef12 := f12, ef13 := f13, ef14 := f14
+    ef15 := f15, ef16 := f16, ef17 := f17, ef18 := f18, ef19 := f19, ef20 := f20, ef21 := f21
     label.new(bar_index, high, "🤖 SELL  ML:" + str.tostring(tradeConf) + "%\nEnt: " + str.tostring(entryPrice, "#.##") + "\nTP1: " + str.tostring(tp1Price, "#.##") + "\nTP2: " + str.tostring(tp2Price, "#.##") + "\nTP3: " + str.tostring(tp3Price, "#.##") + "\nSL:  " + str.tostring(slPrice, "#.##"), color=color.red, textcolor=color.white, style=label.style_label_down, size=size.small)
     string _tier = tradeConf >= 75 ? "HIGH" : tradeConf >= 55 ? "MED" : "LOW"
     alert(buildEntryPayload("SHORT", close, tp1Price, tp2Price, tp3Price, slPrice, mlBear, timeframe.period, "ML", _tier), alert.freq_once_per_bar_close)
@@ -393,6 +520,7 @@ plot(maLong,  color=color.new(color.green, 50), linewidth=1, title="EMA 200")
 plot(maShort, color=color.new(#0d64ac,     50), linewidth=1, title="EMA 50")
 plot(useKernel ? kernelEst : na, color=kernelUp ? color.new(color.teal, 10) : color.new(color.purple, 10), linewidth=2, title="Kernel Estimate")
 plot(activeTrade != "NONE" and tp1Hit ? slPrice : na, color=color.orange, style=plot.style_stepline, linewidth=2, title="Trail Stop")
+plot(vwapVal, color=color.new(color.yellow, 40), linewidth=1, title="VWAP")
 
 // ═══════════════════════════════════════════════════════
 // DASHBOARD
@@ -477,5 +605,5 @@ if barstate.islast
     table.cell(hub, 0, 13, mlInfo, text_color=color.new(color.gray, 40), text_size=size.tiny)
     table.merge_cells(hub, 0, 13, 3, 13)
 
-    table.cell(hub, 0, 14, "☁️ CLOUD SYNC ACTIVE — outcomes sent to backend", text_color=color.new(color.aqua, 40), text_size=size.tiny)
+    table.cell(hub, 0, 14, "☁️ CLOUD SYNC ACTIVE — f1-f21 sent to backend", text_color=color.new(color.aqua, 40), text_size=size.tiny)
     table.merge_cells(hub, 0, 14, 3, 14)
