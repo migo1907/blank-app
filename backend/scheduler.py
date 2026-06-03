@@ -77,11 +77,12 @@ async def _news_signal_cycle() -> None:
         from signal_engine import generate_signal
         from telegram_bot import send_signal, send_text, send_breaking_news
 
-        # Pass previous aggregation so velocity can measure acceleration
-        scored_items, agg, velocity, event, fj_breaking = run_news_cycle(previous_agg=_latest_news_agg)
+        # run_news_cycle uses synchronous httpx — run in thread to avoid blocking event loop
+        prev_agg = _latest_news_agg
+        scored_items, agg, velocity, event, fj_breaking = await asyncio.to_thread(run_news_cycle, prev_agg)
 
         if scored_items:
-            insert_news(scored_items)
+            await asyncio.to_thread(insert_news, scored_items)
             _latest_news_agg = agg
             _latest_velocity = velocity
             _latest_event    = event
@@ -121,7 +122,7 @@ async def _write_health_status(signal: dict, news_agg: float, velocity: dict, br
         from db import recent_outcomes
         model  = get_model()
         rf     = get_rf()
-        trades = recent_outcomes(limit=500)
+        trades = await asyncio.to_thread(recent_outcomes, 500)
         status = {
             "timestamp":      datetime.now(timezone.utc).isoformat(),
             "signal":         signal["direction"],
@@ -135,8 +136,8 @@ async def _write_health_status(signal: dict, news_agg: float, velocity: dict, br
             "knn_bearish_pct": round(signal.get("ml_score", 0) * 100, 1),
             "scheduler":      "running",
         }
-        _, sha = _get_file("data/health.json")
-        _put_file("data/health.json", status, sha, "chore: update health status")
+        _, sha = await asyncio.to_thread(_get_file, "data/health.json")
+        await asyncio.to_thread(_put_file, "data/health.json", status, sha, "chore: update health status")
         print(f"[scheduler] Health status written to GitHub.")
     except Exception as e:
         print(f"[scheduler] Health write failed: {e}")
@@ -159,13 +160,13 @@ async def _hourly_system_check() -> None:
     # ── 1. GitHub persistence (db layer) ─────────────────────────────────────
     try:
         from db import _get_file
-        weights, _ = _get_file("data/weights.json")
+        weights, _ = await asyncio.to_thread(_get_file, "data/weights.json")
         if weights and "w1" in weights:
             ok.append("GitHub weights.json ✅")
         else:
             issues.append("weights.json missing or corrupt ❌")
 
-        history, _ = _get_file("data/trade_history.json")
+        history, _ = await asyncio.to_thread(_get_file, "data/trade_history.json")
         trade_count = len(history) if isinstance(history, list) else 0
         if trade_count >= 15:
             ok.append(f"trade_history.json — {trade_count} trades ✅")
@@ -208,7 +209,7 @@ async def _hourly_system_check() -> None:
     try:
         from db import _get_file
         from datetime import timedelta
-        news_cache, _ = _get_file("data/news_cache.json")
+        news_cache, _ = await asyncio.to_thread(_get_file, "data/news_cache.json")
         if isinstance(news_cache, list) and len(news_cache) > 0:
             cutoff = datetime.now(timezone.utc) - timedelta(hours=2)
             recent = [
@@ -224,7 +225,7 @@ async def _hourly_system_check() -> None:
     # ── 5. Breaking news dedup ────────────────────────────────────────────────
     try:
         from db import _get_file
-        seen, _ = _get_file("data/seen_headlines.json")
+        seen, _ = await asyncio.to_thread(_get_file, "data/seen_headlines.json")
         seen_count = len(seen) if isinstance(seen, list) else len(_fj_seen_headlines)
         ok.append(f"Breaking news dedup — {seen_count} headlines tracked ✅")
     except Exception as e:
@@ -234,7 +235,7 @@ async def _hourly_system_check() -> None:
     # ── 6. Latest signal ──────────────────────────────────────────────────────
     try:
         from db import _get_file
-        signals, _ = _get_file("data/signals.json")
+        signals, _ = await asyncio.to_thread(_get_file, "data/signals.json")
         if isinstance(signals, list) and len(signals) > 0:
             last = signals[-1]
             last_dir  = last.get("direction", "?")
@@ -298,7 +299,7 @@ async def _hourly_system_check() -> None:
     # ── 10. Feature check — ensure f9-f21 in stored trades ───────────────────
     try:
         from db import _get_file
-        history, _ = _get_file("data/trade_history.json")
+        history, _ = await asyncio.to_thread(_get_file, "data/trade_history.json")
         if isinstance(history, list) and len(history) > 0:
             last_trade = history[-1]
             f21_present = "f21_vwap" in last_trade
@@ -354,7 +355,7 @@ async def _hourly_system_check() -> None:
     # ── C2. GitHub token validity ─────────────────────────────────────────────
     try:
         from db import _get_file
-        test, _ = _get_file("data/health.json")
+        test, _ = await asyncio.to_thread(_get_file, "data/health.json")
         if test is None:
             issues.append("GitHub token may have expired — health.json unreadable ❌")
             critical_alerts.append((
@@ -378,7 +379,7 @@ async def _hourly_system_check() -> None:
     try:
         from db import _get_file
         from datetime import timedelta
-        history, _ = _get_file("data/trade_history.json")
+        history, _ = await asyncio.to_thread(_get_file, "data/trade_history.json")
         if isinstance(history, list) and len(history) > 0:
             last_trade_time = datetime.fromisoformat(
                 history[-1].get("created_at", "2000-01-01T00:00:00").replace("Z", "+00:00")
@@ -401,6 +402,43 @@ async def _hourly_system_check() -> None:
     except Exception as e:
         print(f"[system_check] Webhook silence check failed: {e}")
 
+    # ── Auto-heal: deduplicate trade history ──────────────────────────────────
+    try:
+        from db import _get_file, _put_file
+        history, sha = await asyncio.to_thread(_get_file, "data/trade_history.json")
+        if isinstance(history, list) and len(history) > 0:
+            seen_ids = set()
+            deduped = []
+            for trade in history:
+                tid = str(trade.get("id", "")) + trade.get("created_at", "")
+                if tid not in seen_ids:
+                    seen_ids.add(tid)
+                    deduped.append(trade)
+            if len(deduped) < len(history):
+                removed = len(history) - len(deduped)
+                await asyncio.to_thread(_put_file, "data/trade_history.json", deduped, sha, f"chore: deduplicate {removed} duplicate trades")
+                print(f"[system_check] Auto-fixed: removed {removed} duplicate trades.")
+            else:
+                print(f"[system_check] Trade history clean — no duplicates.")
+    except Exception as e:
+        print(f"[system_check] Dedup auto-fix failed: {e}")
+
+    # ── Auto-heal: retrain RF + GBM on every hourly cycle ────────────────────
+    try:
+        from ml_ensemble import get_rf, get_gbm
+        from db import recent_outcomes
+        rf     = get_rf()
+        gbm    = get_gbm()
+        trades = await asyncio.to_thread(recent_outcomes, 500)
+        if len(trades) >= 15:
+            await asyncio.to_thread(rf.retrain, trades)
+            await asyncio.to_thread(gbm.train, trades)
+            print(f"[system_check] RF + GBM refreshed on {len(trades)} trades.")
+        else:
+            print(f"[system_check] Not enough trades ({len(trades)}) for ensemble retrain.")
+    except Exception as e:
+        print(f"[system_check] Ensemble retrain failed: {e}")
+
     # ── Log results ──────────────────────────────────────────────────────────
     n_issue = len(issues)
     print(f"[system_check] {len(ok)}/{len(ok)+n_issue} checks passed.")
@@ -421,43 +459,6 @@ async def _test_personal_alert() -> None:
         "Personal alerts are working correctly. You will receive warnings here for: Railway hours, GitHub token expiry, and webhook silence.",
         "No action needed — this is a test."
     )
-
-    # ── Auto-heal: deduplicate trade history ──────────────────────────────────
-    try:
-        from db import _get_file, _put_file
-        history, sha = _get_file("data/trade_history.json")
-        if isinstance(history, list) and len(history) > 0:
-            seen_ids = set()
-            deduped = []
-            for trade in history:
-                tid = str(trade.get("id", "")) + trade.get("created_at", "")
-                if tid not in seen_ids:
-                    seen_ids.add(tid)
-                    deduped.append(trade)
-            if len(deduped) < len(history):
-                removed = len(history) - len(deduped)
-                _put_file("data/trade_history.json", deduped, sha, f"chore: deduplicate {removed} duplicate trades")
-                print(f"[system_check] Auto-fixed: removed {removed} duplicate trades.")
-            else:
-                print(f"[system_check] Trade history clean — no duplicates.")
-    except Exception as e:
-        print(f"[system_check] Dedup auto-fix failed: {e}")
-
-    # ── Auto-heal: retrain RF + GBM on every hourly cycle ────────────────────
-    try:
-        from ml_ensemble import get_rf, get_gbm
-        from db import recent_outcomes
-        rf     = get_rf()
-        gbm    = get_gbm()
-        trades = recent_outcomes(limit=500)
-        if len(trades) >= 15:
-            rf.train(trades)
-            gbm.train(trades)
-            print(f"[system_check] RF + GBM refreshed on {len(trades)} trades.")
-        else:
-            print(f"[system_check] Not enough trades ({len(trades)}) for ensemble retrain.")
-    except Exception as e:
-        print(f"[system_check] Ensemble retrain failed: {e}")
 
 
 def start_scheduler() -> AsyncIOScheduler:
