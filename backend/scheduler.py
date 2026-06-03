@@ -109,11 +109,6 @@ async def _news_signal_cycle() -> None:
 
     except Exception as e:
         print(f"[scheduler] Cycle error: {e}")
-        try:
-            from telegram_bot import send_text
-            await send_text(f"⚠️ Migo Sniper backend error: {e}")
-        except Exception:
-            pass
 
 
 async def _write_health_status(signal: dict, news_agg: float, velocity: dict, breaking_count: int) -> None:
