@@ -79,40 +79,36 @@ async def send_signal(signal: dict) -> bool:
     """Send a scheduler-generated signal (15-min cycle)."""
     direction  = signal.get("direction", "NEUTRAL")
     confidence = signal.get("confidence", 0.0)
-    ml_score   = signal.get("ml_score", 0.5)
-    news_score = signal.get("news_score", 0.0)
-    combined   = signal.get("combined_score", 0.0)
-    reasoning  = signal.get("reasoning", "")
-    wins       = signal.get("total_wins", 0)
-    losses     = signal.get("total_losses", 0)
-    win_rate   = signal.get("win_rate", 0.0)
-    top_feat   = signal.get("top_feature", "—")
-    velocity   = signal.get("news_velocity", "NORMAL")
-    v_mult     = signal.get("velocity_mult", 1.0)
     event      = signal.get("high_impact_event", "")
+    session    = signal.get("session", "")
     symbol     = signal.get("symbol", "XAUUSD").split(":")[-1]
     pool       = signal.get("pool", "XAUUSD")
+    top_feat   = signal.get("top_feature", "—")
+    now        = signal.get("timestamp", datetime.now(timezone.utc).strftime("%H:%M UTC — %d %b %Y"))
 
     dir_emoji  = "🟢" if direction == "LONG" else "🔴"
     conf_emoji = "🔥" if confidence >= 0.75 else "✅" if confidence >= 0.60 else "⚠️"
-    news_label = "📰 Bullish" if news_score > 0.2 else "📰 Bearish" if news_score < -0.2 else "📰 Neutral"
-    now        = signal.get("timestamp", datetime.now(timezone.utc).strftime("%H:%M UTC — %d %b %Y"))
-    pool_label = "" if pool == "XAUUSD" else f"  |  Pool: {pool.replace('STOCKS_', '')}"
+    strength   = "HIGH 🔥" if confidence >= 0.75 else "MED ✅" if confidence >= 0.60 else "LOW ⚠️"
+    pool_label = "" if pool == "XAUUSD" else f"  |  {pool.replace('STOCKS_', '')}"
+
+    # Session label
+    session_map = {
+        "OVERLAP":   "London/NY Overlap",
+        "LONDON":    "London",
+        "NEW_YORK":  "New York",
+        "ASIAN":     "Asian",
+    }
+    sess_label = session_map.get(session, session)
 
     msg = (
-        f"{dir_emoji} <b>{direction}</b> {conf_emoji}  Confidence: <b>{confidence*100:.0f}%</b>\n"
+        f"{dir_emoji} <b>{direction}</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
-        f"🤖 ML Score: {ml_score*100:.0f}%  |  Combined: {combined:+.3f}\n"
-        f"{news_label} ({news_score:+.3f})  |  📡 {velocity} ×{v_mult:.1f}\n"
-        f"🏆 Top Feature: <b>{top_feat}</b>\n\n"
-        f"📈 Wins: {wins}  Losses: {losses}  Win Rate: {win_rate*100:.1f}%\n"
+        f"Confidence: <b>{confidence*100:.0f}%</b>  |  Strength: {conf_emoji} {strength}\n"
+        f"Session: {sess_label}  |  Top: <b>{top_feat}</b>\n"
     )
 
     if event:
-        msg += f"⚡ <b>BREAKING:</b> {event}\n"
-
-    if reasoning:
-        msg += f"\n💬 <i>{reasoning}</i>\n"
+        msg += f"⚡ <b>{event}</b>\n"
 
     msg += f"\n⏰ {now}  |  {symbol}{pool_label}"
     return await _send(msg)
