@@ -4,22 +4,6 @@
     "direction": "NEUTRAL",
     "confidence": 0.0,
     "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
-    "news_score": 0.0268,
-    "combined_score": 0.0,
-    "session": "N/A",
-    "reasoning": "News velocity CONFLICTED \u2014 holding off",
-    "status": "NEUTRAL",
-    "expires_at": "2026-06-02T12:22:28.494109+00:00",
-    "id": 101,
-    "created_at": "2026-06-02T11:52:28.897189+00:00"
-  },
-  {
-    "symbol": "XAUUSD",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
     "ml_score": 0.55,
     "rf_score": 0.5,
     "news_score": 0.0,
@@ -1742,5 +1726,25 @@
     "expires_at": "2026-06-03T08:26:20.052886+00:00",
     "id": 101,
     "created_at": "2026-06-03T07:56:20.429298+00:00"
+  },
+  {
+    "symbol": "XAUUSD",
+    "pool": "XAUUSD",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.6092,
+    "rf_score": 0.025,
+    "gbm_score": 0.0,
+    "news_score": 0.227,
+    "combined_score": -0.3775,
+    "session": "LONDON",
+    "regime": "UNKNOWN",
+    "regime_label": "NORMAL",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:UNKNOWN(NORMAL)\u00d71.00 | sess:LONDON\u00d70.60 | confluence\u00d71.00 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.00) | news:bullish(+0.227) | combined:-0.378 \u2192 conf:0.000 \u26a1 GDP",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-03T08:41:20.919983+00:00",
+    "id": 101,
+    "created_at": "2026-06-03T08:11:21.382599+00:00"
   }
 ]
