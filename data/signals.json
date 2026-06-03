@@ -6,22 +6,6 @@
     "tier": "LOW",
     "ml_score": 0.5,
     "rf_score": 0.5,
-    "news_score": 0.0099,
-    "combined_score": 0.0,
-    "session": "N/A",
-    "reasoning": "News velocity CONFLICTED \u2014 holding off",
-    "status": "NEUTRAL",
-    "expires_at": "2026-06-02T17:16:55.740906+00:00",
-    "id": 101,
-    "created_at": "2026-06-02T16:46:56.032969+00:00"
-  },
-  {
-    "symbol": "XAUUSD",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
     "news_score": 0.0439,
     "combined_score": 0.0,
     "session": "N/A",
@@ -1819,5 +1803,25 @@
     "expires_at": "2026-06-03T13:21:44.542979+00:00",
     "id": 101,
     "created_at": "2026-06-03T12:51:45.058003+00:00"
+  },
+  {
+    "symbol": "XAUUSD",
+    "pool": "XAUUSD",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.6132,
+    "rf_score": 0.025,
+    "gbm_score": 0.0,
+    "news_score": 0.2247,
+    "combined_score": -0.3441,
+    "session": "NEW_YORK",
+    "regime": "UNKNOWN",
+    "regime_label": "NORMAL",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:UNKNOWN(NORMAL)\u00d71.00 | sess:NEW_YORK\u00d71.20 | confluence\u00d71.00 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.00) | news:bullish(+0.225) | combined:-0.344 \u2192 conf:0.000 \u26a1 NFP",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-03T13:36:43.365238+00:00",
+    "id": 101,
+    "created_at": "2026-06-03T13:06:43.832335+00:00"
   }
 ]
