@@ -412,6 +412,16 @@ async def _hourly_system_check() -> None:
         print(f"[system_check] CRITICAL: {title} — {detail}")
         await send_critical_alert(title, detail, action)
 
+
+async def _test_personal_alert() -> None:
+    """One-shot test of the personal Telegram alert."""
+    from telegram_bot import send_critical_alert
+    await send_critical_alert(
+        "System Monitor Test",
+        "Personal alerts are working correctly. You will receive warnings here for: Railway hours, GitHub token expiry, and webhook silence.",
+        "No action needed — this is a test."
+    )
+
     # ── Auto-heal: deduplicate trade history ──────────────────────────────────
     try:
         from db import _get_file, _put_file

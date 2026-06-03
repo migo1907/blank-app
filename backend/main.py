@@ -166,6 +166,15 @@ async def health():
     return {"status": "ok", "version": "3.0.0-25F"}
 
 
+@app.get("/test-personal-alert")
+async def test_personal_alert(secret: str = ""):
+    """Send a test critical alert to personal Telegram chat."""
+    _validate_secret(secret)
+    from scheduler import _test_personal_alert
+    asyncio.create_task(_test_personal_alert())
+    return {"status": "sent", "chat_id": "966897595"}
+
+
 @app.get("/test-telegram")
 async def test_telegram(secret: str = ""):
     """Send a test message to Telegram to verify bot connection."""
