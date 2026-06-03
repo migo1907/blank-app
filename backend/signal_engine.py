@@ -354,10 +354,10 @@ def generate_signal(
     is_stock = pool != "XAUUSD"
     min_conf = MIN_CONFIDENCE_STOCKS if is_stock else MIN_CONFIDENCE
 
-    model   = get_model(symbol)
+    model   = get_model(pool)
     rf      = get_rf()
     gbm     = get_gbm()
-    history = recent_outcomes(symbol, limit=300)
+    history = recent_outcomes(pool, limit=300)
     now     = datetime.now(timezone.utc)
 
     # ── Weekend guard ────────────────────────────────────────────────────────

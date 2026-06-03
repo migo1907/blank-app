@@ -127,7 +127,7 @@ async def _write_health_status(signal: dict, news_agg: float, velocity: dict, br
         from db import recent_outcomes
         model  = get_model()
         rf     = get_rf()
-        trades = await asyncio.to_thread(recent_outcomes, 500)
+        trades = await asyncio.to_thread(recent_outcomes, "XAUUSD", 500)
         status = {
             "timestamp":      datetime.now(timezone.utc).isoformat(),
             "signal":         signal["direction"],
@@ -434,7 +434,7 @@ async def _hourly_system_check() -> None:
         from db import recent_outcomes
         rf     = get_rf()
         gbm    = get_gbm()
-        trades = await asyncio.to_thread(recent_outcomes, 500)
+        trades = await asyncio.to_thread(recent_outcomes, "XAUUSD", 500)
         if len(trades) >= 15:
             await asyncio.to_thread(rf.retrain, trades)
             await asyncio.to_thread(gbm.train, trades)

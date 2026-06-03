@@ -33,7 +33,7 @@ async def lifespan(app: FastAPI):
     from db import recent_outcomes
     rf  = get_rf()
     gbm = get_gbm()
-    history = recent_outcomes(limit=500)
+    history = recent_outcomes("XAUUSD", limit=500)
     if len(history) >= 15:
         rf.retrain(history)
         gbm.train(history)
@@ -143,7 +143,6 @@ class UnifiedPayload(BaseModel):
     outcome:     Optional[str]   = None
     ml_outcome:  Optional[str]   = None   # MFE-based label for ML training (may differ from outcome)
     mfe:         float           = 0.0    # max favorable excursion in price units
-    timeframe:   Optional[str]   = None   # TradingView timeframe.period ("2","5","30","60","240")
     tp_stage:    str             = ""
     exit_price:  Optional[float] = None
     f1:  float = 0.0; f2:  float = 0.0; f3:  float = 0.0; f4:  float = 0.0
@@ -570,7 +569,7 @@ async def dashboard(secret: str = ""):
 
     model = get_model()
     rf    = get_rf()
-    recent_trades     = recent_outcomes(limit=10)
+    recent_trades     = recent_outcomes("XAUUSD", limit=10)
     recent_news_items = recent_news(hours=4)
     top3              = model.top_features(3)
 
