@@ -93,7 +93,8 @@ def _regime_context(regime: str, direction: str) -> tuple[float, str]:
         return 1.00, "PULLBACK_LONG"      # valid 2min counter-trend scalp
 
     if regime == "RANGING":
-        return 0.88, "RANGING"            # choppy — reduce confidence
+        # Soft reduction only — don't hard-block (breakouts start from ranging markets)
+        return 0.82, "RANGING"
 
     if regime == "VOLATILE":
         return 0.92, "VOLATILE"           # news-driven — slight reduction
@@ -166,6 +167,29 @@ def _confluence_score(features: Features | None, direction: str, regime: str) ->
 
     score = sum(checks) / len(checks)
     base = 0.70 + score * 0.70
+
+    # ── VWAP Stretch mean-reversion boost ────────────────────────────────────
+    # When price is stretched far from VWAP in the signal direction,
+    # the mean-reversion magnet INCREASES probability of the trade working.
+    # f21 = VWAP distance (positive = above VWAP, negative = below VWAP)
+    # For LONG: price below VWAP (f21 < 0) = stretched down = reversion UP = boost
+    # For SHORT: price above VWAP (f21 > 0) = stretched up = reversion DOWN = boost
+    vwap_stretch = abs(features.f21)
+    if vwap_stretch > 0.6 and features.f21 * sign < 0:
+        # Price is stretched AGAINST direction of signal = mean reversion setup
+        if vwap_stretch > 0.9:
+            base *= 1.18   # extreme stretch — strongest magnet pull
+        else:
+            base *= 1.10   # moderate stretch — good reversion setup
+    elif features.f21 * sign > 0 and vwap_stretch > 0.5:
+        # Price already past VWAP on signal side = trend continuation, slight boost
+        base *= 1.05
+
+    # ── HV AVWAP magnet boost (f24 repurposed context) ───────────────────────
+    # When a quality FVG exists post-sweep (f24 > 0.5), it often coincides with
+    # HV AVWAP acting as a magnet — this is the highest-quality reversion setup
+    if abs(features.f24) > 0.5 and features.f21 * sign < 0:
+        base *= 1.08   # FVG quality + VWAP stretch = institutional magnet confirmed
 
     # ── Pullback confirmation gate ────────────────────────────────────────────
     # Counter-trend scalps (2min/5min pullbacks) are VALID but need reversal
@@ -327,12 +351,16 @@ def generate_signal(
     # ── Reasoning ─────────────────────────────────────────────────────────────
     news_desc = "bullish" if news_agg > 0.2 else "bearish" if news_agg < -0.2 else "neutral"
     model_votes = f"KNN:{knn_dir} RF:{rf_dir} GBM:{gbm_dir}"
+    # VWAP stretch context for reasoning
+    vwap_dist = current_features.f21 if current_features else 0.0
+    vwap_ctx  = "STRETCHED" if abs(vwap_dist) > 0.6 else "NEAR"
     reasoning = (
         f"{model_votes} | agree×{agreement_mult:.2f} | "
         f"regime:{regime}({regime_label})×{regime_mult:.2f} | "
         f"sess:{session_name}×{sess_mult:.2f} | "
         f"confluence×{confluence_mult:.2f} | "
         f"cluster×{cluster_mult:.2f} | "
+        f"vwap:{vwap_ctx}({vwap_dist:+.2f}) | "
         f"news:{news_desc}({news_agg:+.3f}) | "
         f"combined:{combined_score:+.3f} → conf:{confidence:.3f}"
     )
