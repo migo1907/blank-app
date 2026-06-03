@@ -209,10 +209,12 @@ float f23        = useNewFeats ? f23_raw : 0.0
 
 // F24: FVG Quality Score — FVG that formed AFTER a liquidity sweep (highest quality imbalance)
 // Standalone FVG = 0. FVG after sweep = ±1.0 (the setup ICT calls "optimal trade entry")
-bool sweepDown   = low[1] < lowest10Low[2]
-bool sweepUp     = high[1] > highest10High[2]
-bool fvgBullQual = (low > high[2]) and sweepDown
-bool fvgBearQual = (high < low[2]) and sweepUp
+// Step 1: sweep — prior bar broke AND closed back above/below the 20-bar swing level (true sweep)
+bool sweepDown   = low[1] < ta.lowest(low, 20)[2]  and close[1] > ta.lowest(low, 20)[2]
+bool sweepUp     = high[1] > ta.highest(high, 20)[2] and close[1] < ta.highest(high, 20)[2]
+// Step 2: FVG on current bar in reversal direction (gap + directional close confirms imbalance)
+bool fvgBullQual = sweepDown and (low > high[2]) and close > open
+bool fvgBearQual = sweepUp   and (high < low[2]) and close < open
 float f24_raw    = fvgBullQual ? 1.0 : fvgBearQual ? -1.0 : 0.0
 float f24        = useNewFeats ? f24_raw : 0.0
 
