@@ -451,6 +451,7 @@ def generate_signal(
         * rapid_mult
     )
 
+    raw_confidence = confidence  # preserve before zeroing for reasoning
     direction = direction_raw if confidence >= min_conf else "NEUTRAL"
     if direction == "NEUTRAL":
         confidence = 0.0
@@ -460,9 +461,9 @@ def generate_signal(
     # ── Reasoning ─────────────────────────────────────────────────────────────
     news_desc = "bullish" if news_agg > 0.2 else "bearish" if news_agg < -0.2 else "neutral"
     model_votes = f"KNN:{knn_dir} RF:{rf_dir} GBM:{gbm_dir}"
-    # VWAP stretch context for reasoning
     vwap_dist = current_features.f21 if current_features else 0.0
     vwap_ctx  = "STRETCHED" if abs(vwap_dist) > 0.6 else "NEAR"
+    conf_str  = f"{raw_confidence:.3f}" if direction == "NEUTRAL" else f"{confidence:.3f}"
     reasoning = (
         f"{model_votes} | agree×{agreement_mult:.2f} | "
         f"regime:{regime}({regime_label})×{regime_mult:.2f} | "
@@ -473,7 +474,7 @@ def generate_signal(
         f"rapid×{rapid_mult:.2f} | "
         f"vwap:{vwap_ctx}({vwap_dist:+.2f}) | "
         f"news:{news_desc}({news_agg:+.3f}) | "
-        f"combined:{combined_score:+.3f} → conf:{confidence:.3f}"
+        f"combined:{combined_score:+.3f} → conf:{conf_str}"
     )
     if event.get("detected"):
         reasoning += f" ⚡ {event['event_type']}"
