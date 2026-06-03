@@ -26,12 +26,22 @@ KNN_WEIGHT     = 0.35
 RF_WEIGHT      = 0.25
 GBM_WEIGHT     = 0.20
 NEWS_WEIGHT    = 0.20
-MIN_CONFIDENCE = 0.55
+MIN_CONFIDENCE = 0.55   # XAUUSD threshold
+
+# Stocks need higher bar — longer TF signals should be higher quality
+MIN_CONFIDENCE_STOCKS = 0.58
 
 
 # ── Session intelligence (item 5) ─────────────────────────────────────────────
-def _session_multiplier(now_utc: datetime) -> tuple[float, str]:
+def _session_multiplier(now_utc: datetime, is_stock: bool = False) -> tuple[float, str]:
     h = now_utc.hour
+    if is_stock:
+        # Stocks: NYSE hours only — pre-market/after-hours are noise
+        if 13 <= h < 16:  return 1.25, "NYSE_OPEN"    # first 2.5hrs — most volume
+        if 16 <= h < 19:  return 1.10, "NYSE_AFTERNOON"
+        if 12 <= h < 13:  return 0.90, "PRE_MARKET"
+        return 0.60, "CLOSED"                          # outside market hours
+    # Gold — 24hr market
     if 7 <= h < 10:   return 1.30, "LONDON"
     if 13 <= h < 16:  return 1.20, "NEW_YORK"
     if 12 <= h < 13:  return 1.25, "OVERLAP"
@@ -250,8 +260,12 @@ def generate_signal(
     high_impact_event: dict | None = None,
     symbol: str = "XAUUSD",
 ) -> dict:
+    from db import symbol_to_pool
+    pool     = symbol_to_pool(symbol)
+    is_stock = pool != "XAUUSD"
+    min_conf = MIN_CONFIDENCE_STOCKS if is_stock else MIN_CONFIDENCE
 
-    model   = get_model()
+    model   = get_model(symbol)
     rf      = get_rf()
     gbm     = get_gbm()
     history = recent_outcomes(symbol, limit=300)
@@ -320,7 +334,7 @@ def generate_signal(
     regime_mult, regime_label = _regime_context(regime, direction_raw)
 
     # ── Session multiplier (item 5) ───────────────────────────────────────────
-    sess_mult, session_name = _session_multiplier(now)
+    sess_mult, session_name = _session_multiplier(now, is_stock=is_stock)
 
     # ── Feature confluence ────────────────────────────────────────────────────
     confluence_mult = _confluence_score(current_features, direction_raw, regime_label)
@@ -342,7 +356,7 @@ def generate_signal(
         * cluster_mult
     )
 
-    direction = direction_raw if confidence >= MIN_CONFIDENCE else "NEUTRAL"
+    direction = direction_raw if confidence >= min_conf else "NEUTRAL"
     if direction == "NEUTRAL":
         confidence = 0.0
 
@@ -370,6 +384,7 @@ def generate_signal(
     expire_old_signals(symbol)
     row = {
         "symbol":         symbol,
+        "pool":           pool,
         "direction":      direction,
         "confidence":     round(confidence, 4),
         "tier":           tier,

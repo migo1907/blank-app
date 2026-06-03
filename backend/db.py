@@ -81,55 +81,110 @@ def _put_file(path: str, content: dict | list, sha: str | None, message: str) ->
     resp.raise_for_status()
 
 
+# ── Symbol → ML pool routing ───────────────────────────────────────────────────
+
+STOCKS_MOMENTUM = {
+    "TSLA","TSLL","MSTR","UPST","HTZ","SMCI","BLNK","PLUG","HOOD",
+    "BBAI","PLTR","SOXL","TNA","AMD","MU","NVDA","RR",
+}
+STOCKS_QUALITY = {
+    "META","GOOGL","GOOG","MSFT","AAPL","ADBE","IBKR","PATH","NOW","CRM",
+}
+STOCKS_INDEX = {"QQQ","SPY"}
+
+
+def symbol_to_pool(symbol: str) -> str:
+    """Map a ticker to its ML pool name."""
+    # Strip exchange prefix (NASDAQ:TSLA → TSLA)
+    ticker = symbol.split(":")[-1].upper()
+    if ticker == "XAUUSD" or ticker in ("GOLD", "GC"):
+        return "XAUUSD"
+    if ticker in STOCKS_INDEX:
+        return "STOCKS_INDEX"
+    if ticker in STOCKS_QUALITY:
+        return "STOCKS_QUALITY"
+    if ticker in STOCKS_MOMENTUM:
+        return "STOCKS_MOMENTUM"
+    # Unknown stock — default to momentum pool
+    return "STOCKS_MOMENTUM"
+
+
+def _pool_weights_file(pool: str) -> str:
+    if pool == "XAUUSD":
+        return "data/weights.json"
+    return f"data/weights_{pool}.json"
+
+
+def _pool_history_file(pool: str) -> str:
+    if pool == "XAUUSD":
+        return "data/trade_history.json"
+    return f"data/trade_history_{pool}.json"
+
+
 # ── Weights ───────────────────────────────────────────────────────────────────
 
 def load_weights(symbol: str = "XAUUSD") -> dict:
-    data, _ = _get_file("data/weights.json")
+    pool = symbol_to_pool(symbol)
+    path = _pool_weights_file(pool)
+    data, _ = _get_file(path)
     if data is None:
-        print("[db] weights.json not found — using defaults.")
+        print(f"[db] {path} not found — cloning XAUUSD weights as baseline.")
+        # Transfer learning: clone gold weights so stocks start with learned priors
+        gold, _ = _get_file("data/weights.json")
+        if gold:
+            cloned = dict(gold)
+            cloned["symbol"] = pool
+            cloned["total_wins"] = 0
+            cloned["total_losses"] = 0
+            cloned["updated_at"] = datetime.now(timezone.utc).isoformat()
+            return cloned
         return dict(DEFAULT_WEIGHTS)
     return data
 
 
 def save_weights(symbol: str, weights: dict) -> None:
-    _, sha = _get_file("data/weights.json")
+    pool = symbol_to_pool(symbol)
+    path = _pool_weights_file(pool)
+    _, sha = _get_file(path)
     weights["updated_at"] = datetime.now(timezone.utc).isoformat()
-    weights["symbol"] = symbol
+    weights["symbol"] = pool
     _put_file(
-        "data/weights.json",
+        path,
         weights,
         sha,
-        f"chore: update adaptive weights — wins={weights.get('total_wins',0)} losses={weights.get('total_losses',0)}",
+        f"chore: update {pool} weights — wins={weights.get('total_wins',0)} losses={weights.get('total_losses',0)}",
     )
 
 
 # ── Trade outcomes ─────────────────────────────────────────────────────────────
 
 def insert_outcome(outcome: dict) -> None:
-    history, sha = _get_file("data/trade_history.json")
+    pool = symbol_to_pool(outcome.get("symbol", "XAUUSD"))
+    path = _pool_history_file(pool)
+    history, sha = _get_file(path)
     if history is None:
         history = []
-    # UUID prevents duplicate IDs when concurrent webhooks fire simultaneously
     outcome["id"] = str(uuid.uuid4())[:8]
+    outcome["pool"] = pool
     outcome.setdefault("created_at", datetime.now(timezone.utc).isoformat())
     history.append(outcome)
-    # Keep last 1000 trades to avoid huge files
     if len(history) > 1000:
         history = history[-1000:]
     _put_file(
-        "data/trade_history.json",
+        path,
         history,
         sha,
-        f"data: record {outcome['outcome']} {outcome.get('direction','')} trade",
+        f"data: record {outcome['outcome']} {outcome.get('direction','')} {pool} trade",
     )
 
 
 def recent_outcomes(symbol: str = "XAUUSD", limit: int = 200) -> list[dict]:
-    history, _ = _get_file("data/trade_history.json")
+    pool = symbol_to_pool(symbol)
+    path = _pool_history_file(pool)
+    history, _ = _get_file(path)
     if not history:
         return []
-    # Include trades with matching symbol OR backtest trades (no symbol field)
-    filtered = [t for t in history if t.get("symbol", symbol) == symbol]
+    filtered = [t for t in history if symbol_to_pool(t.get("symbol", symbol)) == pool]
     return list(reversed(filtered))[:limit]
 
 

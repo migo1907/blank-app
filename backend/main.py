@@ -192,7 +192,8 @@ async def trade_outcome(payload: TradeOutcomePayload):
     from ml_ensemble import get_rf
     from db import insert_outcome, recent_outcomes
 
-    model = get_model()
+    sym = getattr(payload, "symbol", "XAUUSD") or "XAUUSD"
+    model = get_model(sym)
     features = Features(
         f1=payload.f1,   f2=payload.f2,   f3=payload.f3,   f4=payload.f4,
         f5=payload.f5,   f6=payload.f6,   f7=payload.f7,   f8=payload.f8,
@@ -203,12 +204,13 @@ async def trade_outcome(payload: TradeOutcomePayload):
         f25=payload.f25,
     )
 
+    from db import symbol_to_pool
     model.update_on_outcome(features, payload.direction, payload.outcome)
-    model.save()
+    model.save(symbol_to_pool(sym))
 
     # Store outcome in GitHub for future KNN/RF history
     outcome_row = {
-        "symbol":        "XAUUSD",
+        "symbol":        sym,
         "direction":     payload.direction,
         "entry_price":   payload.entry_price,
         "exit_price":    payload.exit_price,
@@ -222,7 +224,7 @@ async def trade_outcome(payload: TradeOutcomePayload):
 
     # Opportunistic RF retrain (async, non-blocking)
     async def _retrain():
-        history = recent_outcomes(limit=500)
+        history = recent_outcomes(sym, limit=500)
         if len(history) >= 15:
             get_rf().retrain(history)
             get_gbm().train(history)
@@ -304,8 +306,9 @@ async def unified_webhook(payload: UnifiedPayload):
     if is_outcome:
         from ml_model import get_model, Features
         from ml_ensemble import get_rf, get_gbm
-        from db import insert_outcome, recent_outcomes
-        model    = get_model()
+        from db import insert_outcome, recent_outcomes, symbol_to_pool
+        sym2     = payload.symbol or "XAUUSD"
+        model    = get_model(sym2)
         features = Features(
             f1=payload.f1, f2=payload.f2, f3=payload.f3, f4=payload.f4,
             f5=payload.f5, f6=payload.f6, f7=payload.f7, f8=payload.f8,
@@ -316,9 +319,9 @@ async def unified_webhook(payload: UnifiedPayload):
             f25=payload.f25,
         )
         model.update_on_outcome(features, payload.direction, payload.outcome)
-        model.save()
+        model.save(symbol_to_pool(sym2))
         outcome_row = {
-            "symbol":        "XAUUSD",
+            "symbol":        sym2,
             "direction":     payload.direction,
             "entry_price":   payload.entry_price or 0.0,
             "exit_price":    payload.exit_price or 0.0,
@@ -330,7 +333,7 @@ async def unified_webhook(payload: UnifiedPayload):
         insert_outcome(outcome_row)
 
         async def _retrain():
-            history = recent_outcomes(limit=500)
+            history = recent_outcomes(sym2, limit=500)
             if len(history) >= 15:
                 get_rf().retrain(history)
                 get_gbm().train(history)

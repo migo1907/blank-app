@@ -140,9 +140,8 @@ class AdaptiveKNN:
 
     # ── Persistence ──────────────────────────────────────────
 
-    def load(self, symbol: str = SYMBOL) -> None:
-        row = load_weights(symbol)
-        # Support both old (8-weight) and new (20-weight) stored formats
+    def load(self, pool: str = SYMBOL) -> None:
+        row = load_weights(pool)
         loaded = []
         for i in range(1, N_FEATURES + 1):
             loaded.append(float(row.get(f"w{i}", 1.0)))
@@ -150,17 +149,17 @@ class AdaptiveKNN:
         self._total_wins = row.get("total_wins", 0)
         self._total_losses = row.get("total_losses", 0)
         self._dirty = False
-        print(f"[ml] Loaded weights (25F) from storage: {[round(w, 3) for w in self._weights]}")
+        print(f"[ml] Pool '{pool}' weights (25F): {[round(w, 3) for w in self._weights]}")
 
-    def save(self, symbol: str = SYMBOL) -> None:
+    def save(self, pool: str = SYMBOL) -> None:
         if not self._dirty:
             return
         payload = {f"w{i+1}": self._weights[i] for i in range(N_FEATURES)}
         payload["total_wins"] = self._total_wins
         payload["total_losses"] = self._total_losses
-        save_weights(symbol, payload)
+        save_weights(pool, payload)
         self._dirty = False
-        print(f"[ml] Weights saved. Wins={self._total_wins} Losses={self._total_losses}")
+        print(f"[ml] Pool '{pool}' weights saved. Wins={self._total_wins} Losses={self._total_losses}")
 
     # ── KNN inference ────────────────────────────────────────
 
@@ -244,13 +243,16 @@ class AdaptiveKNN:
         return self.top_features(1)[0][0]
 
 
-# Singleton instance used by the FastAPI app
-_model: AdaptiveKNN | None = None
+# Pool-aware singletons — one AdaptiveKNN per ML pool
+_models: dict[str, AdaptiveKNN] = {}
 
 
-def get_model() -> AdaptiveKNN:
-    global _model
-    if _model is None:
-        _model = AdaptiveKNN()
-        _model.load()
-    return _model
+def get_model(symbol: str = "XAUUSD") -> AdaptiveKNN:
+    from db import symbol_to_pool
+    pool = symbol_to_pool(symbol)
+    if pool not in _models:
+        m = AdaptiveKNN()
+        m.load(pool)
+        _models[pool] = m
+        print(f"[ml] Loaded pool '{pool}' for symbol '{symbol}'")
+    return _models[pool]
