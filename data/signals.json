@@ -6,22 +6,6 @@
     "tier": "LOW",
     "ml_score": 0.5,
     "rf_score": 0.5,
-    "news_score": -0.0387,
-    "combined_score": 0.0,
-    "session": "N/A",
-    "reasoning": "News velocity CONFLICTED \u2014 holding off",
-    "status": "NEUTRAL",
-    "expires_at": "2026-06-02T18:07:38.015947+00:00",
-    "id": 101,
-    "created_at": "2026-06-02T17:37:38.457299+00:00"
-  },
-  {
-    "symbol": "XAUUSD",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
     "news_score": 0.0936,
     "combined_score": 0.0,
     "session": "N/A",
@@ -1841,5 +1825,25 @@
     "expires_at": "2026-06-03T14:51:46.922033+00:00",
     "id": 101,
     "created_at": "2026-06-03T14:21:47.361498+00:00"
+  },
+  {
+    "symbol": "XAUUSD",
+    "pool": "XAUUSD",
+    "direction": "SHORT",
+    "confidence": 0.5837,
+    "tier": "LOW",
+    "ml_score": 0.5794,
+    "rf_score": 0.0299,
+    "gbm_score": 0.0,
+    "news_score": 0.0,
+    "combined_score": -0.4053,
+    "session": "NEW_YORK",
+    "regime": "UNKNOWN",
+    "regime_label": "NORMAL",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:UNKNOWN(NORMAL)\u00d71.00 | sess:NEW_YORK\u00d71.20 | confluence\u00d71.00 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.00) | news:neutral(+0.000) | combined:-0.405 \u2192 conf:0.584 \u26a1 WAR/CONFLICT",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-03T15:06:49.902819+00:00",
+    "id": 101,
+    "created_at": "2026-06-03T14:36:50.311571+00:00"
   }
 ]
