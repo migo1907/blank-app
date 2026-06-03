@@ -1,0 +1,506 @@
+//@version=6
+indicator("XAU/USD Migo VS Market Sniper Pro [ML]", overlay=true, max_labels_count=500)
+
+// ═══════════════════════════════════════════════════════════════════
+//  INPUTS
+// ═══════════════════════════════════════════════════════════════════
+
+// Trade Structure
+int   lookback     = input.int(50,    "Structural Lookback",           group="⚙️ Trade Settings")
+float atrMultTP1   = input.float(1.5, "TP1 ATR Multiplier",            group="⚙️ Trade Settings")
+float atrMultTP2   = input.float(2.5, "TP2 ATR Multiplier",            group="⚙️ Trade Settings")
+float atrMultTP3   = input.float(4.0, "TP3 ATR Multiplier (Runner)",   group="⚙️ Trade Settings")
+float atrMultSL    = input.float(1.5, "SL ATR Multiplier",             group="⚙️ Trade Settings")
+float trailMult    = input.float(1.2, "Trail Stop ATR Multiplier",     group="⚙️ Trade Settings")
+float tpProximity  = input.float(80.0,"Near-TP Reset Threshold %",     group="⚙️ Trade Settings", minval=50, maxval=99) / 100.0
+
+// Market Filters
+int   adxLen       = input.int(14,    "ADX Length",                    group="🔎 Market Filters")
+float adxThreshold = input.float(20.0,"ADX Sideways Threshold",        group="🔎 Market Filters")
+float atrRangeRatio= input.float(0.75,"ATR Range Ratio",               group="🔎 Market Filters")
+float emaBandPct   = input.float(0.3, "EMA Band % (50/200 too close)", group="🔎 Market Filters")
+
+// Machine Learning — KNN
+int   mlK          = input.int(8,     "K Neighbors",                   group="🤖 ML · KNN", minval=3, maxval=20)
+int   mlDepth      = input.int(2000,  "History Depth (bars)",          group="🤖 ML · KNN", minval=500, maxval=5000)
+int   mlLag        = input.int(4,     "Forward Lag (bars)",            group="🤖 ML · KNN", minval=1, maxval=20)
+float mlMinScore   = input.float(0.55,"Min Prediction Score",          group="🤖 ML · KNN", minval=0.50, maxval=0.90, step=0.05)
+
+// Kernel Regression
+bool  useKernel    = input.bool(true,  "Enable Kernel Regression",     group="📈 ML · Kernel")
+int   kernelWindow = input.int(8,      "Kernel Lookback Window",       group="📈 ML · Kernel", minval=3, maxval=50)
+float kernelH      = input.float(8.0,  "Bandwidth (h)",                group="📈 ML · Kernel", minval=1.0, maxval=50.0)
+float kernelAlpha  = input.float(1.0,  "Kernel Alpha (RQ exponent)",   group="📈 ML · Kernel", minval=0.1, maxval=5.0)
+
+// ═══════════════════════════════════════════════════════════════════
+//  CORE INDICATORS
+// ═══════════════════════════════════════════════════════════════════
+float rsiVal   = ta.rsi(close, 14)
+float maLong   = ta.ema(close, 200)
+float maShort  = ta.ema(close, 50)
+float atr      = ta.atr(14)
+float atrSma   = ta.sma(atr, 20)
+[diPlus, diMinus, adxVal] = ta.dmi(adxLen, adxLen)
+
+// Extra indicators for ML features
+float macdLine   = ta.ema(close, 12) - ta.ema(close, 26)
+float macdSig    = ta.ema(macdLine, 9)
+float macdHist   = macdLine - macdSig
+[bbUp, bbMid, bbLow_] = ta.bb(close, 20, 2.0)
+float bbPct      = (close - bbLow_) / math.max(bbUp - bbLow_, 0.0001)
+float willR      = ta.wpr(14)
+float cmo        = ta.cmo(close, 14) / 100.0  // normalized -1 to +1
+
+// HTF (1H) trend bias
+float ma50_1h    = request.security(syminfo.tickerid, "60", ta.ema(close, 50))
+float rsi_1h     = request.security(syminfo.tickerid, "60", ta.rsi(close, 14))
+string mainTrend = (close > ma50_1h and rsi_1h > 50) ? "UPTREND" :
+                   (close < ma50_1h and rsi_1h < 50) ? "DOWNTREND" : "SIDEWAYS"
+
+// Auto structure levels
+float dynResist  = ta.highest(high, lookback)
+float dynSupport = ta.lowest(low,  lookback)
+
+// Sideways filter (same 3-flag logic as original)
+bool adxFlat       = adxVal < adxThreshold
+bool atrCompressed = atr < (atrSma * atrRangeRatio)
+bool emaTooClose   = math.abs(maShort - maLong) / maLong * 100 < emaBandPct
+int  sidewaysCount = (adxFlat ? 1 : 0) + (atrCompressed ? 1 : 0) + (emaTooClose ? 1 : 0)
+bool isSideways    = sidewaysCount >= 2
+
+// ═══════════════════════════════════════════════════════════════════
+//  ML BLOCK 1 — FEATURE ENGINEERING
+//  8 features, each normalized to [-1, +1]
+//
+//  F1  RSI deviation from 50  (momentum direction)
+//  F2  ADX × DI bias          (trend strength + direction)
+//  F3  ATR volatility ratio   (regime: expanding vs compressed)
+//  F4  Bollinger Band %       (price location within volatility band)
+//  F5  MACD histogram         (momentum acceleration)
+//  F6  Williams %R            (overbought/oversold, flipped)
+//  F7  CMO                    (Chande Momentum, already ±1)
+//  F8  Price vs EMA-200       (macro trend distance)
+// ═══════════════════════════════════════════════════════════════════
+float f1 = (rsiVal - 50.0) / 50.0
+float f2 = math.min(adxVal / 50.0, 1.0) * (diPlus > diMinus ? 1.0 : -1.0)
+float f3 = math.max(-1.0, math.min(1.0, (atr / atrSma - 1.0) * 2.0))
+float f4 = math.max(-1.0, math.min(1.0, (bbPct - 0.5) * 2.0))
+float f5 = math.max(-1.0, math.min(1.0, macdHist / math.max(atr * 0.1, 0.0001)))
+float f6 = -(willR + 50.0) / 50.0
+float f7 = cmo
+float f8 = math.max(-1.0, math.min(1.0, (close - maLong) / (atr * 5.0)))
+
+// ═══════════════════════════════════════════════════════════════════
+//  ML BLOCK 2 — LORENTZIAN DISTANCE KNN CLASSIFIER
+//
+//  Lorentzian metric: Σ log(1 + |fᵢ - gᵢ|)
+//  More robust than Euclidean for fat-tailed financial data.
+//  For each current bar we find the K historical bars whose feature
+//  vectors are closest, then vote on whether price rose or fell
+//  mlLag bars after each of those historical bars.
+// ═══════════════════════════════════════════════════════════════════
+
+// Inline Lorentzian distance across 8 features
+lorDist(a1, a2, a3, a4, a5, a6, a7, a8,
+        b1, b2, b3, b4, b5, b6, b7, b8) =>
+    math.log(1.0 + math.abs(a1 - b1)) +
+    math.log(1.0 + math.abs(a2 - b2)) +
+    math.log(1.0 + math.abs(a3 - b3)) +
+    math.log(1.0 + math.abs(a4 - b4)) +
+    math.log(1.0 + math.abs(a5 - b5)) +
+    math.log(1.0 + math.abs(a6 - b6)) +
+    math.log(1.0 + math.abs(a7 - b7)) +
+    math.log(1.0 + math.abs(a8 - b8))
+
+var float mlBull = 0.5  // probability price rises   (0-1)
+var float mlBear = 0.5  // probability price falls   (0-1)
+
+if bar_index > mlK * 2 + mlLag
+    // K-slot arrays: track the K nearest neighbours found so far
+    float[] kDist = array.new_float(mlK, 1.0e10)
+    int[]   kLbl  = array.new_int(mlK,   0)
+
+    // Adaptive step: sample up to ~400 historical bars for performance
+    int searchLen = math.min(mlDepth, bar_index - mlLag - 1)
+    int step      = math.max(1, math.round(searchLen / 400.0))
+
+    for i = mlLag + step to searchLen by step
+        if not na(f1[i]) and not na(f2[i])
+            float d = lorDist(
+                 f1,    f2,    f3,    f4,    f5,    f6,    f7,    f8,
+                 f1[i], f2[i], f3[i], f4[i], f5[i], f6[i], f7[i], f8[i])
+
+            // Replace farthest slot if this bar is closer
+            int   farIdx  = 0
+            float farDist = array.get(kDist, 0)
+            for j = 1 to mlK - 1
+                float kd = array.get(kDist, j)
+                if kd > farDist
+                    farDist := kd
+                    farIdx  := j
+            if d < farDist
+                array.set(kDist, farIdx, d)
+                // Label: did close rise mlLag bars after bar[i]?
+                int lbl = close[i - mlLag] > close[i] ? 1 : -1
+                array.set(kLbl, farIdx, lbl)
+
+    // Tally neighbour votes
+    int bulls = 0
+    int bears = 0
+    for j = 0 to mlK - 1
+        if array.get(kDist, j) < 1.0e9
+            int v = array.get(kLbl, j)
+            if v == 1
+                bulls += 1
+            else
+                bears += 1
+
+    int total = bulls + bears
+    mlBull := total > 0 ? bulls / total : 0.5
+    mlBear := total > 0 ? bears / total : 0.5
+
+// Prediction gates
+bool mlBullish = mlBull >= mlMinScore
+bool mlBearish = mlBear >= mlMinScore
+
+// ═══════════════════════════════════════════════════════════════════
+//  ML BLOCK 3 — RATIONAL QUADRATIC KERNEL REGRESSION
+//
+//  Smooths price non-parametrically using:
+//    w(i) = (1 + i² / (2·α·h²))^(−α)
+//  Higher h → smoother; higher α → approaches Gaussian kernel.
+//  Gives a noise-filtered price estimate and its direction.
+// ═══════════════════════════════════════════════════════════════════
+rqKernel(src, h, alpha, window) =>
+    float num = 0.0
+    float den = 0.0
+    for i = 0 to window - 1
+        float w = math.pow(1.0 + (i * i) / (2.0 * alpha * h * h), -alpha)
+        num += src[i] * w
+        den += w
+    den > 0.0 ? num / den : src[0]
+
+float kernelEst  = useKernel ? rqKernel(close, kernelH, kernelAlpha, kernelWindow) : maShort
+bool  kernelUp   = kernelEst > kernelEst[2]
+bool  kernelDown = kernelEst < kernelEst[2]
+
+// ═══════════════════════════════════════════════════════════════════
+//  TRADE STATE
+// ═══════════════════════════════════════════════════════════════════
+var string activeTrade = "NONE"
+var float  entryPrice  = 0.0
+var float  tp1Price    = 0.0
+var float  tp2Price    = 0.0
+var float  tp3Price    = 0.0
+var float  slPrice     = 0.0
+var int    tradeConf   = 0
+var bool   tp1Hit      = false
+var bool   tp2Hit      = false
+var float  trailSL     = 0.0
+
+// ═══════════════════════════════════════════════════════════════════
+//  TRAIL STOP (runs every bar while in trade)
+// ═══════════════════════════════════════════════════════════════════
+if activeTrade == "LONG" and tp1Hit
+    float newTrail = high - (atr * trailMult)
+    trailSL := math.max(trailSL, newTrail)
+    slPrice  := trailSL
+
+if activeTrade == "SHORT" and tp1Hit
+    float newTrail = low + (atr * trailMult)
+    trailSL := math.min(trailSL, newTrail)
+    slPrice  := trailSL
+
+// ═══════════════════════════════════════════════════════════════════
+//  TP / SL HIT CHECKS
+// ═══════════════════════════════════════════════════════════════════
+if activeTrade == "LONG"
+    if not tp1Hit and high >= tp1Price
+        tp1Hit  := true
+        trailSL := close - (atr * trailMult)
+        slPrice := trailSL
+        label.new(bar_index, high, "TP1 ✓\nTrail ON",
+            color=color.new(color.green, 40), textcolor=color.white,
+            style=label.style_label_down, size=size.tiny)
+
+    if tp1Hit and not tp2Hit and high >= tp2Price
+        tp2Hit := true
+        label.new(bar_index, high, "TP2 ✓",
+            color=color.new(color.green, 20), textcolor=color.white,
+            style=label.style_label_down, size=size.tiny)
+
+    if tp1Hit and tp2Hit and high >= tp3Price
+        activeTrade := "NONE", tp1Hit := false, tp2Hit := false
+        label.new(bar_index, high, "TP3 ✓\nFULL RUN!",
+            color=color.green, textcolor=color.white,
+            style=label.style_label_down, size=size.small)
+
+    if low <= slPrice
+        string exitLabel = tp1Hit ? (tp2Hit ? "SL (after TP2)" : "SL (after TP1)") : "SL HIT"
+        label.new(bar_index, low, exitLabel,
+            color=color.red, textcolor=color.white,
+            style=label.style_label_up, size=size.tiny)
+        activeTrade := "NONE", tp1Hit := false, tp2Hit := false
+
+if activeTrade == "SHORT"
+    if not tp1Hit and low <= tp1Price
+        tp1Hit  := true
+        trailSL := close + (atr * trailMult)
+        slPrice := trailSL
+        label.new(bar_index, low, "TP1 ✓\nTrail ON",
+            color=color.new(color.green, 40), textcolor=color.white,
+            style=label.style_label_up, size=size.tiny)
+
+    if tp1Hit and not tp2Hit and low <= tp2Price
+        tp2Hit := true
+        label.new(bar_index, low, "TP2 ✓",
+            color=color.new(color.green, 20), textcolor=color.white,
+            style=label.style_label_up, size=size.tiny)
+
+    if tp1Hit and tp2Hit and low <= tp3Price
+        activeTrade := "NONE", tp1Hit := false, tp2Hit := false
+        label.new(bar_index, low, "TP3 ✓\nFULL RUN!",
+            color=color.green, textcolor=color.white,
+            style=label.style_label_up, size=size.small)
+
+    if high >= slPrice
+        string exitLabel = tp1Hit ? (tp2Hit ? "SL (after TP2)" : "SL (after TP1)") : "SL HIT"
+        label.new(bar_index, high, exitLabel,
+            color=color.red, textcolor=color.white,
+            style=label.style_label_down, size=size.tiny)
+        activeTrade := "NONE", tp1Hit := false, tp2Hit := false
+
+// ═══════════════════════════════════════════════════════════════════
+//  NEAR-TP1 PROXIMITY RESET (before TP1 hit only)
+// ═══════════════════════════════════════════════════════════════════
+if activeTrade == "LONG" and not tp1Hit
+    float tpRange     = tp1Price - entryPrice
+    float nearTPLevel = entryPrice + (tpRange * tpProximity)
+    if ta.highest(high, 3) >= nearTPLevel and close < nearTPLevel
+        activeTrade := "NONE", tp1Hit := false, tp2Hit := false
+
+if activeTrade == "SHORT" and not tp1Hit
+    float tpRange     = entryPrice - tp1Price
+    float nearTPLevel = entryPrice - (tpRange * tpProximity)
+    if ta.lowest(low, 3) <= nearTPLevel and close > nearTPLevel
+        activeTrade := "NONE", tp1Hit := false, tp2Hit := false
+
+// ═══════════════════════════════════════════════════════════════════
+//  ML-ENHANCED SIGNALS
+//
+//  Original trigger (RSI crossover + price confirmation) is kept as
+//  the base condition.  Two extra ML gates are required:
+//    1. KNN score ≥ mlMinScore in the correct direction
+//    2. Kernel regression slope agrees with direction
+//
+//  tradeConf is now the live KNN probability (0-100), not hardcoded.
+// ═══════════════════════════════════════════════════════════════════
+bool buyBase  = not isSideways and ta.crossover(rsiVal, 45)  and close > low[1]
+bool sellBase = not isSideways and ta.crossunder(rsiVal, 55) and close < high[1]
+
+bool buySignal  = buyBase  and mlBullish and (not useKernel or kernelUp)
+bool sellSignal = sellBase and mlBearish and (not useKernel or kernelDown)
+
+bool doBuy  = buySignal  and activeTrade != "LONG"
+bool doSell = sellSignal and activeTrade != "SHORT"
+
+int mlConfBuy  = math.round(mlBull * 100)
+int mlConfSell = math.round(mlBear * 100)
+
+if doBuy
+    activeTrade := "LONG"
+    entryPrice  := close
+    tp1Price    := close + (atr * atrMultTP1)
+    tp2Price    := close + (atr * atrMultTP2)
+    tp3Price    := close + (atr * atrMultTP3)
+    slPrice     := close - (atr * atrMultSL)
+    trailSL     := close - (atr * atrMultSL)
+    tp1Hit      := false
+    tp2Hit      := false
+    tradeConf   := mlConfBuy
+    label.new(bar_index, low,
+        "🤖 BUY  ML:" + str.tostring(mlConfBuy) + "%\n" +
+        "Ent: " + str.tostring(entryPrice, "#.##") + "\n" +
+        "TP1: " + str.tostring(tp1Price,   "#.##") + "\n" +
+        "TP2: " + str.tostring(tp2Price,   "#.##") + "\n" +
+        "TP3: " + str.tostring(tp3Price,   "#.##") + "\n" +
+        "SL:  " + str.tostring(slPrice,    "#.##"),
+        color=color.green, textcolor=color.white,
+        style=label.style_label_up, size=size.small)
+
+if doSell
+    activeTrade := "SHORT"
+    entryPrice  := close
+    tp1Price    := close - (atr * atrMultTP1)
+    tp2Price    := close - (atr * atrMultTP2)
+    tp3Price    := close - (atr * atrMultTP3)
+    slPrice     := close + (atr * atrMultSL)
+    trailSL     := close + (atr * atrMultSL)
+    tp1Hit      := false
+    tp2Hit      := false
+    tradeConf   := mlConfSell
+    label.new(bar_index, high,
+        "🤖 SELL  ML:" + str.tostring(mlConfSell) + "%\n" +
+        "Ent: " + str.tostring(entryPrice, "#.##") + "\n" +
+        "TP1: " + str.tostring(tp1Price,   "#.##") + "\n" +
+        "TP2: " + str.tostring(tp2Price,   "#.##") + "\n" +
+        "TP3: " + str.tostring(tp3Price,   "#.##") + "\n" +
+        "SL:  " + str.tostring(slPrice,    "#.##"),
+        color=color.red, textcolor=color.white,
+        style=label.style_label_down, size=size.small)
+
+// ═══════════════════════════════════════════════════════════════════
+//  VISUALS
+// ═══════════════════════════════════════════════════════════════════
+// Ranging background
+bgcolor(isSideways ? color.new(color.yellow, 90) : na, title="Ranging Zone")
+
+// ML bullish / bearish soft highlight
+bgcolor(mlBullish and not isSideways ? color.new(color.green, 96) : na, title="ML Bull Zone")
+bgcolor(mlBearish and not isSideways ? color.new(color.red,   96) : na, title="ML Bear Zone")
+
+// EMAs
+plot(maLong,  color=color.new(color.green, 50), linewidth=1, title="EMA 200")
+plot(maShort, color=color.new(#0d64ac,     50), linewidth=1, title="EMA 50")
+
+// Kernel regression — colour changes with slope
+plot(useKernel ? kernelEst : na,
+     color    = kernelUp ? color.new(color.teal,   10) : color.new(color.purple, 10),
+     linewidth = 2,
+     title     = "Kernel Estimate")
+
+// Trail stop
+plot(activeTrade != "NONE" and tp1Hit ? slPrice : na,
+     color     = color.orange,
+     style     = plot.style_stepline,
+     linewidth  = 2,
+     title      = "Trail Stop")
+
+// ═══════════════════════════════════════════════════════════════════
+//  DASHBOARD  (12-row ML-enhanced table)
+// ═══════════════════════════════════════════════════════════════════
+string tpStage    = not tp1Hit ? "Targeting TP1" : not tp2Hit ? "TP1 ✓ → TP2" : "TP2 ✓ → TP3 🚀"
+color  stageColor = not tp1Hit ? color.white      : not tp2Hit ? color.lime    : color.aqua
+
+var table hub = table.new(position.bottom_left, 4, 13,
+    bgcolor      = color.rgb(15, 15, 15),
+    border_color = color.gray,
+    border_width = 1)
+
+if barstate.islast
+    // ── Row 0: Header ──────────────────────────────────────────────
+    table.cell(hub, 0, 0, "MIGO SNIPER V6  [ML EDITION]",
+        text_color = color.white,
+        bgcolor    = color.rgb(65, 14, 58))
+    table.merge_cells(hub, 0, 0, 3, 0)
+
+    // ── Row 1: Market state ────────────────────────────────────────
+    string mktState      = isSideways ? "⚠ RANGING — WAIT" :
+                           mainTrend == "UPTREND" ? "▲ UPTREND" : "▼ DOWNTREND"
+    color  mktStateColor = isSideways ? color.yellow :
+                           mainTrend == "UPTREND" ? color.green : color.red
+    table.cell(hub, 0, 1, "MKT STATE",  text_color=color.gray, text_size=size.small)
+    table.cell(hub, 1, 1, mktState,     text_color=mktStateColor)
+    table.merge_cells(hub, 1, 1, 3, 1)
+
+    // ── Row 2: KNN scores ──────────────────────────────────────────
+    string bullStr   = str.tostring(math.round(mlBull * 100)) + "%"
+    string bearStr   = str.tostring(math.round(mlBear * 100)) + "%"
+    table.cell(hub, 0, 2, "ML BULL 🐂",  text_color=color.gray,  text_size=size.small)
+    table.cell(hub, 1, 2, bullStr,        text_color=mlBullish ? color.lime  : color.white)
+    table.cell(hub, 2, 2, "ML BEAR 🐻",  text_color=color.gray,  text_size=size.small)
+    table.cell(hub, 3, 2, bearStr,        text_color=mlBearish ? color.red   : color.white)
+
+    // ── Row 3: Kernel + Confidence ─────────────────────────────────
+    string kernelStr   = not useKernel ? "OFF" : kernelUp ? "▲ Rising" : "▼ Falling"
+    color  kernelColor = not useKernel ? color.gray : kernelUp ? color.teal : color.purple
+    table.cell(hub, 0, 3, "KERNEL",      text_color=color.gray,   text_size=size.small)
+    table.cell(hub, 1, 3, kernelStr,     text_color=kernelColor)
+    table.cell(hub, 2, 3, "CONFIDENCE",  text_color=color.gray,   text_size=size.small)
+    table.cell(hub, 3, 3, isSideways ? "-" : str.tostring(tradeConf) + "%",
+        text_color=color.yellow)
+
+    // ── Row 4: Signal + Stage ──────────────────────────────────────
+    table.cell(hub, 0, 4, "SIGNAL",  text_color=color.gray, text_size=size.small)
+    table.cell(hub, 1, 4,
+        isSideways ? "BLOCKED" : activeTrade,
+        text_color = isSideways         ? color.yellow :
+                     activeTrade == "LONG"  ? color.green :
+                     activeTrade == "SHORT" ? color.red   : color.yellow)
+    table.cell(hub, 2, 4, "STAGE",   text_color=color.gray, text_size=size.small)
+    table.cell(hub, 3, 4, activeTrade != "NONE" ? tpStage : "-", text_color=stageColor)
+
+    // ── Row 5: Entry + Trail SL ────────────────────────────────────
+    table.cell(hub, 0, 5, "ENTRY",    text_color=color.gray, text_size=size.small)
+    table.cell(hub, 1, 5,
+        activeTrade != "NONE" ? str.tostring(entryPrice, "#.##") : "WAIT",
+        text_color=color.white)
+    table.cell(hub, 2, 5, "TRAIL SL", text_color=color.gray, text_size=size.small)
+    table.cell(hub, 3, 5,
+        (activeTrade != "NONE" and tp1Hit) ? str.tostring(slPrice, "#.##") : "-",
+        text_color=color.orange)
+
+    // ── Row 6: TP1 + SL ───────────────────────────────────────────
+    table.cell(hub, 0, 6, "TP1", text_color=color.gray, text_size=size.small)
+    table.cell(hub, 1, 6,
+        activeTrade != "NONE" ? str.tostring(tp1Price, "#.##") : "-",
+        text_color = tp1Hit ? color.lime : color.green)
+    table.cell(hub, 2, 6, "SL",  text_color=color.gray, text_size=size.small)
+    table.cell(hub, 3, 6,
+        activeTrade != "NONE" ? str.tostring(slPrice, "#.##") : "-",
+        text_color=color.red)
+
+    // ── Row 7: TP2 + TP3 ──────────────────────────────────────────
+    table.cell(hub, 0, 7, "TP2",    text_color=color.gray, text_size=size.small)
+    table.cell(hub, 1, 7,
+        activeTrade != "NONE" ? str.tostring(tp2Price, "#.##") : "-",
+        text_color = tp2Hit ? color.lime : color.green)
+    table.cell(hub, 2, 7, "TP3 🚀", text_color=color.gray, text_size=size.small)
+    table.cell(hub, 3, 7,
+        activeTrade != "NONE" ? str.tostring(tp3Price, "#.##") : "-",
+        text_color=color.aqua)
+
+    // ── Row 8: Feature vector snapshot (F1-F4) ────────────────────
+    string fRow1 = "F1(RSI):"  + str.tostring(math.round(f1 * 100)) +
+                  "  F2(ADX):" + str.tostring(math.round(f2 * 100)) +
+                  "  F3(ATR):" + str.tostring(math.round(f3 * 100)) +
+                  "  F4(BB):"  + str.tostring(math.round(f4 * 100))
+    table.cell(hub, 0, 8, fRow1,
+        text_color=color.new(color.gray, 20), text_size=size.tiny)
+    table.merge_cells(hub, 0, 8, 3, 8)
+
+    // ── Row 9: Feature vector snapshot (F5-F8) ────────────────────
+    string fRow2 = "F5(MACD):" + str.tostring(math.round(f5 * 100)) +
+                  "  F6(WR):"  + str.tostring(math.round(f6 * 100)) +
+                  "  F7(CMO):" + str.tostring(math.round(f7 * 100)) +
+                  "  F8(EMA):" + str.tostring(math.round(f8 * 100))
+    table.cell(hub, 0, 9, fRow2,
+        text_color=color.new(color.gray, 20), text_size=size.tiny)
+    table.merge_cells(hub, 0, 9, 3, 9)
+
+    // ── Row 10: Volatility regime ──────────────────────────────────
+    float  volRatio   = atr / atrSma
+    string volStatus  = volRatio > 1.5 ? "HIGH VOL" : volRatio < 0.7 ? "LOW VOL" : "STABLE"
+    color  volColor   = volStatus == "HIGH VOL" ? color.red :
+                        volStatus == "LOW VOL"  ? color.aqua : color.green
+    table.cell(hub, 0, 10, "MKT IMPACT", text_color=color.gray, text_size=size.small)
+    table.cell(hub, 1, 10, volStatus,    text_color=volColor)
+    table.merge_cells(hub, 1, 10, 3, 10)
+
+    // ── Row 11: Sideways flags ─────────────────────────────────────
+    string adxInfo = "ADX: " + str.tostring(math.round(adxVal, 1)) +
+        (adxFlat ? " ✗" : " ✓") +
+        "  ATR: " + (atrCompressed ? "✗" : "✓") +
+        "  EMA: " + (emaTooClose   ? "✗" : "✓")
+    table.cell(hub, 0, 11, adxInfo,
+        text_color=color.new(color.gray, 30), text_size=size.small)
+    table.merge_cells(hub, 0, 11, 3, 11)
+
+    // ── Row 12: ML settings summary ───────────────────────────────
+    string mlInfo = "KNN k=" + str.tostring(mlK) +
+        "  lag=" + str.tostring(mlLag) +
+        "  min=" + str.tostring(math.round(mlMinScore * 100)) + "%" +
+        "  depth=" + str.tostring(mlDepth)
+    table.cell(hub, 0, 12, mlInfo,
+        text_color=color.new(color.gray, 40), text_size=size.tiny)
+    table.merge_cells(hub, 0, 12, 3, 12)
