@@ -205,10 +205,9 @@ async def trade_outcome(payload: TradeOutcomePayload):
     )
 
     from db import symbol_to_pool
+    # Update in-memory weights immediately (fast — no I/O)
     model.update_on_outcome(features, payload.direction, payload.outcome)
-    model.save(symbol_to_pool(sym))
 
-    # Store outcome in GitHub for future KNN/RF history
     outcome_row = {
         "symbol":        sym,
         "direction":     payload.direction,
@@ -219,18 +218,20 @@ async def trade_outcome(payload: TradeOutcomePayload):
         "pnl_pct":       round((payload.exit_price - payload.entry_price) / max(payload.entry_price, 0.0001) * 100, 4),
         "ml_bull_score": payload.ml_score,
     }
-    # Add all 25 feature columns
     outcome_row.update(features.as_db_dict())
-    insert_outcome(outcome_row)
 
-    # Opportunistic RF retrain (async, non-blocking)
-    async def _retrain():
-        history = recent_outcomes(sym, limit=500)
-        if len(history) >= 15:
-            get_rf().retrain(history)
-            get_gbm().train(history)
-
-    asyncio.create_task(_retrain())
+    # All GitHub I/O in background — respond to TradingView instantly
+    async def _persist():
+        try:
+            model.save(symbol_to_pool(sym))
+            insert_outcome(outcome_row)
+            history = recent_outcomes(sym, limit=500)
+            if len(history) >= 15:
+                get_rf().retrain(history)
+                get_gbm().train(history)
+        except Exception as e:
+            print(f"[trade-outcome] background persist error: {e}")
+    asyncio.create_task(_persist())
 
     return {
         "status":       "ok",
@@ -319,11 +320,13 @@ async def unified_webhook(payload: UnifiedPayload):
             f21=payload.f21, f22=payload.f22, f23=payload.f23, f24=payload.f24,
             f25=payload.f25,
         )
+        # Update in-memory weights immediately (fast — no I/O)
         model.update_on_outcome(features, payload.direction, payload.outcome)
-        model.save(symbol_to_pool(sym2))
+
         outcome_row = {
             "symbol":        sym2,
             "direction":     payload.direction,
+            "trigger":       getattr(payload, "trigger", "") or "",
             "entry_price":   payload.entry_price or 0.0,
             "exit_price":    payload.exit_price or 0.0,
             "outcome":       payload.outcome,
@@ -331,14 +334,19 @@ async def unified_webhook(payload: UnifiedPayload):
             "ml_bull_score": payload.ml_score,
         }
         outcome_row.update(features.as_db_dict())
-        insert_outcome(outcome_row)
 
-        async def _retrain():
-            history = recent_outcomes(sym2, limit=500)
-            if len(history) >= 15:
-                get_rf().retrain(history)
-                get_gbm().train(history)
-        asyncio.create_task(_retrain())
+        # All GitHub I/O runs in background — respond to TradingView instantly
+        async def _persist():
+            try:
+                model.save(symbol_to_pool(sym2))
+                insert_outcome(outcome_row)
+                history = recent_outcomes(sym2, limit=500)
+                if len(history) >= 15:
+                    get_rf().retrain(history)
+                    get_gbm().train(history)
+            except Exception as e:
+                print(f"[webhook] background persist error: {e}")
+        asyncio.create_task(_persist())
 
         return {"status": "ok", "routed_to": "trade-outcome", "outcome": payload.outcome}
 
