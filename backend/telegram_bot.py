@@ -101,10 +101,10 @@ async def send_signal(signal: dict) -> bool:
     sess_label = session_map.get(session, session)
 
     msg = (
-        f"{dir_emoji} <b>{direction}</b>\n"
+        f"{dir_emoji} <b>{direction} direction expected</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
         f"Confidence: <b>{confidence*100:.0f}%</b>  |  Strength: {conf_emoji} {strength}\n"
-        f"Session: {sess_label}  |  Top: <b>{top_feat}</b>\n"
+        f"Session: {sess_label}\n"
     )
 
     if event:

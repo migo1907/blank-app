@@ -14,6 +14,7 @@ _latest_news_agg:    float = 0.0
 _latest_velocity:    dict  = {"multiplier": 1.0, "label": "NORMAL"}
 _latest_event:       dict  = {"detected": False, "event_type": "", "urgency": 0.0}
 _fj_seen_headlines:  set   = set()   # dedup breaking news across cycles (persisted to GitHub)
+_last_sent_direction: str  = "NEUTRAL"  # only send signal when direction changes
 
 _SEEN_HEADLINES_PATH = "data/seen_headlines.json"
 _SEEN_HEADLINES_MAX  = 500          # cap size to avoid growing forever
@@ -68,7 +69,7 @@ async def _breaking_news_cycle() -> None:
 
 
 async def _news_signal_cycle() -> None:
-    global _latest_news_agg, _latest_velocity, _latest_event, _fj_seen_headlines
+    global _latest_news_agg, _latest_velocity, _latest_event, _fj_seen_headlines, _last_sent_direction
     print("[scheduler] Starting news + velocity + signal cycle…")
 
     try:
@@ -98,9 +99,13 @@ async def _news_signal_cycle() -> None:
             f"velocity={signal['news_velocity']} ×{signal['velocity_mult']}"
         )
 
-        if signal["direction"] != "NEUTRAL":
+        new_dir = signal["direction"]
+        if new_dir != "NEUTRAL" and new_dir != _last_sent_direction:
             sent = await send_signal(signal)
-            if not sent:
+            if sent:
+                _last_sent_direction = new_dir
+                print(f"[scheduler] Direction changed → {new_dir} — signal sent.")
+            else:
                 print("[scheduler] Telegram send failed (check TOKEN/CHAT_ID).")
         else:
             print("[scheduler] Signal is NEUTRAL — not sending to Telegram.")
