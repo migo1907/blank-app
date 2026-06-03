@@ -229,15 +229,16 @@ async def trade_outcome(payload: TradeOutcomePayload):
     }
     outcome_row.update(features.as_db_dict())
 
-    # All GitHub I/O in background — respond to TradingView instantly
+    # All GitHub I/O in background thread — respond to TradingView instantly
+    # asyncio.to_thread prevents synchronous httpx calls in db.py from blocking the event loop
     async def _persist():
         try:
-            model.save(symbol_to_pool(sym))
-            insert_outcome(outcome_row)
-            history = recent_outcomes(sym, limit=500)
+            await asyncio.to_thread(model.save, symbol_to_pool(sym))
+            await asyncio.to_thread(insert_outcome, outcome_row)
+            history = await asyncio.to_thread(recent_outcomes, sym, 500)
             if len(history) >= 15:
-                get_rf().retrain(history)
-                get_gbm().train(history)
+                await asyncio.to_thread(get_rf().retrain, history)
+                await asyncio.to_thread(get_gbm().train, history)
         except Exception as e:
             print(f"[trade-outcome] background persist error: {e}")
     asyncio.create_task(_persist())
@@ -344,15 +345,16 @@ async def unified_webhook(payload: UnifiedPayload):
         }
         outcome_row.update(features.as_db_dict())
 
-        # All GitHub I/O runs in background — respond to TradingView instantly
+        # All GitHub I/O runs in background thread — respond to TradingView instantly
+        # asyncio.to_thread prevents synchronous httpx calls in db.py from blocking the event loop
         async def _persist():
             try:
-                model.save(symbol_to_pool(sym2))
-                insert_outcome(outcome_row)
-                history = recent_outcomes(sym2, limit=500)
+                await asyncio.to_thread(model.save, symbol_to_pool(sym2))
+                await asyncio.to_thread(insert_outcome, outcome_row)
+                history = await asyncio.to_thread(recent_outcomes, sym2, 500)
                 if len(history) >= 15:
-                    get_rf().retrain(history)
-                    get_gbm().train(history)
+                    await asyncio.to_thread(get_rf().retrain, history)
+                    await asyncio.to_thread(get_gbm().train, history)
             except Exception as e:
                 print(f"[webhook] background persist error: {e}")
         asyncio.create_task(_persist())
