@@ -168,7 +168,20 @@ def _validate_secret(secret: str) -> None:
 
 @app.api_route("/health", methods=["GET", "POST", "HEAD"])
 async def health():
-    return {"status": "ok", "version": "3.0.0-25F"}
+    """
+    Keep-alive endpoint pinged by UptimeRobot every 5 min.
+    Also acts as a watchdog — if the scheduler has stopped, restarts it automatically.
+    """
+    from scheduler import _scheduler, start_scheduler, _news_signal_cycle
+    scheduler_ok = bool(_scheduler and _scheduler.running)
+
+    if not scheduler_ok:
+        # Scheduler died — restart it automatically
+        print("[health] Scheduler not running — auto-restarting.")
+        start_scheduler()
+        asyncio.create_task(_news_signal_cycle())
+
+    return {"status": "ok", "version": "3.0.0-25F", "scheduler": "running" if scheduler_ok else "restarted"}
 
 
 @app.get("/test-personal-alert")

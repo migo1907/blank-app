@@ -135,9 +135,17 @@ async def _news_signal_cycle() -> None:
         from signal_engine import generate_signal
         from telegram_bot import send_signal, send_text, send_breaking_news
 
-        # run_news_cycle uses synchronous httpx — run in thread to avoid blocking event loop
+        # run_news_cycle uses synchronous httpx — run in thread with 90s timeout
+        # Without timeout, a slow RSS feed or Anthropic API call can block the job slot
+        # and cause APScheduler to skip all future runs (max_instances=1 default)
         prev_agg = _latest_news_agg
-        scored_items, agg, velocity, event, fj_breaking = await asyncio.to_thread(run_news_cycle, prev_agg)
+        try:
+            scored_items, agg, velocity, event, fj_breaking = await asyncio.wait_for(
+                asyncio.to_thread(run_news_cycle, prev_agg), timeout=90
+            )
+        except asyncio.TimeoutError:
+            print("[scheduler] run_news_cycle timed out after 90s — using cached values.")
+            scored_items, agg, velocity, event, fj_breaking = [], _latest_news_agg, _latest_velocity, _latest_event, []
 
         if scored_items:
             await asyncio.to_thread(insert_news, scored_items)
