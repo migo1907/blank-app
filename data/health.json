@@ -1,13 +1,13 @@
 {
-  "timestamp": "2026-06-03T04:35:21.443760+00:00",
+  "timestamp": "2026-06-03T04:42:37.936885+00:00",
   "signal": "NEUTRAL",
   "confidence": 0.0,
-  "news_score": 0.1131,
+  "news_score": 0.1032,
   "velocity": "CONFLICTED",
   "breaking_count": 10,
-  "trades_total": 59,
+  "trades_total": 60,
   "rf_trained": true,
-  "win_rate": 42.3,
+  "win_rate": 43.1,
   "knn_bearish_pct": 50.0,
   "scheduler": "running"
 }
