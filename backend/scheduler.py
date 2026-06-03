@@ -56,16 +56,57 @@ def _save_seen_headlines() -> None:
 
 
 async def _breaking_news_cycle() -> None:
-    """Runs every 2 minutes — keep-alive heartbeat to prevent Railway cold starts."""
-    import httpx, os
+    """
+    Runs every 2 minutes.
+    1. Polls FJ initial-data.ashx for the red breaking news banner field.
+    2. Sends to Telegram immediately if it's a new headline (dedup by text).
+    3. Also pings /health to prevent Railway cold starts.
+    """
+    global _fj_seen_headlines
+
+    # ── Keep-alive ping ───────────────────────────────────────────────────────
+    import httpx as _httpx
     try:
         base = os.environ.get("RAILWAY_PUBLIC_DOMAIN", "")
         if base:
-            url = f"https://{base}/health"
-            async with httpx.AsyncClient(timeout=5) as client:
-                await client.get(url)
+            async with _httpx.AsyncClient(timeout=5) as client:
+                await client.get(f"https://{base}/health")
     except Exception:
         pass
+
+    # ── FJ red breaking news check ────────────────────────────────────────────
+    try:
+        from news_fetcher import fetch_fj_breaking_direct
+        from telegram_bot import send_text
+        from datetime import datetime, timezone
+
+        breaking = await asyncio.to_thread(fetch_fj_breaking_direct)
+        if not breaking:
+            return
+
+        key = breaking[:80]
+        if key in _fj_seen_headlines:
+            return  # already sent — do nothing
+
+        # New red item — send immediately
+        now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+        msg = (
+            f"🚨 <b>BREAKING</b> — FinancialJuice\n"
+            f"━━━━━━━━━━━━━━━━━━━━\n"
+            f"🔴 {breaking}\n\n"
+            f"⏰ {now}"
+        )
+        await send_text(msg)
+
+        # Persist dedup
+        new_seen = set(_fj_seen_headlines)
+        new_seen.add(key)
+        _fj_seen_headlines = new_seen
+        await asyncio.to_thread(_save_seen_headlines)
+        print(f"[breaking] Sent to Telegram: {breaking[:80]}")
+
+    except Exception as e:
+        print(f"[breaking] cycle error: {e}")
 
 
 async def _news_signal_cycle() -> None:

@@ -18,6 +18,7 @@ FJ_ASPNET_SESSION  = os.environ.get("FJ_ASPNET_SESSION", "")
 FJ_UID             = os.environ.get("FJ_UID", "")
 FJ_UNAME           = os.environ.get("FJ_UNAME", "")
 FJ_EMAIL           = os.environ.get("FJ_EMAIL", "")
+FJ_BREAKING_URL    = "https://www.financialjuice.com/widgets/initial-data.ashx"
 FJ_RSS_URL         = "https://www.financialjuice.com/feed.ashx?xy=rss"
 
 # ── RSS feeds (no API key required, real-time) ───────────────────────────────
@@ -215,6 +216,46 @@ def _fetch_fj_rss() -> list[dict]:
     except Exception as e:
         print(f"[breaking] FinancialJuice fetch error: {e}")
     return []
+
+
+def fetch_fj_breaking_direct() -> str:
+    """
+    Poll FinancialJuice /widgets/initial-data.ashx — the exact endpoint the website
+    uses to display the red-highlighted breaking news banner.
+
+    Returns the breaking headline string if one is active, or "" if none.
+    This is 100% accurate to what FJ marks red — no keyword guessing needed.
+    """
+    if not FJ_SESSION_COOKIE:
+        return ""
+    try:
+        parts = [f".ASPXAUTH={FJ_SESSION_COOKIE}"]
+        if FJ_ASPNET_SESSION: parts.append(f"ASP.NET_SessionId={FJ_ASPNET_SESSION}")
+        if FJ_UID:            parts.append(f"FJ-UID={FJ_UID}")
+        if FJ_UNAME:          parts.append(f"FJ-UName={FJ_UNAME}")
+        if FJ_EMAIL:          parts.append(f"FJ-Email={FJ_EMAIL}")
+        parts.append("FJ-Pop=show; FJSignupAllowClose=0")
+        cookie_str = "; ".join(parts)
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+            "Cookie":     cookie_str,
+            "Referer":    "https://www.financialjuice.com/home",
+            "Accept":     "application/json, text/plain, */*",
+        }
+        with httpx.Client(timeout=8, follow_redirects=True) as client:
+            resp = client.get(FJ_BREAKING_URL, headers=headers)
+        if resp.status_code == 200:
+            data = resp.json()
+            breaking = (data.get("breaking") or "").strip()
+            if breaking:
+                print(f"[breaking] FJ red item detected: {breaking[:80]}")
+            return breaking
+        else:
+            print(f"[breaking] initial-data.ashx HTTP {resp.status_code}")
+            return ""
+    except Exception as e:
+        print(f"[breaking] fetch_fj_breaking_direct error: {e}")
+        return ""
 
 
 def fetch_breaking_news() -> list[dict]:
