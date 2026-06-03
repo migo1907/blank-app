@@ -247,12 +247,11 @@ class AdaptiveKNN:
 _models: dict[str, AdaptiveKNN] = {}
 
 
-def get_model(symbol: str = "XAUUSD") -> AdaptiveKNN:
-    from db import symbol_to_pool
-    pool = symbol_to_pool(symbol)
+def get_model(pool: str = "XAUUSD") -> AdaptiveKNN:
+    """Get or create an AdaptiveKNN model for the given pool name."""
     if pool not in _models:
         m = AdaptiveKNN()
         m.load(pool)
         _models[pool] = m
-        print(f"[ml] Loaded pool '{pool}' for symbol '{symbol}'")
+        print(f"[ml] Loaded model for pool '{pool}'")
     return _models[pool]

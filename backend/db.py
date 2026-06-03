@@ -93,20 +93,34 @@ STOCKS_QUALITY = {
 STOCKS_INDEX = {"QQQ","SPY"}
 
 
-def symbol_to_pool(symbol: str) -> str:
-    """Map a ticker to its ML pool name."""
-    # Strip exchange prefix (NASDAQ:TSLA → TSLA)
+def symbol_to_pool(symbol: str, timeframe: str = "") -> str:
+    """Map a ticker + timeframe to its ML pool name."""
     ticker = symbol.split(":")[-1].upper()
-    if ticker == "XAUUSD" or ticker in ("GOLD", "GC"):
-        return "XAUUSD"
+
+    # Normalise TradingView timeframe.period → suffix
+    # TradingView sends minutes as strings: "2","5","30","60","240"
+    def _tf_suffix(tf: str) -> str:
+        t = str(tf).strip().upper().replace("MIN","").replace("H","")
+        if t in ("1", "2"):          return "2M"
+        if t in ("3", "4", "5"):     return "5M"
+        if t in ("15", "20", "30"):  return "30M"
+        if t in ("60",):             return "1H"
+        if t in ("240",):            return "4H"
+        return ""
+
+    suffix = _tf_suffix(timeframe) if timeframe else ""
+
+    if ticker in ("XAUUSD", "GOLD", "GC"):
+        return f"XAUUSD_{suffix}" if suffix else "XAUUSD"
     if ticker in STOCKS_INDEX:
-        return "STOCKS_INDEX"
-    if ticker in STOCKS_QUALITY:
-        return "STOCKS_QUALITY"
-    if ticker in STOCKS_MOMENTUM:
-        return "STOCKS_MOMENTUM"
-    # Unknown stock — default to momentum pool
-    return "STOCKS_MOMENTUM"
+        base = "STOCKS_INDEX"
+    elif ticker in STOCKS_QUALITY:
+        base = "STOCKS_QUALITY"
+    elif ticker in STOCKS_MOMENTUM:
+        base = "STOCKS_MOMENTUM"
+    else:
+        base = "STOCKS_MOMENTUM"
+    return f"{base}_{suffix}" if suffix else base
 
 
 def _pool_weights_file(pool: str) -> str:
@@ -123,13 +137,12 @@ def _pool_history_file(pool: str) -> str:
 
 # ── Weights ───────────────────────────────────────────────────────────────────
 
-def load_weights(symbol: str = "XAUUSD") -> dict:
-    pool = symbol_to_pool(symbol)
+def load_weights(pool: str = "XAUUSD") -> dict:
     path = _pool_weights_file(pool)
     data, _ = _get_file(path)
     if data is None:
-        print(f"[db] {path} not found — cloning XAUUSD weights as baseline.")
-        # Transfer learning: clone gold weights so stocks start with learned priors
+        print(f"[db] {path} not found — cloning XAUUSD baseline weights.")
+        # Transfer learning: all new pools start from XAUUSD legacy weights
         gold, _ = _get_file("data/weights.json")
         if gold:
             cloned = dict(gold)
@@ -142,8 +155,7 @@ def load_weights(symbol: str = "XAUUSD") -> dict:
     return data
 
 
-def save_weights(symbol: str, weights: dict) -> None:
-    pool = symbol_to_pool(symbol)
+def save_weights(pool: str, weights: dict) -> None:
     path = _pool_weights_file(pool)
     _, sha = _get_file(path)
     weights["updated_at"] = datetime.now(timezone.utc).isoformat()
@@ -159,7 +171,7 @@ def save_weights(symbol: str, weights: dict) -> None:
 # ── Trade outcomes ─────────────────────────────────────────────────────────────
 
 def insert_outcome(outcome: dict) -> None:
-    pool = symbol_to_pool(outcome.get("symbol", "XAUUSD"))
+    pool = symbol_to_pool(outcome.get("symbol", "XAUUSD"), outcome.get("timeframe", ""))
     path = _pool_history_file(pool)
     history, sha = _get_file(path)
     if history is None:
@@ -178,14 +190,12 @@ def insert_outcome(outcome: dict) -> None:
     )
 
 
-def recent_outcomes(symbol: str = "XAUUSD", limit: int = 200) -> list[dict]:
-    pool = symbol_to_pool(symbol)
+def recent_outcomes(pool: str = "XAUUSD", limit: int = 200) -> list[dict]:
     path = _pool_history_file(pool)
     history, _ = _get_file(path)
     if not history:
         return []
-    filtered = [t for t in history if symbol_to_pool(t.get("symbol", symbol)) == pool]
-    return list(reversed(filtered))[:limit]
+    return list(reversed(history))[:limit]
 
 
 # ── News sentiment ─────────────────────────────────────────────────────────────
