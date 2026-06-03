@@ -1,5 +1,5 @@
 //@version=6
-indicator("XAU/USD Migo VS Market Sniper Pro [ML + Adaptive + ☁️ v3·25F]", overlay=true, max_labels_count=300, max_bars_back=500)
+indicator("XAU/USD Migo VS Market Sniper Pro [ML + Adaptive + ☁️ v3·25F]", overlay=true, max_labels_count=300, max_bars_back=300)
 
 // ═══════════════════════════════════════════════════════
 // TIMEFRAME AUTO-DETECTION
@@ -27,7 +27,7 @@ float adxThreshold = input.float(20.0, "ADX Sideways Threshold",    group="🔎 
 float atrRangeRatio= input.float(0.75, "ATR Range Ratio",           group="🔎 Filters")
 float emaBandPct   = input.float(0.3,  "EMA Band %",               group="🔎 Filters")
 int   mlK          = input.int(8,      "K Neighbors",               group="🤖 KNN", minval=3, maxval=20)
-int   mlDepth_inp  = input.int(500,    "History Depth",             group="🤖 KNN", minval=100, maxval=1000)
+int   mlDepth_inp  = input.int(300,    "History Depth",             group="🤖 KNN", minval=100, maxval=500)
 int   mlLag        = input.int(4,      "Forward Lag",               group="🤖 KNN", minval=1, maxval=20)
 float mlMinScore   = input.float(0.55, "Min Score",                 group="🤖 KNN", minval=0.50, maxval=0.90, step=0.05)
 float learnRate    = input.float(0.05, "Learning Rate",             group="🧠 Adaptive", minval=0.01, maxval=0.30, step=0.01)
@@ -55,7 +55,7 @@ float atrMultTP1  = autoTF ? (isTF2 ? 1.0 : isTF5 ? 1.5 : isTF15 ? 2.0 : 2.5) : 
 float atrMultTP2  = autoTF ? (isTF2 ? 1.8 : isTF5 ? 2.5 : isTF15 ? 3.5 : 4.5) : tp2_inp
 float atrMultTP3  = autoTF ? (isTF2 ? 3.0 : isTF5 ? 4.0 : isTF15 ? 5.5 : 7.0) : tp3_inp
 float atrMultSL   = autoTF ? (isTF2 ? 0.8 : isTF5 ? 1.5 : isTF15 ? 2.0 : 2.5) : sl_inp
-int   mlDepth     = autoTF ? (isTF2 ? 200 : isTF5 ? 350 : isTF15 ? 500 : 700 ) : mlDepth_inp
+int   mlDepth     = autoTF ? (isTF2 ? 150 : isTF5 ? 250 : isTF15 ? 350 : 500 ) : mlDepth_inp
 int   kWin        = autoTF ? (isTF2 ? 5   : isTF5 ? 8   : isTF15 ? 12  : 16  ) : kWin_inp
 
 // ═══════════════════════════════════════════════════════
@@ -269,12 +269,13 @@ bool  kernelDown = kernelEst < kernelEst[2]
 var float mlBull = 0.5
 var float mlBear = 0.5
 
-if bar_index > mlK * 2 + mlLag
+// Throttle: recalculate KNN every 2 bars — scores remain valid for 2-bar window
+if bar_index > mlK * 2 + mlLag and bar_index % 2 == 0
     float[] kDist  = array.new_float(mlK, 1.0e10)
     int[]   kLbl   = array.new_int(mlK, 0)
     int searchLen  = math.min(mlDepth, bar_index - mlLag - 1)
-    // Step >= 2 ensures we never check every bar; cap at 150 comparisons
-    int step = math.max(2, math.round(float(searchLen) / 150.0))
+    // Step >= 2 ensures we never check every bar; cap at 100 comparisons
+    int step = math.max(2, math.round(float(searchLen) / 100.0))
     for i = mlLag + step to searchLen by step
         bool dataOk = not na(f1[i]) and not na(f2[i]) and not na(f9[i])
         if dataOk
