@@ -165,7 +165,23 @@ def _confluence_score(features: Features | None, direction: str, regime: str) ->
         checks.append(abs(features.f12) > 0.5)   # Liquidity sweep present
 
     score = sum(checks) / len(checks)
-    return 0.70 + score * 0.70
+    base = 0.70 + score * 0.70
+
+    # ── Pullback confirmation gate ────────────────────────────────────────────
+    # Counter-trend scalps (2min/5min pullbacks) are VALID but need reversal
+    # evidence. Without sweep OR CHoCH OR quality FVG, it's a random counter-trend
+    # entry with no institutional confirmation — reduce confidence.
+    # A single confirmed reversal signal is enough to trade normally.
+    if is_pullback:
+        has_sweep   = abs(features.f12) > 0.3           # liquidity swept
+        has_choch   = abs(features.f14) > 0.3           # change of character
+        has_fvg_q   = abs(features.f24) > 0.5           # quality FVG post-sweep
+        has_willr   = features.f6 * sign > 0.3          # Williams %R oversold/overbought
+        confirmed   = has_sweep or has_choch or has_fvg_q or has_willr
+        if not confirmed:
+            base *= 0.65   # no reversal evidence — significantly reduce
+
+    return base
 
 
 # ── Dynamic component weights based on recent accuracy ───────────────────────
