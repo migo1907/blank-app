@@ -328,6 +328,7 @@ var int    tradeConf   = 0
 var bool   tp1Hit      = false
 var bool   tp2Hit      = false
 var float  trailSL     = 0.0
+var float  mfeFav      = 0.0  // max favorable excursion since entry (in price units)
 
 // ═══════════════════════════════════════════════════════
 // WEIGHT UPDATE HELPERS — 25 features (index 0-24)
@@ -371,12 +372,12 @@ buildEntryPayload(dir, tf, trig, entPx, t1, t2, t3, stopPx, mlSc, tierStr) =>
 // ═══════════════════════════════════════════════════════
 // OUTCOME PAYLOAD BUILDER — includes all 25 features
 // ═══════════════════════════════════════════════════════
-buildPayload(dir, outcome, stage, entPx, exitPx, mlSc, trig) =>
+buildPayload(dir, outcome, mlOut, stage, entPx, exitPx, mlSc, trig, mfe) =>
     string p1  = '{"secret":"' + webhookSecret + '"'
     string p2  = ',"trade_id":"' + syminfo.ticker + '_' + str.tostring(timenow) + '"'
-    string p3  = ',"direction":"' + dir + '","outcome":"' + outcome + '","tp_stage":"' + stage + '","trigger":"' + trig + '"'
+    string p3  = ',"direction":"' + dir + '","outcome":"' + outcome + '","ml_outcome":"' + mlOut + '","tp_stage":"' + stage + '","trigger":"' + trig + '"'
     string p4  = ',"entry_price":' + str.tostring(entPx, "#.####") + ',"exit_price":' + str.tostring(exitPx, "#.####")
-    string p5  = ',"ml_score":' + str.tostring(mlSc, "#.####")
+    string p5  = ',"ml_score":' + str.tostring(mlSc, "#.####") + ',"mfe":' + str.tostring(mfe, "#.####")
     string f1s  = ',"f1":'  + str.tostring(array.get(entryFeatures, 0),  "#.####")
     string f2s  = ',"f2":'  + str.tostring(array.get(entryFeatures, 1),  "#.####")
     string f3s  = ',"f3":'  + str.tostring(array.get(entryFeatures, 2),  "#.####")
@@ -405,6 +406,12 @@ buildPayload(dir, outcome, stage, entPx, exitPx, mlSc, trig) =>
     p1 + p2 + p3 + p4 + p5 + f1s + f2s + f3s + f4s + f5s + f6s + f7s + f8s + f9s + f10s + f11s + f12s + f13s + f14s + f15s + f16s + f17s + f18s + f19s + f20s + f21s + f22s + f23s + f24s + f25s
 
 // ═══════════════════════════════════════════════════════
+// MFE TRACKING — max favorable excursion since entry (price units)
+if activeTrade == "LONG"
+    mfeFav := math.max(mfeFav, high - entryPrice)
+if activeTrade == "SHORT"
+    mfeFav := math.min(mfeFav, entryPrice - low)
+
 // TRAIL STOP
 // ═══════════════════════════════════════════════════════
 if activeTrade == "LONG" and tp1Hit
@@ -432,23 +439,27 @@ if activeTrade == "LONG"
     if tp1Hit and tp2Hit and high >= tp3Price
         totalWins += 1
         updateWeightsLong(winReward)
-        alert(buildPayload(activeTrade, "WIN", "TP3", entryPrice, high, mlBull, activeTrigger), alert.freq_once_per_bar_close)
+        alert(buildPayload(activeTrade, "WIN", "WIN", "TP3", entryPrice, high, mlBull, activeTrigger, mfeFav), alert.freq_once_per_bar_close)
         activeTrade := "NONE"
-        tp1Hit := false
-        tp2Hit := false
+        tp1Hit  := false
+        tp2Hit  := false
+        mfeFav  := 0.0
         label.new(bar_index, high, "TP3 ✓\nFULL RUN! ☁️", color=color.green, textcolor=color.white, style=label.style_label_down, size=size.small)
 
     if low <= slPrice
-        string exitLbl = tp1Hit ? (tp2Hit ? "SL (after TP2)" : "SL (after TP1)") : "SL HIT"
-        string outcome = tp1Hit ? "PARTIAL" : "LOSS"
-        string stage   = tp2Hit ? "SL_TP2" : (tp1Hit ? "SL_TP1" : "SL")
+        string exitLbl  = tp1Hit ? (tp2Hit ? "SL (after TP2)" : "SL (after TP1)") : "SL HIT"
+        string outcome  = tp1Hit ? "PARTIAL" : "LOSS"
+        string stage    = tp2Hit ? "SL_TP2" : (tp1Hit ? "SL_TP1" : "SL")
+        // ml_outcome = WIN if price moved ≥ 70% of SL distance toward TP before stopping
+        float  slDist   = entryPrice - slPrice
+        string mlOut    = (not tp1Hit and mfeFav >= slDist * 0.875) ? "WIN" : outcome
         if not tp1Hit
             totalLosses += 1
             penalizeWeightsLong(lossPenalty)
         else
             totalWins += 1
             updateWeightsLong(winReward * 0.4)
-        alert(buildPayload(activeTrade, outcome, stage, entryPrice, low, mlBull, activeTrigger), alert.freq_once_per_bar_close)
+        alert(buildPayload(activeTrade, outcome, mlOut, stage, entryPrice, low, mlBull, activeTrigger, mfeFav), alert.freq_once_per_bar_close)
         label.new(bar_index, low, exitLbl + " ☁️", color=color.red, textcolor=color.white, style=label.style_label_up, size=size.tiny)
         activeTrade := "NONE"
         tp1Hit := false
@@ -471,27 +482,32 @@ if activeTrade == "SHORT"
     if tp1Hit and tp2Hit and low <= tp3Price
         totalWins += 1
         updateWeightsShort(winReward)
-        alert(buildPayload(activeTrade, "WIN", "TP3", entryPrice, low, mlBear, activeTrigger), alert.freq_once_per_bar_close)
+        alert(buildPayload(activeTrade, "WIN", "WIN", "TP3", entryPrice, low, mlBear, activeTrigger, mfeFav), alert.freq_once_per_bar_close)
         activeTrade := "NONE"
-        tp1Hit := false
-        tp2Hit := false
+        tp1Hit  := false
+        tp2Hit  := false
+        mfeFav  := 0.0
         label.new(bar_index, low, "TP3 ✓\nFULL RUN! ☁️", color=color.green, textcolor=color.white, style=label.style_label_up, size=size.small)
 
     if high >= slPrice
-        string exitLbl = tp1Hit ? (tp2Hit ? "SL (after TP2)" : "SL (after TP1)") : "SL HIT"
-        string outcome = tp1Hit ? "PARTIAL" : "LOSS"
-        string stage   = tp2Hit ? "SL_TP2" : (tp1Hit ? "SL_TP1" : "SL")
+        string exitLbl  = tp1Hit ? (tp2Hit ? "SL (after TP2)" : "SL (after TP1)") : "SL HIT"
+        string outcome  = tp1Hit ? "PARTIAL" : "LOSS"
+        string stage    = tp2Hit ? "SL_TP2" : (tp1Hit ? "SL_TP1" : "SL")
+        // ml_outcome = WIN if price moved ≥ 70% of SL distance toward TP before stopping
+        float  slDist   = slPrice - entryPrice
+        string mlOut    = (not tp1Hit and mfeFav >= slDist * 0.875) ? "WIN" : outcome
         if not tp1Hit
             totalLosses += 1
             penalizeWeightsShort(lossPenalty)
         else
             totalWins += 1
             updateWeightsShort(winReward * 0.4)
-        alert(buildPayload(activeTrade, outcome, stage, entryPrice, high, mlBear, activeTrigger), alert.freq_once_per_bar_close)
+        alert(buildPayload(activeTrade, outcome, mlOut, stage, entryPrice, high, mlBear, activeTrigger, mfeFav), alert.freq_once_per_bar_close)
         label.new(bar_index, high, exitLbl + " ☁️", color=color.red, textcolor=color.white, style=label.style_label_down, size=size.tiny)
         activeTrade := "NONE"
-        tp1Hit := false
-        tp2Hit := false
+        tp1Hit  := false
+        tp2Hit  := false
+        mfeFav  := 0.0
 
 // ═══════════════════════════════════════════════════════
 // NEAR-TP1 PROXIMITY RESET
@@ -582,6 +598,7 @@ if doBuy
     trailSL     := close - atr * atrMultSL
     tp1Hit      := false
     tp2Hit      := false
+    mfeFav      := 0.0
     tradeConf   := math.round(mlBull * 100)
     storeFeatures()
     label.new(bar_index, low, "🤖 BUY [" + buyTrig + "] " + buyTier + "\nML:" + str.tostring(tradeConf) + "%  Ent:" + str.tostring(entryPrice, "#.##") + "\nTP1:" + str.tostring(tp1Price, "#.##") + "  TP2:" + str.tostring(tp2Price, "#.##") + "\nTP3:" + str.tostring(tp3Price, "#.##") + "  SL:" + str.tostring(slPrice, "#.##"), color=buyCol, textcolor=color.white, style=label.style_label_up, size=size.small)
@@ -598,6 +615,7 @@ if doSell
     trailSL     := close + atr * atrMultSL
     tp1Hit      := false
     tp2Hit      := false
+    mfeFav      := 0.0
     tradeConf   := math.round(mlBear * 100)
     storeFeatures()
     label.new(bar_index, high, "🤖 SELL [" + sellTrig + "] " + sellTier + "\nML:" + str.tostring(tradeConf) + "%  Ent:" + str.tostring(entryPrice, "#.##") + "\nTP1:" + str.tostring(tp1Price, "#.##") + "  TP2:" + str.tostring(tp2Price, "#.##") + "\nTP3:" + str.tostring(tp3Price, "#.##") + "  SL:" + str.tostring(slPrice, "#.##"), color=sellCol, textcolor=color.white, style=label.style_label_down, size=size.small)

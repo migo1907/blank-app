@@ -68,6 +68,8 @@ class TradeOutcomePayload(BaseModel):
     trade_id:    str
     direction:   Literal["LONG", "SHORT"]
     outcome:     Literal["WIN", "LOSS", "PARTIAL"]
+    ml_outcome:  Optional[str]   = None
+    mfe:         float           = 0.0
     tp_stage:    str = ""
     entry_price: float
     exit_price:  float
@@ -138,6 +140,8 @@ class UnifiedPayload(BaseModel):
     # trade outcome fields
     trade_id:    Optional[str]   = None
     outcome:     Optional[str]   = None
+    ml_outcome:  Optional[str]   = None   # MFE-based label for ML training (may differ from outcome)
+    mfe:         float           = 0.0    # max favorable excursion in price units
     tp_stage:    str             = ""
     exit_price:  Optional[float] = None
     f1:  float = 0.0; f2:  float = 0.0; f3:  float = 0.0; f4:  float = 0.0
@@ -214,8 +218,11 @@ async def trade_outcome(payload: TradeOutcomePayload):
     )
 
     from db import symbol_to_pool
-    # Update in-memory weights immediately (fast — no I/O)
-    model.update_on_outcome(features, payload.direction, payload.outcome)
+    ml_label = payload.ml_outcome or payload.outcome
+    model.update_on_outcome(features, payload.direction, ml_label)
+
+    raw_pct = (payload.exit_price - payload.entry_price) / max(payload.entry_price, 0.0001) * 100
+    pnl_pct = raw_pct if payload.direction == "LONG" else -raw_pct
 
     outcome_row = {
         "symbol":        sym,
@@ -224,7 +231,9 @@ async def trade_outcome(payload: TradeOutcomePayload):
         "entry_price":   payload.entry_price,
         "exit_price":    payload.exit_price,
         "outcome":       payload.outcome,
-        "pnl_pct":       round((payload.exit_price - payload.entry_price) / max(payload.entry_price, 0.0001) * 100, 4),
+        "ml_outcome":    ml_label,
+        "mfe":           payload.mfe,
+        "pnl_pct":       round(pnl_pct, 4),
         "ml_bull_score": payload.ml_score,
     }
     outcome_row.update(features.as_db_dict())
@@ -330,17 +339,32 @@ async def unified_webhook(payload: UnifiedPayload):
             f21=payload.f21, f22=payload.f22, f23=payload.f23, f24=payload.f24,
             f25=payload.f25,
         )
-        # Update in-memory weights immediately (fast — no I/O)
-        model.update_on_outcome(features, payload.direction, payload.outcome)
+        # ml_outcome: MFE-based label (WIN if price moved toward TP before SL, even if not hit)
+        # Falls back to real outcome if Pine Script doesn't send ml_outcome yet
+        ml_label = payload.ml_outcome or payload.outcome
+
+        # Update in-memory weights using ML label (not real outcome) — fast, no I/O
+        model.update_on_outcome(features, payload.direction, ml_label)
+
+        # pnl_pct: directional — positive = profit regardless of LONG/SHORT
+        entry = payload.entry_price or 0.0
+        exit_ = payload.exit_price or 0.0
+        if entry and exit_:
+            raw_pct = (exit_ - entry) / entry * 100
+            pnl_pct = raw_pct if payload.direction == "LONG" else -raw_pct
+        else:
+            pnl_pct = 0.0
 
         outcome_row = {
             "symbol":        sym2,
             "direction":     payload.direction,
             "trigger":       getattr(payload, "trigger", "") or "",
-            "entry_price":   payload.entry_price or 0.0,
-            "exit_price":    payload.exit_price or 0.0,
-            "outcome":       payload.outcome,
-            "pnl_pct":       round((payload.exit_price - payload.entry_price) / max(payload.entry_price or 1, 0.0001) * 100, 4) if payload.exit_price and payload.entry_price else 0.0,
+            "entry_price":   entry,
+            "exit_price":    exit_,
+            "outcome":       payload.outcome,           # real exit result (P&L)
+            "ml_outcome":    ml_label,                  # MFE-based label used for ML training
+            "mfe":           payload.mfe,
+            "pnl_pct":       round(pnl_pct, 4),
             "ml_bull_score": payload.ml_score,
         }
         outcome_row.update(features.as_db_dict())
@@ -359,7 +383,7 @@ async def unified_webhook(payload: UnifiedPayload):
                 print(f"[webhook] background persist error: {e}")
         asyncio.create_task(_persist())
 
-        return {"status": "ok", "routed_to": "trade-outcome", "outcome": payload.outcome}
+        return {"status": "ok", "routed_to": "trade-outcome", "outcome": payload.outcome, "ml_outcome": ml_label}
 
     return {"status": "ignored", "reason": "payload did not match entry or outcome pattern"}
 
