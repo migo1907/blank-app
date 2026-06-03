@@ -157,6 +157,52 @@ Always maintain human control:
 
 ---
 
+## Timetable — Live Progress Tracker
+
+**Phase 1 started: June 1, 2026 | Today: June 3, 2026**
+
+### Pool-by-Pool Progress (as of June 3, 2026)
+
+| Pool | Trades | Target | Remaining | Rate/day | ETA | Status |
+|------|--------|--------|-----------|----------|-----|--------|
+| XAUUSD (legacy) | 109 | 150 | 41 | ~55 | **~June 4** | 🟢 Nearly done |
+| XAUUSD_2M | 2 | 150 | 148 | ~2-3 | ~Aug 1 | 🔵 Data flowing |
+| XAUUSD_5M | 1 | 150 | 149 | ~2-3 | ~Aug 5 | 🔵 Data flowing |
+| XAUUSD_30M | 0 | 150 | 150 | ~1-2 | ~Sep 1 | ⏳ Starting |
+| XAUUSD_1H | 0 | 150 | 150 | ~0-1 | ~Oct 1 | ⏳ Starting |
+| STOCKS_MOMENTUM_30M | 0 | 50 | 50 | ~1-2 | ~Aug 15 | ⏳ Starting |
+| STOCKS_MOMENTUM_4H | 0 | 50 | 50 | ~0-1 | ~Sep 15 | ⏳ Starting |
+| STOCKS_QUALITY_30M | 1 | 50 | 49 | ~1-2 | ~Aug 14 | 🔵 Data flowing |
+| STOCKS_QUALITY_4H | 0 | 50 | 50 | ~0-1 | ~Sep 15 | ⏳ Starting |
+| STOCKS_INDEX_30M/4H | 0 | 50 | 50 | ~1-2 | ~Aug 15 | ⏳ Starting |
+
+> Rates estimated conservatively. Gold TF pools fire ~2-3 signals/day per pool; stock pools ~1-2/day on active sessions.
+
+### Phase Milestones
+
+| Milestone | Target Date | Status |
+|-----------|-------------|--------|
+| **Phase 1 complete** — all pools at target | **~Oct 1, 2026** | 🔵 In Progress |
+| **Phase 2 dev begins** (build during Phase 1) | **~July 1, 2026** | ⏳ Upcoming |
+| **Phase 2 complete** (HMM, MTF, news calendar) | **~Aug 1, 2026** | ⏳ Upcoming |
+| **Phase 3 begins** — signal validation layer | **~Oct 1, 2026** | ⏳ Upcoming |
+| **Phase 3 complete** — 300+ trades, self-scoring | **~Dec 1, 2026** | ⏳ Upcoming |
+| **Phase 4 eligibility** — 200 consecutive trades @ 58%+ WR | **~Feb 1, 2027** | ⏳ Upcoming |
+| **Phase 4 live** — full autonomous algo trading | **~Mar 1, 2027** | ⏳ Upcoming |
+
+### Schedule Status
+
+```
+Phase 1:  🟢 ON TRACK — Legacy pool nearly done (109/150), new TF pools building
+Phase 2:  ⏳ Dev starts July 2026 while Phase 1 data flows in parallel
+Phase 3:  ⏳ Scheduled Oct 2026
+Phase 4:  ⏳ Earliest Feb–Mar 2027 (gated by 58%+ WR over 200 consecutive trades)
+```
+
+> **Key gate before Phase 4:** Win rate must sustain 58%+ over 200 consecutive trades across all market regimes — not cherry-picked. This is a hard dependency, dates shift if WR criteria aren't met.
+
+---
+
 ## The Non-Negotiable Before Phase 4
 
 **Win rate must sustain 58%+ over minimum 200 consecutive trades before any auto-execution is considered.** Not a cherry-picked period — sustained performance across different market regimes.
