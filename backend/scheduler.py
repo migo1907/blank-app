@@ -77,10 +77,20 @@ async def _breaking_news_cycle() -> None:
     # ── FJ red breaking news check ────────────────────────────────────────────
     try:
         from news_fetcher import fetch_fj_breaking_direct
-        from telegram_bot import send_text
+        from telegram_bot import send_text, send_critical_alert
         from datetime import datetime, timezone
 
-        breaking = await asyncio.to_thread(fetch_fj_breaking_direct)
+        breaking, is_401 = await asyncio.to_thread(fetch_fj_breaking_direct)
+
+        # Session expired — fire personal alert immediately
+        if is_401:
+            await send_critical_alert(
+                "FinancialJuice Session Expired",
+                "Breaking news alerts have stopped — FJ cookie is no longer valid.",
+                "Log in to financialjuice.com in your browser, then copy the new .ASPXAUTH cookie value to Railway → Variables → FJ_SESSION_COOKIE and redeploy.",
+            )
+            return
+
         if not breaking:
             return
 
@@ -98,7 +108,7 @@ async def _breaking_news_cycle() -> None:
         )
         await send_text(msg)
 
-        # Persist dedup
+        # Persist dedup so it survives restarts
         new_seen = set(_fj_seen_headlines)
         new_seen.add(key)
         _fj_seen_headlines = new_seen

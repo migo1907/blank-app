@@ -19,6 +19,11 @@ FJ_UID             = os.environ.get("FJ_UID", "")
 FJ_UNAME           = os.environ.get("FJ_UNAME", "")
 FJ_EMAIL           = os.environ.get("FJ_EMAIL", "")
 FJ_BREAKING_URL    = "https://www.financialjuice.com/widgets/initial-data.ashx"
+FJ_PASSWORD        = os.environ.get("FJ_PASSWORD", "")
+FJ_SESSION_PATH    = "data/fj_session.json"   # GitHub data branch — persists across restarts
+
+# In-memory cookie cache — loaded from GitHub on first use, refreshed after each success
+_fj_cookie_cache: dict = {}
 FJ_RSS_URL         = "https://www.financialjuice.com/feed.ashx?xy=rss"
 
 # ── RSS feeds (no API key required, real-time) ───────────────────────────────
@@ -185,16 +190,10 @@ def fetch_rss_headlines() -> list[dict]:
 
 def _fetch_fj_rss() -> list[dict]:
     """Fetch FinancialJuice RSS using session cookie. Returns [] on failure."""
-    if not FJ_SESSION_COOKIE:
+    cookie_str = _fj_cookie_str()
+    if not cookie_str:
         return []
     try:
-        parts = [f".ASPXAUTH={FJ_SESSION_COOKIE}"]
-        if FJ_ASPNET_SESSION: parts.append(f"ASP.NET_SessionId={FJ_ASPNET_SESSION}")
-        if FJ_UID:            parts.append(f"FJ-UID={FJ_UID}")
-        if FJ_UNAME:          parts.append(f"FJ-UName={FJ_UNAME}")
-        if FJ_EMAIL:          parts.append(f"FJ-Email={FJ_EMAIL}")
-        parts.append("FJ-Pop=show; FJSignupAllowClose=0")
-        cookie_str = "; ".join(parts)
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
             "Cookie":     cookie_str,
@@ -218,24 +217,89 @@ def _fetch_fj_rss() -> list[dict]:
     return []
 
 
-def fetch_fj_breaking_direct() -> str:
+def _fj_cookie_str() -> str:
     """
-    Poll FinancialJuice /widgets/initial-data.ashx — the exact endpoint the website
-    uses to display the red-highlighted breaking news banner.
+    Build cookie string — prefer GitHub-persisted session (latest working),
+    fall back to Railway env vars (original).
+    GitHub version is updated after every successful call so it stays fresh.
+    """
+    global _fj_cookie_cache
+    # Load from GitHub on first call (in-memory cache after that)
+    if not _fj_cookie_cache:
+        try:
+            from db import _get_file
+            saved, _ = _get_file(FJ_SESSION_PATH)
+            if saved and saved.get("fj_session_cookie"):
+                _fj_cookie_cache = saved
+                print("[fj] Loaded session cookie from GitHub persistence.")
+        except Exception:
+            pass
 
-    Returns the breaking headline string if one is active, or "" if none.
-    This is 100% accurate to what FJ marks red — no keyword guessing needed.
-    """
-    if not FJ_SESSION_COOKIE:
+    auth    = _fj_cookie_cache.get("fj_session_cookie")   or FJ_SESSION_COOKIE
+    aspnet  = _fj_cookie_cache.get("fj_aspnet_session")   or FJ_ASPNET_SESSION
+    uid     = _fj_cookie_cache.get("fj_uid")              or FJ_UID
+    uname   = _fj_cookie_cache.get("fj_uname")            or FJ_UNAME
+    email   = _fj_cookie_cache.get("fj_email")            or FJ_EMAIL
+
+    if not auth:
         return ""
+    parts = [f".ASPXAUTH={auth}"]
+    if aspnet: parts.append(f"ASP.NET_SessionId={aspnet}")
+    if uid:    parts.append(f"FJ-UID={uid}")
+    if uname:  parts.append(f"FJ-UName={uname}")
+    if email:  parts.append(f"FJ-Email={email}")
+    parts.append("FJ-Pop=show; FJSignupAllowClose=0")
+    return "; ".join(parts)
+
+
+def _fj_save_session(resp_headers: dict) -> None:
+    """
+    Extract fresh cookies from a successful response and save to GitHub.
+    Called after every 200 from initial-data.ashx to keep the persisted
+    cookie as fresh as possible — survives Railway restarts.
+    """
+    global _fj_cookie_cache
     try:
-        parts = [f".ASPXAUTH={FJ_SESSION_COOKIE}"]
-        if FJ_ASPNET_SESSION: parts.append(f"ASP.NET_SessionId={FJ_ASPNET_SESSION}")
-        if FJ_UID:            parts.append(f"FJ-UID={FJ_UID}")
-        if FJ_UNAME:          parts.append(f"FJ-UName={FJ_UNAME}")
-        if FJ_EMAIL:          parts.append(f"FJ-Email={FJ_EMAIL}")
-        parts.append("FJ-Pop=show; FJSignupAllowClose=0")
-        cookie_str = "; ".join(parts)
+        set_cookie = resp_headers.get("set-cookie", "")
+        new_auth   = None
+        new_aspnet = None
+        for part in set_cookie.split(";"):
+            p = part.strip()
+            if p.startswith(".ASPXAUTH="):
+                new_auth = p.split("=", 1)[1]
+            elif p.startswith("ASP.NET_SessionId="):
+                new_aspnet = p.split("=", 1)[1]
+
+        payload = {
+            "fj_session_cookie": new_auth   or _fj_cookie_cache.get("fj_session_cookie") or FJ_SESSION_COOKIE,
+            "fj_aspnet_session": new_aspnet or _fj_cookie_cache.get("fj_aspnet_session") or FJ_ASPNET_SESSION,
+            "fj_uid":   FJ_UID,
+            "fj_uname": FJ_UNAME,
+            "fj_email": FJ_EMAIL,
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }
+        from db import _get_file, _put_file
+        _, sha = _get_file(FJ_SESSION_PATH)
+        _put_file(FJ_SESSION_PATH, payload, sha, "chore: refresh FJ session cookie")
+        _fj_cookie_cache = payload
+    except Exception as e:
+        print(f"[fj] Session save error: {e}")
+
+
+def fetch_fj_breaking_direct() -> tuple[str, bool]:
+    """
+    Poll FJ /widgets/initial-data.ashx for the red breaking news banner field.
+
+    Returns (headline, is_401):
+      headline — breaking news text, or "" if none active
+      is_401   — True if session expired (caller sends personal alert)
+
+    On success: saves fresh cookie to GitHub for restart resilience.
+    """
+    cookie_str = _fj_cookie_str()
+    if not cookie_str:
+        return "", False
+    try:
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
             "Cookie":     cookie_str,
@@ -244,18 +308,26 @@ def fetch_fj_breaking_direct() -> str:
         }
         with httpx.Client(timeout=8, follow_redirects=True) as client:
             resp = client.get(FJ_BREAKING_URL, headers=headers)
+
         if resp.status_code == 200:
-            data = resp.json()
+            # Save fresh cookie to GitHub every successful call
+            _fj_save_session(dict(resp.headers))
+            data     = resp.json()
             breaking = (data.get("breaking") or "").strip()
             if breaking:
-                print(f"[breaking] FJ red item detected: {breaking[:80]}")
-            return breaking
-        else:
-            print(f"[breaking] initial-data.ashx HTTP {resp.status_code}")
-            return ""
+                print(f"[breaking] FJ red item: {breaking[:80]}")
+            return breaking, False
+
+        if resp.status_code in (401, 403):
+            print(f"[breaking] FJ session expired (HTTP {resp.status_code})")
+            return "", True
+
+        print(f"[breaking] initial-data.ashx HTTP {resp.status_code}")
+        return "", False
+
     except Exception as e:
         print(f"[breaking] fetch_fj_breaking_direct error: {e}")
-        return ""
+        return "", False
 
 
 def fetch_breaking_news() -> list[dict]:
