@@ -634,14 +634,20 @@ int   iMax3 = 2
 for i = 0 to 24
     float w = array.get(weights, i)
     if w > wMax1
-        wMax3 := wMax2; iMax3 := iMax2
-        wMax2 := wMax1; iMax2 := iMax1
-        wMax1 := w;     iMax1 := i
+        wMax3 := wMax2
+        iMax3 := iMax2
+        wMax2 := wMax1
+        iMax2 := iMax1
+        wMax1 := w
+        iMax1 := i
     else if w > wMax2
-        wMax3 := wMax2; iMax3 := iMax2
-        wMax2 := w;     iMax2 := i
+        wMax3 := wMax2
+        iMax3 := iMax2
+        wMax2 := w
+        iMax2 := i
     else if w > wMax3
-        wMax3 := w;     iMax3 := i
+        wMax3 := w
+        iMax3 := i
 
 string top1 = array.get(featNames, iMax1)
 string top2 = array.get(featNames, iMax2)
