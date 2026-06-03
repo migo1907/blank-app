@@ -212,6 +212,7 @@ async def trade_outcome(payload: TradeOutcomePayload):
     outcome_row = {
         "symbol":        sym,
         "direction":     payload.direction,
+        "trigger":       getattr(payload, "trigger", "") or "",
         "entry_price":   payload.entry_price,
         "exit_price":    payload.exit_price,
         "outcome":       payload.outcome,

@@ -114,13 +114,46 @@ def _regime_context(regime: str, direction: str) -> tuple[float, str]:
     return 1.00, "NORMAL"
 
 
-# ── Rapid-fire dedup gate ─────────────────────────────────────────────────────
-def _rapid_fire_penalty(history: list[dict], direction: str, now: datetime) -> float:
+# ── Trigger quality scoring ───────────────────────────────────────────────────
+def _trigger_quality_multiplier(history: list[dict], trigger: str) -> float:
     """
-    DATA FINDING: 8 pairs of trades fired within 5 minutes — including
-    simultaneous LONG+SHORT within seconds (system conflict).
-    Penalise any signal within 3 minutes of last trade in ANY direction.
-    Opposite direction within 60 seconds = near-zero (conflict).
+    Track win rate per trigger method and boost/penalise accordingly.
+    Different triggers (BOS, CHoCH, FVG, OB, RSI, Liq) have different edge.
+    Each trigger earns its own reputation from live outcomes.
+
+    Same trigger + same direction within 30s = true duplicate → penalise.
+    Different trigger or different direction = independent signal → let it through.
+    """
+    if not history or not trigger:
+        return 1.0
+
+    # Score this trigger's historical win rate
+    trigger_trades = [
+        t for t in history
+        if t.get("trigger", "").upper() == trigger.upper()
+    ]
+
+    if len(trigger_trades) >= 5:
+        wins = sum(
+            1.0 if t.get("outcome") == "WIN" else
+            0.5 if t.get("outcome") == "PARTIAL" else 0.0
+            for t in trigger_trades
+        )
+        wr = wins / len(trigger_trades)
+        # Boost high-performing triggers, penalise low-performing ones
+        if wr >= 0.55:   return 1.20   # proven trigger — strong boost
+        if wr >= 0.45:   return 1.08   # decent trigger — mild boost
+        if wr <= 0.25:   return 0.75   # poor trigger — penalise
+        if wr <= 0.35:   return 0.88   # below-average — mild reduction
+
+    return 1.0   # not enough data yet — neutral
+
+
+def _rapid_fire_penalty(history: list[dict], direction: str, trigger: str, now: datetime) -> float:
+    """
+    Only penalise TRUE duplicates: same trigger + same direction within 30 seconds.
+    Different trigger or different direction = independent signal, let through normally.
+    This allows the ML to learn which trigger wins when two conflict simultaneously.
     """
     if not history:
         return 1.0
@@ -132,11 +165,15 @@ def _rapid_fire_penalty(history: list[dict], direction: str, now: datetime) -> f
         if last_time.tzinfo is None:
             last_time = last_time.replace(tzinfo=timezone.utc)
         gap_seconds = (now - last_time).total_seconds()
-        last_dir = last.get("direction", "")
-        if gap_seconds < 60 and last_dir != direction:
-            return 0.20   # opposite direction within 60s = likely conflict
-        if gap_seconds < 180:
-            return 0.70   # any trade within 3 minutes = reduce confidence
+        last_dir     = last.get("direction", "")
+        last_trigger = last.get("trigger", "")
+
+        # True duplicate: same trigger + same direction within 30s
+        if (gap_seconds < 30
+                and last_dir == direction
+                and last_trigger.upper() == trigger.upper()):
+            return 0.15   # exact duplicate — near-block
+
     except Exception:
         pass
     return 1.0
@@ -310,6 +347,7 @@ def generate_signal(
     news_velocity: dict | None = None,
     high_impact_event: dict | None = None,
     symbol: str = "XAUUSD",
+    trigger: str = "",
 ) -> dict:
     from db import symbol_to_pool
     pool     = symbol_to_pool(symbol)
@@ -393,8 +431,9 @@ def generate_signal(
     # ── KNN+RF+GBM agreement gate (item 4) ───────────────────────────────────
     agreement_mult = _agreement_multiplier(knn_dir, rf_dir, gbm_dir)
 
-    # ── Rapid-fire dedup (conflict prevention) ───────────────────────────────
-    rapid_mult = _rapid_fire_penalty(history, direction_raw, now)
+    # ── Trigger quality + true-duplicate dedup ───────────────────────────────
+    trigger_mult = _trigger_quality_multiplier(history, trigger)
+    rapid_mult   = _rapid_fire_penalty(history, direction_raw, trigger, now)
 
     # ── Trade clustering prevention (item 3) ─────────────────────────────────
     cluster_mult = _clustering_multiplier(history, direction_raw)
@@ -408,6 +447,7 @@ def generate_signal(
         * regime_mult
         * agreement_mult
         * cluster_mult
+        * trigger_mult
         * rapid_mult
     )
 
@@ -429,6 +469,7 @@ def generate_signal(
         f"sess:{session_name}×{sess_mult:.2f} | "
         f"confluence×{confluence_mult:.2f} | "
         f"cluster×{cluster_mult:.2f} | "
+        f"trigger:{trigger}×{trigger_mult:.2f} | "
         f"rapid×{rapid_mult:.2f} | "
         f"vwap:{vwap_ctx}({vwap_dist:+.2f}) | "
         f"news:{news_desc}({news_agg:+.3f}) | "
