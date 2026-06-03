@@ -31,8 +31,8 @@ def get_latest_event() -> dict:
 
 
 def _load_seen_headlines() -> set:
-    """Load previously seen headlines from GitHub data branch (survives restarts)."""
-    global _fj_seen_headlines
+    """Load previously seen headlines and last sent direction from GitHub (survives restarts)."""
+    global _fj_seen_headlines, _last_sent_direction
     try:
         from db import _get_file
         data, _ = _get_file(_SEEN_HEADLINES_PATH)
@@ -42,6 +42,20 @@ def _load_seen_headlines() -> set:
     except Exception as e:
         print(f"[scheduler] Could not load seen headlines (first run?): {e}")
         _fj_seen_headlines = set()
+
+    # Load last sent direction — prevents re-sending same direction after restart
+    try:
+        from db import _get_file
+        signals, _ = _get_file("data/signals.json")
+        if isinstance(signals, list) and signals:
+            # Walk backwards to find last non-NEUTRAL signal that was actually sent
+            for sig in reversed(signals):
+                if sig.get("direction") not in ("NEUTRAL", None, ""):
+                    _last_sent_direction = sig["direction"]
+                    print(f"[scheduler] Last sent direction restored: {_last_sent_direction}")
+                    break
+    except Exception as e:
+        print(f"[scheduler] Could not restore last sent direction: {e}")
 
 
 def _save_seen_headlines() -> None:
