@@ -89,19 +89,23 @@ async def send_signal(signal: dict) -> bool:
     dir_emoji  = "🟢" if direction == "LONG" else "🔴"
     conf_emoji = "🔥" if confidence >= 0.75 else "✅" if confidence >= 0.60 else "⚠️"
     strength   = "HIGH 🔥" if confidence >= 0.75 else "MED ✅" if confidence >= 0.60 else "LOW ⚠️"
-    pool_label = "" if pool == "XAUUSD" else f"  |  {pool.replace('STOCKS_', '')}"
+    now_fmt    = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
 
     # Session label
     session_map = {
-        "OVERLAP":   "London/NY Overlap",
-        "LONDON":    "London",
-        "NEW_YORK":  "New York",
-        "ASIAN":     "Asian",
+        "OVERLAP":        "London/NY Overlap",
+        "LONDON":         "London",
+        "NEW_YORK":       "New York",
+        "NY_LATE":        "New York Late",
+        "ASIAN":          "Asian",
+        "NYSE_OPEN":      "NYSE Open",
+        "NYSE_AFTERNOON": "NYSE Afternoon",
+        "PRE_MARKET":     "Pre-Market",
     }
     sess_label = session_map.get(session, session)
 
     msg = (
-        f"{dir_emoji} <b>{direction} direction expected</b>\n"
+        f"{dir_emoji} <b>{direction}  {symbol}  Direction Expected</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
         f"Confidence: <b>{confidence*100:.0f}%</b>  |  Strength: {conf_emoji} {strength}\n"
         f"Session: {sess_label}\n"
@@ -110,7 +114,7 @@ async def send_signal(signal: dict) -> bool:
     if event:
         msg += f"⚡ <b>{event}</b>\n"
 
-    msg += f"\n⏰ {now}  |  {symbol}{pool_label}"
+    msg += f"\n⏰ {now_fmt}"
     return await _send(msg)
 
 
