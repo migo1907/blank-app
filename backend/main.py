@@ -70,6 +70,7 @@ class TradeOutcomePayload(BaseModel):
     outcome:     Literal["WIN", "LOSS", "PARTIAL"]
     ml_outcome:  Optional[str]   = None
     mfe:         float           = 0.0
+    timeframe:   Optional[str]   = None
     tp_stage:    str = ""
     entry_price: float
     exit_price:  float
@@ -142,6 +143,7 @@ class UnifiedPayload(BaseModel):
     outcome:     Optional[str]   = None
     ml_outcome:  Optional[str]   = None   # MFE-based label for ML training (may differ from outcome)
     mfe:         float           = 0.0    # max favorable excursion in price units
+    timeframe:   Optional[str]   = None   # TradingView timeframe.period ("2","5","30","60","240")
     tp_stage:    str             = ""
     exit_price:  Optional[float] = None
     f1:  float = 0.0; f2:  float = 0.0; f3:  float = 0.0; f4:  float = 0.0
@@ -203,10 +205,11 @@ async def trade_outcome(payload: TradeOutcomePayload):
 
     from ml_model import get_model, Features
     from ml_ensemble import get_rf
-    from db import insert_outcome, recent_outcomes
+    from db import insert_outcome, recent_outcomes, symbol_to_pool
 
-    sym = getattr(payload, "symbol", "XAUUSD") or "XAUUSD"
-    model = get_model(sym)
+    sym  = getattr(payload, "symbol", "XAUUSD") or "XAUUSD"
+    pool = symbol_to_pool(sym, payload.timeframe or "")
+    model = get_model(pool)
     features = Features(
         f1=payload.f1,   f2=payload.f2,   f3=payload.f3,   f4=payload.f4,
         f5=payload.f5,   f6=payload.f6,   f7=payload.f7,   f8=payload.f8,
@@ -217,7 +220,6 @@ async def trade_outcome(payload: TradeOutcomePayload):
         f25=payload.f25,
     )
 
-    from db import symbol_to_pool
     ml_label = payload.ml_outcome or payload.outcome
     model.update_on_outcome(features, payload.direction, ml_label)
 
@@ -233,6 +235,7 @@ async def trade_outcome(payload: TradeOutcomePayload):
         "outcome":       payload.outcome,
         "ml_outcome":    ml_label,
         "mfe":           payload.mfe,
+        "timeframe":     payload.timeframe or "",
         "pnl_pct":       round(pnl_pct, 4),
         "ml_bull_score": payload.ml_score,
     }
@@ -242,9 +245,9 @@ async def trade_outcome(payload: TradeOutcomePayload):
     # asyncio.to_thread prevents synchronous httpx calls in db.py from blocking the event loop
     async def _persist():
         try:
-            await asyncio.to_thread(model.save, symbol_to_pool(sym))
+            await asyncio.to_thread(model.save, pool)
             await asyncio.to_thread(insert_outcome, outcome_row)
-            history = await asyncio.to_thread(recent_outcomes, sym, 500)
+            history = await asyncio.to_thread(recent_outcomes, pool, 500)
             if len(history) >= 15:
                 await asyncio.to_thread(get_rf().retrain, history)
                 await asyncio.to_thread(get_gbm().train, history)
@@ -329,7 +332,8 @@ async def unified_webhook(payload: UnifiedPayload):
         from ml_ensemble import get_rf, get_gbm
         from db import insert_outcome, recent_outcomes, symbol_to_pool
         sym2     = payload.symbol or "XAUUSD"
-        model    = get_model(sym2)
+        pool     = symbol_to_pool(sym2, payload.timeframe or "")
+        model    = get_model(pool)
         features = Features(
             f1=payload.f1, f2=payload.f2, f3=payload.f3, f4=payload.f4,
             f5=payload.f5, f6=payload.f6, f7=payload.f7, f8=payload.f8,
@@ -364,6 +368,7 @@ async def unified_webhook(payload: UnifiedPayload):
             "outcome":       payload.outcome,           # real exit result (P&L)
             "ml_outcome":    ml_label,                  # MFE-based label used for ML training
             "mfe":           payload.mfe,
+            "timeframe":     payload.timeframe or "",
             "pnl_pct":       round(pnl_pct, 4),
             "ml_bull_score": payload.ml_score,
         }
@@ -373,9 +378,9 @@ async def unified_webhook(payload: UnifiedPayload):
         # asyncio.to_thread prevents synchronous httpx calls in db.py from blocking the event loop
         async def _persist():
             try:
-                await asyncio.to_thread(model.save, symbol_to_pool(sym2))
+                await asyncio.to_thread(model.save, pool)
                 await asyncio.to_thread(insert_outcome, outcome_row)
-                history = await asyncio.to_thread(recent_outcomes, sym2, 500)
+                history = await asyncio.to_thread(recent_outcomes, pool, 500)
                 if len(history) >= 15:
                     await asyncio.to_thread(get_rf().retrain, history)
                     await asyncio.to_thread(get_gbm().train, history)
