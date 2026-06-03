@@ -42,12 +42,14 @@ def _session_multiplier(now_utc: datetime, is_stock: bool = False) -> tuple[floa
         if 12 <= h < 13:  return 0.90, "PRE_MARKET"
         return 0.60, "CLOSED"                          # outside market hours
     # Gold — 24hr market
-    if 7 <= h < 10:   return 1.30, "LONDON"
-    if 13 <= h < 16:  return 1.20, "NEW_YORK"
+    # DATA FINDING: London session (7-12 UTC) = 0% WR over 5 trades — hard reduce
+    # Asian (0-7 UTC) = 33% WR — best session in data
+    if 7 <= h < 12:   return 0.60, "LONDON"      # 0% WR in live data — penalise hard
     if 12 <= h < 13:  return 1.25, "OVERLAP"
+    if 13 <= h < 16:  return 1.20, "NEW_YORK"
     if 16 <= h < 20:  return 1.00, "NY_LATE"
-    if 0 <= h < 7:    return 0.75, "ASIAN"
-    return 0.65, "OFF"
+    if 0 <= h < 7:    return 1.10, "ASIAN"        # 33% WR — boosted from 0.75
+    return 0.70, "OFF"
 
 
 def _day_of_week_multiplier(now_utc: datetime) -> float:
@@ -110,6 +112,34 @@ def _regime_context(regime: str, direction: str) -> tuple[float, str]:
         return 0.92, "VOLATILE"           # news-driven — slight reduction
 
     return 1.00, "NORMAL"
+
+
+# ── Rapid-fire dedup gate ─────────────────────────────────────────────────────
+def _rapid_fire_penalty(history: list[dict], direction: str, now: datetime) -> float:
+    """
+    DATA FINDING: 8 pairs of trades fired within 5 minutes — including
+    simultaneous LONG+SHORT within seconds (system conflict).
+    Penalise any signal within 3 minutes of last trade in ANY direction.
+    Opposite direction within 60 seconds = near-zero (conflict).
+    """
+    if not history:
+        return 1.0
+    last = history[0]
+    try:
+        last_time = datetime.fromisoformat(
+            last.get("created_at", "2000-01-01T00:00:00").replace("Z", "+00:00")
+        )
+        if last_time.tzinfo is None:
+            last_time = last_time.replace(tzinfo=timezone.utc)
+        gap_seconds = (now - last_time).total_seconds()
+        last_dir = last.get("direction", "")
+        if gap_seconds < 60 and last_dir != direction:
+            return 0.20   # opposite direction within 60s = likely conflict
+        if gap_seconds < 180:
+            return 0.70   # any trade within 3 minutes = reduce confidence
+    except Exception:
+        pass
+    return 1.0
 
 
 # ── Trade clustering prevention (item 3) ──────────────────────────────────────
@@ -177,6 +207,27 @@ def _confluence_score(features: Features | None, direction: str, regime: str) ->
 
     score = sum(checks) / len(checks)
     base = 0.70 + score * 0.70
+
+    # ── DATA-DRIVEN FILTERS (from 68-trade live analysis) ────────────────────
+    # Finding 1: f21_vwap < -0.5 (well below VWAP) = 17.5% WR vs 28%+ above
+    # LONG signals taken far below VWAP in a bearish trend = consistent losers
+    if bull and features.f21 < -0.5:
+        base *= 0.78   # well below VWAP on LONG — mean-reversion risk
+
+    # Finding 2: f5_macd = +1 (bullish MACD) in bearish MTF = 16% WR
+    # Bullish MACD in bearish trend = lagging indicator chasing price
+    if bull and features.f5 > 0.5 and features.f16 < 0:
+        base *= 0.82   # MACD bullish but 1H bearish — lagging, fade
+
+    # Finding 3: f5_macd = -1 (bearish MACD) = 26% WR — best filter with n=23
+    # Bearish MACD aligns with bearish MTF = trend-confirmed signal
+    if not bull and features.f5 < -0.5:
+        base *= 1.12   # MACD bearish + SHORT = trend-confirmed, boost
+
+    # Finding 4: CHoCH present = 37.5% WR (best single factor, n=4)
+    # Small sample but consistent — CHoCH = institutional reversal evidence
+    if abs(features.f14) > 0.5:
+        base *= 1.10   # CHoCH present — reversal confirmed by structure
 
     # ── VWAP Stretch mean-reversion boost ────────────────────────────────────
     # When price is stretched far from VWAP in the signal direction,
@@ -342,6 +393,9 @@ def generate_signal(
     # ── KNN+RF+GBM agreement gate (item 4) ───────────────────────────────────
     agreement_mult = _agreement_multiplier(knn_dir, rf_dir, gbm_dir)
 
+    # ── Rapid-fire dedup (conflict prevention) ───────────────────────────────
+    rapid_mult = _rapid_fire_penalty(history, direction_raw, now)
+
     # ── Trade clustering prevention (item 3) ─────────────────────────────────
     cluster_mult = _clustering_multiplier(history, direction_raw)
 
@@ -354,6 +408,7 @@ def generate_signal(
         * regime_mult
         * agreement_mult
         * cluster_mult
+        * rapid_mult
     )
 
     direction = direction_raw if confidence >= min_conf else "NEUTRAL"
@@ -374,6 +429,7 @@ def generate_signal(
         f"sess:{session_name}×{sess_mult:.2f} | "
         f"confluence×{confluence_mult:.2f} | "
         f"cluster×{cluster_mult:.2f} | "
+        f"rapid×{rapid_mult:.2f} | "
         f"vwap:{vwap_ctx}({vwap_dist:+.2f}) | "
         f"news:{news_desc}({news_agg:+.3f}) | "
         f"combined:{combined_score:+.3f} → conf:{confidence:.3f}"
