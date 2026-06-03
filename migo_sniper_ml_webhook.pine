@@ -1,5 +1,5 @@
 //@version=6
-indicator("XAU/USD Migo VS Market Sniper Pro [ML + Adaptive + ☁️ v3·25F]", overlay=true, max_labels_count=300, max_bars_back=300)
+indicator("XAU/USD Migo VS Market Sniper Pro [ML + Adaptive + ☁️ v3·25F]", overlay=true, max_labels_count=300, max_bars_back=510)
 
 // ═══════════════════════════════════════════════════════
 // TIMEFRAME AUTO-DETECTION
@@ -273,7 +273,7 @@ var float mlBear = 0.5
 if bar_index > mlK * 2 + mlLag and bar_index % 2 == 0
     float[] kDist  = array.new_float(mlK, 1.0e10)
     int[]   kLbl   = array.new_int(mlK, 0)
-    int searchLen  = math.min(mlDepth, bar_index - mlLag - 1)
+    int searchLen  = math.min(mlDepth, math.min(bar_index - mlLag - 1, 500))
     // Step >= 2 ensures we never check every bar; cap at 100 comparisons
     int step = math.max(2, math.round(float(searchLen) / 100.0))
     for i = mlLag + step to searchLen by step
