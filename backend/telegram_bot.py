@@ -5,8 +5,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-TOKEN   = os.environ.get("TELEGRAM_BOT_TOKEN", "")
-CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
+TOKEN           = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+CHAT_ID         = os.environ.get("TELEGRAM_CHAT_ID", "")
+PERSONAL_CHAT_ID = os.environ.get("TELEGRAM_PERSONAL_CHAT_ID", "966897595")
 
 TRIGGER_NAMES = {
     "RSI":  "RSI Momentum Cross",
@@ -149,3 +150,37 @@ async def send_breaking_news(items: list[dict], seen_headlines: set) -> set:
     for item in new_items:
         updated.add(item["title"][:80])
     return updated
+
+
+async def send_critical_alert(title: str, detail: str, action: str = "") -> bool:
+    """
+    Send a critical system alert to the personal chat only.
+    Used for: Railway down, hours warning, GitHub token expired, webhook silence.
+    Never used for normal signals or health noise.
+    """
+    if not TOKEN or not PERSONAL_CHAT_ID:
+        print(f"[critical] {title} — {detail}")
+        return False
+    now = datetime.now(timezone.utc).strftime("%H:%M UTC — %d %b %Y")
+    msg = (
+        f"🚨 <b>SYSTEM ALERT</b>\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n"
+        f"⚠️ <b>{title}</b>\n"
+        f"{detail}\n"
+    )
+    if action:
+        msg += f"\n🔧 <i>{action}</i>\n"
+    msg += f"\n⏰ {now}"
+    url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.post(url, json={
+                "chat_id":    PERSONAL_CHAT_ID,
+                "text":       msg,
+                "parse_mode": "HTML",
+            })
+            resp.raise_for_status()
+            return True
+    except Exception as e:
+        print(f"[critical] Personal alert failed: {e}")
+        return False

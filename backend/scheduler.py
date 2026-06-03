@@ -145,13 +145,16 @@ async def _write_health_status(signal: dict, news_agg: float, velocity: dict, br
 async def _hourly_system_check() -> None:
     """
     Full system audit — runs every 60 minutes.
-    Silent when all checks pass. Only sends Telegram alert when issues are found.
+    Silent when all checks pass.
+    Sends personal Telegram alert ONLY for critical failures.
     """
     from datetime import datetime, timezone
+    from telegram_bot import send_critical_alert
 
     now = datetime.now(timezone.utc).strftime("%H:%M UTC — %d %b %Y")
     issues: list[str] = []
     ok:     list[str] = []
+    critical_alerts: list[tuple[str, str, str]] = []  # (title, detail, action)
 
     # ── 1. GitHub persistence (db layer) ─────────────────────────────────────
     try:
@@ -310,11 +313,104 @@ async def _hourly_system_check() -> None:
     except Exception as e:
         issues.append(f"Feature check error: {e} ❌")
 
+    # ── C1. Railway hours warning ─────────────────────────────────────────────
+    try:
+        import httpx as _httpx
+        railway_token = _os.environ.get("RAILWAY_API_TOKEN", "")
+        if railway_token:
+            query = """
+            query { me { usage { currentPeriodUsage { usageMinutes } usageLimit { maxUsageMinutes } } } }
+            """
+            async with _httpx.AsyncClient(timeout=10) as client:
+                r = await client.post(
+                    "https://backboard.railway.app/graphql/v2",
+                    headers={"Authorization": f"Bearer {railway_token}", "Content-Type": "application/json"},
+                    json={"query": query},
+                )
+            d = r.json()
+            usage_data = ((d.get("data") or {}).get("me") or {}).get("usage") or {}
+            used  = (usage_data.get("currentPeriodUsage") or {}).get("usageMinutes", 0)
+            limit = (usage_data.get("usageLimit") or {}).get("maxUsageMinutes", 0)
+            if limit and limit > 0:
+                pct = used / limit * 100
+                ok.append(f"Railway hours: {used}/{limit} min ({pct:.0f}%) ✅")
+                if pct >= 95:
+                    critical_alerts.append((
+                        "Railway Free Tier CRITICAL",
+                        f"Usage at {pct:.0f}% ({used}/{limit} min) — service will stop very soon.",
+                        "Upgrade Railway plan immediately or service stops."
+                    ))
+                elif pct >= 80:
+                    critical_alerts.append((
+                        "Railway Free Tier Warning",
+                        f"Usage at {pct:.0f}% ({used}/{limit} min) — approaching monthly limit.",
+                        "Consider upgrading Railway plan before limit is reached."
+                    ))
+            else:
+                ok.append("Railway hours: usage data unavailable (paid plan?) ✅")
+    except Exception as e:
+        print(f"[system_check] Railway hours check failed: {e}")
+
+    # ── C2. GitHub token validity ─────────────────────────────────────────────
+    try:
+        from db import _get_file
+        test, _ = _get_file("data/health.json")
+        if test is None:
+            issues.append("GitHub token may have expired — health.json unreadable ❌")
+            critical_alerts.append((
+                "GitHub Token May Be Expired",
+                "Cannot read data/health.json — ML data will not save.",
+                "Check GITHUB_TOKEN in Railway env vars and renew if expired."
+            ))
+        else:
+            ok.append("GitHub token valid ✅")
+    except Exception as e:
+        err_str = str(e)
+        if "401" in err_str or "403" in err_str or "Bad credentials" in err_str:
+            critical_alerts.append((
+                "GitHub Token Expired",
+                "GitHub API returned auth error — weights and trade history cannot be saved.",
+                "Renew GITHUB_TOKEN in Railway environment variables immediately."
+            ))
+        issues.append(f"GitHub token check failed: {e} ❌")
+
+    # ── C3. Webhook silence detector ─────────────────────────────────────────
+    try:
+        from db import _get_file
+        from datetime import timedelta
+        history, _ = _get_file("data/trade_history.json")
+        if isinstance(history, list) and len(history) > 0:
+            last_trade_time = datetime.fromisoformat(
+                history[-1].get("created_at", "2000-01-01T00:00:00").replace("Z", "+00:00")
+            )
+            if last_trade_time.tzinfo is None:
+                last_trade_time = last_trade_time.replace(tzinfo=timezone.utc)
+            hours_since = (datetime.now(timezone.utc) - last_trade_time).total_seconds() / 3600
+            # Only alert during market hours (Mon-Fri, 7-20 UTC) if silent >6h
+            dow = datetime.now(timezone.utc).weekday()
+            market_hour = 7 <= datetime.now(timezone.utc).hour < 20
+            if dow < 5 and market_hour and hours_since > 6:
+                critical_alerts.append((
+                    "Webhook Silence Detected",
+                    f"No trade data received for {hours_since:.0f} hours during market hours.",
+                    "Check TradingView alerts — they may have expired or been disabled."
+                ))
+                issues.append(f"No webhook activity for {hours_since:.0f}h during market hours ⚠️")
+            else:
+                ok.append(f"Last webhook: {hours_since:.1f}h ago ✅")
+    except Exception as e:
+        print(f"[system_check] Webhook silence check failed: {e}")
+
     # ── Log results ──────────────────────────────────────────────────────────
     n_issue = len(issues)
     print(f"[system_check] {len(ok)}/{len(ok)+n_issue} checks passed.")
     for iss in issues:
         print(f"[system_check] ISSUE: {iss}")
+
+    # ── Send critical alerts to personal Telegram ─────────────────────────────
+    for title, detail, action in critical_alerts:
+        print(f"[system_check] CRITICAL: {title} — {detail}")
+        await send_critical_alert(title, detail, action)
 
     # ── Auto-heal: deduplicate trade history ──────────────────────────────────
     try:
