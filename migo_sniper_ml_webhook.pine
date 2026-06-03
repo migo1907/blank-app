@@ -315,7 +315,8 @@ bool mlBearish = mlBear >= mlMinScore
 // ═══════════════════════════════════════════════════════
 // TRADE STATE
 // ═══════════════════════════════════════════════════════
-var string activeTrade = "NONE"
+var string activeTrade   = "NONE"
+var string activeTrigger = "RSI"
 var float  entryPrice  = 0.0
 var float  tp1Price    = 0.0
 var float  tp2Price    = 0.0
@@ -368,10 +369,10 @@ buildEntryPayload(dir, tf, trig, entPx, t1, t2, t3, stopPx, mlSc, tierStr) =>
 // ═══════════════════════════════════════════════════════
 // OUTCOME PAYLOAD BUILDER — includes all 25 features
 // ═══════════════════════════════════════════════════════
-buildPayload(dir, outcome, stage, entPx, exitPx, mlSc) =>
+buildPayload(dir, outcome, stage, entPx, exitPx, mlSc, trig) =>
     string p1  = '{"secret":"' + webhookSecret + '"'
     string p2  = ',"trade_id":"' + syminfo.ticker + '_' + str.tostring(timenow) + '"'
-    string p3  = ',"direction":"' + dir + '","outcome":"' + outcome + '","tp_stage":"' + stage + '"'
+    string p3  = ',"direction":"' + dir + '","outcome":"' + outcome + '","tp_stage":"' + stage + '","trigger":"' + trig + '"'
     string p4  = ',"entry_price":' + str.tostring(entPx, "#.####") + ',"exit_price":' + str.tostring(exitPx, "#.####")
     string p5  = ',"ml_score":' + str.tostring(mlSc, "#.####")
     string f1s  = ',"f1":'  + str.tostring(array.get(entryFeatures, 0),  "#.####")
@@ -429,7 +430,7 @@ if activeTrade == "LONG"
     if tp1Hit and tp2Hit and high >= tp3Price
         totalWins += 1
         updateWeightsLong(winReward)
-        alert(buildPayload(activeTrade, "WIN", "TP3", entryPrice, high, mlBull), alert.freq_once_per_bar_close)
+        alert(buildPayload(activeTrade, "WIN", "TP3", entryPrice, high, mlBull, activeTrigger), alert.freq_once_per_bar_close)
         activeTrade := "NONE"
         tp1Hit := false
         tp2Hit := false
@@ -445,7 +446,7 @@ if activeTrade == "LONG"
         else
             totalWins += 1
             updateWeightsLong(winReward * 0.4)
-        alert(buildPayload(activeTrade, outcome, stage, entryPrice, low, mlBull), alert.freq_once_per_bar_close)
+        alert(buildPayload(activeTrade, outcome, stage, entryPrice, low, mlBull, activeTrigger), alert.freq_once_per_bar_close)
         label.new(bar_index, low, exitLbl + " ☁️", color=color.red, textcolor=color.white, style=label.style_label_up, size=size.tiny)
         activeTrade := "NONE"
         tp1Hit := false
@@ -468,7 +469,7 @@ if activeTrade == "SHORT"
     if tp1Hit and tp2Hit and low <= tp3Price
         totalWins += 1
         updateWeightsShort(winReward)
-        alert(buildPayload(activeTrade, "WIN", "TP3", entryPrice, low, mlBear), alert.freq_once_per_bar_close)
+        alert(buildPayload(activeTrade, "WIN", "TP3", entryPrice, low, mlBear, activeTrigger), alert.freq_once_per_bar_close)
         activeTrade := "NONE"
         tp1Hit := false
         tp2Hit := false
@@ -484,7 +485,7 @@ if activeTrade == "SHORT"
         else
             totalWins += 1
             updateWeightsShort(winReward * 0.4)
-        alert(buildPayload(activeTrade, outcome, stage, entryPrice, high, mlBear), alert.freq_once_per_bar_close)
+        alert(buildPayload(activeTrade, outcome, stage, entryPrice, high, mlBear, activeTrigger), alert.freq_once_per_bar_close)
         label.new(bar_index, high, exitLbl + " ☁️", color=color.red, textcolor=color.white, style=label.style_label_down, size=size.tiny)
         activeTrade := "NONE"
         tp1Hit := false
@@ -569,7 +570,8 @@ storeFeatures() =>
     array.set(entryFeatures, 24, f25)
 
 if doBuy
-    activeTrade := "LONG"
+    activeTrade   := "LONG"
+    activeTrigger := buyTrig
     entryPrice  := close
     tp1Price    := close + atr * atrMultTP1
     tp2Price    := close + atr * atrMultTP2
@@ -584,7 +586,8 @@ if doBuy
     alert(buildEntryPayload("LONG", timeframe.period, buyTrig, entryPrice, tp1Price, tp2Price, tp3Price, slPrice, mlBull, buyTier), alert.freq_once_per_bar_close)
 
 if doSell
-    activeTrade := "SHORT"
+    activeTrade   := "SHORT"
+    activeTrigger := sellTrig
     entryPrice  := close
     tp1Price    := close - atr * atrMultTP1
     tp2Price    := close - atr * atrMultTP2
