@@ -72,21 +72,13 @@ def _save_seen_headlines() -> None:
 async def _breaking_news_cycle() -> None:
     """
     Runs every 2 minutes.
-    1. Polls FJ initial-data.ashx for the red breaking news banner field.
-    2. Sends to Telegram immediately if it's a new headline (dedup by text).
-    3. Also pings /health to prevent Railway cold starts.
+    Polls FJ initial-data.ashx for the red breaking news banner field.
+    Sends to Telegram immediately if it's a new headline (dedup by text).
+
+    NOTE: Railway keep-alive must be handled by an EXTERNAL service (e.g. UptimeRobot)
+    pinging /health every 5 minutes. A self-ping cannot prevent Railway sleep.
     """
     global _fj_seen_headlines
-
-    # ── Keep-alive ping ───────────────────────────────────────────────────────
-    import httpx as _httpx
-    try:
-        base = os.environ.get("RAILWAY_PUBLIC_DOMAIN", "")
-        if base:
-            async with _httpx.AsyncClient(timeout=5) as client:
-                await client.get(f"https://{base}/health")
-    except Exception:
-        pass
 
     # ── FJ red breaking news check ────────────────────────────────────────────
     try:
