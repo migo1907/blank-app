@@ -286,43 +286,167 @@ def _fj_save_session(resp_headers: dict) -> None:
         print(f"[fj] Session save error: {e}")
 
 
+def _fj_auto_login() -> bool:
+    """
+    Log in to FinancialJuice using FJ_EMAIL + FJ_PASSWORD env vars.
+    Extracts the fresh .ASPXAUTH + ASP.NET_SessionId cookies and saves them
+    to GitHub data branch so all future calls use the new session.
+    Returns True on success, False on failure.
+    """
+    global _fj_cookie_cache
+    email    = FJ_EMAIL
+    password = FJ_PASSWORD
+    if not email or not password:
+        print("[fj] Auto-login skipped — FJ_EMAIL or FJ_PASSWORD not set.")
+        return False
+
+    print(f"[fj] Auto-login: attempting login for {email}…")
+    login_url = "https://www.financialjuice.com/account/login"
+
+    try:
+        with httpx.Client(timeout=15, follow_redirects=True) as client:
+            # Step 1: GET login page to obtain ASP.NET form tokens
+            r0 = client.get(
+                login_url,
+                headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"},
+            )
+            # Extract __RequestVerificationToken if present
+            rvt = ""
+            try:
+                import re
+                match = re.search(r'__RequestVerificationToken[^>]+value="([^"]+)"', r0.text)
+                if match:
+                    rvt = match.group(1)
+            except Exception:
+                pass
+
+            # Step 2: POST credentials
+            form_data = {
+                "Email":    email,
+                "Password": password,
+                "RememberMe": "true",
+            }
+            if rvt:
+                form_data["__RequestVerificationToken"] = rvt
+
+            r1 = client.post(
+                login_url,
+                data=form_data,
+                headers={
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                    "Referer":    login_url,
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+            )
+
+        # Check cookies from the client jar (follow_redirects means final cookies are in jar)
+        cookies = dict(client.cookies)
+        auth_cookie   = cookies.get(".ASPXAUTH", "")
+        aspnet_cookie = cookies.get("ASP.NET_SessionId", "")
+
+        if not auth_cookie:
+            print(f"[fj] Auto-login failed — no .ASPXAUTH cookie received (HTTP {r1.status_code}).")
+            return False
+
+        payload = {
+            "fj_session_cookie": auth_cookie,
+            "fj_aspnet_session": aspnet_cookie,
+            "fj_uid":   FJ_UID,
+            "fj_uname": FJ_UNAME,
+            "fj_email": email,
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "login_method": "auto",
+        }
+        from db import _get_file, _put_file
+        _, sha = _get_file(FJ_SESSION_PATH)
+        _put_file(FJ_SESSION_PATH, payload, sha, "chore: auto-login refresh FJ session cookie")
+        _fj_cookie_cache = payload
+        print(f"[fj] Auto-login successful — new session saved to GitHub.")
+        return True
+
+    except Exception as e:
+        print(f"[fj] Auto-login error: {e}")
+        return False
+
+
+def _parse_fj_breaking(raw: str) -> str:
+    """
+    FJ API returns breaking field as plain text OR JSON array like [{"title":"..."}].
+    Always returns a clean plain-text headline string.
+    """
+    raw = raw.strip()
+    if not raw:
+        return ""
+    if raw.startswith("["):
+        try:
+            items = json.loads(raw)
+            if isinstance(items, list) and items:
+                return items[0].get("title", raw).strip()
+        except Exception:
+            pass
+    return raw
+
+
 def fetch_fj_breaking_direct() -> tuple[str, bool]:
     """
     Poll FJ /widgets/initial-data.ashx for the red breaking news banner field.
 
     Returns (headline, is_401):
       headline — breaking news text, or "" if none active
-      is_401   — True if session expired (caller sends personal alert)
+      is_401   — True if session expired AND auto-login also failed
 
+    On 401/403: attempts auto-login first, retries once. Only returns is_401=True
+    if auto-login fails (caller then sends personal alert).
     On success: saves fresh cookie to GitHub for restart resilience.
     """
     cookie_str = _fj_cookie_str()
-    if not cookie_str:
+    if not cookie_str and not (FJ_EMAIL and FJ_PASSWORD):
         return "", False
-    try:
+
+    def _do_request(cookie: str) -> tuple[int, dict]:
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
-            "Cookie":     cookie_str,
+            "Cookie":     cookie,
             "Referer":    "https://www.financialjuice.com/home",
             "Accept":     "application/json, text/plain, */*",
         }
         with httpx.Client(timeout=8, follow_redirects=True) as client:
             resp = client.get(FJ_BREAKING_URL, headers=headers)
+        return resp.status_code, resp
 
-        if resp.status_code == 200:
-            # Save fresh cookie to GitHub every successful call
+    try:
+        if not cookie_str:
+            # No cookie at all — try auto-login first
+            if not _fj_auto_login():
+                return "", False
+            cookie_str = _fj_cookie_str()
+
+        status, resp = _do_request(cookie_str)
+
+        if status == 200:
             _fj_save_session(dict(resp.headers))
-            data     = resp.json()
-            breaking = (data.get("breaking") or "").strip()
+            breaking = _parse_fj_breaking(resp.json().get("breaking") or "")
             if breaking:
                 print(f"[breaking] FJ red item: {breaking[:80]}")
             return breaking, False
 
-        if resp.status_code in (401, 403):
-            print(f"[breaking] FJ session expired (HTTP {resp.status_code})")
+        if status in (401, 403):
+            print(f"[breaking] FJ session expired (HTTP {status}) — attempting auto-login…")
+            if _fj_auto_login():
+                # Retry once with fresh cookie
+                new_cookie = _fj_cookie_str()
+                status2, resp2 = _do_request(new_cookie)
+                if status2 == 200:
+                    _fj_save_session(dict(resp2.headers))
+                    breaking = _parse_fj_breaking(resp2.json().get("breaking") or "")
+                    if breaking:
+                        print(f"[breaking] FJ red item (after re-login): {breaking[:80]}")
+                    return breaking, False
+            # Auto-login failed — signal caller to send personal alert
+            print("[fj] Auto-login failed — manual cookie update required.")
             return "", True
 
-        print(f"[breaking] initial-data.ashx HTTP {resp.status_code}")
+        print(f"[breaking] initial-data.ashx HTTP {status}")
         return "", False
 
     except Exception as e:
@@ -455,11 +579,11 @@ def calculate_velocity(scored_items: list[dict], previous_agg: float) -> dict:
       - Acceleration: magnitude of sentiment shift vs last cycle
 
     Multiplier applied to NEWS_WEIGHT in signal engine:
-      HIGH VELOCITY  → ×2.0  (breaking news, all same direction)
-      ELEVATED       → ×1.5  (moderate flow, consistent)
-      NORMAL         → ×1.0  (standard)
-      CONFLICTED     → ×0.6  (mixed signals, reduce noise)
-      SILENT         → ×0.3  (no relevant news)
+      HIGH VELOCITY  -> x2.0  (breaking news, all same direction)
+      ELEVATED       -> x1.5  (moderate flow, consistent)
+      NORMAL         -> x1.0  (standard)
+      CONFLICTED     -> x0.6  (mixed signals, reduce noise)
+      SILENT         -> x0.3  (no relevant news)
     """
     if not scored_items:
         return {
@@ -560,7 +684,7 @@ def score_headlines_with_claude(articles: list[dict]) -> list[dict]:
 
 
 def aggregate_sentiment(scored_items: list[dict]) -> float:
-    """Weighted average: HIGH=3×, MEDIUM=1.5×, LOW=1×. Returns [-1, +1]."""
+    """Weighted average: HIGH=3x, MEDIUM=1.5x, LOW=1x. Returns [-1, +1]."""
     if not scored_items:
         return 0.0
 
@@ -618,7 +742,7 @@ def run_news_cycle(previous_agg: float = 0.0) -> tuple[list[dict], float, dict, 
 
     print(
         f"[news] Sentiment: {agg:+.3f} | "
-        f"Velocity: {velocity['label']} ×{velocity['multiplier']} | "
+        f"Velocity: {velocity['label']} x{velocity['multiplier']} | "
         f"Event: {event.get('event_type') or 'none'} | "
         f"FJ Breaking: {len(fj_breaking)}"
     )
