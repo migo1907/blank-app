@@ -28,18 +28,20 @@ async def lifespan(app: FastAPI):
     from ml_model import get_model
     get_model()
 
-    print("[startup] Priming RF + GBM ensembles…")
+    print("[startup] Priming RF + GBM ensembles for all pools…")
     from ml_ensemble import get_rf, get_gbm
     from db import recent_outcomes
-    rf  = get_rf()
-    gbm = get_gbm()
-    history = recent_outcomes("XAUUSD", limit=500)
-    if len(history) >= 15:
-        rf.retrain(history)
-        gbm.train(history)
-        print(f"[startup] RF + GBM trained on {len(history)} trades.")
-    else:
-        print(f"[startup] Not enough data ({len(history)} trades) — will train later.")
+    for _pool in ["XAUUSD", "XAUUSD_2M", "XAUUSD_5M",
+                  "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_4H",
+                  "STOCKS_QUALITY_30M", "STOCKS_QUALITY_4H",
+                  "STOCKS_INDEX_30M", "STOCKS_INDEX_4H"]:
+        _hist = recent_outcomes(_pool, limit=500)
+        if len(_hist) >= 15:
+            get_rf(_pool).retrain(_hist)
+            get_gbm(_pool).train(_hist)
+            print(f"[startup] RF+GBM trained for {_pool} on {len(_hist)} trades.")
+        else:
+            print(f"[startup] {_pool}: {len(_hist)} trades — RF/GBM will train when data grows.")
 
     print("[startup] Starting scheduler…")
     from scheduler import start_scheduler, _news_signal_cycle
@@ -216,7 +218,7 @@ async def trade_outcome(payload: TradeOutcomePayload):
     _validate_secret(payload.secret)
 
     from ml_model import get_model, Features
-    from ml_ensemble import get_rf
+    from ml_ensemble import get_rf, get_gbm
     from db import insert_outcome, recent_outcomes, symbol_to_pool
 
     sym  = getattr(payload, "symbol", "XAUUSD") or "XAUUSD"
@@ -253,16 +255,14 @@ async def trade_outcome(payload: TradeOutcomePayload):
     }
     outcome_row.update(features.as_db_dict())
 
-    # All GitHub I/O in background thread — respond to TradingView instantly
-    # asyncio.to_thread prevents synchronous httpx calls in db.py from blocking the event loop
     async def _persist():
         try:
             await asyncio.to_thread(model.save, pool)
             await asyncio.to_thread(insert_outcome, outcome_row)
             history = await asyncio.to_thread(recent_outcomes, pool, 500)
             if len(history) >= 15:
-                await asyncio.to_thread(get_rf().retrain, history)
-                await asyncio.to_thread(get_gbm().train, history)
+                await asyncio.to_thread(get_rf(pool).retrain, history)
+                await asyncio.to_thread(get_gbm(pool).train, history)
         except Exception as e:
             print(f"[trade-outcome] background persist error: {e}")
     asyncio.create_task(_persist())
@@ -386,16 +386,14 @@ async def unified_webhook(payload: UnifiedPayload):
         }
         outcome_row.update(features.as_db_dict())
 
-        # All GitHub I/O runs in background thread — respond to TradingView instantly
-        # asyncio.to_thread prevents synchronous httpx calls in db.py from blocking the event loop
         async def _persist():
             try:
                 await asyncio.to_thread(model.save, pool)
                 await asyncio.to_thread(insert_outcome, outcome_row)
                 history = await asyncio.to_thread(recent_outcomes, pool, 500)
                 if len(history) >= 15:
-                    await asyncio.to_thread(get_rf().retrain, history)
-                    await asyncio.to_thread(get_gbm().train, history)
+                    await asyncio.to_thread(get_rf(pool).retrain, history)
+                    await asyncio.to_thread(get_gbm(pool).train, history)
             except Exception as e:
                 print(f"[webhook] background persist error: {e}")
         asyncio.create_task(_persist())

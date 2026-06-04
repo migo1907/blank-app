@@ -355,8 +355,8 @@ def generate_signal(
     min_conf = MIN_CONFIDENCE_STOCKS if is_stock else MIN_CONFIDENCE
 
     model   = get_model(pool)
-    rf      = get_rf()
-    gbm     = get_gbm()
+    rf      = get_rf(pool)
+    gbm     = get_gbm(pool)
     history = recent_outcomes(pool, limit=300)
     now     = datetime.now(timezone.utc)
 

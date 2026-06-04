@@ -172,16 +172,16 @@ class RandomForestEnsemble:
         return self.retrain(history)
 
 
-# ── Module-level singleton ───────────────────────────────────────────────────
+# ── Pool-aware singletons — one RF per pool ──────────────────────────────────
 
-_rf: RandomForestEnsemble | None = None
+_rf_pool: dict[str, RandomForestEnsemble] = {}
 
 
-def get_rf() -> RandomForestEnsemble:
-    global _rf
-    if _rf is None:
-        _rf = RandomForestEnsemble()
-    return _rf
+def get_rf(pool: str = "XAUUSD") -> RandomForestEnsemble:
+    """Get or create a RandomForestEnsemble for the given pool."""
+    if pool not in _rf_pool:
+        _rf_pool[pool] = RandomForestEnsemble()
+    return _rf_pool[pool]
 
 
 # ── Gradient Boosting Ensemble (item 2 — XGBoost equivalent) ─────────────────
@@ -265,11 +265,13 @@ class GradientBoostEnsemble:
         return paired[:n]
 
 
-_gbm: GradientBoostEnsemble | None = None
+# ── Pool-aware singletons — one GBM per pool ─────────────────────────────────
+
+_gbm_pool: dict[str, GradientBoostEnsemble] = {}
 
 
-def get_gbm() -> GradientBoostEnsemble:
-    global _gbm
-    if _gbm is None:
-        _gbm = GradientBoostEnsemble()
-    return _gbm
+def get_gbm(pool: str = "XAUUSD") -> GradientBoostEnsemble:
+    """Get or create a GradientBoostEnsemble for the given pool."""
+    if pool not in _gbm_pool:
+        _gbm_pool[pool] = GradientBoostEnsemble()
+    return _gbm_pool[pool]

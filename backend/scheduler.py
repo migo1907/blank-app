@@ -526,19 +526,20 @@ async def _hourly_system_check() -> None:
     except Exception as e:
         print(f"[system_check] Dedup auto-fix failed: {e}")
 
-    # ── Auto-heal: retrain RF + GBM on every hourly cycle ────────────────────
+    # ── Auto-heal: retrain RF + GBM for all pools every hourly cycle ─────────
     try:
         from ml_ensemble import get_rf, get_gbm
         from db import recent_outcomes
-        rf     = get_rf()
-        gbm    = get_gbm()
-        trades = await asyncio.to_thread(recent_outcomes, "XAUUSD", 500)
-        if len(trades) >= 15:
-            await asyncio.to_thread(rf.retrain, trades)
-            await asyncio.to_thread(gbm.train, trades)
-            print(f"[system_check] RF + GBM refreshed on {len(trades)} trades.")
-        else:
-            print(f"[system_check] Not enough trades ({len(trades)}) for ensemble retrain.")
+        retrain_pools = ["XAUUSD", "XAUUSD_2M", "XAUUSD_5M",
+                         "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_4H",
+                         "STOCKS_QUALITY_30M", "STOCKS_QUALITY_4H",
+                         "STOCKS_INDEX_30M", "STOCKS_INDEX_4H"]
+        for _pool in retrain_pools:
+            _trades = await asyncio.to_thread(recent_outcomes, _pool, 500)
+            if len(_trades) >= 15:
+                await asyncio.to_thread(get_rf(_pool).retrain, _trades)
+                await asyncio.to_thread(get_gbm(_pool).train, _trades)
+                print(f"[system_check] RF+GBM refreshed for {_pool} on {len(_trades)} trades.")
     except Exception as e:
         print(f"[system_check] Ensemble retrain failed: {e}")
 
