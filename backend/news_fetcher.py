@@ -369,6 +369,24 @@ def _fj_auto_login() -> bool:
         return False
 
 
+def _parse_fj_breaking(raw: str) -> str:
+    """
+    FJ API returns breaking field as plain text OR JSON array like [{"title":"..."}].
+    Always returns a clean plain-text headline string.
+    """
+    raw = raw.strip()
+    if not raw:
+        return ""
+    if raw.startswith("["):
+        try:
+            items = json.loads(raw)
+            if isinstance(items, list) and items:
+                return items[0].get("title", raw).strip()
+        except Exception:
+            pass
+    return raw
+
+
 def fetch_fj_breaking_direct() -> tuple[str, bool]:
     """
     Poll FJ /widgets/initial-data.ashx for the red breaking news banner field.
@@ -407,7 +425,7 @@ def fetch_fj_breaking_direct() -> tuple[str, bool]:
 
         if status == 200:
             _fj_save_session(dict(resp.headers))
-            breaking = (resp.json().get("breaking") or "").strip()
+            breaking = _parse_fj_breaking(resp.json().get("breaking") or "")
             if breaking:
                 print(f"[breaking] FJ red item: {breaking[:80]}")
             return breaking, False
@@ -420,7 +438,7 @@ def fetch_fj_breaking_direct() -> tuple[str, bool]:
                 status2, resp2 = _do_request(new_cookie)
                 if status2 == 200:
                     _fj_save_session(dict(resp2.headers))
-                    breaking = (resp2.json().get("breaking") or "").strip()
+                    breaking = _parse_fj_breaking(resp2.json().get("breaking") or "")
                     if breaking:
                         print(f"[breaking] FJ red item (after re-login): {breaking[:80]}")
                     return breaking, False
