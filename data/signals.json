@@ -1,24 +1,5 @@
 [
   {
-    "symbol": "SPY",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "news_score": -0.0018,
-    "combined_score": 0.0,
-    "session": "N/A",
-    "regime": "UNKNOWN",
-    "regime_label": "UNKNOWN",
-    "reasoning": "News velocity CONFLICTED",
-    "status": "NEUTRAL",
-    "expires_at": "2026-06-04T11:24:34.299316+00:00",
-    "id": 101,
-    "created_at": "2026-06-04T10:54:34.826939+00:00"
-  },
-  {
     "symbol": "XAUUSD",
     "pool": "XAUUSD",
     "direction": "NEUTRAL",
@@ -1949,5 +1930,25 @@
     "expires_at": "2026-06-04T18:22:43.200820+00:00",
     "id": 101,
     "created_at": "2026-06-04T17:52:43.669135+00:00"
+  },
+  {
+    "symbol": "SPY",
+    "pool": "STOCKS_INDEX",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 1.0,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "news_score": 0.0,
+    "combined_score": -0.3365,
+    "session": "NYSE_AFTERNOON",
+    "regime": "TRENDING_BULL",
+    "regime_label": "PULLBACK_SHORT",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(PULLBACK_SHORT)\u00d70.80 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d70.89 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.15) | news:neutral(+0.000) | combined:-0.337 \u2192 conf:0.317 \u26a1 NFP",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-04T18:22:45.109476+00:00",
+    "id": 101,
+    "created_at": "2026-06-04T17:52:45.642180+00:00"
   }
 ]
