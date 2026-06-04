@@ -1,10 +1,10 @@
 """
 Daily technical analysis commentary for SPY, QQQ, XAUUSD.
 Runs at 08:00 UTC every weekday. Sends a clean price-level brief to Telegram.
+All prices pulled from TradingView via tvdatafeed; yfinance is fallback only.
 """
 import os
-import json
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 import anthropic
 
 try:
@@ -19,9 +19,18 @@ try:
 except ImportError:
     _TV_AVAILABLE = False
 
-SYMBOLS_YF = {
-    "SPY": {"ticker": "SPY", "label": "SPY 📊", "decimals": 2},
-    "QQQ": {"ticker": "QQQ", "label": "QQQ 📊", "decimals": 2},
+# TradingView symbols: (symbol, exchange)
+SYMBOLS_TV = {
+    "XAUUSD": ("XAUUSD", "ICMARKETS", 2, "XAUUSD 🥇"),
+    "SPY":    ("SPY",    "AMEX",      2, "SPY 📊"),
+    "QQQ":    ("QQQ",    "NASDAQ",    2, "QQQ 📊"),
+}
+
+# yfinance fallback tickers
+SYMBOLS_YF_FALLBACK = {
+    "XAUUSD": ["XAUUSD=X", "GC=F"],
+    "SPY":    ["SPY"],
+    "QQQ":    ["QQQ"],
 }
 
 ANALYSIS_PROMPT = """You are a professional institutional trader writing a daily pre-market technical brief.
@@ -87,38 +96,28 @@ def _calc_pivots(ph, pl, pc, current, decimals):
     }
 
 
-def _fetch_xauusd_tv(decimals: int = 2) -> dict | None:
-    """Fetch XAUUSD from TradingView (ICMARKETS) via tvdatafeed, fallback to yfinance XAUUSD=X spot."""
-    if _TV_AVAILABLE:
-        try:
-            tv  = TvDatafeed()
-            df  = tv.get_hist("XAUUSD", "ICMARKETS", interval=Interval.in_daily, n_bars=5)
-            if df is not None and len(df) >= 2:
-                prev    = df.iloc[-2]
-                today   = df.iloc[-1]
-                return _calc_pivots(
-                    float(prev["high"]), float(prev["low"]), float(prev["close"]),
-                    float(today["close"]), decimals,
-                )
-            print("[daily] tvdatafeed returned insufficient data — falling back to yfinance.")
-        except Exception as e:
-            print(f"[daily] tvdatafeed failed ({e}) — falling back to yfinance GC=F.")
-
-    # Fallback 1: yfinance XAU/USD spot
-    result = _fetch_levels_yf("XAUUSD=X", decimals)
-    if result:
-        print("[daily] XAUUSD: using yfinance XAUUSD=X spot fallback.")
-        return result
-
-    # Fallback 2: yfinance GC=F futures (close enough for technicals)
-    result = _fetch_levels_yf("GC=F", decimals)
-    if result:
-        print("[daily] XAUUSD: using yfinance GC=F futures fallback.")
-    return result
+def _fetch_levels_tv(symbol: str, exchange: str, decimals: int) -> dict | None:
+    """Fetch OHLCV from TradingView via tvdatafeed."""
+    if not _TV_AVAILABLE:
+        return None
+    try:
+        tv = TvDatafeed()
+        df = tv.get_hist(symbol, exchange, interval=Interval.in_daily, n_bars=5)
+        if df is not None and len(df) >= 2:
+            prev  = df.iloc[-2]
+            today = df.iloc[-1]
+            return _calc_pivots(
+                float(prev["high"]), float(prev["low"]), float(prev["close"]),
+                float(today["close"]), decimals,
+            )
+        print(f"[daily] tvdatafeed: insufficient data for {symbol}/{exchange}.")
+    except Exception as e:
+        print(f"[daily] tvdatafeed failed for {symbol}/{exchange}: {e}")
+    return None
 
 
-def _fetch_levels_yf(ticker_sym: str, decimals: int = 2) -> dict | None:
-    """Fetch OHLCV and calculate pivot levels using yfinance."""
+def _fetch_levels_yf(ticker_sym: str, decimals: int) -> dict | None:
+    """Fetch OHLCV from yfinance."""
     if not _YF_AVAILABLE:
         return None
     try:
@@ -126,18 +125,36 @@ def _fetch_levels_yf(ticker_sym: str, decimals: int = 2) -> dict | None:
         hist = tk.history(period="5d", interval="1d", auto_adjust=True)
         if hist.empty or len(hist) < 2:
             return None
-
         prev    = hist.iloc[-2]
         today   = hist.iloc[-1]
-        ph      = float(prev["High"])
-        pl      = float(prev["Low"])
-        pc      = float(prev["Close"])
-        current = float(today["Close"])
-
-        return _calc_pivots(ph, pl, pc, current, decimals)
+        return _calc_pivots(
+            float(prev["High"]), float(prev["Low"]), float(prev["Close"]),
+            float(today["Close"]), decimals,
+        )
     except Exception as e:
-        print(f"[daily] yfinance fetch failed for {ticker_sym}: {e}")
-        return None
+        print(f"[daily] yfinance failed for {ticker_sym}: {e}")
+    return None
+
+
+def _fetch_asset(name: str) -> tuple[dict | None, int, str]:
+    """Fetch levels for an asset — TradingView first, yfinance fallback."""
+    sym, exchange, decimals, label = SYMBOLS_TV[name]
+
+    # Primary: TradingView
+    levels = _fetch_levels_tv(sym, exchange, decimals)
+    if levels:
+        print(f"[daily] {name}: TradingView ({exchange}) OK.")
+        return levels, decimals, label
+
+    # Fallback: yfinance tickers in priority order
+    for yf_ticker in SYMBOLS_YF_FALLBACK.get(name, []):
+        levels = _fetch_levels_yf(yf_ticker, decimals)
+        if levels:
+            print(f"[daily] {name}: yfinance fallback ({yf_ticker}) OK.")
+            return levels, decimals, label
+
+    print(f"[daily] {name}: all sources failed — skipping.")
+    return None, decimals, label
 
 
 def _format_levels_for_prompt(levels: dict, label: str, decimals: int) -> str:
@@ -155,26 +172,16 @@ def _format_levels_for_prompt(levels: dict, label: str, decimals: int) -> str:
 
 def generate_daily_brief() -> str | None:
     """
-    Fetch live price data for XAUUSD (TradingView/ICMARKETS) and SPY/QQQ (yfinance),
+    Fetch live price data for XAUUSD, SPY, QQQ from TradingView (with yfinance fallback),
     calculate pivot levels, and generate a clean daily brief via Claude.
     Returns formatted Telegram message string, or None on failure.
     """
     asset_blocks = []
 
-    # XAUUSD from TradingView (ICMARKETS)
-    xau_levels = _fetch_xauusd_tv(decimals=2)
-    if xau_levels:
-        asset_blocks.append(_format_levels_for_prompt(xau_levels, "XAUUSD 🥇", 2))
-    else:
-        print("[daily] XAUUSD data unavailable — skipping.")
-
-    # SPY and QQQ from yfinance
-    for name, cfg in SYMBOLS_YF.items():
-        levels = _fetch_levels_yf(cfg["ticker"], cfg["decimals"])
+    for name in ("XAUUSD", "SPY", "QQQ"):
+        levels, decimals, label = _fetch_asset(name)
         if levels:
-            asset_blocks.append(_format_levels_for_prompt(levels, cfg["label"], cfg["decimals"]))
-        else:
-            print(f"[daily] Could not fetch levels for {name} — skipping.")
+            asset_blocks.append(_format_levels_for_prompt(levels, label, decimals))
 
     if not asset_blocks:
         print("[daily] No asset data fetched — aborting brief.")
