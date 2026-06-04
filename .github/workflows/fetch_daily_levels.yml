@@ -26,17 +26,16 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install requests
+        run: pip install requests yfinance
 
       - name: Fetch levels
         run: |
           python3 - <<'EOF'
-          import json, requests, time
+          import json, requests
           from urllib.parse import quote
           from datetime import datetime, timezone
 
-          UA      = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-          HEADERS = {"User-Agent": UA}
+          UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
 
           def calc_pivots(ph, pl, pc, current, decimals):
               pivot = (ph + pl + pc) / 3
@@ -62,89 +61,72 @@ jobs:
                   "expected_range_high": round(max(r2, current + (r1 - pivot)), decimals),
               }
 
-          # ── Source 1: metals.live (free, no API key, spot gold) ─────────────────
-          def fetch_metals_live():
-              try:
-                  resp = requests.get("https://api.metals.live/v1/spot", timeout=10, headers=HEADERS)
-                  data = resp.json()
-                  # returns list: [{"metal":"gold","price":4470.xx}, ...]
-                  for item in data:
-                      if item.get("metal", "").lower() == "gold":
-                          price = float(item["price"])
-                          print(f"[action] metals.live: gold spot = {price}")
-                          return price
-              except Exception as e:
-                  print(f"[action] metals.live failed: {e}")
-              return None
-
-          # ── Source 2: TVC:GOLD via TradingView scanner (proven accurate) ────────
-          def fetch_tvc_gold():
+          def fetch_tvc_gold_spot():
+              """TradingView scanner — TVC:GOLD spot price (within ~$1-3 of ICMARKETS)."""
               try:
                   url = "https://scanner.tradingview.com/symbol?symbol=TVC%3AGOLD&fields=close,high,low,open&no_404=1"
                   resp = requests.get(url, timeout=10, headers={"User-Agent": UA, "Origin": "https://www.tradingview.com"})
-                  d = resp.json()
-                  price = d.get("close")
-                  if price:
-                      print(f"[action] TVC:GOLD scanner: close = {round(price,2)}")
-                      return float(price)
+                  if resp.status_code != 200:
+                      print(f"[action] TVC:GOLD scanner: HTTP {resp.status_code}")
+                      return None
+                  price = resp.json().get("close")
+                  if price is None:
+                      print("[action] TVC:GOLD scanner: no close field")
+                      return None
+                  print(f"[action] TVC:GOLD scanner: close = {price}")
+                  return float(price)
               except Exception as e:
-                  print(f"[action] TVC:GOLD failed: {e}")
+                  print(f"[action] TVC:GOLD scanner: failed — {e}")
               return None
 
-          # ── Source 3: exchangerate.host (free, XAU/USD) ──────────────────────────
-          def fetch_exchangerate_host():
+          def fetch_oanda_gold_spot():
+              """TradingView scanner — OANDA:XAUUSD fallback spot price."""
               try:
-                  resp = requests.get("https://api.exchangerate.host/latest?base=XAU&symbols=USD&places=2", timeout=10, headers=HEADERS)
-                  data = resp.json()
-                  usd = data.get("rates", {}).get("USD")
-                  if usd:
-                      print(f"[action] exchangerate.host: XAU/USD = {usd}")
-                      return float(usd)
+                  url = "https://scanner.tradingview.com/symbol?symbol=OANDA%3AXAUUSD&fields=close&no_404=1"
+                  resp = requests.get(url, timeout=10, headers={"User-Agent": UA, "Origin": "https://www.tradingview.com"})
+                  if resp.status_code != 200:
+                      return None
+                  price = resp.json().get("close")
+                  if price is None:
+                      return None
+                  print(f"[action] OANDA:XAUUSD scanner: close = {price}")
+                  return float(price)
               except Exception as e:
-                  print(f"[action] exchangerate.host failed: {e}")
+                  print(f"[action] OANDA:XAUUSD scanner: failed — {e}")
               return None
 
-          # ── Source 4: frankfurter.app / open.er-api (XAU if supported) ───────────
-          def fetch_open_er():
-              try:
-                  resp = requests.get("https://open.er-api.com/v6/latest/XAU", timeout=10, headers=HEADERS)
-                  data = resp.json()
-                  usd = data.get("rates", {}).get("USD")
-                  if usd:
-                      print(f"[action] open.er-api: XAU/USD = {usd}")
-                      return float(usd)
-              except Exception as e:
-                  print(f"[action] open.er-api failed: {e}")
-              return None
-
-          # ── Source 5: GC=F Yahoo for prev day H/L/C (proven working) ───────────
           def fetch_gcf_prev_day():
+              """GC=F (gold futures) via Yahoo Finance — used only for prev day H/L/C."""
               try:
-                  url = f"https://query1.finance.yahoo.com/v8/finance/chart/{quote('GC=F')}?range=5d&interval=1d"
-                  resp = requests.get(url, timeout=10, headers=HEADERS)
+                  url = "https://query1.finance.yahoo.com/v8/finance/chart/GC%3DF?range=5d&interval=1d"
+                  resp = requests.get(url, timeout=10, headers={"User-Agent": UA})
                   data = resp.json()
                   result = data.get("chart", {}).get("result")
                   if not result:
+                      print("[action] GC=F: no data")
                       return None
-                  quotes = result[0]["indicators"]["quote"][0]
-                  closes = [c for c in quotes["close"] if c is not None]
-                  highs  = [h for h in quotes["high"]  if h is not None]
-                  lows   = [l for l in quotes["low"]   if l is not None]
+                  q = result[0]["indicators"]["quote"][0]
+                  highs  = [h for h in q["high"]  if h is not None]
+                  lows   = [l for l in q["low"]   if l is not None]
+                  closes = [c for c in q["close"] if c is not None]
                   if len(closes) >= 2:
                       print(f"[action] GC=F prev day: H={round(highs[-2],2)} L={round(lows[-2],2)} C={round(closes[-2],2)}")
                       return highs[-2], lows[-2], closes[-2]
+                  print(f"[action] GC=F: insufficient data ({len(closes)} rows)")
               except Exception as e:
-                  print(f"[action] GC=F prev day failed: {e}")
+                  print(f"[action] GC=F: failed — {e}")
               return None
 
           def fetch_yahoo_direct(ticker, decimals):
+              """Yahoo Finance v8 API — for SPY and QQQ."""
               try:
                   url = f"https://query1.finance.yahoo.com/v8/finance/chart/{quote(ticker)}?range=5d&interval=1d"
-                  resp = requests.get(url, timeout=10, headers=HEADERS)
+                  resp = requests.get(url, timeout=10, headers={"User-Agent": UA})
                   data = resp.json()
                   result = data.get("chart", {}).get("result")
                   if not result:
-                      print(f"[action] Yahoo {ticker}: {data.get('chart',{}).get('error',{}).get('description','no data')}")
+                      err = data.get("chart", {}).get("error", {})
+                      print(f"[action] Yahoo {ticker}: {err.get('description', 'no data')}")
                       return None
                   quotes = result[0]["indicators"]["quote"][0]
                   closes = [c for c in quotes["close"] if c is not None]
@@ -153,39 +135,41 @@ jobs:
                   if len(closes) >= 2:
                       print(f"[action] Yahoo {ticker}: close={round(closes[-1],2)} prevH={round(highs[-2],2)} prevL={round(lows[-2],2)} prevC={round(closes[-2],2)}")
                       return calc_pivots(highs[-2], lows[-2], closes[-2], closes[-1], decimals)
+                  print(f"[action] Yahoo {ticker}: insufficient data ({len(closes)} rows)")
               except Exception as e:
                   print(f"[action] Yahoo {ticker}: failed — {e}")
               return None
 
-          # ════════════════════════════════════════════════════════════════
-          # XAUUSD: best spot price + GC=F prev day H/L/C for pivots
-          # ════════════════════════════════════════════════════════════════
+          # ── XAUUSD: spot price from TVC:GOLD, prev H/L/C from GC=F ──────────────
           print("=== XAUUSD SPOT PRICE SOURCES ===")
-          spot = fetch_metals_live()
-          if not spot: spot = fetch_tvc_gold()
-          if not spot: spot = fetch_exchangerate_host()
-          if not spot: spot = fetch_open_er()
+          spot = fetch_tvc_gold_spot()
+          if spot is None:
+              spot = fetch_oanda_gold_spot()
           print(f"[action] Best spot price: {spot}")
 
           prev = fetch_gcf_prev_day()
-          xauusd = None
-          if spot and prev:
-              ph, pl, pc = prev
-              xauusd = calc_pivots(ph, pl, pc, spot, 2)
-              print(f"[action] XAUUSD: spot={spot} prevH={ph} prevL={pl} prevC={pc}")
-          elif not spot:
-              print("[action] XAUUSD: no spot price found")
-          elif not prev:
-              print("[action] XAUUSD: no prev day data found")
-
-          # SPY / QQQ via Yahoo (working fine)
-          spy = fetch_yahoo_direct("SPY", 2)
-          qqq = fetch_yahoo_direct("QQQ", 2)
 
           result = {"fetched_at": datetime.now(timezone.utc).isoformat(), "assets": {}}
-          if xauusd: result["assets"]["XAUUSD"] = xauusd
-          if spy:    result["assets"]["SPY"]    = spy
-          if qqq:    result["assets"]["QQQ"]    = qqq
+
+          if spot and prev:
+              ph, pl, pc = prev
+              print(f"[action] XAUUSD: spot={spot} prevH={ph} prevL={pl} prevC={pc}")
+              result["assets"]["XAUUSD"] = calc_pivots(ph, pl, pc, spot, 2)
+          else:
+              print("[action] XAUUSD: ALL sources failed")
+
+          # ── SPY / QQQ via Yahoo Finance ───────────────────────────────────────────
+          spy = fetch_yahoo_direct("SPY", 2)
+          if spy:
+              result["assets"]["SPY"] = spy
+          else:
+              print("[action] SPY: ALL sources failed")
+
+          qqq = fetch_yahoo_direct("QQQ", 2)
+          if qqq:
+              result["assets"]["QQQ"] = qqq
+          else:
+              print("[action] QQQ: ALL sources failed")
 
           import os
           os.makedirs("data", exist_ok=True)
