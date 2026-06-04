@@ -88,7 +88,7 @@ def _calc_pivots(ph, pl, pc, current, decimals):
 
 
 def _fetch_xauusd_tv(decimals: int = 2) -> dict | None:
-    """Fetch XAUUSD from TradingView (ICMARKETS) via tvdatafeed, fallback to yfinance GC=F."""
+    """Fetch XAUUSD from TradingView (ICMARKETS) via tvdatafeed, fallback to yfinance XAUUSD=X spot."""
     if _TV_AVAILABLE:
         try:
             tv  = TvDatafeed()

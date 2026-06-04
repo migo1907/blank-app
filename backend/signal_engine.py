@@ -319,7 +319,7 @@ def generate_signal(
     # ── Weekend guard ──────────────────────────────────────────────────────────
     dow_mult = _day_of_week_multiplier(now)
     if dow_mult == 0.0:
-        return _neutral_signal(symbol, now, model, rf, "Weekend — market closed", news_agg)
+        return _neutral_signal(symbol, now, model, rf, "Weekend — market closed", news_agg, pool)
 
     # ── KNN score ─────────────────────────────────────────────────────────────────
     if current_features and len(history) >= model.k:
@@ -349,7 +349,7 @@ def generate_signal(
     event    = high_impact_event or {"detected": False, "urgency": 0.0}
 
     if v_label == "CONFLICTED":
-        return _neutral_signal(symbol, now, model, rf, "News velocity CONFLICTED", news_agg)
+        return _neutral_signal(symbol, now, model, rf, "News velocity CONFLICTED", news_agg, pool)
 
     if event.get("detected") and event.get("urgency", 0) >= 0.9:
         v_mult = min(v_mult * 1.5, 3.0)
@@ -459,7 +459,7 @@ def generate_signal(
     }
 
 
-def _neutral_signal(symbol, now, model, rf, reason, news_agg):
+def _neutral_signal(symbol, now, model, rf, reason, news_agg, pool: str = "XAUUSD"):
     row = {
         "symbol":         symbol,
         "direction":      "NEUTRAL",

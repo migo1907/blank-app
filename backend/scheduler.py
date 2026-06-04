@@ -464,8 +464,8 @@ async def _hourly_system_check() -> None:
         for _pool in retrain_pools:
             _trades = await asyncio.to_thread(recent_outcomes, _pool, 500)
             if len(_trades) >= 15:
-                await asyncio.to_thread(get_rf().retrain, _trades)
-                await asyncio.to_thread(get_gbm().train, _trades)
+                await asyncio.to_thread(get_rf(_pool).retrain, _trades)
+                await asyncio.to_thread(get_gbm(_pool).train, _trades)
                 print(f"[system_check] RF+GBM refreshed for {_pool} on {len(_trades)} trades.")
     except Exception as e:
         print(f"[system_check] Ensemble retrain failed: {e}")
