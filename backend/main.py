@@ -35,8 +35,8 @@ async def lifespan(app: FastAPI):
                   "STOCKS_INDEX_30M", "STOCKS_INDEX_4H"]:
         _hist = recent_outcomes(_pool, limit=500)
         if len(_hist) >= 15:
-            get_rf(_pool).retrain(_hist)
-            get_gbm(_pool).train(_hist)
+            get_rf().retrain(_hist)
+            get_gbm().train(_hist)
             print(f"[startup] RF+GBM trained for {_pool} on {len(_hist)} trades.")
         else:
             print(f"[startup] {_pool}: {len(_hist)} trades — RF/GBM will train when data grows.")
