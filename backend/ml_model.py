@@ -177,7 +177,16 @@ class AdaptiveKNN:
         for row in history:
             hist_vec = [float(row.get(col, 0.0)) for col in FEATURE_NAMES]
             dist = _lorentzian_dist(current_vec, hist_vec, self._weights)
-            label = 1 if row.get("outcome") == "WIN" and row.get("direction") == "LONG" else -1
+            outcome  = row.get("outcome", "LOSS")
+            direction = row.get("direction", "LONG")
+            pnl      = float(row.get("pnl_pct", 0.0))
+            # +1 = price moved UP, -1 = price moved DOWN
+            if outcome == "WIN":
+                label = 1 if direction == "LONG" else -1
+            elif outcome == "LOSS":
+                label = 1 if direction == "SHORT" else -1
+            else:  # PARTIAL — use pnl sign
+                label = 1 if pnl > 0 else -1
             distances.append((dist, label))
 
         distances.sort(key=lambda x: x[0])

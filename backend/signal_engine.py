@@ -89,10 +89,8 @@ KNN_WEIGHT     = 0.35
 RF_WEIGHT      = 0.25
 GBM_WEIGHT     = 0.20
 NEWS_WEIGHT    = 0.20
-MIN_CONFIDENCE = 0.55   # XAUUSD threshold
-
-# Stocks need higher bar — longer TF signals should be higher quality
-MIN_CONFIDENCE_STOCKS = 0.58
+MIN_CONFIDENCE = 0.62        # XAUUSD — raised from 0.55 (early-stage data, be selective)
+MIN_CONFIDENCE_STOCKS = 0.65 # Stocks — raised from 0.58
 
 
 # ── Session intelligence (item 5) ─────────────────────────────────────────────
@@ -103,12 +101,13 @@ def _session_multiplier(now_utc: datetime, is_stock: bool = False) -> tuple[floa
         if 16 <= h < 19:  return 1.10, "NYSE_AFTERNOON"
         if 12 <= h < 13:  return 0.90, "PRE_MARKET"
         return 0.60, "CLOSED"
-    if 7 <= h < 12:   return 0.60, "LONDON"
+    if 8 <= h < 12:   return 1.15, "LONDON"      # High XAUUSD liquidity
+    if 7 <= h < 8:    return 0.90, "LONDON_OPEN"  # First hour — erratic spreads
     if 12 <= h < 13:  return 1.25, "OVERLAP"
     if 13 <= h < 16:  return 1.20, "NEW_YORK"
     if 16 <= h < 20:  return 1.00, "NY_LATE"
-    if 0 <= h < 7:    return 1.10, "ASIAN"
-    return 0.70, "OFF"
+    if 0 <= h < 7:    return 0.85, "ASIAN"        # Low XAUUSD volume
+    return 0.65, "OFF"
 
 
 def _day_of_week_multiplier(now_utc: datetime) -> float:
@@ -143,7 +142,7 @@ def _regime_context(regime: str, direction: str) -> tuple[float, str]:
     if regime == "TRENDING_BEAR":
         if direction == "SHORT":
             return 1.15, "TREND_FOLLOW"
-        return 1.00, "PULLBACK_LONG"
+        return 0.80, "PULLBACK_LONG"   # Counter-trend in bear — penalise, not neutral
     if regime == "RANGING":
         return 0.82, "RANGING"
     if regime == "VOLATILE":
@@ -250,7 +249,9 @@ def _confluence_score(features: Features | None, direction: str, regime: str) ->
     if abs(features.f14) > 0.5:
         base *= 1.10
     vwap_stretch = abs(features.f21)
-    if vwap_stretch > 0.6 and features.f21 * sign < 0:
+    mtf_opposing = (bull and features.f16 < -0.5) or (not bull and features.f16 > 0.5)
+    if vwap_stretch > 0.6 and features.f21 * sign < 0 and not mtf_opposing:
+        # Mean-reversion boost only when MTF trend is not strongly opposing
         if vwap_stretch > 0.9:
             base *= 1.18
         else:
