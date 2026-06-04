@@ -441,6 +441,14 @@ async def feature_importance(secret: str = ""):
     }
 
 
+@app.get("/test-session-report")
+async def test_session_report(secret: str = ""):
+    _validate_secret(secret)
+    from telegram_bot import send_stocks_session_report
+    sent = await send_stocks_session_report()
+    return {"status": "sent" if sent else "no_trades_today"}
+
+
 @app.get("/signal/now")
 async def signal_now(secret: str = ""):
     _validate_secret(secret)
