@@ -101,6 +101,9 @@ async def _breaking_news_cycle() -> None:
         if not alerts:
             return
 
+        # Breaking news Telegram alerts paused — set BREAKING_NEWS_TELEGRAM=true to re-enable
+        telegram_enabled = os.environ.get("BREAKING_NEWS_TELEGRAM", "false").lower() == "true"
+
         now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
         new_seen = set(_fj_seen_headlines)
         sent_any = False
@@ -109,16 +112,19 @@ async def _breaking_news_cycle() -> None:
             key = headline[:80]
             if key in new_seen:
                 continue
-            msg = (
-                f"\U0001f6a8 <b>BREAKING</b> — FinancialJuice\n"
-                f"━━━━━━━━━━━━━━━━━━━━\n"
-                f"\U0001f534 {headline}\n\n"
-                f"⏰ {now}"
-            )
-            await send_text(msg)
             new_seen.add(key)
             sent_any = True
-            print(f"[breaking] Sent to Telegram: {headline[:80]}")
+            if telegram_enabled:
+                msg = (
+                    f"\U0001f6a8 <b>BREAKING</b> — FinancialJuice\n"
+                    f"━━━━━━━━━━━━━━━━━━━━\n"
+                    f"\U0001f534 {headline}\n\n"
+                    f"⏰ {now}"
+                )
+                await send_text(msg)
+                print(f"[breaking] Sent to Telegram: {headline[:80]}")
+            else:
+                print(f"[breaking] (Telegram paused) {headline[:80]}")
 
         if sent_any:
             _fj_seen_headlines = new_seen
@@ -334,7 +340,7 @@ async def _hourly_system_check() -> None:
         if _scheduler and _scheduler.running:
             jobs = _scheduler.get_jobs()
             job_ids = [j.id for j in jobs]
-            expected = {"hourly_system_check", "daily_market_brief"}  # news paused
+            expected = {"news_signal_cycle", "breaking_news_cycle", "hourly_system_check", "daily_market_brief"}
             missing = expected - set(job_ids)
             if not missing:
                 ok.append(f"Scheduler — {len(jobs)} jobs running ✅")
@@ -528,13 +534,12 @@ def start_scheduler() -> AsyncIOScheduler:
     _load_seen_headlines()
     interval   = int(os.environ.get("SIGNAL_INTERVAL_MINUTES", "15"))
     _scheduler = AsyncIOScheduler()
-    # NEWS PAUSED — uncomment both lines below to re-enable
-    # _scheduler.add_job(_news_signal_cycle, trigger="interval", minutes=interval, id="news_signal_cycle", replace_existing=True)
-    # _scheduler.add_job(_breaking_news_cycle, trigger="interval", minutes=2, id="breaking_news_cycle", replace_existing=True)
+    _scheduler.add_job(_news_signal_cycle, trigger="interval", minutes=interval, id="news_signal_cycle", replace_existing=True)
+    _scheduler.add_job(_breaking_news_cycle, trigger="interval", minutes=2, id="breaking_news_cycle", replace_existing=True)
     _scheduler.add_job(_hourly_system_check, trigger="interval", hours=1, id="hourly_system_check", replace_existing=True)
     _scheduler.add_job(_daily_market_brief, trigger="cron", hour=8, minute=0, id="daily_market_brief", replace_existing=True)
     _scheduler.start()
-    print(f"[scheduler] Started — news PAUSED, system check every 60 min, daily brief at 08:00 UTC.")
+    print(f"[scheduler] Started — signal every {interval} min, breaking news every 2 min (Telegram paused), system check every 60 min, daily brief at 08:00 UTC.")
     return _scheduler
 
 
