@@ -334,7 +334,7 @@ async def _hourly_system_check() -> None:
         if _scheduler and _scheduler.running:
             jobs = _scheduler.get_jobs()
             job_ids = [j.id for j in jobs]
-            expected = {"news_signal_cycle", "breaking_news_cycle", "hourly_system_check", "daily_market_brief"}
+            expected = {"hourly_system_check", "daily_market_brief"}  # news paused
             missing = expected - set(job_ids)
             if not missing:
                 ok.append(f"Scheduler — {len(jobs)} jobs running ✅")
@@ -528,12 +528,13 @@ def start_scheduler() -> AsyncIOScheduler:
     _load_seen_headlines()
     interval   = int(os.environ.get("SIGNAL_INTERVAL_MINUTES", "15"))
     _scheduler = AsyncIOScheduler()
-    _scheduler.add_job(_news_signal_cycle, trigger="interval", minutes=interval, id="news_signal_cycle", replace_existing=True)
-    _scheduler.add_job(_breaking_news_cycle, trigger="interval", minutes=2, id="breaking_news_cycle", replace_existing=True)
+    # NEWS PAUSED — uncomment both lines below to re-enable
+    # _scheduler.add_job(_news_signal_cycle, trigger="interval", minutes=interval, id="news_signal_cycle", replace_existing=True)
+    # _scheduler.add_job(_breaking_news_cycle, trigger="interval", minutes=2, id="breaking_news_cycle", replace_existing=True)
     _scheduler.add_job(_hourly_system_check, trigger="interval", hours=1, id="hourly_system_check", replace_existing=True)
     _scheduler.add_job(_daily_market_brief, trigger="cron", hour=8, minute=0, id="daily_market_brief", replace_existing=True)
     _scheduler.start()
-    print(f"[scheduler] Started — signal every {interval} min, breaking news every 2 min, system check every 60 min, daily brief at 08:00 UTC.")
+    print(f"[scheduler] Started — news PAUSED, system check every 60 min, daily brief at 08:00 UTC.")
     return _scheduler
 
 
