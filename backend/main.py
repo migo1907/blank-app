@@ -4,7 +4,9 @@ FastAPI app that receives TradingView webhooks, updates adaptive weights
 in GitHub storage, runs RF ensemble, fetches news sentiment, sends signals to Telegram.
 """
 import os
+import math
 import asyncio
+from datetime import datetime, timezone
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
@@ -13,6 +15,11 @@ from typing import Literal, Optional
 from dotenv import load_dotenv
 
 load_dotenv()
+
+def _tod_sine() -> float:
+    """Time-of-Day sine: 0→2π over 24 h, peaks ~06:00 UTC (London open)."""
+    h = datetime.now(timezone.utc).hour + datetime.now(timezone.utc).minute / 60
+    return math.sin(2 * math.pi * h / 24)
 
 WEBHOOK_SECRET    = os.environ.get("WEBHOOK_SECRET", "")
 RAILWAY_API_TOKEN  = os.environ.get("RAILWAY_API_TOKEN", "")
@@ -213,7 +220,7 @@ async def trade_outcome(payload: TradeOutcomePayload):
         f13=payload.f13, f14=payload.f14, f15=payload.f15, f16=payload.f16,
         f17=payload.f17, f18=payload.f18, f19=payload.f19, f20=payload.f20,
         f21=payload.f21, f22=payload.f22, f23=payload.f23, f24=payload.f24,
-        f25=payload.f25,
+        f25=_tod_sine(),
     )
 
     ml_label = payload.ml_outcome or payload.outcome
@@ -328,7 +335,7 @@ async def unified_webhook(payload: UnifiedPayload):
             f13=payload.f13, f14=payload.f14, f15=payload.f15, f16=payload.f16,
             f17=payload.f17, f18=payload.f18, f19=payload.f19, f20=payload.f20,
             f21=payload.f21, f22=payload.f22, f23=payload.f23, f24=payload.f24,
-            f25=payload.f25,
+            f25=_tod_sine(),
         )
         ml_label = payload.ml_outcome or payload.outcome
         model.update_on_outcome(features, payload.direction, ml_label)
