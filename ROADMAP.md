@@ -2,6 +2,17 @@
 
 ---
 
+## 📋 TOMORROW — To Do (June 5, 2026)
+
+| # | Task | Notes |
+|---|------|-------|
+| 1 | **Heartbeat alert** — Pine Script fires F1–F25 every bar close to keep feature cache fresh | Backend needs to handle `outcome="HEARTBEAT"` — update cache only, do NOT store as trade record. This fixes `Signal NEUTRAL conf=0.00` between real trade webhooks |
+| 2 | **Update CLAUDE.md** — remove "F25 computed server-side" (outdated since June 4 fix) | Small but important for next session context |
+| 3 | **Verify pool-specific trade history on GitHub** — Railway loaded 109/54/20 trades but GitHub directory only showed 2 files | Check if files exist on branch or only in Railway's cached state |
+| 4 | **Check Railway logs after market open** — confirm fresh webhooks firing with non-zero F22–F25 values | Proof that Pine Script new features are flowing correctly |
+
+---
+
 ## PHASE 1 — Current: Data Collection & Learning
 **Goal:** Build a statistically significant dataset, let ML find real edges
 
