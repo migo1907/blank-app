@@ -22,6 +22,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+        env:
+          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
       - name: Install dependencies
         run: |
@@ -86,7 +88,7 @@ jobs:
               return None
 
           def fetch_stooq(ticker, decimals):
-              """Fetch from stooq.com via pandas-datareader — reliable, no auth needed."""
+              """Fetch from stooq.com via pandas-datareader - reliable, no auth needed."""
               try:
                   import pandas_datareader.data as web
                   from datetime import timedelta
