@@ -178,18 +178,29 @@ async def send_stocks_session_report() -> bool:
             if not created.startswith(today):
                 continue
             outcome = t.get("outcome", "")
-            if outcome not in ("WIN", "LOSS"):
+            if outcome not in ("WIN", "LOSS", "PARTIAL"):
                 continue
             trades_today.append(t)
 
     if not trades_today:
-        print("[session_report] No stock WIN/LOSS trades today — skipping report.")
+        print("[session_report] No stock trades today — skipping report.")
         return False
 
-    wins   = [t for t in trades_today if t["outcome"] == "WIN"]
+    wins   = [t for t in trades_today if t["outcome"] in ("WIN", "PARTIAL")]
     losses = [t for t in trades_today if t["outcome"] == "LOSS"]
     total  = len(trades_today)
     wr     = len(wins) / total * 100
+
+    def _tp_label(t: dict) -> str:
+        tp = t.get("tp_stage", "").upper()
+        outcome = t.get("outcome", "")
+        if outcome == "WIN":
+            return "TP3 🚀" if not tp else f"{tp} 🚀"
+        if outcome == "PARTIAL":
+            if "3" in tp: return "TP3 🚀"
+            if "2" in tp: return "TP2 🎯"
+            return "TP1 🎯"
+        return "SL 🛑"
 
     lines = []
     for t in trades_today:
@@ -198,19 +209,23 @@ async def send_stocks_session_report() -> bool:
         outcome = t.get("outcome", "?")
         direct  = t.get("direction", "?")
         pnl     = t.get("pnl_pct", 0.0)
-        emoji   = "✅" if outcome == "WIN" else "❌"
+        tp_lbl  = _tp_label(t)
+        emoji   = "✅" if outcome in ("WIN", "PARTIAL") else "❌"
         dir_e   = "🟢" if direct == "LONG" else "🔴"
-        lines.append(f"{emoji} {dir_e} <b>{sym}</b>  Entry: {entry:.2f}  PnL: {pnl:+.2f}%")
+        lines.append(f"{emoji} {dir_e} <b>{sym}</b>  Entry: {entry:.2f}  {tp_lbl}  PnL: {pnl:+.2f}%")
 
     now = datetime.now(timezone.utc).strftime("%d %b %Y")
     body = "\n".join(lines)
+
+    full_wins = [t for t in trades_today if t["outcome"] == "WIN"]
+    partials  = [t for t in trades_today if t["outcome"] == "PARTIAL"]
 
     msg = (
         f"📊 <b>STOCKS SESSION REPORT — {now}</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
         f"{body}\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
-        f"Signals: <b>{total}</b>  |  Wins: <b>{len(wins)}</b>  |  Losses: <b>{len(losses)}</b>\n"
+        f"Signals: <b>{total}</b>  ✅ Full: <b>{len(full_wins)}</b>  🎯 Partial: <b>{len(partials)}</b>  ❌ Loss: <b>{len(losses)}</b>\n"
         f"Win Rate: <b>{wr:.0f}%</b>"
     )
     return await _send(msg)
