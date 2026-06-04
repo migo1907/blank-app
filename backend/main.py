@@ -43,6 +43,10 @@ async def lifespan(app: FastAPI):
         else:
             print(f"[startup] {_pool}: {len(_hist)} trades — RF/GBM will train when data grows.")
 
+    print("[startup] Loading feature cache from GitHub…")
+    from signal_engine import load_feature_cache
+    load_feature_cache()
+
     print("[startup] Starting scheduler…")
     from scheduler import start_scheduler, _news_signal_cycle
     start_scheduler()

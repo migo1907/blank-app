@@ -22,13 +22,63 @@ from ml_ensemble import get_rf, get_gbm
 from db import recent_outcomes, recent_news, insert_signal, expire_old_signals
 
 # ── Latest feature cache — updated on every webhook, read by scheduler ────────
-# Keyed by pool name. Lets the scheduler pass real market state to generate_signal()
-# instead of running blind (regime=UNKNOWN, confluence=1.0, KNN=flat win_rate).
+# Persisted to GitHub data branch so it survives Railway restarts.
+# Keyed by pool name — scheduler passes real market state to generate_signal().
 _latest_features: dict[str, Features] = {}
+_FEATURE_CACHE_PATH = "data/feature_cache.json"
+
 
 def update_latest_features(pool: str, features: Features) -> None:
-    """Called by webhook handlers to keep the feature cache fresh per pool."""
+    """Cache latest features in memory and persist to GitHub data branch."""
     _latest_features[pool] = features
+    try:
+        from db import _get_file, _put_file
+        from datetime import datetime, timezone as _tz
+        existing, sha = _get_file(_FEATURE_CACHE_PATH)
+        payload = existing if isinstance(existing, dict) else {}
+        payload[pool] = {
+            "f1":  features.f1,  "f2":  features.f2,  "f3":  features.f3,
+            "f4":  features.f4,  "f5":  features.f5,  "f6":  features.f6,
+            "f7":  features.f7,  "f8":  features.f8,  "f9":  features.f9,
+            "f10": features.f10, "f11": features.f11, "f12": features.f12,
+            "f13": features.f13, "f14": features.f14, "f15": features.f15,
+            "f16": features.f16, "f17": features.f17, "f18": features.f18,
+            "f19": features.f19, "f20": features.f20, "f21": features.f21,
+            "f22": features.f22, "f23": features.f23, "f24": features.f24,
+            "f25": features.f25,
+            "updated_at": datetime.now(_tz.utc).isoformat(),
+        }
+        _put_file(_FEATURE_CACHE_PATH, payload, sha,
+                  f"chore: update feature cache for {pool}")
+    except Exception as e:
+        print(f"[features] Cache persist failed: {e}")
+
+
+def load_feature_cache() -> None:
+    """Load persisted feature cache from GitHub on startup — call once from lifespan."""
+    try:
+        from db import _get_file
+        data, _ = _get_file(_FEATURE_CACHE_PATH)
+        if not isinstance(data, dict):
+            return
+        for pool, fv in data.items():
+            if not isinstance(fv, dict) or "f1" not in fv:
+                continue
+            _latest_features[pool] = Features(
+                f1=fv.get("f1",0.0),  f2=fv.get("f2",0.0),  f3=fv.get("f3",0.0),
+                f4=fv.get("f4",0.0),  f5=fv.get("f5",0.0),  f6=fv.get("f6",0.0),
+                f7=fv.get("f7",0.0),  f8=fv.get("f8",0.0),  f9=fv.get("f9",0.0),
+                f10=fv.get("f10",0.0),f11=fv.get("f11",0.0),f12=fv.get("f12",0.0),
+                f13=fv.get("f13",0.0),f14=fv.get("f14",0.0),f15=fv.get("f15",0.0),
+                f16=fv.get("f16",0.0),f17=fv.get("f17",0.0),f18=fv.get("f18",0.0),
+                f19=fv.get("f19",0.0),f20=fv.get("f20",0.0),f21=fv.get("f21",0.0),
+                f22=fv.get("f22",0.0),f23=fv.get("f23",0.0),f24=fv.get("f24",0.0),
+                f25=fv.get("f25",0.0),
+            )
+        print(f"[features] Loaded feature cache for {len(_latest_features)} pools from GitHub.")
+    except Exception as e:
+        print(f"[features] Cache load failed (first run?): {e}")
+
 
 def get_latest_features(pool: str) -> Features | None:
     """Returns the most recent feature vector for a pool, or None if no data yet."""
