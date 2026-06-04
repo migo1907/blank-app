@@ -211,6 +211,48 @@ Phase 4:  ⏳ Earliest Feb–Mar 2027 (gated by 58%+ WR over 200 consecutive tra
 
 ---
 
+## 🔴 Known Issues — Open (as of June 4, 2026)
+
+| # | Issue | Impact | Fix Trigger |
+|---|-------|--------|-------------|
+| 1 | `weights.json` missing — KNN adaptive weights never persisted to GitHub | Medium | Auto-creates on first WIN trade |
+| 2 | F19 (RSI Divergence) always `0.0` — dead feature, never fires | Low | Investigate Pine Script detection logic or replace feature |
+| 3 | All 25 historical trades are LOSS/PARTIAL, 0 WIN — KNN trained on losing patterns only | Medium | Resolves naturally as new trades accumulate with wins |
+| 4 | F22–F25 absent from the 25 historical trades (old Pine Script didn't have them) | Low | Resolves naturally — new trades have all 25 features |
+| 5 | CLAUDE.md still says "F25 computed server-side" — outdated after June 4 fix | Low | Update CLAUDE.md next session |
+| 6 | Stocks alerts: only 2 active (30M + 4H) — STOCKS_QUALITY and STOCKS_INDEX pools have no alerts | Medium | Add TradingView alerts for quality/index stocks when ready |
+
+---
+
+## 🟡 Next Actions — When Trades Accumulate
+
+| Milestone | Trigger | Action |
+|-----------|---------|--------|
+| 15+ trades per pool | ~1–3 days per active pool | RF + GBM auto-train, confidence scores start improving |
+| First WIN recorded | Unknown | KNN weights save to GitHub for first time — adaptive learning begins |
+| 50+ trades per pool | ~1–2 weeks | Consider lowering MIN_CONFIDENCE back toward 0.58 |
+| 100+ trades per pool | ~3–4 weeks | Evaluate whether F19 (RSI div) should be replaced |
+| 150+ trades XAUUSD pools | ~Phase 1 exit | Begin Phase 2 development (HMM regime model) |
+
+---
+
+## 🔵 Deferred — Future Improvements (not yet scheduled)
+
+| Item | Description | Phase |
+|------|-------------|-------|
+| **F19 replacement** | RSI Divergence never fires — replace with Stochastic RSI or Volume Profile distance | Phase 1 exit |
+| **Heartbeat alert** | TradingView Pine Script fires F1–F25 every 15min even with no trade signal — keeps feature cache fresh between webhooks | Phase 1 |
+| **Breaking news Telegram** | Currently disabled (`BREAKING_NEWS_TELEGRAM=false`) — enable when user ready | Anytime |
+| **News calendar integration** | Block/reduce signals 5–30min before high-impact events (FOMC, NFP, CPI) | Phase 2D |
+| **Hidden Markov Model (HMM)** | Replace simple ADX regime detection with probabilistic regime transition model — detects regime shifts before they complete | Phase 2A |
+| **Full MTF stack** | Replace single F16 (1H) with 1H + 4H + Daily all scored — signal requires 2 of 3 TF agreement | Phase 2B |
+| **ATR position sizing** | Dynamic SL/TP based on current volatility — wider market = wider SL, smaller size | Phase 2C |
+| **DXY / US10Y intermarket** | When DXY breaks key level → gold signal gets context boost; VIX spike → reduce stock signal size | Phase 2E |
+| **Weekly Telegram report** | Every Sunday: win rate, best trigger/session/regime, ML weight changes | Phase 3C |
+| **Telegram bot commands** | `/pause`, `/resume`, `/close_all`, `/status` — human override layer | Phase 4D |
+
+---
+
 ## The Non-Negotiable Before Phase 4
 
 **Win rate must sustain 58%+ over minimum 200 consecutive trades before any auto-execution is considered.** Not a cherry-picked period — sustained performance across different market regimes.
