@@ -1,9 +1,14 @@
 """
 Daily technical analysis commentary for SPY, QQQ, XAUUSD.
 Runs at 08:00 UTC every weekday. Sends a clean price-level brief to Telegram.
-All prices pulled from TradingView via tvdatafeed; yfinance is fallback only.
+
+Price source priority:
+  1. data/daily_levels.json — pre-fetched by GitHub Actions at 07:50 UTC via TradingView
+  2. TradingView live (tvdatafeed) — direct fetch if JSON missing
+  3. yfinance XAUUSD=X / SPY / QQQ — last resort fallback
 """
 import os
+import json
 from datetime import datetime, timezone
 import anthropic
 
@@ -19,14 +24,15 @@ try:
 except ImportError:
     _TV_AVAILABLE = False
 
-# TradingView symbols: (symbol, exchange)
+# Path to pre-fetched levels from GitHub Actions
+_LEVELS_JSON = os.path.join(os.path.dirname(__file__), "..", "data", "daily_levels.json")
+
 SYMBOLS_TV = {
     "XAUUSD": ("XAUUSD", "ICMARKETS", 2, "XAUUSD 🥇"),
     "SPY":    ("SPY",    "AMEX",      2, "SPY 📊"),
     "QQQ":    ("QQQ",    "NASDAQ",    2, "QQQ 📊"),
 }
 
-# yfinance fallback tickers
 SYMBOLS_YF_FALLBACK = {
     "XAUUSD": ["XAUUSD=X"],
     "SPY":    ["SPY"],
@@ -96,8 +102,23 @@ def _calc_pivots(ph, pl, pc, current, decimals):
     }
 
 
+def _load_from_json() -> dict:
+    """Load pre-fetched levels from data/daily_levels.json (written by GitHub Actions)."""
+    try:
+        path = os.path.abspath(_LEVELS_JSON)
+        if not os.path.exists(path):
+            return {}
+        with open(path) as f:
+            data = json.load(f)
+        fetched_at = data.get("fetched_at", "unknown")
+        print(f"[daily] Loaded pre-fetched levels from JSON (fetched_at={fetched_at})")
+        return data.get("assets", {})
+    except Exception as e:
+        print(f"[daily] Failed to load daily_levels.json: {e}")
+        return {}
+
+
 def _fetch_levels_tv(symbol: str, exchange: str, decimals: int) -> dict | None:
-    """Fetch OHLCV from TradingView via tvdatafeed."""
     if not _TV_AVAILABLE:
         return None
     try:
@@ -117,7 +138,6 @@ def _fetch_levels_tv(symbol: str, exchange: str, decimals: int) -> dict | None:
 
 
 def _fetch_levels_yf(ticker_sym: str, decimals: int) -> dict | None:
-    """Fetch OHLCV from yfinance."""
     if not _YF_AVAILABLE:
         return None
     try:
@@ -125,8 +145,8 @@ def _fetch_levels_yf(ticker_sym: str, decimals: int) -> dict | None:
         hist = tk.history(period="5d", interval="1d", auto_adjust=True)
         if hist.empty or len(hist) < 2:
             return None
-        prev    = hist.iloc[-2]
-        today   = hist.iloc[-1]
+        prev  = hist.iloc[-2]
+        today = hist.iloc[-1]
         return _calc_pivots(
             float(prev["High"]), float(prev["Low"]), float(prev["Close"]),
             float(today["Close"]), decimals,
@@ -136,17 +156,21 @@ def _fetch_levels_yf(ticker_sym: str, decimals: int) -> dict | None:
     return None
 
 
-def _fetch_asset(name: str) -> tuple[dict | None, int, str]:
-    """Fetch levels for an asset — TradingView first, yfinance fallback."""
+def _fetch_asset(name: str, prefetched: dict) -> tuple[dict | None, int, str]:
     sym, exchange, decimals, label = SYMBOLS_TV[name]
 
-    # Primary: TradingView
+    # Source 1: pre-fetched JSON from GitHub Actions
+    if name in prefetched:
+        print(f"[daily] {name}: using pre-fetched TradingView data.")
+        return prefetched[name], decimals, label
+
+    # Source 2: TradingView live
     levels = _fetch_levels_tv(sym, exchange, decimals)
     if levels:
-        print(f"[daily] {name}: TradingView ({exchange}) OK.")
+        print(f"[daily] {name}: TradingView live ({exchange}) OK.")
         return levels, decimals, label
 
-    # Fallback: yfinance tickers in priority order
+    # Source 3: yfinance
     for yf_ticker in SYMBOLS_YF_FALLBACK.get(name, []):
         levels = _fetch_levels_yf(yf_ticker, decimals)
         if levels:
@@ -172,14 +196,14 @@ def _format_levels_for_prompt(levels: dict, label: str, decimals: int) -> str:
 
 def generate_daily_brief() -> str | None:
     """
-    Fetch live price data for XAUUSD, SPY, QQQ from TradingView (with yfinance fallback),
-    calculate pivot levels, and generate a clean daily brief via Claude.
+    Fetch price levels (JSON → TradingView live → yfinance) and generate daily brief via Claude.
     Returns formatted Telegram message string, or None on failure.
     """
+    prefetched  = _load_from_json()
     asset_blocks = []
 
     for name in ("XAUUSD", "SPY", "QQQ"):
-        levels, decimals, label = _fetch_asset(name)
+        levels, decimals, label = _fetch_asset(name, prefetched)
         if levels:
             asset_blocks.append(_format_levels_for_prompt(levels, label, decimals))
 
