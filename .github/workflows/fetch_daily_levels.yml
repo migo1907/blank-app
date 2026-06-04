@@ -32,6 +32,7 @@ jobs:
         run: |
           python3 - <<'EOF'
           import json, requests
+          from urllib.parse import quote
           from datetime import datetime, timezone
 
           UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
@@ -61,63 +62,44 @@ jobs:
               }
 
           def fetch_yahoo_direct(ticker, decimals):
-              """Direct Yahoo Finance v8 chart API - no library needed."""
               try:
-                  url = f"https://query1.finance.yahoo.com/v8/finance/chart/{ticker}?range=5d&interval=1d"
+                  url = f"https://query1.finance.yahoo.com/v8/finance/chart/{quote(ticker)}?range=5d&interval=1d"
                   resp = requests.get(url, timeout=10, headers={"User-Agent": UA})
                   data = resp.json()
-                  quotes = data["chart"]["result"][0]["indicators"]["quote"][0]
+                  result = data.get("chart", {}).get("result")
+                  if not result:
+                      err = data.get("chart", {}).get("error", {})
+                      print(f"[action] {ticker}: Yahoo error - {err.get('description', 'unknown')}")
+                      return None
+                  quotes = result[0]["indicators"]["quote"][0]
                   closes = [c for c in quotes["close"] if c is not None]
                   highs  = [h for h in quotes["high"]  if h is not None]
                   lows   = [l for l in quotes["low"]   if l is not None]
                   if len(closes) >= 2:
-                      print(f"[action] {ticker}: Yahoo direct OK - close={round(closes[-1],2)}")
+                      print(f"[action] {ticker}: Yahoo OK - close={round(closes[-1],2)}")
                       return calc_pivots(highs[-2], lows[-2], closes[-2], closes[-1], decimals)
-                  print(f"[action] {ticker}: Yahoo direct insufficient data")
+                  print(f"[action] {ticker}: Yahoo insufficient data ({len(closes)} rows)")
               except Exception as e:
-                  print(f"[action] {ticker}: Yahoo direct failed - {e}")
+                  print(f"[action] {ticker}: Yahoo failed - {e}")
               return None
 
-          def fetch_yf_lib(ticker, decimals):
-              try:
-                  import yfinance as yf
-                  hist = yf.Ticker(ticker).history(period="5d", interval="1d", auto_adjust=True)
-                  if not hist.empty and len(hist) >= 2:
-                      prev, today = hist.iloc[-2], hist.iloc[-1]
-                      print(f"[action] {ticker}: yfinance OK")
-                      return calc_pivots(float(prev["High"]), float(prev["Low"]), float(prev["Close"]), float(today["Close"]), decimals)
-              except Exception as e:
-                  print(f"[action] {ticker}: yfinance failed - {e}")
-              return None
-
-          def fetch_tv(symbol, exchange, decimals):
-              try:
-                  from tvdatafeed import TvDatafeed, Interval
-                  tv = TvDatafeed()
-                  df = tv.get_hist(symbol, exchange, interval=Interval.in_daily, n_bars=5)
-                  if df is not None and len(df) >= 2:
-                      prev, today = df.iloc[-2], df.iloc[-1]
-                      print(f"[action] {symbol}/{exchange}: TradingView OK")
-                      return calc_pivots(float(prev["high"]), float(prev["low"]), float(prev["close"]), float(today["close"]), decimals)
-              except Exception as e:
-                  print(f"[action] {symbol}/{exchange}: tvdatafeed failed - {e}")
-              return None
-
+          # XAUUSD: try XAU=X (London fix) then GC=F (futures, close enough for pivot levels)
+          # SPY/QQQ: standard Yahoo tickers work fine
           assets = {
-              "XAUUSD": {"tv": ("XAUUSD", "ICMARKETS"), "yahoo": "XAUUSD=X", "decimals": 2},
-              "SPY":    {"tv": ("SPY",    "AMEX"),      "yahoo": "SPY",      "decimals": 2},
-              "QQQ":    {"tv": ("QQQ",    "NASDAQ"),    "yahoo": "QQQ",      "decimals": 2},
+              "XAUUSD": ["XAU=X", "XAUUSD=X", "GC=F"],
+              "SPY":    ["SPY"],
+              "QQQ":    ["QQQ"],
           }
+          decimals = {"XAUUSD": 2, "SPY": 2, "QQQ": 2}
 
           result = {"fetched_at": datetime.now(timezone.utc).isoformat(), "assets": {}}
-          for name, cfg in assets.items():
-              sym, exchange = cfg["tv"]
-              decimals = cfg["decimals"]
-              levels = fetch_tv(sym, exchange, decimals)
-              if not levels:
-                  levels = fetch_yahoo_direct(cfg["yahoo"], decimals)
-              if not levels:
-                  levels = fetch_yf_lib(cfg["yahoo"], decimals)
+          for name, tickers in assets.items():
+              dec = decimals[name]
+              levels = None
+              for ticker in tickers:
+                  levels = fetch_yahoo_direct(ticker, dec)
+                  if levels:
+                      break
               if levels:
                   result["assets"][name] = levels
               else:
