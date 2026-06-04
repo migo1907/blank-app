@@ -3,14 +3,15 @@ Daily technical analysis commentary for SPY, QQQ, XAUUSD.
 Runs at 08:00 UTC every weekday. Sends a clean price-level brief to Telegram.
 
 Price source priority:
-  1. data/daily_levels.json — pre-fetched by GitHub Actions at 07:50 UTC via TradingView
-  2. TradingView live (tvdatafeed) — direct fetch if JSON missing
+  1. GitHub raw daily_levels.json — pre-fetched by GitHub Actions at 07:50 UTC via TradingView
+  2. TradingView live (tvdatafeed) — direct fetch if GitHub JSON missing/stale
   3. yfinance XAUUSD=X / SPY / QQQ — last resort fallback
 """
 import os
 import json
 from datetime import datetime, timezone
 import anthropic
+import httpx
 
 try:
     import yfinance as yf
@@ -24,8 +25,11 @@ try:
 except ImportError:
     _TV_AVAILABLE = False
 
-# Path to pre-fetched levels from GitHub Actions
-_LEVELS_JSON = os.path.join(os.path.dirname(__file__), "..", "data", "daily_levels.json")
+# GitHub raw URL for pre-fetched levels (updated by GitHub Actions at 07:50 UTC)
+_LEVELS_URL = (
+    "https://raw.githubusercontent.com/migo1907/blank-app/"
+    "claude/hopeful-pasteur-VVHCl/data/daily_levels.json"
+)
 
 SYMBOLS_TV = {
     "XAUUSD": ("XAUUSD", "ICMARKETS", 2, "XAUUSD 🥇"),
@@ -103,18 +107,18 @@ def _calc_pivots(ph, pl, pc, current, decimals):
 
 
 def _load_from_json() -> dict:
-    """Load pre-fetched levels from data/daily_levels.json (written by GitHub Actions)."""
+    """Fetch pre-fetched levels from GitHub (written by GitHub Actions at 07:50 UTC)."""
     try:
-        path = os.path.abspath(_LEVELS_JSON)
-        if not os.path.exists(path):
-            return {}
-        with open(path) as f:
-            data = json.load(f)
+        resp = httpx.get(_LEVELS_URL, timeout=10)
+        resp.raise_for_status()
+        data = resp.json()
         fetched_at = data.get("fetched_at", "unknown")
-        print(f"[daily] Loaded pre-fetched levels from JSON (fetched_at={fetched_at})")
-        return data.get("assets", {})
+        assets = data.get("assets", {})
+        if assets:
+            print(f"[daily] Fetched pre-built levels from GitHub (fetched_at={fetched_at}): {list(assets.keys())}")
+        return assets
     except Exception as e:
-        print(f"[daily] Failed to load daily_levels.json: {e}")
+        print(f"[daily] Failed to fetch daily_levels.json from GitHub: {e}")
         return {}
 
 
