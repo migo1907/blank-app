@@ -104,10 +104,16 @@ def _fetch_xauusd_tv(decimals: int = 2) -> dict | None:
         except Exception as e:
             print(f"[daily] tvdatafeed failed ({e}) — falling back to yfinance GC=F.")
 
-    # Fallback: yfinance XAU/USD spot
+    # Fallback 1: yfinance XAU/USD spot
     result = _fetch_levels_yf("XAUUSD=X", decimals)
     if result:
         print("[daily] XAUUSD: using yfinance XAUUSD=X spot fallback.")
+        return result
+
+    # Fallback 2: yfinance GC=F futures (close enough for technicals)
+    result = _fetch_levels_yf("GC=F", decimals)
+    if result:
+        print("[daily] XAUUSD: using yfinance GC=F futures fallback.")
     return result
 
 
