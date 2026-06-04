@@ -311,8 +311,8 @@ def generate_signal(
     min_conf = MIN_CONFIDENCE_STOCKS if is_stock else MIN_CONFIDENCE
 
     model   = get_model(pool)
-    rf      = get_rf()
-    gbm     = get_gbm()
+    rf      = get_rf(pool)
+    gbm     = get_gbm(pool)
     history = recent_outcomes(pool, limit=300)
     now     = datetime.now(timezone.utc)
 
@@ -478,7 +478,7 @@ def _neutral_signal(symbol, now, model, rf, reason, news_agg):
         "expires_at":     (now + timedelta(minutes=30)).isoformat(),
     }
     insert_signal(row)
-    gbm = get_gbm()
+    gbm = get_gbm(pool)
     return {
         **row,
         "id":                None,

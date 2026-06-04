@@ -35,8 +35,8 @@ async def lifespan(app: FastAPI):
                   "STOCKS_INDEX_30M", "STOCKS_INDEX_4H"]:
         _hist = recent_outcomes(_pool, limit=500)
         if len(_hist) >= 15:
-            get_rf().retrain(_hist)
-            get_gbm().train(_hist)
+            get_rf(_pool).retrain(_hist)
+            get_gbm(_pool).train(_hist)
             print(f"[startup] RF+GBM trained for {_pool} on {len(_hist)} trades.")
         else:
             print(f"[startup] {_pool}: {len(_hist)} trades — RF/GBM will train when data grows.")
@@ -246,8 +246,8 @@ async def trade_outcome(payload: TradeOutcomePayload):
             await asyncio.to_thread(insert_outcome, outcome_row)
             history = await asyncio.to_thread(recent_outcomes, pool, 500)
             if len(history) >= 15:
-                await asyncio.to_thread(get_rf().retrain, history)
-                await asyncio.to_thread(get_gbm().train, history)
+                await asyncio.to_thread(get_rf(pool).retrain, history)
+                await asyncio.to_thread(get_gbm(pool).train, history)
         except Exception as e:
             print(f"[trade-outcome] background persist error: {e}")
     asyncio.create_task(_persist())
@@ -365,8 +365,8 @@ async def unified_webhook(payload: UnifiedPayload):
                 await asyncio.to_thread(insert_outcome, outcome_row)
                 history = await asyncio.to_thread(recent_outcomes, pool, 500)
                 if len(history) >= 15:
-                    await asyncio.to_thread(get_rf().retrain, history)
-                    await asyncio.to_thread(get_gbm().train, history)
+                    await asyncio.to_thread(get_rf(pool).retrain, history)
+                    await asyncio.to_thread(get_gbm(pool).train, history)
             except Exception as e:
                 print(f"[webhook] background persist error: {e}")
         asyncio.create_task(_persist())
