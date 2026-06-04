@@ -62,7 +62,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Migo Sniper Pro — ML Backend v3·25F",
     description="Adaptive KNN + RF + GBM ensemble + news sentiment for XAU/USD",
-    version="3.0.0",
+    version="3.1.0",
     lifespan=lifespan,
 )
 
