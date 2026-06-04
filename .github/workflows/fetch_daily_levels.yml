@@ -35,7 +35,8 @@ jobs:
           from urllib.parse import quote
           from datetime import datetime, timezone
 
-          UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+          UA      = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+          HEADERS = {"User-Agent": UA, "Origin": "https://www.tradingview.com", "Referer": "https://www.tradingview.com/"}
 
           def calc_pivots(ph, pl, pc, current, decimals):
               pivot = (ph + pl + pc) / 3
@@ -61,82 +62,109 @@ jobs:
                   "expected_range_high": round(max(r2, current + (r1 - pivot)), decimals),
               }
 
-          def fetch_tv_scanner(tv_symbol, decimals):
+          def fetch_tv_post(tv_symbol, decimals):
+              """TradingView scanner POST API — returns current + previous day OHLC."""
               try:
-                  fields = "close,high,low,open,High.1,Low.1,close.1"
-                  url = (
-                      f"https://scanner.tradingview.com/symbol"
-                      f"?symbol={quote(tv_symbol)}&fields={fields}&no_404=1"
+                  columns = ["close", "high", "low", "open", "High.1", "Low.1", "close.1", "high.1", "low.1"]
+                  body = {"symbols": {"tickers": [tv_symbol]}, "columns": columns}
+                  resp = requests.post(
+                      "https://scanner.tradingview.com/global/scan",
+                      json=body, timeout=10, headers=HEADERS
                   )
-                  resp = requests.get(url, timeout=10, headers={"User-Agent": UA, "Origin": "https://www.tradingview.com"})
                   if resp.status_code != 200:
-                      print(f"[action] TV scanner {tv_symbol}: HTTP {resp.status_code}")
+                      print(f"[action] TV POST {tv_symbol}: HTTP {resp.status_code}")
                       return None
-                  d = resp.json()
+                  rows = resp.json().get("data", [])
+                  if not rows:
+                      print(f"[action] TV POST {tv_symbol}: no data returned")
+                      return None
+                  d = dict(zip(columns, rows[0]["d"]))
+                  print(f"[action] TV POST {tv_symbol}: {d}")
                   current = d.get("close")
-                  ph      = d.get("High.1")
-                  pl      = d.get("Low.1")
-                  pc      = d.get("close.1")
+                  # try both capitalizations of previous day fields
+                  ph = d.get("High.1") or d.get("high.1")
+                  pl = d.get("Low.1")  or d.get("low.1")
+                  pc = d.get("close.1")
                   if None in (current, ph, pl, pc):
-                      print(f"[action] TV scanner {tv_symbol}: missing fields — {d}")
+                      print(f"[action] TV POST {tv_symbol}: missing prev day fields")
                       return None
-                  print(f"[action] TV scanner {tv_symbol}: close={round(current,2)}  prevH={round(ph,2)}  prevL={round(pl,2)}  prevC={round(pc,2)}")
+                  print(f"[action] TV POST {tv_symbol}: OK price={round(current,2)} prevH={round(ph,2)} prevL={round(pl,2)} prevC={round(pc,2)}")
                   return calc_pivots(float(ph), float(pl), float(pc), float(current), decimals)
               except Exception as e:
-                  print(f"[action] TV scanner {tv_symbol}: failed — {e}")
+                  print(f"[action] TV POST {tv_symbol}: failed — {e}")
+              return None
+
+          def fetch_tv_get(tv_symbol, decimals):
+              """TradingView scanner GET API — current price only."""
+              try:
+                  fields = "close,high,low,open"
+                  url = f"https://scanner.tradingview.com/symbol?symbol={quote(tv_symbol)}&fields={fields}&no_404=1"
+                  resp = requests.get(url, timeout=10, headers=HEADERS)
+                  if resp.status_code != 200:
+                      return None
+                  d = resp.json()
+                  return d.get("close")
+              except Exception as e:
+                  print(f"[action] TV GET {tv_symbol}: failed — {e}")
               return None
 
           def fetch_yahoo_direct(ticker, decimals):
+              """Yahoo Finance v8 API fallback."""
               try:
                   url = f"https://query1.finance.yahoo.com/v8/finance/chart/{quote(ticker)}?range=5d&interval=1d"
                   resp = requests.get(url, timeout=10, headers={"User-Agent": UA})
                   data = resp.json()
                   result = data.get("chart", {}).get("result")
                   if not result:
-                      err = data.get("chart", {}).get("error", {})
-                      print(f"[action] Yahoo {ticker}: {err.get('description', 'no data')}")
+                      print(f"[action] Yahoo {ticker}: {data.get('chart',{}).get('error',{}).get('description','no data')}")
                       return None
                   quotes = result[0]["indicators"]["quote"][0]
                   closes = [c for c in quotes["close"] if c is not None]
                   highs  = [h for h in quotes["high"]  if h is not None]
                   lows   = [l for l in quotes["low"]   if l is not None]
                   if len(closes) >= 2:
-                      print(f"[action] Yahoo {ticker}: close={round(closes[-1],2)}  prevH={round(highs[-2],2)}  prevL={round(lows[-2],2)}  prevC={round(closes[-2],2)}")
+                      print(f"[action] Yahoo {ticker}: close={round(closes[-1],2)} prevH={round(highs[-2],2)} prevL={round(lows[-2],2)} prevC={round(closes[-2],2)}")
                       return calc_pivots(highs[-2], lows[-2], closes[-2], closes[-1], decimals)
-                  print(f"[action] Yahoo {ticker}: insufficient data ({len(closes)} rows)")
               except Exception as e:
                   print(f"[action] Yahoo {ticker}: failed — {e}")
               return None
 
-          # ── GOLD price comparison — log all sources so we can pick the best ──
-          print("=== GOLD PRICE COMPARISON ===")
-          gold_symbols_tv = [
-              "ICMARKETS:XAUUSD",
-              "CMCMARKETS:GOLD",
-              "OANDA:XAUUSD",
-              "TVC:GOLD",
-              "FX:XAUUSD",
-          ]
-          best_gold = None
-          for sym in gold_symbols_tv:
-              result = fetch_tv_scanner(sym, 2)
-              if result and best_gold is None:
-                  best_gold = result  # use first successful source
-          if not best_gold:
-              for yf_ticker in ["XAU=X", "GC=F"]:
-                  best_gold = fetch_yahoo_direct(yf_ticker, 2)
-                  if best_gold:
-                      break
-          print("==============================")
+          # ── XAUUSD: try POST API for all spot gold symbols ──────────────────
+          gold_symbols = ["TVC:GOLD", "OANDA:XAUUSD", "FX:XAUUSD", "ICMARKETS:XAUUSD", "CMCMARKETS:GOLD"]
+          xauusd = None
+          for sym in gold_symbols:
+              xauusd = fetch_tv_post(sym, 2)
+              if xauusd:
+                  print(f"[action] XAUUSD: using {sym}")
+                  break
 
-          # SPY and QQQ — TradingView scanner then Yahoo fallback
-          spy  = fetch_tv_scanner("AMEX:SPY",    2) or fetch_yahoo_direct("SPY", 2)
-          qqq  = fetch_tv_scanner("NASDAQ:QQQ",  2) or fetch_yahoo_direct("QQQ", 2)
+          # If POST gives current price but no prev day, try to combine
+          if not xauusd:
+              # Get current spot price from TVC:GOLD
+              spot_price = fetch_tv_get("TVC:GOLD", 2)
+              # Get prev day H/L/C from XAU=X then GC=F
+              for yf_ticker in ["XAU=X", "GC=F"]:
+                  levels = fetch_yahoo_direct(yf_ticker, 2)
+                  if levels:
+                      if spot_price:
+                          levels["current"] = round(spot_price, 2)
+                          # recalculate range with real spot price
+                          r1 = levels["r1"]
+                          pivot = levels["pivot"]
+                          levels["expected_range_low"]  = round(min(levels["s2"], spot_price - (r1 - pivot)), 2)
+                          levels["expected_range_high"] = round(max(levels["r2"], spot_price + (r1 - pivot)), 2)
+                      xauusd = levels
+                      print(f"[action] XAUUSD: combined TVC:GOLD price + {yf_ticker} prev day levels")
+                      break
+
+          # ── SPY and QQQ ─────────────────────────────────────────────────────
+          spy = (fetch_tv_post("AMEX:SPY", 2) or fetch_yahoo_direct("SPY", 2))
+          qqq = (fetch_tv_post("NASDAQ:QQQ", 2) or fetch_yahoo_direct("QQQ", 2))
 
           result = {"fetched_at": datetime.now(timezone.utc).isoformat(), "assets": {}}
-          if best_gold: result["assets"]["XAUUSD"] = best_gold
-          if spy:       result["assets"]["SPY"]    = spy
-          if qqq:       result["assets"]["QQQ"]    = qqq
+          if xauusd: result["assets"]["XAUUSD"] = xauusd
+          if spy:    result["assets"]["SPY"]    = spy
+          if qqq:    result["assets"]["QQQ"]    = qqq
 
           import os
           os.makedirs("data", exist_ok=True)
