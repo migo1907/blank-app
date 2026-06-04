@@ -218,15 +218,12 @@ async def send_stocks_session_report() -> bool:
     now = datetime.now(timezone.utc).strftime("%d %b %Y")
     body = "\n".join(lines)
 
-    full_wins = [t for t in trades_today if t["outcome"] == "WIN"]
-    partials  = [t for t in trades_today if t["outcome"] == "PARTIAL"]
-
     msg = (
         f"📊 <b>STOCKS SESSION REPORT — {now}</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
         f"{body}\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
-        f"Signals: <b>{total}</b>  ✅ Full: <b>{len(full_wins)}</b>  🎯 Partial: <b>{len(partials)}</b>  ❌ Loss: <b>{len(losses)}</b>\n"
+        f"Signals: <b>{total}</b>  ✅ Win: <b>{len(wins)}</b>  ❌ Loss: <b>{len(losses)}</b>\n"
         f"Win Rate: <b>{wr:.0f}%</b>"
     )
     return await _send(msg)
