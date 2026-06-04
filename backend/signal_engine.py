@@ -21,7 +21,70 @@ from ml_model import get_model, Features
 from ml_ensemble import get_rf, get_gbm
 from db import recent_outcomes, recent_news, insert_signal, expire_old_signals
 
-# ── Base weights ──────────────────────────────────────────────────────────────
+# ── Latest feature cache — updated on every webhook, read by scheduler ────────────
+# Persisted to GitHub data branch so it survives Railway restarts.
+# Keyed by pool name — scheduler passes real market state to generate_signal().
+_latest_features: dict[str, Features] = {}
+_FEATURE_CACHE_PATH = "data/feature_cache.json"
+
+
+def update_latest_features(pool: str, features: Features) -> None:
+    """Cache latest features in memory and persist to GitHub data branch."""
+    _latest_features[pool] = features
+    try:
+        from db import _get_file, _put_file
+        from datetime import datetime, timezone as _tz
+        existing, sha = _get_file(_FEATURE_CACHE_PATH)
+        payload = existing if isinstance(existing, dict) else {}
+        payload[pool] = {
+            "f1":  features.f1,  "f2":  features.f2,  "f3":  features.f3,
+            "f4":  features.f4,  "f5":  features.f5,  "f6":  features.f6,
+            "f7":  features.f7,  "f8":  features.f8,  "f9":  features.f9,
+            "f10": features.f10, "f11": features.f11, "f12": features.f12,
+            "f13": features.f13, "f14": features.f14, "f15": features.f15,
+            "f16": features.f16, "f17": features.f17, "f18": features.f18,
+            "f19": features.f19, "f20": features.f20, "f21": features.f21,
+            "f22": features.f22, "f23": features.f23, "f24": features.f24,
+            "f25": features.f25,
+            "updated_at": datetime.now(_tz.utc).isoformat(),
+        }
+        _put_file(_FEATURE_CACHE_PATH, payload, sha,
+                  f"chore: update feature cache for {pool}")
+    except Exception as e:
+        print(f"[features] Cache persist failed: {e}")
+
+
+def load_feature_cache() -> None:
+    """Load persisted feature cache from GitHub on startup — call once from lifespan."""
+    try:
+        from db import _get_file
+        data, _ = _get_file(_FEATURE_CACHE_PATH)
+        if not isinstance(data, dict):
+            return
+        for pool, fv in data.items():
+            if not isinstance(fv, dict) or "f1" not in fv:
+                continue
+            _latest_features[pool] = Features(
+                f1=fv.get("f1",0.0),  f2=fv.get("f2",0.0),  f3=fv.get("f3",0.0),
+                f4=fv.get("f4",0.0),  f5=fv.get("f5",0.0),  f6=fv.get("f6",0.0),
+                f7=fv.get("f7",0.0),  f8=fv.get("f8",0.0),  f9=fv.get("f9",0.0),
+                f10=fv.get("f10",0.0),f11=fv.get("f11",0.0),f12=fv.get("f12",0.0),
+                f13=fv.get("f13",0.0),f14=fv.get("f14",0.0),f15=fv.get("f15",0.0),
+                f16=fv.get("f16",0.0),f17=fv.get("f17",0.0),f18=fv.get("f18",0.0),
+                f19=fv.get("f19",0.0),f20=fv.get("f20",0.0),f21=fv.get("f21",0.0),
+                f22=fv.get("f22",0.0),f23=fv.get("f23",0.0),f24=fv.get("f24",0.0),
+                f25=fv.get("f25",0.0),
+            )
+        print(f"[features] Loaded feature cache for {len(_latest_features)} pools from GitHub.")
+    except Exception as e:
+        print(f"[features] Cache load failed (first run?): {e}")
+
+
+def get_latest_features(pool: str) -> Features | None:
+    """Returns the most recent feature vector for a pool, or None if no data yet."""
+    return _latest_features.get(pool)
+
+# ── Base weights ────────────────────────────────────────────────────────────────
 KNN_WEIGHT     = 0.35
 RF_WEIGHT      = 0.25
 GBM_WEIGHT     = 0.20
@@ -60,7 +123,7 @@ def _day_of_week_multiplier(now_utc: datetime) -> float:
     return 1.0
 
 
-# ── Regime detection (item 1) ─────────────────────────────────────────────────
+# ── Regime detection (item 1) ────────────────────────────────────────────────────
 def _detect_regime(features: Features | None) -> str:
     """
     Detect market regime from the 21-feature vector.
@@ -121,8 +184,8 @@ def _trigger_quality_multiplier(history: list[dict], trigger: str) -> float:
     Different triggers (BOS, CHoCH, FVG, OB, RSI, Liq) have different edge.
     Each trigger earns its own reputation from live outcomes.
 
-    Same trigger + same direction within 30s = true duplicate → penalise.
-    Different trigger or different direction = independent signal → let it through.
+    Same trigger + same direction within 30s = true duplicate -> penalise.
+    Different trigger or different direction = independent signal -> let it through.
     """
     if not history or not trigger:
         return 1.0
@@ -179,13 +242,13 @@ def _rapid_fire_penalty(history: list[dict], direction: str, trigger: str, now: 
     return 1.0
 
 
-# ── Trade clustering prevention (item 3) ──────────────────────────────────────
+# ── Trade clustering prevention (item 3) ───────────────────────────────────────────
 def _clustering_multiplier(history: list[dict], direction: str, lookback: int = 4) -> float:
     """
     Detects consecutive same-direction losses. Reduces confidence on a streak.
     Does NOT block — just reduces conviction to prevent overtrading one direction.
 
-    lookback=4: if last 4 trades all same direction AND all losses → 0.75×
+    lookback=4: if last 4 trades all same direction AND all losses -> 0.75x
     """
     if len(history) < lookback:
         return 1.0
@@ -202,7 +265,7 @@ def _clustering_multiplier(history: list[dict], direction: str, lookback: int = 
     return 1.0
 
 
-# ── Feature confluence ────────────────────────────────────────────────────────
+# ── Feature confluence ────────────────────────────────────────────────────────────────
 def _confluence_score(features: Features | None, direction: str, regime: str) -> float:
     """
     Count how many of the 21 features agree with the predicted direction.
@@ -245,7 +308,7 @@ def _confluence_score(features: Features | None, direction: str, regime: str) ->
     score = sum(checks) / len(checks)
     base = 0.70 + score * 0.70
 
-    # ── DATA-DRIVEN FILTERS (from 68-trade live analysis) ────────────────────
+    # ── DATA-DRIVEN FILTERS (from 68-trade live analysis) ─────────────────────
     # Finding 1: f21_vwap < -0.5 (well below VWAP) = 17.5% WR vs 28%+ above
     # LONG signals taken far below VWAP in a bearish trend = consistent losers
     if bull and features.f21 < -0.5:
@@ -266,7 +329,7 @@ def _confluence_score(features: Features | None, direction: str, regime: str) ->
     if abs(features.f14) > 0.5:
         base *= 1.10   # CHoCH present — reversal confirmed by structure
 
-    # ── VWAP Stretch mean-reversion boost ────────────────────────────────────
+    # ── VWAP Stretch mean-reversion boost ───────────────────────────────────────
     # When price is stretched far from VWAP in the signal direction,
     # the mean-reversion magnet INCREASES probability of the trade working.
     # f21 = VWAP distance (positive = above VWAP, negative = below VWAP)
@@ -283,13 +346,13 @@ def _confluence_score(features: Features | None, direction: str, regime: str) ->
         # Price already past VWAP on signal side = trend continuation, slight boost
         base *= 1.05
 
-    # ── HV AVWAP magnet boost (f24 repurposed context) ───────────────────────
+    # ── HV AVWAP magnet boost (f24 repurposed context) ─────────────────────────
     # When a quality FVG exists post-sweep (f24 > 0.5), it often coincides with
     # HV AVWAP acting as a magnet — this is the highest-quality reversion setup
     if abs(features.f24) > 0.5 and features.f21 * sign < 0:
         base *= 1.08   # FVG quality + VWAP stretch = institutional magnet confirmed
 
-    # ── Pullback confirmation gate ────────────────────────────────────────────
+    # ── Pullback confirmation gate ─────────────────────────────────────────────
     # Counter-trend scalps (2min/5min pullbacks) are VALID but need reversal
     # evidence. Without sweep OR CHoCH OR quality FVG, it's a random counter-trend
     # entry with no institutional confirmation — reduce confidence.
@@ -306,7 +369,7 @@ def _confluence_score(features: Features | None, direction: str, regime: str) ->
     return base
 
 
-# ── Dynamic component weights based on recent accuracy ───────────────────────
+# ── Dynamic component weights based on recent accuracy ───────────────────────────────
 def _dynamic_weights(history: list[dict]) -> tuple[float, float, float, float]:
     if len(history) < 20:
         return KNN_WEIGHT, RF_WEIGHT, GBM_WEIGHT, NEWS_WEIGHT
@@ -322,12 +385,12 @@ def _dynamic_weights(history: list[dict]) -> tuple[float, float, float, float]:
     return KNN_WEIGHT, RF_WEIGHT, GBM_WEIGHT, NEWS_WEIGHT
 
 
-# ── KNN + RF agreement gate (item 4) ─────────────────────────────────────────
+# ── KNN + RF agreement gate (item 4) ─────────────────────────────────────────────
 def _agreement_multiplier(knn_dir: str, rf_dir: str, gbm_dir: str) -> float:
     """
-    All 3 models agree → strong boost.
-    2 of 3 agree → normal.
-    All disagree → reduce confidence (conflicted signal).
+    All 3 models agree -> strong boost.
+    2 of 3 agree -> normal.
+    All disagree -> reduce confidence (conflicted signal).
     """
     votes = [knn_dir, rf_dir, gbm_dir]
     bull_votes = votes.count("LONG")
@@ -340,7 +403,7 @@ def _agreement_multiplier(knn_dir: str, rf_dir: str, gbm_dir: str) -> float:
     return 0.80        # split — all different (shouldn't happen with 3, but guard)
 
 
-# ── Main signal generator ─────────────────────────────────────────────────────
+# ── Main signal generator ───────────────────────────────────────────────────────────────
 def generate_signal(
     current_features: Features | None = None,
     news_agg: float = 0.0,
@@ -355,17 +418,17 @@ def generate_signal(
     min_conf = MIN_CONFIDENCE_STOCKS if is_stock else MIN_CONFIDENCE
 
     model   = get_model(pool)
-    rf      = get_rf()
-    gbm     = get_gbm()
+    rf      = get_rf(pool)
+    gbm     = get_gbm(pool)
     history = recent_outcomes(pool, limit=300)
     now     = datetime.now(timezone.utc)
 
-    # ── Weekend guard ────────────────────────────────────────────────────────
+    # ── Weekend guard ──────────────────────────────────────────────────────────
     dow_mult = _day_of_week_multiplier(now)
     if dow_mult == 0.0:
         return _neutral_signal(symbol, now, model, rf, "Weekend — market closed", news_agg)
 
-    # ── KNN score ─────────────────────────────────────────────────────────────
+    # ── KNN score ─────────────────────────────────────────────────────────────────
     if current_features and len(history) >= model.k:
         bull_score, bear_score = model.predict(current_features, history)
     else:
@@ -373,7 +436,7 @@ def generate_signal(
         bull_score = wr
         bear_score = 1.0 - wr
 
-    # ── RF + GBM scores ───────────────────────────────────────────────────────
+    # ── RF + GBM scores ─────────────────────────────────────────────────────────────
     feat_list      = current_features.as_list() if current_features else [0.0] * 25
     rf_win_prob    = rf.predict(feat_list)
     gbm_win_prob   = gbm.predict(feat_list)
@@ -387,7 +450,7 @@ def generate_signal(
     rf_dir  = "LONG" if rf_directional  > 0 else "SHORT"
     gbm_dir = "LONG" if gbm_directional > 0 else "SHORT"
 
-    # ── News velocity ─────────────────────────────────────────────────────────
+    # ── News velocity ───────────────────────────────────────────────────────────────
     velocity = news_velocity or {"multiplier": 1.0, "label": "NORMAL"}
     v_label  = velocity.get("label", "NORMAL")
     v_mult   = float(velocity.get("multiplier", 1.0))
@@ -399,7 +462,7 @@ def generate_signal(
     if event.get("detected") and event.get("urgency", 0) >= 0.9:
         v_mult = min(v_mult * 1.5, 3.0)
 
-    # ── Dynamic component weights ─────────────────────────────────────────────
+    # ── Dynamic component weights ───────────────────────────────────────────────────
     w_knn_base, w_rf_base, w_gbm_base, w_news_base = _dynamic_weights(history)
     effective_news_weight = w_news_base * v_mult
     total_w = w_knn_base + w_rf_base + w_gbm_base + effective_news_weight
@@ -408,7 +471,7 @@ def generate_signal(
     w_gbm  = w_gbm_base           / total_w
     w_news = effective_news_weight / total_w
 
-    # ── Raw combined score ────────────────────────────────────────────────────
+    # ── Raw combined score ─────────────────────────────────────────────────────────────
     combined_score = (
         w_knn  * knn_directional +
         w_rf   * rf_directional  +
@@ -418,27 +481,27 @@ def generate_signal(
     direction_raw = "LONG" if combined_score > 0 else "SHORT"
     ml_score_out  = bull_score if direction_raw == "LONG" else bear_score
 
-    # ── Regime detection (item 1) ─────────────────────────────────────────────
+    # ── Regime detection (item 1) ──────────────────────────────────────────────────
     regime = _detect_regime(current_features)
     regime_mult, regime_label = _regime_context(regime, direction_raw)
 
-    # ── Session multiplier (item 5) ───────────────────────────────────────────
+    # ── Session multiplier (item 5) ───────────────────────────────────────────────
     sess_mult, session_name = _session_multiplier(now, is_stock=is_stock)
 
-    # ── Feature confluence ────────────────────────────────────────────────────
+    # ── Feature confluence ─────────────────────────────────────────────────────────────
     confluence_mult = _confluence_score(current_features, direction_raw, regime_label)
 
-    # ── KNN+RF+GBM agreement gate (item 4) ───────────────────────────────────
+    # ── KNN+RF+GBM agreement gate (item 4) ──────────────────────────────────────────
     agreement_mult = _agreement_multiplier(knn_dir, rf_dir, gbm_dir)
 
-    # ── Trigger quality + true-duplicate dedup ───────────────────────────────
+    # ── Trigger quality + true-duplicate dedup ───────────────────────────────────────
     trigger_mult = _trigger_quality_multiplier(history, trigger)
     rapid_mult   = _rapid_fire_penalty(history, direction_raw, trigger, now)
 
-    # ── Trade clustering prevention (item 3) ─────────────────────────────────
+    # ── Trade clustering prevention (item 3) ────────────────────────────────────────
     cluster_mult = _clustering_multiplier(history, direction_raw)
 
-    # ── Final confidence ──────────────────────────────────────────────────────
+    # ── Final confidence ───────────────────────────────────────────────────────────────
     confidence = (
         abs(combined_score)
         * sess_mult
@@ -458,7 +521,7 @@ def generate_signal(
 
     tier = "HIGH" if confidence >= 0.75 else "MED" if confidence >= 0.60 else "LOW"
 
-    # ── Reasoning ─────────────────────────────────────────────────────────────
+    # ── Reasoning ─────────────────────────────────────────────────────────────────
     news_desc = "bullish" if news_agg > 0.2 else "bearish" if news_agg < -0.2 else "neutral"
     model_votes = f"KNN:{knn_dir} RF:{rf_dir} GBM:{gbm_dir}"
     vwap_dist = current_features.f21 if current_features else 0.0
