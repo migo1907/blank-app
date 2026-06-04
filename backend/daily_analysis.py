@@ -21,7 +21,7 @@ SYMBOLS = {
 
 ANALYSIS_PROMPT = """You are a professional institutional trader writing a daily pre-market technical brief.
 
-For each asset below, write a SHORT (4-6 lines max) technical outlook for TODAY only.
+For each asset below, write a concise technical outlook for TODAY only.
 Rules:
 - Use ONLY the price levels provided — do not invent or round numbers
 - Never mention indicator names (no RSI, MACD, ATR, Fibonacci, EMA, etc.)
@@ -33,28 +33,28 @@ Rules:
 Asset data:
 {asset_data}
 
-Format your response EXACTLY like this for each asset (replace placeholders):
+Format your response EXACTLY like this for each asset (no deviations):
 
 🥇 XAUUSD
 Price: $X,XXX.XX
+Expected today range : $X,XXX – $X,XXX
 Key levels: X,XXX / X,XXX / X,XXX
-Bull: [1 sentence with target]
-Bear: [1 sentence with target]
-Range today: $X,XXX – $X,XXX
+📈 Bull: [1 sentence with specific price target]
+📉 Bear: [1 sentence with specific price target]
 
 📊 SPY
 Price: $XXX.XX
+Expected today range : $XXX – $XXX
 Key levels: XXX / XXX / XXX
-Bull: [1 sentence with target]
-Bear: [1 sentence with target]
-Range today: $XXX – $XXX
+📈 Bull: [1 sentence with specific price target]
+📉 Bear: [1 sentence with specific price target]
 
 📊 QQQ
 Price: $XXX.XX
+Expected today range : $XXX – $XXX
 Key levels: XXX / XXX / XXX
-Bull: [1 sentence with target]
-Bear: [1 sentence with target]
-Range today: $XXX – $XXX"""
+📈 Bull: [1 sentence with specific price target]
+📉 Bear: [1 sentence with specific price target]"""
 
 
 def _fetch_levels(ticker_sym: str, decimals: int = 2) -> dict | None:
@@ -173,7 +173,7 @@ def generate_daily_brief() -> str | None:
     date_str = now.strftime("%d %b %Y")
 
     msg = (
-        f"📅 <b>DAILY MARKET BRIEF — {weekday}, {date_str}</b>\n"
+        f"📅 <b>DAILY MARKET Technical BRIEF — {weekday}, {date_str}</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━\n\n"
         f"{analysis}\n\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
