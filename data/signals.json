@@ -1,26 +1,6 @@
 [
   {
     "symbol": "XAUUSD",
-    "pool": "XAUUSD",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.584,
-    "rf_score": 0.0299,
-    "gbm_score": 0.0,
-    "news_score": -0.088,
-    "combined_score": -0.4395,
-    "session": "NY_LATE",
-    "regime": "UNKNOWN",
-    "regime_label": "NORMAL",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:UNKNOWN(NORMAL)\u00d71.00 | sess:NY_LATE\u00d71.00 | confluence\u00d71.00 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.00) | news:neutral(-0.088) | combined:-0.440 \u2192 conf:0.000 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
-    "expires_at": "2026-06-03T18:35:19.074592+00:00",
-    "id": 101,
-    "created_at": "2026-06-03T18:05:19.450530+00:00"
-  },
-  {
-    "symbol": "XAUUSD",
     "direction": "NEUTRAL",
     "confidence": 0.0,
     "tier": "LOW",
@@ -1929,5 +1909,25 @@
     "expires_at": "2026-06-04T12:28:07.970685+00:00",
     "id": 101,
     "created_at": "2026-06-04T11:58:08.342455+00:00"
+  },
+  {
+    "symbol": "XAUUSD",
+    "pool": "XAUUSD",
+    "direction": "SHORT",
+    "confidence": 0.7994,
+    "tier": "HIGH",
+    "ml_score": 0.584,
+    "rf_score": 0.0299,
+    "gbm_score": 0.0,
+    "news_score": -0.2537,
+    "combined_score": -0.5329,
+    "session": "OVERLAP",
+    "regime": "UNKNOWN",
+    "regime_label": "NORMAL",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:UNKNOWN(NORMAL)\u00d71.00 | sess:OVERLAP\u00d71.25 | confluence\u00d71.00 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.00) | news:bearish(-0.254) | combined:-0.533 \u2192 conf:0.799",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-04T12:36:25.260659+00:00",
+    "id": 101,
+    "created_at": "2026-06-04T12:06:25.756404+00:00"
   }
 ]
