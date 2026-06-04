@@ -15,26 +15,6 @@
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:UNKNOWN(NORMAL)\u00d71.00 | sess:NEW_YORK\u00d71.20 | confluence\u00d71.00 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.00) | news:neutral(+0.000) | combined:-0.405 \u2192 conf:0.584 \u26a1 WAR/CONFLICT",
     "status": "ACTIVE",
-    "expires_at": "2026-06-03T15:06:49.902819+00:00",
-    "id": 101,
-    "created_at": "2026-06-03T14:36:50.311571+00:00"
-  },
-  {
-    "symbol": "XAUUSD",
-    "pool": "XAUUSD",
-    "direction": "SHORT",
-    "confidence": 0.5837,
-    "tier": "LOW",
-    "ml_score": 0.5794,
-    "rf_score": 0.0299,
-    "gbm_score": 0.0,
-    "news_score": 0.0,
-    "combined_score": -0.4053,
-    "session": "NEW_YORK",
-    "regime": "UNKNOWN",
-    "regime_label": "NORMAL",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:UNKNOWN(NORMAL)\u00d71.00 | sess:NEW_YORK\u00d71.20 | confluence\u00d71.00 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.00) | news:neutral(+0.000) | combined:-0.405 \u2192 conf:0.584 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
     "expires_at": "2026-06-03T15:21:46.667100+00:00",
     "id": 101,
     "created_at": "2026-06-03T14:51:47.153187+00:00"
@@ -1936,5 +1916,25 @@
     "expires_at": "2026-06-04T11:24:34.299316+00:00",
     "id": 101,
     "created_at": "2026-06-04T10:54:34.826939+00:00"
+  },
+  {
+    "symbol": "XAUUSD",
+    "pool": "XAUUSD",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.584,
+    "rf_score": 0.5,
+    "gbm_score": 0.0,
+    "news_score": -0.3338,
+    "combined_score": -0.3339,
+    "session": "LONDON",
+    "regime": "UNKNOWN",
+    "regime_label": "NORMAL",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:UNKNOWN(NORMAL)\u00d71.00 | sess:LONDON\u00d70.60 | confluence\u00d71.00 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.00) | news:bearish(-0.334) | combined:-0.334 \u2192 conf:0.240",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-04T11:39:31.400401+00:00",
+    "id": 101,
+    "created_at": "2026-06-04T11:09:31.845407+00:00"
   }
 ]
