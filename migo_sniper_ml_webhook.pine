@@ -692,7 +692,7 @@ color  dxyCol  = f17 > 0.0 ? color.lime : f17 < 0.0 ? color.red : color.gray
 string tfLabel = isTF2 ? "2min" : isTF5 ? "5min" : isTF15 ? "15min" : isTF1H ? "1H" : str.tostring(tfMins) + "min"
 string autoStr = autoTF ? "AUTO·" + tfLabel : "MANUAL"
 
-var table hub = table.new(position.bottom_left, 4, 19, bgcolor=color.rgb(15,15,15), border_color=color.gray, border_width=1)
+var table hub = table.new(position.bottom_left, 4, 15, bgcolor=color.rgb(15,15,15), border_color=color.gray, border_width=1)
 
 if barstate.islast
     table.cell(hub, 0, 0, "MIGO SNIPER  [ML + ADAPTIVE + ☁️ v3·25F]", text_color=color.white, bgcolor=color.rgb(65,14,58))
@@ -775,17 +775,3 @@ if barstate.islast
     table.cell(hub, 1, 14, volStatus, text_color=volColor)
     table.merge_cells(hub, 1, 14, 3, 14)
 
-    string adxInfo = "ADX:" + str.tostring(math.round(adxVal, 1)) + (adxFlat ? "✗" : "✓") + "  ATR:" + (atrCompressed ? "✗" : "✓") + "  EMA:" + (emaTooClose ? "✗" : "✓")
-    table.cell(hub, 0, 15, adxInfo, text_color=color.new(color.gray, 30), text_size=size.small)
-    table.merge_cells(hub, 0, 15, 3, 15)
-
-    string mlInfo = "k=" + str.tostring(mlK) + "  depth=" + str.tostring(mlDepth) + "  lag=" + str.tostring(mlLag) + "  min=" + str.tostring(math.round(mlMinScore * 100)) + "%"
-    table.cell(hub, 0, 16, mlInfo, text_color=color.new(color.gray, 40), text_size=size.tiny)
-    table.merge_cells(hub, 0, 16, 3, 16)
-
-    string smcToggle = "SMC:" + (useSMC ? "ON" : "OFF") + " Sess:" + (useSession ? "ON" : "OFF") + " MTF:" + (useMTF ? "ON" : "OFF") + " DXY:" + (useDXY ? "ON" : "OFF") + " F22-25:" + (useNewFeats ? "ON" : "OFF")
-    table.cell(hub, 0, 17, smcToggle, text_color=color.new(color.aqua, 30), text_size=size.tiny)
-    table.merge_cells(hub, 0, 17, 3, 17)
-
-    table.cell(hub, 0, 18, "☁️ CLOUD SYNC ACTIVE — 25F outcomes sent to backend", text_color=color.new(color.aqua, 40), text_size=size.tiny)
-    table.merge_cells(hub, 0, 18, 3, 18)
