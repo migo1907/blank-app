@@ -134,15 +134,18 @@ def _detect_regime(features: Features | None) -> str:
     return "NORMAL"
 
 
-def _regime_context(regime: str, direction: str) -> tuple[float, str]:
+def _regime_context(regime: str, direction: str, pool: str = "") -> tuple[float, str]:
+    is_scalp = pool.endswith("_2M") or pool.endswith("_5M")
     if regime == "TRENDING_BULL":
         if direction == "LONG":
             return 1.15, "TREND_FOLLOW"
-        return 1.00, "PULLBACK_SHORT"
+        # Counter-trend short in bull: scalps allowed, swings penalised
+        return (0.95, "PULLBACK_SHORT") if is_scalp else (0.80, "PULLBACK_SHORT")
     if regime == "TRENDING_BEAR":
         if direction == "SHORT":
             return 1.15, "TREND_FOLLOW"
-        return 0.80, "PULLBACK_LONG"   # Counter-trend in bear — penalise, not neutral
+        # Counter-trend long in bear: scalps allowed (ICT pullback), swings penalised
+        return (0.95, "PULLBACK_LONG") if is_scalp else (0.80, "PULLBACK_LONG")
     if regime == "RANGING":
         return 0.82, "RANGING"
     if regime == "VOLATILE":
@@ -305,10 +308,11 @@ def generate_signal(
     high_impact_event: dict | None = None,
     symbol: str = "XAUUSD",
     trigger: str = "",
+    pool: str | None = None,
 ) -> dict:
     from db import symbol_to_pool
-    pool     = symbol_to_pool(symbol)
-    is_stock = pool != "XAUUSD"
+    pool     = pool or symbol_to_pool(symbol)
+    is_stock = not pool.startswith("XAUUSD")
     min_conf = MIN_CONFIDENCE_STOCKS if is_stock else MIN_CONFIDENCE
 
     model   = get_model(pool)
@@ -375,7 +379,7 @@ def generate_signal(
     ml_score_out  = bull_score if direction_raw == "LONG" else bear_score
 
     regime = _detect_regime(current_features)
-    regime_mult, regime_label = _regime_context(regime, direction_raw)
+    regime_mult, regime_label = _regime_context(regime, direction_raw, pool)
     sess_mult, session_name = _session_multiplier(now, is_stock=is_stock)
     confluence_mult = _confluence_score(current_features, direction_raw, regime_label)
     agreement_mult = _agreement_multiplier(knn_dir, rf_dir, gbm_dir)
