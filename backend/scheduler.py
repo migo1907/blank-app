@@ -15,6 +15,7 @@ _latest_velocity:    dict  = {"multiplier": 1.0, "label": "NORMAL"}
 _latest_event:       dict  = {"detected": False, "event_type": "", "urgency": 0.0}
 _fj_seen_headlines:  set   = set()   # dedup breaking news across cycles (persisted to GitHub)
 _last_sent_direction: str  = "NEUTRAL"  # only send signal when direction changes
+_last_sent_direction_spy: str = "NEUTRAL"  # SPY direction change tracker
 
 _SEEN_HEADLINES_PATH = "data/seen_headlines.json"
 _SEEN_HEADLINES_MAX  = 500          # cap size to avoid growing forever
@@ -32,7 +33,7 @@ def get_latest_event() -> dict:
 
 def _load_seen_headlines() -> set:
     """Load previously seen headlines and last sent direction from GitHub (survives restarts)."""
-    global _fj_seen_headlines, _last_sent_direction
+    global _fj_seen_headlines, _last_sent_direction, _last_sent_direction_spy
     try:
         from db import _get_file
         data, _ = _get_file(_SEEN_HEADLINES_PATH)
@@ -48,11 +49,17 @@ def _load_seen_headlines() -> set:
         from db import _get_file
         signals, _ = _get_file("data/signals.json")
         if isinstance(signals, list) and signals:
-            # Walk backwards to find last non-NEUTRAL signal that was actually sent
             for sig in reversed(signals):
-                if sig.get("direction") not in ("NEUTRAL", None, ""):
-                    _last_sent_direction = sig["direction"]
-                    print(f"[scheduler] Last sent direction restored: {_last_sent_direction}")
+                sym = sig.get("symbol", "XAUUSD")
+                d   = sig.get("direction")
+                if d not in ("NEUTRAL", None, ""):
+                    if sym == "SPY" and _last_sent_direction_spy == "NEUTRAL":
+                        _last_sent_direction_spy = d
+                        print(f"[scheduler] SPY last sent direction restored: {d}")
+                    elif sym != "SPY" and _last_sent_direction == "NEUTRAL":
+                        _last_sent_direction = d
+                        print(f"[scheduler] Last sent direction restored: {d}")
+                if _last_sent_direction != "NEUTRAL" and _last_sent_direction_spy != "NEUTRAL":
                     break
     except Exception as e:
         print(f"[scheduler] Could not restore last sent direction: {e}")
@@ -126,7 +133,7 @@ async def _breaking_news_cycle() -> None:
 
 
 async def _news_signal_cycle() -> None:
-    global _latest_news_agg, _latest_velocity, _latest_event, _fj_seen_headlines, _last_sent_direction
+    global _latest_news_agg, _latest_velocity, _latest_event, _fj_seen_headlines, _last_sent_direction, _last_sent_direction_spy
     print("[scheduler] Starting news + velocity + signal cycle…")
 
     try:
@@ -174,6 +181,32 @@ async def _news_signal_cycle() -> None:
                 print("[scheduler] Telegram send failed (check TOKEN/CHAT_ID).")
         else:
             print("[scheduler] Signal is NEUTRAL — not sending to Telegram.")
+
+        # ── SPY signal (same news/velocity context, separate pool + direction tracker) ──
+        try:
+            spy_signal = generate_signal(
+                news_agg=_latest_news_agg,
+                news_velocity=_latest_velocity,
+                high_impact_event=_latest_event,
+                symbol="SPY",
+            )
+            spy_dir = spy_signal["direction"]
+            print(
+                f"[scheduler] SPY Signal: {spy_dir} "
+                f"conf={spy_signal['confidence']:.2f} "
+                f"sess={spy_signal['session']}"
+            )
+            if spy_dir != "NEUTRAL" and spy_dir != _last_sent_direction_spy:
+                sent_spy = await send_signal(spy_signal)
+                if sent_spy:
+                    _last_sent_direction_spy = spy_dir
+                    print(f"[scheduler] SPY direction changed → {spy_dir} — signal sent.")
+                else:
+                    print("[scheduler] SPY Telegram send failed.")
+            else:
+                print(f"[scheduler] SPY signal is {spy_dir} — not sending.")
+        except Exception as e:
+            print(f"[scheduler] SPY signal error: {e}")
 
         # ── Write health status to GitHub data branch every cycle ─────────────
         asyncio.create_task(_write_health_status(signal, agg, velocity, len(fj_breaking)))
