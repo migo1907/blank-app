@@ -10,6 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
       - name: Checkout branch
@@ -22,17 +24,15 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-        env:
-          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
       - name: Install dependencies
         run: |
-          pip install "tvdatafeed @ git+https://github.com/rongardF/tvdatafeed.git" yfinance pandas-datareader
+          pip install "tvdatafeed @ git+https://github.com/rongardF/tvdatafeed.git" yfinance requests
 
-      - name: Fetch levels from TradingView
+      - name: Fetch levels
         run: |
           python3 - <<'EOF'
-          import json
+          import json, csv, io, requests
           from datetime import datetime, timezone
 
           def calc_pivots(ph, pl, pc, current, decimals):
@@ -59,6 +59,27 @@ jobs:
                   "expected_range_high": round(max(r2, current + (r1 - pivot)), decimals),
               }
 
+          def fetch_stooq(symbol, decimals):
+              """Fetch daily OHLC from stooq.com CSV endpoint — no auth, works anywhere."""
+              try:
+                  url = f"https://stooq.com/q/d/l/?s={symbol}&i=d"
+                  resp = requests.get(url, timeout=10, headers={"User-Agent": "Mozilla/5.0"})
+                  resp.raise_for_status()
+                  rows = list(csv.DictReader(io.StringIO(resp.text)))
+                  rows = [r for r in rows if r.get("Close") and r["Close"] != "N/D"]
+                  if len(rows) >= 2:
+                      prev  = rows[-2]
+                      today = rows[-1]
+                      print(f"[action] {symbol}: stooq OK — close={today['Close']}")
+                      return calc_pivots(
+                          float(prev["High"]), float(prev["Low"]), float(prev["Close"]),
+                          float(today["Close"]), decimals
+                      )
+                  print(f"[action] {symbol}: stooq insufficient rows ({len(rows)})")
+              except Exception as e:
+                  print(f"[action] {symbol}: stooq failed — {e}")
+              return None
+
           def fetch_tv(symbol, exchange, decimals):
               try:
                   from tvdatafeed import TvDatafeed, Interval
@@ -71,7 +92,7 @@ jobs:
                       return calc_pivots(float(prev["high"]), float(prev["low"]), float(prev["close"]), float(today["close"]), decimals)
                   print(f"[action] {symbol}/{exchange}: insufficient data")
               except Exception as e:
-                  print(f"[action] {symbol}/{exchange}: tvdatafeed failed - {e}")
+                  print(f"[action] {symbol}/{exchange}: tvdatafeed failed — {e}")
               return None
 
           def fetch_yf(ticker, decimals):
@@ -84,32 +105,13 @@ jobs:
                       print(f"[action] {ticker}: yfinance OK")
                       return calc_pivots(float(prev["High"]), float(prev["Low"]), float(prev["Close"]), float(today["Close"]), decimals)
               except Exception as e:
-                  print(f"[action] {ticker}: yfinance failed - {e}")
-              return None
-
-          def fetch_stooq(ticker, decimals):
-              """Fetch from stooq.com via pandas-datareader - reliable, no auth needed."""
-              try:
-                  import pandas_datareader.data as web
-                  from datetime import timedelta
-                  end   = datetime.now(timezone.utc).date()
-                  start = end - timedelta(days=10)
-                  df = web.DataReader(ticker, "stooq", start=start, end=end)
-                  df = df.sort_index()  # stooq returns newest first
-                  if len(df) >= 2:
-                      prev  = df.iloc[-2]
-                      today = df.iloc[-1]
-                      print(f"[action] {ticker}: stooq OK")
-                      return calc_pivots(float(prev["High"]), float(prev["Low"]), float(prev["Close"]), float(today["Close"]), decimals)
-                  print(f"[action] {ticker}: stooq insufficient data")
-              except Exception as e:
-                  print(f"[action] {ticker}: stooq failed - {e}")
+                  print(f"[action] {ticker}: yfinance failed — {e}")
               return None
 
           assets = {
-              "XAUUSD": {"tv": ("XAUUSD", "ICMARKETS", 2), "yf": ["XAUUSD=X"], "stooq": "xauusd"},
-              "SPY":    {"tv": ("SPY",    "AMEX",      2), "yf": ["SPY"],       "stooq": None},
-              "QQQ":    {"tv": ("QQQ",    "NASDAQ",    2), "yf": ["QQQ"],       "stooq": None},
+              "XAUUSD": {"tv": ("XAUUSD", "ICMARKETS", 2), "yf": "XAUUSD=X", "stooq": "xauusd"},
+              "SPY":    {"tv": ("SPY",    "AMEX",      2), "yf": "SPY",       "stooq": "spy.us"},
+              "QQQ":    {"tv": ("QQQ",    "NASDAQ",    2), "yf": "QQQ",       "stooq": "qqq.us"},
           }
 
           result = {"fetched_at": datetime.now(timezone.utc).isoformat(), "assets": {}}
@@ -117,11 +119,8 @@ jobs:
               sym, exchange, decimals = cfg["tv"]
               levels = fetch_tv(sym, exchange, decimals)
               if not levels:
-                  for ticker in cfg["yf"]:
-                      levels = fetch_yf(ticker, decimals)
-                      if levels:
-                          break
-              if not levels and cfg.get("stooq"):
+                  levels = fetch_yf(cfg["yf"], decimals)
+              if not levels:
                   levels = fetch_stooq(cfg["stooq"], decimals)
               if levels:
                   result["assets"][name] = levels
