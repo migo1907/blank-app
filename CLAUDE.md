@@ -12,6 +12,7 @@
 - **Development branch:** `claude/hopeful-pasteur-VVHCl`
 - **Never push to:** `main`
 - **Stable baseline tag:** `checkpoint-v1` (05:54 UTC 2026-06-04)
+- **checkpoint-v2 commit:** `42312b0` (2026-06-04) — 25-feature pipeline complete, F1-F25 from Pine Script, TVC:GOLD data source, pools aligned to live alerts (XAUUSD 2M/5M/30M/1H + stocks 30M/4H), weights.json default, 25 live XAUUSD trades
 
 ## Security
 - Webhook secret: `gold2026`
