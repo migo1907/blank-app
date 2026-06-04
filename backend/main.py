@@ -220,7 +220,7 @@ async def trade_outcome(payload: TradeOutcomePayload):
         f13=payload.f13, f14=payload.f14, f15=payload.f15, f16=payload.f16,
         f17=payload.f17, f18=payload.f18, f19=payload.f19, f20=payload.f20,
         f21=payload.f21, f22=payload.f22, f23=payload.f23, f24=payload.f24,
-        f25=_tod_sine(),
+        f25=payload.f25,
     )
 
     ml_label = payload.ml_outcome or payload.outcome
@@ -335,7 +335,7 @@ async def unified_webhook(payload: UnifiedPayload):
             f13=payload.f13, f14=payload.f14, f15=payload.f15, f16=payload.f16,
             f17=payload.f17, f18=payload.f18, f19=payload.f19, f20=payload.f20,
             f21=payload.f21, f22=payload.f22, f23=payload.f23, f24=payload.f24,
-            f25=_tod_sine(),
+            f25=payload.f25,
         )
         ml_label = payload.ml_outcome or payload.outcome
         model.update_on_outcome(features, payload.direction, ml_label)
