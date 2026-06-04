@@ -358,7 +358,7 @@ async def _hourly_system_check() -> None:
         if _scheduler and _scheduler.running:
             jobs = _scheduler.get_jobs()
             job_ids = [j.id for j in jobs]
-            expected = {"news_signal_cycle", "breaking_news_cycle", "hourly_system_check"}
+            expected = {"news_signal_cycle", "breaking_news_cycle", "hourly_system_check", "daily_market_brief"}
             missing = expected - set(job_ids)
             if not missing:
                 ok.append(f"Scheduler — {len(jobs)} jobs running ✅")
@@ -557,6 +557,30 @@ async def _hourly_system_check() -> None:
         await send_critical_alert(title, detail, action)
 
 
+async def _daily_market_brief() -> None:
+    """
+    Runs at 08:00 UTC Monday–Friday.
+    Generates SPY / QQQ / XAUUSD daily technical brief and sends to Telegram.
+    """
+    from datetime import datetime, timezone
+    now = datetime.now(timezone.utc)
+    # Skip weekends
+    if now.weekday() >= 5:
+        return
+    print("[daily] Generating daily market brief…")
+    try:
+        from daily_analysis import generate_daily_brief
+        from telegram_bot import send_text
+        msg = await asyncio.to_thread(generate_daily_brief)
+        if msg:
+            await send_text(msg)
+            print("[daily] Daily brief sent to Telegram.")
+        else:
+            print("[daily] Brief generation returned None — skipped.")
+    except Exception as e:
+        print(f"[daily] Brief error: {e}")
+
+
 async def _test_personal_alert() -> None:
     """One-shot test of the personal Telegram alert."""
     from telegram_bot import send_critical_alert
@@ -593,8 +617,16 @@ def start_scheduler() -> AsyncIOScheduler:
         id="hourly_system_check",
         replace_existing=True,
     )
+    _scheduler.add_job(
+        _daily_market_brief,
+        trigger="cron",
+        hour=8,
+        minute=0,
+        id="daily_market_brief",
+        replace_existing=True,
+    )
     _scheduler.start()
-    print(f"[scheduler] Started — signal every {interval} min, breaking news every 2 min, system check every 60 min.")
+    print(f"[scheduler] Started — signal every {interval} min, breaking news every 2 min, system check every 60 min, daily brief at 08:00 UTC.")
     return _scheduler
 
 
