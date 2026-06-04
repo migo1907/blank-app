@@ -28,7 +28,7 @@ SYMBOLS_TV = {
 
 # yfinance fallback tickers
 SYMBOLS_YF_FALLBACK = {
-    "XAUUSD": ["XAUUSD=X", "GC=F"],
+    "XAUUSD": ["XAUUSD=X"],
     "SPY":    ["SPY"],
     "QQQ":    ["QQQ"],
 }
