@@ -481,6 +481,15 @@ async def signal_now(secret: str = ""):
     return {"status": "signal cycle triggered"}
 
 
+@app.get("/daily-brief")
+async def daily_brief_now(secret: str = ""):
+    """Trigger daily market brief for SPY/QQQ/XAUUSD immediately and send to Telegram."""
+    _validate_secret(secret)
+    from scheduler import _daily_market_brief
+    asyncio.create_task(_daily_market_brief())
+    return {"status": "daily brief triggered — check Telegram in ~15 seconds"}
+
+
 @app.get("/railway-status")
 async def railway_status(secret: str = ""):
     """Query Railway API for live service status and recent logs."""
