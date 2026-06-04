@@ -1,26 +1,6 @@
 [
   {
     "symbol": "XAUUSD",
-    "pool": "XAUUSD",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.584,
-    "rf_score": 0.04,
-    "gbm_score": 0.0,
-    "news_score": 0.0,
-    "combined_score": -0.4036,
-    "session": "OFF",
-    "regime": "UNKNOWN",
-    "regime_label": "NORMAL",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:UNKNOWN(NORMAL)\u00d71.00 | sess:OFF\u00d70.70 | confluence\u00d71.00 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.00) | news:neutral(+0.000) | combined:-0.404 \u2192 conf:0.339 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
-    "expires_at": "2026-06-04T00:17:04.247340+00:00",
-    "id": 101,
-    "created_at": "2026-06-03T23:47:04.699781+00:00"
-  },
-  {
-    "symbol": "XAUUSD",
     "direction": "NEUTRAL",
     "confidence": 0.0,
     "tier": "LOW",
@@ -1934,5 +1914,25 @@
     "expires_at": "2026-06-04T13:59:49.694624+00:00",
     "id": 101,
     "created_at": "2026-06-04T13:29:50.227021+00:00"
+  },
+  {
+    "symbol": "XAUUSD",
+    "pool": "XAUUSD",
+    "direction": "SHORT",
+    "confidence": 0.6311,
+    "tier": "MED",
+    "ml_score": 0.584,
+    "rf_score": 0.0299,
+    "gbm_score": 0.0,
+    "news_score": -0.1552,
+    "combined_score": -0.4383,
+    "session": "NEW_YORK",
+    "regime": "UNKNOWN",
+    "regime_label": "NORMAL",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:UNKNOWN(NORMAL)\u00d71.00 | sess:NEW_YORK\u00d71.20 | confluence\u00d71.00 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.00) | news:neutral(-0.155) | combined:-0.438 \u2192 conf:0.631 \u26a1 NFP",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-04T14:14:48.473693+00:00",
+    "id": 101,
+    "created_at": "2026-06-04T13:44:48.757283+00:00"
   }
 ]
