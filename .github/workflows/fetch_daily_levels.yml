@@ -1,0 +1,122 @@
+name: Fetch Daily TradingView Levels
+
+on:
+  schedule:
+    - cron: '50 7 * * 1-5'   # 07:50 UTC Mon-Fri
+  workflow_dispatch:           # allow manual trigger
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: claude/hopeful-pasteur-VVHCl
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install "tvdatafeed @ git+https://github.com/rongardF/tvdatafeed.git" yfinance
+
+      - name: Fetch levels from TradingView
+        run: |
+          python3 - <<'EOF'
+          import json, sys
+          from datetime import datetime, timezone
+
+          def calc_pivots(ph, pl, pc, current, decimals):
+              pivot = (ph + pl + pc) / 3
+              r1 = 2 * pivot - pl
+              r2 = pivot + (ph - pl)
+              r3 = ph + 2 * (pivot - pl)
+              s1 = 2 * pivot - ph
+              s2 = pivot - (ph - pl)
+              s3 = pl - 2 * (ph - pivot)
+              return {
+                  "current":             round(current, decimals),
+                  "prev_high":           round(ph, decimals),
+                  "prev_low":            round(pl, decimals),
+                  "prev_close":          round(pc, decimals),
+                  "pivot":               round(pivot, decimals),
+                  "r1":                  round(r1, decimals),
+                  "r2":                  round(r2, decimals),
+                  "r3":                  round(r3, decimals),
+                  "s1":                  round(s1, decimals),
+                  "s2":                  round(s2, decimals),
+                  "s3":                  round(s3, decimals),
+                  "expected_range_low":  round(min(s2, current - (r1 - pivot)), decimals),
+                  "expected_range_high": round(max(r2, current + (r1 - pivot)), decimals),
+              }
+
+          def fetch_tv(symbol, exchange, decimals):
+              try:
+                  from tvdatafeed import TvDatafeed, Interval
+                  tv = TvDatafeed()
+                  df = tv.get_hist(symbol, exchange, interval=Interval.in_daily, n_bars=5)
+                  if df is not None and len(df) >= 2:
+                      prev  = df.iloc[-2]
+                      today = df.iloc[-1]
+                      print(f"[action] {symbol}/{exchange}: TradingView OK")
+                      return calc_pivots(float(prev["high"]), float(prev["low"]), float(prev["close"]), float(today["close"]), decimals)
+                  print(f"[action] {symbol}/{exchange}: insufficient data")
+              except Exception as e:
+                  print(f"[action] {symbol}/{exchange}: tvdatafeed failed — {e}")
+              return None
+
+          def fetch_yf(ticker, decimals):
+              try:
+                  import yfinance as yf
+                  hist = yf.Ticker(ticker).history(period="5d", interval="1d", auto_adjust=True)
+                  if not hist.empty and len(hist) >= 2:
+                      prev  = hist.iloc[-2]
+                      today = hist.iloc[-1]
+                      print(f"[action] {ticker}: yfinance OK")
+                      return calc_pivots(float(prev["High"]), float(prev["Low"]), float(prev["Close"]), float(today["Close"]), decimals)
+              except Exception as e:
+                  print(f"[action] {ticker}: yfinance failed — {e}")
+              return None
+
+          assets = {
+              "XAUUSD": {"tv": ("XAUUSD", "ICMARKETS", 2), "yf": ["XAUUSD=X"]},
+              "SPY":    {"tv": ("SPY",    "AMEX",      2), "yf": ["SPY"]},
+              "QQQ":    {"tv": ("QQQ",    "NASDAQ",    2), "yf": ["QQQ"]},
+          }
+
+          result = {"fetched_at": datetime.now(timezone.utc).isoformat(), "assets": {}}
+          for name, cfg in assets.items():
+              sym, exchange, decimals = cfg["tv"]
+              levels = fetch_tv(sym, exchange, decimals)
+              if not levels:
+                  for ticker in cfg["yf"]:
+                      levels = fetch_yf(ticker, decimals)
+                      if levels:
+                          break
+              if levels:
+                  result["assets"][name] = levels
+              else:
+                  print(f"[action] {name}: ALL sources failed")
+
+          import os
+          os.makedirs("data", exist_ok=True)
+          with open("data/daily_levels.json", "w") as f:
+              json.dump(result, f, indent=2)
+          print("[action] Saved data/daily_levels.json")
+          print(json.dumps(result, indent=2))
+          EOF
+
+      - name: Commit and push levels
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/daily_levels.json
+          git diff --cached --quiet || git commit -m "chore: daily TradingView levels $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git push
