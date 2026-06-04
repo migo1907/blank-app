@@ -1,25 +1,6 @@
 [
   {
     "symbol": "XAUUSD",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "news_score": -0.0815,
-    "combined_score": 0.0,
-    "session": "N/A",
-    "regime": "UNKNOWN",
-    "regime_label": "UNKNOWN",
-    "reasoning": "News velocity CONFLICTED",
-    "status": "NEUTRAL",
-    "expires_at": "2026-06-03T16:47:10.426284+00:00",
-    "id": 101,
-    "created_at": "2026-06-03T16:17:11.013235+00:00"
-  },
-  {
-    "symbol": "XAUUSD",
     "pool": "XAUUSD",
     "direction": "NEUTRAL",
     "confidence": 0.0,
@@ -1933,5 +1914,24 @@
     "expires_at": "2026-06-04T12:18:05.463046+00:00",
     "id": 101,
     "created_at": "2026-06-04T11:48:05.790117+00:00"
+  },
+  {
+    "symbol": "XAUUSD",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "news_score": 0.0282,
+    "combined_score": 0.0,
+    "session": "N/A",
+    "regime": "UNKNOWN",
+    "regime_label": "UNKNOWN",
+    "reasoning": "News velocity CONFLICTED",
+    "status": "NEUTRAL",
+    "expires_at": "2026-06-04T12:18:19.755000+00:00",
+    "id": 101,
+    "created_at": "2026-06-04T11:48:20.251908+00:00"
   }
 ]
