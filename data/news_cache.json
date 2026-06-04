@@ -1,304 +1,5 @@
 [
   {
-    "source": "Crypto Briefing",
-    "headline": "Japan holds back on yen warnings as currency nears 160 level",
-    "url": "https://cryptobriefing.com/japan-yen-warnings-160-level/",
-    "sentiment_score": -0.2,
-    "impact": "LOW",
-    "keywords": [
-      "yen policy",
-      "currency",
-      "central bank"
-    ],
-    "fetched_at": "2026-06-04T00:17:03.074928+00:00"
-  },
-  {
-    "source": "Japan Today",
-    "headline": "How Trump has used the presidency to benefit himself and his allies",
-    "url": "https://japantoday.com/category/features/opinions/how-trump-has-used-the-presidency-to-benefit-himself-and-his-allies",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "politics",
-      "non-economic",
-      "distraction"
-    ],
-    "fetched_at": "2026-06-04T00:17:03.074928+00:00"
-  },
-  {
-    "source": "Activistpost.com",
-    "headline": "Rampant Kleptocracy Feeds Wealth Inequality In A Crumbling American Empire",
-    "url": "https://www.activistpost.com/rampant-kleptocracy-feeds-wealth-inequality-in-a-crumbling-american-empire/",
-    "sentiment_score": 0.3,
-    "impact": "LOW",
-    "keywords": [
-      "inequality",
-      "systemic risk",
-      "long-term concern"
-    ],
-    "fetched_at": "2026-06-04T00:17:03.074928+00:00"
-  },
-  {
-    "source": "Crypto Briefing",
-    "headline": "Samara Asset Group reports April Bitcoin CPI down 0.9% month-on-month",
-    "url": "https://cryptobriefing.com/samara-bitcoin-cpi-april-decline/",
-    "sentiment_score": -0.2,
-    "impact": "LOW",
-    "keywords": [
-      "bitcoin",
-      "inflation measure",
-      "crypto metric"
-    ],
-    "fetched_at": "2026-06-04T00:17:03.074928+00:00"
-  },
-  {
-    "source": "BusinessLine",
-    "headline": "RBI\u2019s rate setting panel may keep repo rate on hold",
-    "url": "https://www.thehindubusinessline.com/money-and-banking/rbis-rate-setting-panel-may-keep-repo-rate-on-hold/article71045206.ece",
-    "sentiment_score": 0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "RBI",
-      "rates on hold",
-      "monetary policy"
-    ],
-    "fetched_at": "2026-06-04T00:17:03.074928+00:00"
-  },
-  {
-    "source": "CryptoSlate",
-    "headline": "New US inflation report leaves Bitcoin with a problem the Fed cannot solve yet",
-    "url": "https://cryptoslate.com/new-us-inflation-report-leaves-bitcoin-with-a-problem-the-fed-cannot-solve-yet/",
-    "sentiment_score": -0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "inflation",
-      "bitcoin problem",
-      "Fed limits"
-    ],
-    "fetched_at": "2026-06-04T00:17:03.074928+00:00"
-  },
-  {
-    "source": "Econbrowser.com",
-    "headline": "Guest Contribution: \u201cAmericans can\u2019t afford Trump\u2019s inflationary policies\u201d",
-    "url": "https://econbrowser.com/archives/2026/05/guest-contribution-americans-cant-afford-trumps-inflationary-policies",
-    "sentiment_score": 0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "inflation",
-      "Trump policies",
-      "price pressures"
-    ],
-    "fetched_at": "2026-06-04T00:17:03.074928+00:00"
-  },
-  {
-    "source": "Activistpost.com",
-    "headline": "Fake Wars & Higher Prices: What a \u201cMultipolar World Order\u201d REALLY Means",
-    "url": "https://www.activistpost.com/fake-wars-higher-prices-what-a-multipolar-world-order-really-means/",
-    "sentiment_score": 0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "multipolar world",
-      "geopolitical tension",
-      "inflation"
-    ],
-    "fetched_at": "2026-06-04T00:17:03.074928+00:00"
-  },
-  {
-    "source": "The Conversation Africa",
-    "headline": "Myanmar\u2019s forgotten war: How the world is failing the test of the UN\u2019s Responsibility to Protect",
-    "url": "https://theconversation.com/myanmars-forgotten-war-how-the-world-is-failing-the-test-of-the-uns-responsibility-to-protect-283667",
-    "sentiment_score": 0.3,
-    "impact": "LOW",
-    "keywords": [
-      "Myanmar",
-      "regional conflict",
-      "humanitarian"
-    ],
-    "fetched_at": "2026-06-04T00:17:03.074928+00:00"
-  },
-  {
-    "source": "Federalreserve.gov",
-    "headline": "FEDS Note: How U.S. Bank Stock Prices Respond to Geopolitical Risk",
-    "url": "https://www.federalreserve.gov/econres/notes/feds-notes/how-u-s-bank-stock-prices-respond-to-geopolitical-risk-20260602.html",
-    "sentiment_score": 0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "geopolitical risk",
-      "bank stocks",
-      "risk asset correlation"
-    ],
-    "fetched_at": "2026-06-04T00:17:03.074928+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "China PBOC seen fixing yuan midpoint at 6.7770 per dollar: Estimate",
-    "url": "https://www.financialjuice.com/News/9618505/China-PBOC-seen-fixing-yuan-midpoint-at-67770-per-dollar-Estimate.aspx?xy=rss",
-    "sentiment_score": -0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "yuan weakening",
-      "dollar strength",
-      "currency"
-    ],
-    "fetched_at": "2026-06-04T00:32:03.977582+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "S. Korean won falls to lowest since March 31 versus dollar",
-    "url": "https://www.financialjuice.com/News/9618493/S-Korean-won-falls-to-lowest-since-March-31-versus-dollar.aspx?xy=rss",
-    "sentiment_score": -0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "won falls",
-      "risk-off",
-      "dollar demand"
-    ],
-    "fetched_at": "2026-06-04T00:32:03.977582+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Trump tells aides he won\u2019t restart all-out war with Iran unless U.S. troops are killed - WSJ",
-    "url": "https://www.financialjuice.com/News/9618474/Trump-tells-aides-he-wont-restart-all-out-war-with-Iran-unless-US-troops-are-killed---WSJ.aspx?xy=rss",
-    "sentiment_score": 0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "Iran tension easing",
-      "geopolitical risk",
-      "de-escalation"
-    ],
-    "fetched_at": "2026-06-04T00:32:03.977582+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "State Department: All parties denounce Iran's assaults on regional nations",
-    "url": "https://www.financialjuice.com/News/9618396/State-Department-All-parties-denounce-Irans-assaults-on-regional-nations.aspx?xy=rss",
-    "sentiment_score": 0.3,
-    "impact": "LOW",
-    "keywords": [
-      "Iran",
-      "regional stability",
-      "diplomatic"
-    ],
-    "fetched_at": "2026-06-04T00:32:03.977582+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Ceasefire contingent on full halt of Hezbollah fire and withdrawal of all Hezbollah operatives from south Litani sector: statement",
-    "url": "https://www.financialjuice.com/News/9618390/Ceasefire-contingent-on-full-halt-of-Hezbollah-fire-and-withdrawal-of-all-Hezbollah-operatives-from-south-Litani-sector-statement.aspx?xy=rss",
-    "sentiment_score": 0.2,
-    "impact": "LOW",
-    "keywords": [
-      "ceasefire",
-      "Middle East",
-      "conflict resolution"
-    ],
-    "fetched_at": "2026-06-04T00:32:03.977582+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Three dead, seven wounded in Ukraine strike on Simferopol in Russia-annexed Crimea: Moscow-installed governor",
-    "url": "https://www.financialjuice.com/News/9618372/Three-dead-seven-wounded-in-Ukraine-strike-on-Simferopol-in-Russia-annexed-Crimea-Moscow-installed-governor.aspx?xy=rss",
-    "sentiment_score": 0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "geopolitical risk",
-      "conflict",
-      "safe-haven"
-    ],
-    "fetched_at": "2026-06-04T00:32:03.977582+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "North Korea holds crucial meeting on boosting nuclear arsenal: KCNA",
-    "url": "https://www.financialjuice.com/News/9618307/North-Korea-holds-crucial-meeting-on-boosting-nuclear-arsenal-KCNA.aspx?xy=rss",
-    "sentiment_score": 0.6,
-    "impact": "MEDIUM",
-    "keywords": [
-      "North Korea",
-      "nuclear threat",
-      "geopolitical risk"
-    ],
-    "fetched_at": "2026-06-04T00:32:03.977582+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "US House of Representatives supports resolution limiting Trump\u2019s Iran war authorities",
-    "url": "https://www.financialjuice.com/News/9618304/US-House-of-Representatives-supports-resolution-limiting-Trumps-Iran-war-authorities.aspx?xy=rss",
-    "sentiment_score": 0.3,
-    "impact": "LOW",
-    "keywords": [
-      "war authority limits",
-      "geopolitical risk reduction",
-      "policy"
-    ],
-    "fetched_at": "2026-06-04T00:32:03.977582+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "North Korea's Kim: plans to significantly boost national nuclear capabilities - KCNA",
-    "url": "https://www.financialjuice.com/News/9618291/North-Koreas-Kim-plans-to-significantly-boost-national-nuclear-capabilities---KCNA.aspx?xy=rss",
-    "sentiment_score": 0.6,
-    "impact": "MEDIUM",
-    "keywords": [
-      "North Korea",
-      "nuclear escalation",
-      "geopolitical risk"
-    ],
-    "fetched_at": "2026-06-04T00:32:03.977582+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "North Korea's Kim Jong Un reviews nuclear material manufacturing site: Yonhap",
-    "url": "https://www.financialjuice.com/News/9618281/North-Koreas-Kim-Jong-Un-reviews-nuclear-material-manufacturing-site-Yonhap.aspx?xy=rss",
-    "sentiment_score": 0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "North Korea",
-      "nuclear program",
-      "geopolitical tension"
-    ],
-    "fetched_at": "2026-06-04T00:32:03.977582+00:00"
-  },
-  {
-    "source": "MarketWatch Top",
-    "headline": "The Fed can\u2019t protect consumers from supply shocks and price gouging \u2014 but Congress can",
-    "url": "https://www.marketwatch.com/story/the-2-types-of-inflation-the-fed-cant-control-and-how-congress-must-protect-your-wallet-7ac2079a?mod=mw_rss_topstories",
-    "sentiment_score": 0.2,
-    "impact": "LOW",
-    "keywords": [
-      "inflation",
-      "supply shock",
-      "policy"
-    ],
-    "fetched_at": "2026-06-04T00:32:03.977582+00:00"
-  },
-  {
-    "source": "MarketWatch Top",
-    "headline": "\u2018Squeezing more life out of every dollar\u2019: How inflation is forcing a new reality on American families and amplifying the economy\u2019s \u2018K shape\u2019",
-    "url": "https://www.marketwatch.com/story/squeezing-more-life-out-of-every-dollar-how-inflation-is-forcing-a-new-reality-on-american-families-and-amplifying-the-economys-k-shape-c3ba42de?mod=mw_rss_topstories",
-    "sentiment_score": 0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "inflation",
-      "purchasing power",
-      "real yields"
-    ],
-    "fetched_at": "2026-06-04T00:32:03.977582+00:00"
-  },
-  {
-    "source": "Investing.com Comm",
-    "headline": "US House votes to block Trump\u2019s Iran war authority",
-    "url": "https://www.investing.com/news/stock-market-news/us-house-votes-to-block-trumps-iran-war-authority-93CH-4725492",
-    "sentiment_score": 0.3,
-    "impact": "LOW",
-    "keywords": [
-      "war authority",
-      "geopolitical risk",
-      "policy"
-    ],
-    "fetched_at": "2026-06-04T00:32:03.977582+00:00"
-  },
-  {
     "source": "Investing.com Forex",
     "headline": "Canadian dollar falls to eight-week low on trade tensions",
     "url": "https://www.investing.com/news/forex-news/canadian-dollar-falls-to-eightweek-low-on-trade-tensions-93CH-4725030",
@@ -2597,5 +2298,304 @@
       "industrial metals"
     ],
     "fetched_at": "2026-06-04T02:01:59.853769+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "S. Korea central bank sells two-year monetary stabilization bonds at 3.8% yield",
+    "url": "https://www.financialjuice.com/News/9618584/S-Korea-central-bank-sells-two-year-monetary-stabilization-bonds-at-38-yield.aspx?xy=rss",
+    "sentiment_score": -0.3,
+    "impact": "MEDIUM",
+    "keywords": [
+      "higher yields",
+      "carry trade",
+      "Korea"
+    ],
+    "fetched_at": "2026-06-04T02:16:58.365921+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "North Korea nuclear site is uranium-enriching plant: South Korea Joint Chiefs of Staff",
+    "url": "https://www.financialjuice.com/News/9618583/North-Korea-nuclear-site-is-uranium-enriching-plant-South-Korea-Joint-Chiefs-of-Staff.aspx?xy=rss",
+    "sentiment_score": 0.2,
+    "impact": "LOW",
+    "keywords": [
+      "geopolitical risk",
+      "Korea tensions",
+      "safe haven"
+    ],
+    "fetched_at": "2026-06-04T02:16:58.365921+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Volume of China central bank\u2019s reverse repo operations at zero for second day: source calculation",
+    "url": "https://www.financialjuice.com/News/9618561/Volume-of-China-central-banks-reverse-repo-operations-at-zero-for-second-day-source-calculation.aspx?xy=rss",
+    "sentiment_score": 0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "liquidity tightening",
+      "PBOC",
+      "monetary policy"
+    ],
+    "fetched_at": "2026-06-04T02:16:58.365921+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Volume of China central bank\u2019s reverse repo transactions stands at zero on Thursday: PBOC statement",
+    "url": "https://www.financialjuice.com/News/9618560/Volume-of-China-central-banks-reverse-repo-transactions-stands-at-zero-on-Thursday-PBOC-statement.aspx?xy=rss",
+    "sentiment_score": 0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "liquidity drain",
+      "PBOC",
+      "monetary tightening"
+    ],
+    "fetched_at": "2026-06-04T02:16:58.365921+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Taiwan president: what was crushed back then was not only the lives and youth of those who participated but also an entire generation in China",
+    "url": "https://www.financialjuice.com/News/9618541/Taiwan-president-what-was-crushed-back-then-was-not-only-the-lives-and-youth-of-those-who-participated-but-also-an-entire-generation-in-China.aspx?xy=rss",
+    "sentiment_score": 0.1,
+    "impact": "LOW",
+    "keywords": [
+      "geopolitical",
+      "Taiwan",
+      "China"
+    ],
+    "fetched_at": "2026-06-04T02:16:58.365921+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Taiwan president in Facebook post on Tiananmen crackdown anniversary: sincerely hopes China can confront June 4 incident",
+    "url": "https://www.financialjuice.com/News/9618530/Taiwan-president-in-Facebook-post-on-Tiananmen-crackdown-anniversary-sincerely-hopes-China-can-confront-June-4-incident.aspx?xy=rss",
+    "sentiment_score": 0.1,
+    "impact": "LOW",
+    "keywords": [
+      "geopolitical",
+      "Taiwan",
+      "China"
+    ],
+    "fetched_at": "2026-06-04T02:16:58.365921+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "U.S. military: strike in eastern Pacific kills two men",
+    "url": "https://www.financialjuice.com/News/9618523/US-military-strike-in-eastern-Pacific-kills-two-men.aspx?xy=rss",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "military",
+      "Pacific",
+      "unrelated"
+    ],
+    "fetched_at": "2026-06-04T02:16:58.365921+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "China PBOC seen fixing yuan midpoint at 6.7770 per dollar: Estimate",
+    "url": "https://www.financialjuice.com/News/9618505/China-PBOC-seen-fixing-yuan-midpoint-at-67770-per-dollar-Estimate.aspx?xy=rss",
+    "sentiment_score": -0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "yuan weakness",
+      "dollar strength",
+      "China"
+    ],
+    "fetched_at": "2026-06-04T02:16:58.365921+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "S. Korean won falls to lowest since March 31 versus dollar",
+    "url": "https://www.financialjuice.com/News/9618493/S-Korean-won-falls-to-lowest-since-March-31-versus-dollar.aspx?xy=rss",
+    "sentiment_score": -0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "won weakness",
+      "dollar strength",
+      "Korea"
+    ],
+    "fetched_at": "2026-06-04T02:16:58.365921+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Trump tells aides he won\u2019t restart all-out war with Iran unless U.S. troops are killed - WSJ",
+    "url": "https://www.financialjuice.com/News/9618474/Trump-tells-aides-he-wont-restart-all-out-war-with-Iran-unless-US-troops-are-killed---WSJ.aspx?xy=rss",
+    "sentiment_score": 0.3,
+    "impact": "MEDIUM",
+    "keywords": [
+      "geopolitical risk",
+      "Iran",
+      "safe haven"
+    ],
+    "fetched_at": "2026-06-04T02:16:58.365921+00:00"
+  },
+  {
+    "source": "MarketWatch Top",
+    "headline": "The Fed can\u2019t protect consumers from supply shocks and price gouging \u2014 but Congress can",
+    "url": "https://www.marketwatch.com/story/the-2-types-of-inflation-the-fed-cant-control-and-how-congress-must-protect-your-wallet-7ac2079a?mod=mw_rss_topstories",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "fiscal policy",
+      "Congress",
+      "inflation"
+    ],
+    "fetched_at": "2026-06-04T02:16:58.365921+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Canadian dollar falls to eight-week low on trade tensions",
+    "url": "https://www.investing.com/news/forex-news/canadian-dollar-falls-to-eightweek-low-on-trade-tensions-93CH-4725030",
+    "sentiment_score": -0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "CAD weakness",
+      "dollar strength",
+      "trade"
+    ],
+    "fetched_at": "2026-06-04T02:16:58.365921+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Dollar rises on U.S.-Iran tensions, higher rates; yen hits key intervention levels",
+    "url": "https://www.investing.com/news/forex-news/asia-fx-steady-amid-gulf-tensions-us-tariff-plans-yen-intervention-risks-return-4723306",
+    "sentiment_score": -0.6,
+    "impact": "HIGH",
+    "keywords": [
+      "dollar strength",
+      "geopolitical risk",
+      "rate support"
+    ],
+    "fetched_at": "2026-06-04T02:16:58.365921+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Yen falls to 160 per dollar as Gulf tensions boost greenback",
+    "url": "https://www.investing.com/news/forex-news/yen-falls-to-160-per-dollar-as-gulf-tensions-boost-greenback-93CH-4724738",
+    "sentiment_score": -0.6,
+    "impact": "HIGH",
+    "keywords": [
+      "dollar strength",
+      "yen weakness",
+      "geopolitical"
+    ],
+    "fetched_at": "2026-06-04T02:16:58.365921+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Sterling today: Pound slips as stronger dollar, oil rebound weigh on sentiment",
+    "url": "https://www.investing.com/news/forex-news/sterling-today-pound-slips-as-stronger-dollar-oil-rebound-weigh-on-sentiment-4724414",
+    "sentiment_score": -0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "sterling weakness",
+      "dollar strength",
+      "oil"
+    ],
+    "fetched_at": "2026-06-04T02:16:58.365921+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "U.S. dollar little changed as mixed messaging on Iran talks boost uncertainty",
+    "url": "https://www.investing.com/news/forex-news/dollar-steady-amid-mixed-signals-on-usiran-talks-4720844",
+    "sentiment_score": -0.2,
+    "impact": "LOW",
+    "keywords": [
+      "dollar uncertainty",
+      "Iran",
+      "mixed signals"
+    ],
+    "fetched_at": "2026-06-04T02:16:58.365921+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Canadian dollar holds near multi-week low on weak data",
+    "url": "https://www.investing.com/news/forex-news/canadian-dollar-holds-near-multiweek-low-on-weak-data-93CH-4722732",
+    "sentiment_score": -0.3,
+    "impact": "MEDIUM",
+    "keywords": [
+      "CAD weakness",
+      "economic data",
+      "dollar"
+    ],
+    "fetched_at": "2026-06-04T02:16:58.365921+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Improving macro backdrop set to keep dollar resilient, BCA says",
+    "url": "https://www.investing.com/news/forex-news/improving-macro-backdrop-set-to-keep-dollar-resilient-bca-says-4722053",
+    "sentiment_score": -0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "dollar resilience",
+      "macro strength",
+      "headwind"
+    ],
+    "fetched_at": "2026-06-04T02:16:58.365921+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "DOE awards $67M to ElementUSA, Colorado School of Mines for rare earth processing plant",
+    "url": "https://www.mining.com/doe-awards-67m-to-elementusa-colorado-school-of-mines-for-rare-earth-processing-plant/",
+    "sentiment_score": 0.1,
+    "impact": "LOW",
+    "keywords": [
+      "rare earth",
+      "supply chain",
+      "mining"
+    ],
+    "fetched_at": "2026-06-04T02:16:58.365921+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "DPM makes gold-copper discovery near Bulgaria mine",
+    "url": "https://www.mining.com/dpm-makes-gold-copper-discovery-near-bulgaria-mine/",
+    "sentiment_score": 0.2,
+    "impact": "MEDIUM",
+    "keywords": [
+      "gold discovery",
+      "supply",
+      "mining"
+    ],
+    "fetched_at": "2026-06-04T02:16:58.365921+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Russia says it mined enough gold to beat China",
+    "url": "https://www.mining.com/russia-says-it-mined-enough-gold-to-beat-china/",
+    "sentiment_score": 0.1,
+    "impact": "LOW",
+    "keywords": [
+      "gold production",
+      "Russia",
+      "supply"
+    ],
+    "fetched_at": "2026-06-04T02:16:58.365921+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Gold Fields, Cree First Nation sign IBA for Windfall project in\u00a0Quebec",
+    "url": "https://www.mining.com/gold-fields-cree-first-nation-sign-iba-for-windfall-project-in-quebec/",
+    "sentiment_score": 0.2,
+    "impact": "MEDIUM",
+    "keywords": [
+      "gold mining",
+      "project development",
+      "supply"
+    ],
+    "fetched_at": "2026-06-04T02:16:58.365921+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Copper price: Goldman, Citi make bullish calls on supply woes",
+    "url": "https://www.mining.com/copper-price-goldman-citi-make-bullish-calls-on-supply-woes/",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "copper",
+      "industrial metals",
+      "unrelated"
+    ],
+    "fetched_at": "2026-06-04T02:16:58.365921+00:00"
   }
 ]
