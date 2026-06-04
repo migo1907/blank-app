@@ -340,7 +340,7 @@ async def _hourly_system_check() -> None:
         if _scheduler and _scheduler.running:
             jobs = _scheduler.get_jobs()
             job_ids = [j.id for j in jobs]
-            expected = {"news_signal_cycle", "breaking_news_cycle", "hourly_system_check", "daily_market_brief"}
+            expected = {"news_signal_cycle", "breaking_news_cycle", "hourly_system_check", "daily_market_brief", "stocks_session_report"}
             missing = expected - set(job_ids)
             if not missing:
                 ok.append(f"Scheduler — {len(jobs)} jobs running ✅")
@@ -501,6 +501,18 @@ async def _hourly_system_check() -> None:
         await send_critical_alert(title, detail, action)
 
 
+async def _stocks_session_report() -> None:
+    from datetime import datetime, timezone
+    if datetime.now(timezone.utc).weekday() >= 5:
+        return
+    print("[scheduler] Generating stocks session report…")
+    try:
+        from telegram_bot import send_stocks_session_report
+        await send_stocks_session_report()
+    except Exception as e:
+        print(f"[session_report] Error: {e}")
+
+
 async def _daily_market_brief() -> None:
     from datetime import datetime, timezone
     now = datetime.now(timezone.utc)
@@ -538,6 +550,7 @@ def start_scheduler() -> AsyncIOScheduler:
     _scheduler.add_job(_breaking_news_cycle, trigger="interval", minutes=2, id="breaking_news_cycle", replace_existing=True)
     _scheduler.add_job(_hourly_system_check, trigger="interval", hours=1, id="hourly_system_check", replace_existing=True)
     _scheduler.add_job(_daily_market_brief, trigger="cron", hour=8, minute=0, id="daily_market_brief", replace_existing=True)
+    _scheduler.add_job(_stocks_session_report, trigger="cron", hour=21, minute=5, id="stocks_session_report", replace_existing=True)
     _scheduler.start()
     print(f"[scheduler] Started — signal every {interval} min, breaking news every 2 min (Telegram paused), system check every 60 min, daily brief at 08:00 UTC.")
     return _scheduler

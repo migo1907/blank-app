@@ -152,6 +152,70 @@ async def send_breaking_news(items: list[dict], seen_headlines: set) -> set:
     return updated
 
 
+async def send_stocks_session_report() -> bool:
+    """
+    Send end-of-session report for all stock trades closed today (WIN/LOSS only).
+    Pulls from pool-specific trade history files on GitHub data branch.
+    """
+    from db import _get_file
+    from datetime import datetime, timezone, date
+
+    today = date.today().isoformat()
+    stock_pools = [
+        "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_4H",
+        "STOCKS_QUALITY_30M",  "STOCKS_QUALITY_4H",
+        "STOCKS_INDEX_30M",    "STOCKS_INDEX_4H",
+    ]
+
+    trades_today = []
+    for pool in stock_pools:
+        path = f"data/trade_history_{pool}.json"
+        history, _ = _get_file(path)
+        if not isinstance(history, list):
+            continue
+        for t in history:
+            created = t.get("created_at", "")
+            if not created.startswith(today):
+                continue
+            outcome = t.get("outcome", "")
+            if outcome not in ("WIN", "LOSS"):
+                continue
+            trades_today.append(t)
+
+    if not trades_today:
+        print("[session_report] No stock WIN/LOSS trades today — skipping report.")
+        return False
+
+    wins   = [t for t in trades_today if t["outcome"] == "WIN"]
+    losses = [t for t in trades_today if t["outcome"] == "LOSS"]
+    total  = len(trades_today)
+    wr     = len(wins) / total * 100
+
+    lines = []
+    for t in trades_today:
+        sym     = t.get("symbol", "?")
+        entry   = t.get("entry_price", 0.0)
+        outcome = t.get("outcome", "?")
+        direct  = t.get("direction", "?")
+        pnl     = t.get("pnl_pct", 0.0)
+        emoji   = "✅" if outcome == "WIN" else "❌"
+        dir_e   = "🟢" if direct == "LONG" else "🔴"
+        lines.append(f"{emoji} {dir_e} <b>{sym}</b>  Entry: {entry:.2f}  PnL: {pnl:+.2f}%")
+
+    now = datetime.now(timezone.utc).strftime("%d %b %Y")
+    body = "\n".join(lines)
+
+    msg = (
+        f"📊 <b>STOCKS SESSION REPORT — {now}</b>\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n"
+        f"{body}\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n"
+        f"Signals: <b>{total}</b>  |  Wins: <b>{len(wins)}</b>  |  Losses: <b>{len(losses)}</b>\n"
+        f"Win Rate: <b>{wr:.0f}%</b>"
+    )
+    return await _send(msg)
+
+
 async def send_critical_alert(title: str, detail: str, action: str = "") -> bool:
     """
     Send a critical system alert to the personal chat only.
