@@ -139,7 +139,7 @@ async def _news_signal_cycle() -> None:
     try:
         from news_fetcher import run_news_cycle
         from db import insert_news
-        from signal_engine import generate_signal
+        from signal_engine import generate_signal, get_latest_features
         from telegram_bot import send_signal, send_text, send_breaking_news
 
         # run_news_cycle uses synchronous httpx — run in thread with 90s timeout
@@ -161,6 +161,7 @@ async def _news_signal_cycle() -> None:
             _latest_event    = event
 
         signal = generate_signal(
+            current_features=get_latest_features("XAUUSD"),
             news_agg=_latest_news_agg,
             news_velocity=_latest_velocity,
             high_impact_event=_latest_event,
@@ -185,6 +186,7 @@ async def _news_signal_cycle() -> None:
         # ── SPY signal (same news/velocity context, separate pool + direction tracker) ──
         try:
             spy_signal = generate_signal(
+                current_features=get_latest_features("STOCKS_INDEX_30M"),
                 news_agg=_latest_news_agg,
                 news_velocity=_latest_velocity,
                 high_impact_event=_latest_event,

@@ -237,6 +237,10 @@ async def trade_outcome(payload: TradeOutcomePayload):
     ml_label = payload.ml_outcome or payload.outcome
     model.update_on_outcome(features, payload.direction, ml_label)
 
+    # Cache latest features for this pool — scheduler uses these for regime/confluence
+    from signal_engine import update_latest_features
+    update_latest_features(pool, features)
+
     raw_pct = (payload.exit_price - payload.entry_price) / max(payload.entry_price, 0.0001) * 100
     pnl_pct = raw_pct if payload.direction == "LONG" else -raw_pct
 
@@ -355,12 +359,12 @@ async def unified_webhook(payload: UnifiedPayload):
             f21=payload.f21, f22=payload.f22, f23=payload.f23, f24=payload.f24,
             f25=payload.f25,
         )
-        # ml_outcome: MFE-based label (WIN if price moved toward TP before SL, even if not hit)
-        # Falls back to real outcome if Pine Script doesn't send ml_outcome yet
         ml_label = payload.ml_outcome or payload.outcome
-
-        # Update in-memory weights using ML label (not real outcome) — fast, no I/O
         model.update_on_outcome(features, payload.direction, ml_label)
+
+        # Cache latest features for this pool — scheduler uses these for regime/confluence
+        from signal_engine import update_latest_features
+        update_latest_features(pool, features)
 
         # pnl_pct: directional — positive = profit regardless of LONG/SHORT
         entry = payload.entry_price or 0.0

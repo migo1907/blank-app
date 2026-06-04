@@ -21,6 +21,19 @@ from ml_model import get_model, Features
 from ml_ensemble import get_rf, get_gbm
 from db import recent_outcomes, recent_news, insert_signal, expire_old_signals
 
+# ── Latest feature cache — updated on every webhook, read by scheduler ────────
+# Keyed by pool name. Lets the scheduler pass real market state to generate_signal()
+# instead of running blind (regime=UNKNOWN, confluence=1.0, KNN=flat win_rate).
+_latest_features: dict[str, Features] = {}
+
+def update_latest_features(pool: str, features: Features) -> None:
+    """Called by webhook handlers to keep the feature cache fresh per pool."""
+    _latest_features[pool] = features
+
+def get_latest_features(pool: str) -> Features | None:
+    """Returns the most recent feature vector for a pool, or None if no data yet."""
+    return _latest_features.get(pool)
+
 # ── Base weights ──────────────────────────────────────────────────────────────
 KNN_WEIGHT     = 0.35
 RF_WEIGHT      = 0.25
