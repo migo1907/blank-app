@@ -1,5 +1,5 @@
 //@version=6
-indicator("XAU/USD Migo VS Market Sniper Pro [ML + Adaptive + ☁️ v3·25F]", overlay=true, max_labels_count=300, max_bars_back=510)
+indicator("f25XAU/USD Migo VS Market Sniper Pro [ML + Adaptive + ☁️ v3·25F]", overlay=true, max_labels_count=300, max_bars_back=510)
 
 // ═══════════════════════════════════════════════════════
 // TIMEFRAME AUTO-DETECTION
@@ -20,7 +20,7 @@ float tp1_inp      = input.float(1.5,  "TP1 ATR Multiplier",        group="⚙�
 float tp2_inp      = input.float(2.5,  "TP2 ATR Multiplier",        group="⚙️ Trade")
 float tp3_inp      = input.float(4.0,  "TP3 ATR Multiplier Runner", group="⚙️ Trade")
 float sl_inp       = input.float(1.5,  "SL ATR Multiplier",         group="⚙️ Trade")
-float trailMult    = input.float(1.2,  "Trail Stop Multiplier",     group="⚙️ Trade")
+float trailMult    = input.float(1.8,  "Trail Stop Multiplier",     group="⚙️ Trade")
 float tpProximity  = input.float(80.0, "Near-TP Reset %",           group="⚙️ Trade", minval=50, maxval=99) / 100.0
 int   adxLen       = input.int(14,     "ADX Length",                group="🔎 Filters")
 float adxThreshold = input.float(20.0, "ADX Sideways Threshold",    group="🔎 Filters")
@@ -51,10 +51,10 @@ string webhookSecret = input.string("gold2026", "Webhook Secret", group="☁️ 
 
 // ── Auto-TF overrides (only when autoTF = true) ───────────────────────────────
 int   lookback    = autoTF ? (isTF2 ? 30  : isTF5 ? 50  : isTF15 ? 75  : 100) : lookback_inp
-float atrMultTP1  = autoTF ? (isTF2 ? 1.0 : isTF5 ? 1.5 : isTF15 ? 2.0 : 2.5) : tp1_inp
-float atrMultTP2  = autoTF ? (isTF2 ? 1.8 : isTF5 ? 2.5 : isTF15 ? 3.5 : 4.5) : tp2_inp
-float atrMultTP3  = autoTF ? (isTF2 ? 3.0 : isTF5 ? 4.0 : isTF15 ? 5.5 : 7.0) : tp3_inp
-float atrMultSL   = autoTF ? (isTF2 ? 0.8 : isTF5 ? 1.5 : isTF15 ? 2.0 : 2.5) : sl_inp
+float atrMultTP1  = autoTF ? (isTF2 ? 1.5 : isTF5 ? 1.8 : isTF15 ? 2.0 : 2.5) : tp1_inp
+float atrMultTP2  = autoTF ? (isTF2 ? 2.7 : isTF5 ? 3.0 : isTF15 ? 3.5 : 4.5) : tp2_inp
+float atrMultTP3  = autoTF ? (isTF2 ? 4.5 : isTF5 ? 4.8 : isTF15 ? 5.5 : 7.0) : tp3_inp
+float atrMultSL   = autoTF ? (isTF2 ? 1.2 : isTF5 ? 1.8 : isTF15 ? 2.0 : 2.5) : sl_inp
 int   mlDepth     = autoTF ? (isTF2 ? 150 : isTF5 ? 250 : isTF15 ? 350 : 500 ) : mlDepth_inp
 int   kWin        = autoTF ? (isTF2 ? 5   : isTF5 ? 8   : isTF15 ? 12  : 16  ) : kWin_inp
 
