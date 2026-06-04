@@ -10,14 +10,19 @@
 | 25-feature KNN adaptive weights | ✅ Live |
 | RF + GBM ensemble | ✅ Live |
 | Multi-pool (Gold + Stocks) | ✅ Live |
-| 10-pool TF architecture (2M/5M/30M/1H + stocks 30M/4H) | ✅ Live |
+| Pool TF architecture (XAUUSD 2M/5M/30M/1H + stocks 30M/4H) | ✅ Live |
 | Trigger quality scoring | ✅ Live |
-| Session intelligence | ✅ Live |
-| VWAP stretch boost | ✅ Live |
+| Session intelligence (London fixed — was wrongly 0.60, now 1.15) | ✅ Fixed June 4 |
+| VWAP stretch boost (now MTF-gated — no boost when 1H opposing) | ✅ Fixed June 4 |
 | Pullback confirmation gate | ✅ Live |
 | MFE-based ML outcome labeling | ✅ Live |
 | FJ breaking news (red items only) | ✅ Live |
 | Direction-change Telegram signals | ✅ Live |
+| KNN label encoding fix (LOSS+SHORT now +1, PARTIAL uses PnL) | ✅ Fixed June 4 |
+| Counter-trend penalty: swing pools 0.80, scalp pools 0.95 exempt | ✅ Fixed June 4 |
+| F1–F25 all from Pine Script (F25 entry-time, not server-side) | ✅ Fixed June 4 |
+| TVC:GOLD as XAUUSD data source (daily levels) | ✅ Fixed June 4 |
+| MIN_CONFIDENCE raised to 0.62 (conservative until data grows) | ✅ Fixed June 4 |
 
 **Exit criteria:** 150+ XAUUSD trades per TF pool, 50+ per stock pool, trigger win rates stabilized
 
@@ -159,24 +164,27 @@ Always maintain human control:
 
 ## Timetable — Live Progress Tracker
 
-**Phase 1 started: June 1, 2026 | Today: June 3, 2026**
+**Phase 1 started: June 1, 2026 | Today: June 4, 2026**
 
-### Pool-by-Pool Progress (as of June 3, 2026)
+> ⚠️ **Note:** Backtest data (6,653 trades) was injected then removed — only 25 clean live trades remain in base XAUUSD pool. All pool-specific files reset to 0. 6 TradingView alerts now live as of June 4.
+
+### Pool-by-Pool Progress (as of June 4, 2026)
 
 | Pool | Trades | Target | Remaining | Rate/day | ETA | Status |
 |------|--------|--------|-----------|----------|-----|--------|
-| XAUUSD (legacy) | 109 | 150 | 41 | ~55 | **~June 4** | 🟢 Nearly done |
-| XAUUSD_2M | 2 | 150 | 148 | ~2-3 | ~Aug 1 | 🔵 Data flowing |
-| XAUUSD_5M | 1 | 150 | 149 | ~2-3 | ~Aug 5 | 🔵 Data flowing |
-| XAUUSD_30M | 0 | 150 | 150 | ~1-2 | ~Sep 1 | ⏳ Starting |
-| XAUUSD_1H | 0 | 150 | 150 | ~0-1 | ~Oct 1 | ⏳ Starting |
-| STOCKS_MOMENTUM_30M | 0 | 50 | 50 | ~1-2 | ~Aug 15 | ⏳ Starting |
-| STOCKS_MOMENTUM_4H | 0 | 50 | 50 | ~0-1 | ~Sep 15 | ⏳ Starting |
-| STOCKS_QUALITY_30M | 1 | 50 | 49 | ~1-2 | ~Aug 14 | 🔵 Data flowing |
-| STOCKS_QUALITY_4H | 0 | 50 | 50 | ~0-1 | ~Sep 15 | ⏳ Starting |
-| STOCKS_INDEX_30M/4H | 0 | 50 | 50 | ~1-2 | ~Aug 15 | ⏳ Starting |
+| XAUUSD (base fallback) | 25 | 150 | 125 | ~8-10 | ~June 18 | 🟡 Live only |
+| XAUUSD_2M | 0 | 150 | 150 | ~3-5 | ~July 20 | 🔵 Alert live |
+| XAUUSD_5M | 0 | 150 | 150 | ~2-4 | ~Aug 1 | 🔵 Alert live |
+| XAUUSD_30M | 0 | 150 | 150 | ~1-2 | ~Sep 15 | 🔵 Alert live |
+| XAUUSD_1H | 0 | 150 | 150 | ~0-1 | ~Nov 1 | 🔵 Alert live |
+| STOCKS_MOMENTUM_30M | 0 | 50 | 50 | ~1-2 | ~Aug 15 | 🔵 Alert live |
+| STOCKS_MOMENTUM_4H | 0 | 50 | 50 | ~0-1 | ~Sep 15 | 🔵 Alert live |
+| STOCKS_QUALITY_30M | 0 | 50 | 50 | ~1-2 | ~Aug 15 | ⏳ No alert yet |
+| STOCKS_QUALITY_4H | 0 | 50 | 50 | ~0-1 | ~Sep 15 | ⏳ No alert yet |
+| STOCKS_INDEX_30M | 0 | 50 | 50 | ~1-2 | ~Aug 15 | ⏳ No alert yet |
+| STOCKS_INDEX_4H | 0 | 50 | 50 | ~0-1 | ~Sep 15 | ⏳ No alert yet |
 
-> Rates estimated conservatively. Gold TF pools fire ~2-3 signals/day per pool; stock pools ~1-2/day on active sessions.
+> 6 active alerts: XAUUSD 2M/5M/30M/1H + 2 stocks (30M/4H). Stocks category routing depends on which ticker the alert fires on.
 
 ### Phase Milestones
 
