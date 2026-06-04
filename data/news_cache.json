@@ -1,305 +1,6 @@
 [
   {
     "source": "FinancialJuice",
-    "headline": "Fed's Daly: Policy in a good place.",
-    "url": "https://www.financialjuice.com/News/9619901/Feds-Daly-Policy-in-a-good-place.aspx",
-    "sentiment_score": -0.2,
-    "impact": "LOW",
-    "keywords": [
-      "policy",
-      "stable",
-      "hawkish"
-    ],
-    "fetched_at": "2026-06-04T16:39:57.836396+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Fed's Daly: Inflation focus is now on energy, food driving prices up.",
-    "url": "https://www.financialjuice.com/News/9619900/Feds-Daly-Inflation-focus-is-now-on-energy-food-driving-prices-up.aspx",
-    "sentiment_score": 0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "inflation",
-      "energy",
-      "food prices"
-    ],
-    "fetched_at": "2026-06-04T16:39:57.836396+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Fed's Daly: Just because we have similarities to the 90s doesn't mean it will be the 90s.",
-    "url": "https://www.financialjuice.com/News/9619899/Feds-Daly-Just-because-we-have-similarities-to-the-90s-doesnt-mean-it-will-be-the-90s.aspx",
-    "sentiment_score": 0.1,
-    "impact": "LOW",
-    "keywords": [
-      "economic analogy",
-      "neutral",
-      "speculative"
-    ],
-    "fetched_at": "2026-06-04T16:39:57.836396+00:00"
-  },
-  {
-    "source": "MarketWatch Top",
-    "headline": "The Fed can\u2019t protect consumers from supply shocks and price gouging \u2014 but Congress can",
-    "url": "https://www.marketwatch.com/story/the-2-types-of-inflation-the-fed-cant-control-and-how-congress-must-protect-your-wallet-7ac2079a?mod=mw_rss_topstories",
-    "sentiment_score": 0.7,
-    "impact": "HIGH",
-    "keywords": [
-      "Congress action",
-      "price control",
-      "supply shock"
-    ],
-    "fetched_at": "2026-06-04T16:39:57.836396+00:00"
-  },
-  {
-    "source": "Investing.com Comm",
-    "headline": "TSX rises as investors assess persistent Middle East tensions",
-    "url": "https://www.investing.com/news/stock-market-news/tsx-futures-steady-as-investors-eye-persistent-middle-east-tensions-4726585",
-    "sentiment_score": 0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "geopolitical risk",
-      "Middle East",
-      "safe haven"
-    ],
-    "fetched_at": "2026-06-04T16:39:57.836396+00:00"
-  },
-  {
-    "source": "Investing.com Comm",
-    "headline": "Sunshine Silver Mining stock jumps 11% in NYSE debut after IPO",
-    "url": "https://www.investing.com/news/stock-market-news/sunshine-silver-mining-stock-jumps-11-in-nyse-debut-after-ipo-93CH-4727148",
-    "sentiment_score": 0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "mining sector",
-      "sentiment",
-      "bullish"
-    ],
-    "fetched_at": "2026-06-04T16:39:57.836396+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Sterling today: Pound edges higher but gains look fragile before payrolls",
-    "url": "https://www.investing.com/news/forex-news/sterling-today-pound-edges-higher-but-gains-look-fragile-before-payrolls-4726693",
-    "sentiment_score": -0.3,
-    "impact": "LOW",
-    "keywords": [
-      "dollar strength",
-      "sterling weakness",
-      "payrolls"
-    ],
-    "fetched_at": "2026-06-04T16:39:57.836396+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Dollar hovers near 2-month high amid persistent Mideast tensions",
-    "url": "https://www.investing.com/news/forex-news/asia-fx-steadies-after-tumbling-on-stronger-dollar-gulf-tensions-4725667",
-    "sentiment_score": -0.6,
-    "impact": "HIGH",
-    "keywords": [
-      "dollar strength",
-      "geopolitical tension",
-      "safe haven"
-    ],
-    "fetched_at": "2026-06-04T16:39:57.836396+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Canadian dollar falls to eight-week low on trade tensions",
-    "url": "https://www.investing.com/news/forex-news/canadian-dollar-falls-to-eightweek-low-on-trade-tensions-93CH-4725030",
-    "sentiment_score": -0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "dollar strength",
-      "trade tension",
-      "CAD weakness"
-    ],
-    "fetched_at": "2026-06-04T16:39:57.836396+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Dollar rises on U.S.-Iran tensions, higher rates; yen hits key intervention levels",
-    "url": "https://www.investing.com/news/forex-news/asia-fx-steady-amid-gulf-tensions-us-tariff-plans-yen-intervention-risks-return-4723306",
-    "sentiment_score": -0.7,
-    "impact": "HIGH",
-    "keywords": [
-      "dollar strength",
-      "Iran tension",
-      "rates"
-    ],
-    "fetched_at": "2026-06-04T16:39:57.836396+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Yen falls to 160 per dollar as Gulf tensions boost greenback",
-    "url": "https://www.investing.com/news/forex-news/yen-falls-to-160-per-dollar-as-gulf-tensions-boost-greenback-93CH-4724738",
-    "sentiment_score": -0.8,
-    "impact": "HIGH",
-    "keywords": [
-      "dollar strength",
-      "geopolitical risk",
-      "yen weakness"
-    ],
-    "fetched_at": "2026-06-04T16:39:57.836396+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Sterling today: Pound slips as stronger dollar, oil rebound weigh on sentiment",
-    "url": "https://www.investing.com/news/forex-news/sterling-today-pound-slips-as-stronger-dollar-oil-rebound-weigh-on-sentiment-4724414",
-    "sentiment_score": -0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "dollar strength",
-      "oil rally",
-      "sterling weakness"
-    ],
-    "fetched_at": "2026-06-04T16:39:57.836396+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "U.S. dollar little changed as mixed messaging on Iran talks boost uncertainty",
-    "url": "https://www.investing.com/news/forex-news/dollar-steady-amid-mixed-signals-on-usiran-talks-4720844",
-    "sentiment_score": -0.2,
-    "impact": "LOW",
-    "keywords": [
-      "dollar volatility",
-      "Iran talks",
-      "uncertainty"
-    ],
-    "fetched_at": "2026-06-04T16:39:57.836396+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Canadian dollar holds near multi-week low on weak data",
-    "url": "https://www.investing.com/news/forex-news/canadian-dollar-holds-near-multiweek-low-on-weak-data-93CH-4722732",
-    "sentiment_score": -0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "dollar strength",
-      "weak data",
-      "CAD weakness"
-    ],
-    "fetched_at": "2026-06-04T16:39:57.836396+00:00"
-  },
-  {
-    "source": "Mining.com",
-    "headline": "Gold price seen hitting record $4,920 as bull run resumes",
-    "url": "https://www.mining.com/gold-price-seen-hitting-record-4920-as-bull-run-resumes/",
-    "sentiment_score": 0.8,
-    "impact": "HIGH",
-    "keywords": [
-      "record price",
-      "bull run",
-      "bullish sentiment"
-    ],
-    "fetched_at": "2026-06-04T16:39:57.836396+00:00"
-  },
-  {
-    "source": "Mining.com",
-    "headline": "Resource nationalism redraws critical minerals playbook",
-    "url": "https://www.mining.com/resource-nationalism-redraws-critical-minerals-playbook/",
-    "sentiment_score": 0.6,
-    "impact": "MEDIUM",
-    "keywords": [
-      "resource nationalism",
-      "supply risk",
-      "mining"
-    ],
-    "fetched_at": "2026-06-04T16:39:57.836396+00:00"
-  },
-  {
-    "source": "Mining.com",
-    "headline": "DOE awards $67M to ElementUSA, Colorado School of Mines for rare earth processing plant",
-    "url": "https://www.mining.com/doe-awards-67m-to-elementusa-colorado-school-of-mines-for-rare-earth-processing-plant/",
-    "sentiment_score": -0.3,
-    "impact": "LOW",
-    "keywords": [
-      "rare earth",
-      "domestic supply",
-      "dollar positive"
-    ],
-    "fetched_at": "2026-06-04T16:39:57.836396+00:00"
-  },
-  {
-    "source": "Mining.com",
-    "headline": "DPM makes gold-copper discovery near Bulgaria mine",
-    "url": "https://www.mining.com/dpm-makes-gold-copper-discovery-near-bulgaria-mine/",
-    "sentiment_score": 0.7,
-    "impact": "HIGH",
-    "keywords": [
-      "gold discovery",
-      "copper",
-      "mining bullish"
-    ],
-    "fetched_at": "2026-06-04T16:39:57.836396+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Fed's Daly: The most worrying today is getting inflation back to target. It's the number one priority.",
-    "url": "https://www.financialjuice.com/News/9619908/Feds-Daly-The-most-worrying-today-is-getting-inflation-back-to-target-Its-the-number-one-priority.aspx",
-    "sentiment_score": 0.7,
-    "impact": "MEDIUM",
-    "keywords": [
-      "inflation",
-      "priority",
-      "hawkish"
-    ],
-    "fetched_at": "2026-06-04T16:40:50.514751+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Fed's Daly: Labor market is resilient, we've stabilized.",
-    "url": "https://www.financialjuice.com/News/9619907/Feds-Daly-Labor-market-is-resilient-weve-stabilized.aspx",
-    "sentiment_score": -0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "labor market",
-      "resilient",
-      "stable"
-    ],
-    "fetched_at": "2026-06-04T16:40:50.514751+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Fed's Daly: Right now, policy is in a good place but uncertainty ahead.",
-    "url": "https://www.financialjuice.com/News/9619906/Feds-Daly-Right-now-policy-is-in-a-good-place-but-uncertainty-ahead.aspx",
-    "sentiment_score": 0.3,
-    "impact": "LOW",
-    "keywords": [
-      "policy",
-      "uncertainty",
-      "neutral"
-    ],
-    "fetched_at": "2026-06-04T16:40:50.514751+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Fed's Daly: Hard to say labor market has firmed.",
-    "url": "https://www.financialjuice.com/News/9619905/Feds-Daly-Hard-to-say-labor-market-has-firmed.aspx",
-    "sentiment_score": 0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "labor market",
-      "weakness",
-      "dovish"
-    ],
-    "fetched_at": "2026-06-04T16:40:50.514751+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Fed's Daly: Forward guidance not good at this juncture.",
-    "url": "https://www.financialjuice.com/News/9619904/Feds-Daly-Forward-guidance-not-good-at-this-juncture.aspx",
-    "sentiment_score": 0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "guidance",
-      "uncertainty",
-      "dovish"
-    ],
-    "fetched_at": "2026-06-04T16:40:50.514751+00:00"
-  },
-  {
-    "source": "FinancialJuice",
     "headline": "Fed's Daly: Prepared to respond either way.",
     "url": "https://www.financialjuice.com/News/9619903/Feds-Daly-Prepared-to-respond-either-way.aspx",
     "sentiment_score": 0.2,
@@ -2487,5 +2188,304 @@
     "impact": "LOW",
     "keywords": [],
     "fetched_at": "2026-06-04T17:22:41.495212+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Schmid: The big question for oil is how long prices stay high, and that is a political decision.",
+    "url": "https://www.financialjuice.com/News/9620058/Feds-Schmid-The-big-question-for-oil-is-how-long-prices-stay-high-and-that-is-a-political-decision.aspx?xy=rss",
+    "sentiment_score": -0.3,
+    "impact": "LOW",
+    "keywords": [
+      "Fed",
+      "oil prices",
+      "political"
+    ],
+    "fetched_at": "2026-06-04T17:37:40.605127+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Schmid: US economy generally in solid shape",
+    "url": "https://www.financialjuice.com/News/9620057/Feds-Schmid-US-economy-generally-in-solid-shape.aspx?xy=rss",
+    "sentiment_score": -0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "Fed",
+      "solid economy",
+      "hawkish"
+    ],
+    "fetched_at": "2026-06-04T17:37:40.605127+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Schmid: Most of the increased energy costs consumers pay remain in the US economy",
+    "url": "https://www.financialjuice.com/News/9620056/Feds-Schmid-Most-of-the-increased-energy-costs-consumers-pay-remain-in-the-US-economy.aspx?xy=rss",
+    "sentiment_score": -0.2,
+    "impact": "LOW",
+    "keywords": [
+      "inflation",
+      "energy costs",
+      "domestic"
+    ],
+    "fetched_at": "2026-06-04T17:37:40.605127+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Daly: Productivity gains could lead to deflation. Timing is a key factor",
+    "url": "https://www.financialjuice.com/News/9620054/Feds-Daly-Productivity-gains-could-lead-to-deflation-Timing-is-a-key-factor.aspx?xy=rss",
+    "sentiment_score": 0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "deflation",
+      "productivity",
+      "dovish"
+    ],
+    "fetched_at": "2026-06-04T17:37:40.605127+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Daly: The disinflationary effect of AI is not the immediate concern",
+    "url": "https://www.financialjuice.com/News/9620053/Feds-Daly-The-disinflationary-effect-of-AI-is-not-the-immediate-concern.aspx?xy=rss",
+    "sentiment_score": 0.1,
+    "impact": "LOW",
+    "keywords": [
+      "AI",
+      "disinflationary",
+      "timing"
+    ],
+    "fetched_at": "2026-06-04T17:37:40.605127+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Schmid: Inflation remains elevated; Fed still seeking solution after five-year battle",
+    "url": "https://www.financialjuice.com/News/9620052/Feds-Schmid-Inflation-remains-elevated-Fed-still-seeking-solution-after-five-year-battle.aspx?xy=rss",
+    "sentiment_score": -0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "elevated inflation",
+      "hawkish",
+      "Fed battle"
+    ],
+    "fetched_at": "2026-06-04T17:37:40.605127+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Feds' Daly: Monetary policy choices focus on 12-month outlook.",
+    "url": "https://www.financialjuice.com/News/9620051/Feds-Daly-Monetary-policy-choices-focus-on-12-month-outlook.aspx?xy=rss",
+    "sentiment_score": -0.2,
+    "impact": "LOW",
+    "keywords": [
+      "monetary policy",
+      "short-term",
+      "neutral"
+    ],
+    "fetched_at": "2026-06-04T17:37:40.605127+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Daly: Productivity gains should allow deflation. The timing is what matters.",
+    "url": "https://www.financialjuice.com/News/9620039/Feds-Daly-Productivity-gains-should-allow-deflation-The-timing-is-what-matters.aspx?xy=rss",
+    "sentiment_score": 0.6,
+    "impact": "MEDIUM",
+    "keywords": [
+      "deflation",
+      "AI productivity",
+      "dovish"
+    ],
+    "fetched_at": "2026-06-04T17:37:40.605127+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Schmid: Data suggests economy is doing well.",
+    "url": "https://www.financialjuice.com/News/9620035/Feds-Schmid-Data-suggests-economy-is-doing-well.aspx?xy=rss",
+    "sentiment_score": -0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "strong economy",
+      "hawkish",
+      "Fed"
+    ],
+    "fetched_at": "2026-06-04T17:37:40.605127+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Daly asked about 5-10-year outlook: AI could reduce inflation.",
+    "url": "https://www.financialjuice.com/News/9620034/Feds-Daly-asked-about-5-10-year-outlook-AI-could-reduce-inflation.aspx?xy=rss",
+    "sentiment_score": 0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "AI",
+      "inflation reduction",
+      "dovish"
+    ],
+    "fetched_at": "2026-06-04T17:37:40.605127+00:00"
+  },
+  {
+    "source": "MarketWatch Top",
+    "headline": "A war-weary Treasury market faces a fresh test with Friday\u2019s jobs report",
+    "url": "https://www.marketwatch.com/story/a-war-weary-treasury-market-faces-a-fresh-test-with-fridays-jobs-report-73789d8a?mod=mw_rss_topstories",
+    "sentiment_score": 0.3,
+    "impact": "MEDIUM",
+    "keywords": [
+      "geopolitical risk",
+      "safe-haven",
+      "uncertainty"
+    ],
+    "fetched_at": "2026-06-04T17:37:40.605127+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Sterling today: Pound edges higher but gains look fragile before payrolls",
+    "url": "https://www.investing.com/news/forex-news/sterling-today-pound-edges-higher-but-gains-look-fragile-before-payrolls-4726693",
+    "sentiment_score": 0.2,
+    "impact": "LOW",
+    "keywords": [
+      "dollar strength",
+      "payrolls",
+      "mixed"
+    ],
+    "fetched_at": "2026-06-04T17:37:40.605127+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Dollar hovers near 2-month high amid persistent Mideast tensions",
+    "url": "https://www.investing.com/news/forex-news/asia-fx-steadies-after-tumbling-on-stronger-dollar-gulf-tensions-4725667",
+    "sentiment_score": -0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "dollar strength",
+      "geopolitical",
+      "rates"
+    ],
+    "fetched_at": "2026-06-04T17:37:40.605127+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Canadian dollar falls to eight-week low on trade tensions",
+    "url": "https://www.investing.com/news/forex-news/canadian-dollar-falls-to-eightweek-low-on-trade-tensions-93CH-4725030",
+    "sentiment_score": -0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "dollar strength",
+      "trade tensions",
+      "CAD"
+    ],
+    "fetched_at": "2026-06-04T17:37:40.605127+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Dollar rises on U.S.-Iran tensions, higher rates; yen hits key intervention levels",
+    "url": "https://www.investing.com/news/forex-news/asia-fx-steady-amid-gulf-tensions-us-tariff-plans-yen-intervention-risks-return-4723306",
+    "sentiment_score": -0.6,
+    "impact": "MEDIUM",
+    "keywords": [
+      "dollar strength",
+      "geopolitical risk",
+      "rates"
+    ],
+    "fetched_at": "2026-06-04T17:37:40.605127+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Yen falls to 160 per dollar as Gulf tensions boost greenback",
+    "url": "https://www.investing.com/news/forex-news/yen-falls-to-160-per-dollar-as-gulf-tensions-boost-greenback-93CH-4724738",
+    "sentiment_score": -0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "dollar strength",
+      "Gulf tensions",
+      "yen weakness"
+    ],
+    "fetched_at": "2026-06-04T17:37:40.605127+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Sterling today: Pound slips as stronger dollar, oil rebound weigh on sentiment",
+    "url": "https://www.investing.com/news/forex-news/sterling-today-pound-slips-as-stronger-dollar-oil-rebound-weigh-on-sentiment-4724414",
+    "sentiment_score": -0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "dollar strength",
+      "oil rebound",
+      "sentiment"
+    ],
+    "fetched_at": "2026-06-04T17:37:40.605127+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "U.S. dollar little changed as mixed messaging on Iran talks boost uncertainty",
+    "url": "https://www.investing.com/news/forex-news/dollar-steady-amid-mixed-signals-on-usiran-talks-4720844",
+    "sentiment_score": -0.1,
+    "impact": "LOW",
+    "keywords": [
+      "dollar",
+      "Iran tensions",
+      "uncertainty"
+    ],
+    "fetched_at": "2026-06-04T17:37:40.605127+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Canadian dollar holds near multi-week low on weak data",
+    "url": "https://www.investing.com/news/forex-news/canadian-dollar-holds-near-multiweek-low-on-weak-data-93CH-4722732",
+    "sentiment_score": -0.3,
+    "impact": "LOW",
+    "keywords": [
+      "CAD weakness",
+      "trade",
+      "data"
+    ],
+    "fetched_at": "2026-06-04T17:37:40.605127+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Silver X acquires full ownership of Peru gold project from Barrick",
+    "url": "https://www.mining.com/silver-x-acquires-full-ownership-of-peru-gold-project-from-barrick/",
+    "sentiment_score": 0.2,
+    "impact": "LOW",
+    "keywords": [
+      "gold project",
+      "M&A",
+      "supply"
+    ],
+    "fetched_at": "2026-06-04T17:37:40.605127+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Gold price seen hitting record $4,920 as bull run resumes",
+    "url": "https://www.mining.com/gold-price-seen-hitting-record-4920-as-bull-run-resumes/",
+    "sentiment_score": 0.8,
+    "impact": "HIGH",
+    "keywords": [
+      "record price",
+      "bull run",
+      "bullish sentiment"
+    ],
+    "fetched_at": "2026-06-04T17:37:40.605127+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Resource nationalism redraws critical minerals playbook",
+    "url": "https://www.mining.com/resource-nationalism-redraws-critical-minerals-playbook/",
+    "sentiment_score": 0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "resource nationalism",
+      "supply risk",
+      "bullish"
+    ],
+    "fetched_at": "2026-06-04T17:37:40.605127+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "DOE awards $67M to ElementUSA, Colorado School of Mines for rare earth processing plant",
+    "url": "https://www.mining.com/doe-awards-67m-to-elementusa-colorado-school-of-mines-for-rare-earth-processing-plant/",
+    "sentiment_score": -0.2,
+    "impact": "LOW",
+    "keywords": [
+      "rare earth",
+      "domestic production",
+      "supply"
+    ],
+    "fetched_at": "2026-06-04T17:37:40.605127+00:00"
   }
 ]
