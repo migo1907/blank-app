@@ -24,20 +24,19 @@ async def lifespan(app: FastAPI):
     from ml_model import get_model
     get_model()
 
-    print("[startup] Priming RF + GBM ensembles for all pools…")
-    from ml_ensemble import get_rf, get_gbm
-    from db import recent_outcomes
-    for _pool in ["XAUUSD", "XAUUSD_2M", "XAUUSD_5M",
-                  "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_4H",
-                  "STOCKS_QUALITY_30M", "STOCKS_QUALITY_4H",
-                  "STOCKS_INDEX_30M", "STOCKS_INDEX_4H"]:
-        _hist = recent_outcomes(_pool, limit=500)
+    print("[startup] Priming RF + GBM ensembles…")
+    try:
+        from ml_ensemble import get_rf, get_gbm
+        from db import recent_outcomes
+        _hist = recent_outcomes("XAUUSD", limit=500)
         if len(_hist) >= 15:
-            get_rf(_pool).retrain(_hist)
-            get_gbm(_pool).train(_hist)
-            print(f"[startup] RF+GBM trained for {_pool} on {len(_hist)} trades.")
+            get_rf().retrain(_hist)
+            get_gbm().train(_hist)
+            print(f"[startup] RF+GBM trained on {len(_hist)} trades.")
         else:
-            print(f"[startup] {_pool}: {len(_hist)} trades — RF/GBM will train when data grows.")
+            print(f"[startup] {len(_hist)} trades — RF/GBM will train when data grows.")
+    except Exception as e:
+        print(f"[startup] RF/GBM priming skipped: {e}")
 
     print("[startup] Loading feature cache from GitHub…")
     from signal_engine import load_feature_cache
@@ -186,7 +185,7 @@ async def trade_outcome(payload: TradeOutcomePayload):
     update_latest_features(pool, features)
     raw_pct = (payload.exit_price - payload.entry_price) / max(payload.entry_price, 0.0001) * 100
     pnl_pct = raw_pct if payload.direction == "LONG" else -raw_pct
-    outcome_row = {"symbol": sym, "direction": payload.direction, "trigger": getattr(payload, "trigger", "") or "", "entry_price": payload.entry_price, "exit_price": payload.exit_price, "outcome": payload.outcome, "ml_outcome": ml_label, "mfe": payload.mfe, "timeframe": payload.timeframe or "", "pnl_pct": round(pnl_pct, 4), "ml_bull_score": payload.ml_score}
+    outcome_row = {"symbol": sym, "direction": payload.direction, "trigger": "", "entry_price": payload.entry_price, "exit_price": payload.exit_price, "outcome": payload.outcome, "ml_outcome": ml_label, "mfe": payload.mfe, "timeframe": payload.timeframe or "", "pnl_pct": round(pnl_pct, 4), "ml_bull_score": payload.ml_score}
     outcome_row.update(features.as_db_dict())
     async def _persist():
         try:
@@ -194,8 +193,8 @@ async def trade_outcome(payload: TradeOutcomePayload):
             await asyncio.to_thread(insert_outcome, outcome_row)
             history = await asyncio.to_thread(recent_outcomes, pool, 500)
             if len(history) >= 15:
-                await asyncio.to_thread(get_rf(pool).retrain, history)
-                await asyncio.to_thread(get_gbm(pool).train, history)
+                await asyncio.to_thread(get_rf().retrain, history)
+                await asyncio.to_thread(get_gbm().train, history)
         except Exception as e:
             print(f"[trade-outcome] background persist error: {e}")
     asyncio.create_task(_persist())
@@ -237,7 +236,7 @@ async def unified_webhook(payload: UnifiedPayload):
         exit_ = payload.exit_price or 0.0
         pnl_pct = ((exit_ - entry) / entry * 100 if entry and exit_ else 0.0)
         if payload.direction == "SHORT": pnl_pct = -pnl_pct
-        outcome_row = {"symbol": sym2, "direction": payload.direction, "trigger": getattr(payload, "trigger", "") or "", "entry_price": entry, "exit_price": exit_, "outcome": payload.outcome, "ml_outcome": ml_label, "mfe": payload.mfe, "timeframe": payload.timeframe or "", "pnl_pct": round(pnl_pct, 4), "ml_bull_score": payload.ml_score}
+        outcome_row = {"symbol": sym2, "direction": payload.direction, "trigger": "", "entry_price": entry, "exit_price": exit_, "outcome": payload.outcome, "ml_outcome": ml_label, "mfe": payload.mfe, "timeframe": payload.timeframe or "", "pnl_pct": round(pnl_pct, 4), "ml_bull_score": payload.ml_score}
         outcome_row.update(features.as_db_dict())
         async def _persist():
             try:
@@ -245,8 +244,8 @@ async def unified_webhook(payload: UnifiedPayload):
                 await asyncio.to_thread(insert_outcome, outcome_row)
                 history = await asyncio.to_thread(recent_outcomes, pool, 500)
                 if len(history) >= 15:
-                    await asyncio.to_thread(get_rf(pool).retrain, history)
-                    await asyncio.to_thread(get_gbm(pool).train, history)
+                    await asyncio.to_thread(get_rf().retrain, history)
+                    await asyncio.to_thread(get_gbm().train, history)
             except Exception as e:
                 print(f"[webhook] background persist error: {e}")
         asyncio.create_task(_persist())
@@ -309,10 +308,9 @@ async def railway_status(secret: str = ""):
         deploy_query = """
         query($serviceId: String!, $projectId: String!) {
           deployments(first: 1 input: { serviceId: $serviceId, projectId: $projectId }) {
-            edges { node { id status createdAt meta } }
+            edges { node { id status createdAt } }
           }
-        }
-        """
+        }"""
         async with httpx.AsyncClient(timeout=30) as client:
             r = await client.post("https://backboard.railway.app/graphql/v2", headers=headers, json={"query": deploy_query, "variables": {"serviceId": RAILWAY_SERVICE_ID, "projectId": RAILWAY_PROJECT_ID}})
         d = r.json()
@@ -320,13 +318,7 @@ async def railway_status(secret: str = ""):
         if not deployments:
             return {"error": "No deployments found", "raw": d}
         deploy = deployments[0]["node"]
-        deploy_id = deploy["id"]
-        logs_query = "query($deploymentId: String!) { deploymentLogs(deploymentId: $deploymentId, limit: 30) { timestamp message severity } }"
-        async with httpx.AsyncClient(timeout=30) as client:
-            r2 = await client.post("https://backboard.railway.app/graphql/v2", headers=headers, json={"query": logs_query, "variables": {"deploymentId": deploy_id}})
-        l = r2.json()
-        logs = (l.get("data") or {}).get("deploymentLogs", [])
-        return {"deployment": {"id": deploy_id, "status": deploy["status"], "createdAt": deploy["createdAt"]}, "logs": [f"[{lg.get('severity','INFO')}] {lg.get('timestamp','')} {lg.get('message','')}" for lg in logs[-30:]], "log_errors": l.get("errors")}
+        return {"deployment": {"id": deploy["id"], "status": deploy["status"], "createdAt": deploy["createdAt"]}}
     except Exception as e:
         return {"error": str(e), "trace": traceback.format_exc()[-500:]}
 
