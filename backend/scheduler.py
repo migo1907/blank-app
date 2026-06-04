@@ -13,12 +13,12 @@ _scheduler:          AsyncIOScheduler | None = None
 _latest_news_agg:    float = 0.0
 _latest_velocity:    dict  = {"multiplier": 1.0, "label": "NORMAL"}
 _latest_event:       dict  = {"detected": False, "event_type": "", "urgency": 0.0}
-_fj_seen_headlines:  set   = set()   # dedup breaking news across cycles (persisted to GitHub)
-_last_sent_direction: str  = "NEUTRAL"  # only send signal when direction changes
-_last_sent_direction_spy: str = "NEUTRAL"  # SPY direction change tracker
+_fj_seen_headlines:  set   = set()
+_last_sent_direction: str  = "NEUTRAL"
+_last_sent_direction_spy: str = "NEUTRAL"
 
 _SEEN_HEADLINES_PATH = "data/seen_headlines.json"
-_SEEN_HEADLINES_MAX  = 500          # cap size to avoid growing forever
+_SEEN_HEADLINES_MAX  = 500
 
 
 def get_latest_news_sentiment() -> float:
@@ -32,8 +32,7 @@ def get_latest_event() -> dict:
 
 
 def _load_seen_headlines() -> set:
-    """Load previously seen headlines and last sent direction from GitHub (survives restarts)."""
-    global _fj_seen_headlines, _last_sent_direction
+    global _fj_seen_headlines, _last_sent_direction, _last_sent_direction_spy
     try:
         from db import _get_file
         data, _ = _get_file(_SEEN_HEADLINES_PATH)
@@ -44,12 +43,10 @@ def _load_seen_headlines() -> set:
         print(f"[scheduler] Could not load seen headlines (first run?): {e}")
         _fj_seen_headlines = set()
 
-    # Load last sent direction — prevents re-sending same direction after restart
     try:
         from db import _get_file
         signals, _ = _get_file("data/signals.json")
         if isinstance(signals, list) and signals:
-            # Walk backwards to find last non-NEUTRAL signal per symbol
             for sig in reversed(signals):
                 sym = sig.get("symbol", "XAUUSD")
                 d   = sig.get("direction")
@@ -60,7 +57,6 @@ def _load_seen_headlines() -> set:
                     elif sym != "SPY" and _last_sent_direction == "NEUTRAL":
                         _last_sent_direction = d
                         print(f"[scheduler] Last sent direction restored: {d}")
-                # Stop once both are restored
                 if _last_sent_direction != "NEUTRAL" and _last_sent_direction_spy != "NEUTRAL":
                     break
     except Exception as e:
@@ -68,7 +64,6 @@ def _load_seen_headlines() -> set:
 
 
 def _save_seen_headlines() -> None:
-    """Persist seen headlines to GitHub data branch."""
     try:
         from db import _get_file, _put_file
         headlines_list = list(_fj_seen_headlines)[-_SEEN_HEADLINES_MAX:]
@@ -79,17 +74,7 @@ def _save_seen_headlines() -> None:
 
 
 async def _breaking_news_cycle() -> None:
-    """
-    Runs every 2 minutes.
-    Polls FJ initial-data.ashx for the red breaking news banner field.
-    Sends to Telegram immediately if it's a new headline (dedup by text).
-
-    NOTE: Railway keep-alive must be handled by an EXTERNAL service (e.g. UptimeRobot)
-    pinging /health every 5 minutes. A self-ping cannot prevent Railway sleep.
-    """
     global _fj_seen_headlines
-
-    # ── FJ red breaking news check ────────────────────────────────────────────
     try:
         from news_fetcher import fetch_fj_breaking_direct
         from telegram_bot import send_text, send_critical_alert
@@ -97,7 +82,6 @@ async def _breaking_news_cycle() -> None:
 
         breaking, is_401 = await asyncio.to_thread(fetch_fj_breaking_direct)
 
-        # Session expired — fire personal alert immediately
         if is_401:
             await send_critical_alert(
                 "FinancialJuice Session Expired",
@@ -111,9 +95,8 @@ async def _breaking_news_cycle() -> None:
 
         key = breaking[:80]
         if key in _fj_seen_headlines:
-            return  # already sent — do nothing
+            return
 
-        # New red item — send immediately
         now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
         msg = (
             f"🚨 <b>BREAKING</b> — FinancialJuice\n"
@@ -123,7 +106,6 @@ async def _breaking_news_cycle() -> None:
         )
         await send_text(msg)
 
-        # Persist dedup so it survives restarts
         new_seen = set(_fj_seen_headlines)
         new_seen.add(key)
         _fj_seen_headlines = new_seen
@@ -141,12 +123,9 @@ async def _news_signal_cycle() -> None:
     try:
         from news_fetcher import run_news_cycle
         from db import insert_news
-        from signal_engine import generate_signal
+        from signal_engine import generate_signal, get_latest_features
         from telegram_bot import send_signal, send_text, send_breaking_news
 
-        # run_news_cycle uses synchronous httpx — run in thread with 90s timeout
-        # Without timeout, a slow RSS feed or Anthropic API call can block the job slot
-        # and cause APScheduler to skip all future runs (max_instances=1 default)
         prev_agg = _latest_news_agg
         try:
             scored_items, agg, velocity, event, fj_breaking = await asyncio.wait_for(
@@ -163,6 +142,7 @@ async def _news_signal_cycle() -> None:
             _latest_event    = event
 
         signal = generate_signal(
+            current_features=get_latest_features("XAUUSD"),
             news_agg=_latest_news_agg,
             news_velocity=_latest_velocity,
             high_impact_event=_latest_event,
@@ -184,9 +164,9 @@ async def _news_signal_cycle() -> None:
         else:
             print("[scheduler] Signal is NEUTRAL — not sending to Telegram.")
 
-        # ── SPY signal (same news/velocity context, separate pool + direction tracker) ──
         try:
             spy_signal = generate_signal(
+                current_features=get_latest_features("STOCKS_INDEX_30M"),
                 news_agg=_latest_news_agg,
                 news_velocity=_latest_velocity,
                 high_impact_event=_latest_event,
@@ -210,7 +190,6 @@ async def _news_signal_cycle() -> None:
         except Exception as e:
             print(f"[scheduler] SPY signal error: {e}")
 
-        # ── Write health status to GitHub data branch every cycle ─────────────
         asyncio.create_task(_write_health_status(signal, agg, velocity, len(fj_breaking)))
 
     except Exception as e:
@@ -218,7 +197,6 @@ async def _news_signal_cycle() -> None:
 
 
 async def _write_health_status(signal: dict, news_agg: float, velocity: dict, breaking_count: int) -> None:
-    """Write backend health snapshot to GitHub data branch every 15-min cycle."""
     try:
         from db import _get_file, _put_file
         from datetime import datetime, timezone
@@ -249,20 +227,14 @@ async def _write_health_status(signal: dict, news_agg: float, velocity: dict, br
 
 
 async def _hourly_system_check() -> None:
-    """
-    Full system audit — runs every 60 minutes.
-    Silent when all checks pass.
-    Sends personal Telegram alert ONLY for critical failures.
-    """
     from datetime import datetime, timezone
     from telegram_bot import send_critical_alert
 
     now = datetime.now(timezone.utc).strftime("%H:%M UTC — %d %b %Y")
     issues: list[str] = []
     ok:     list[str] = []
-    critical_alerts: list[tuple[str, str, str]] = []  # (title, detail, action)
+    critical_alerts: list[tuple[str, str, str]] = []
 
-    # ── 1. GitHub persistence (db layer) ─────────────────────────────────────
     try:
         from db import _get_file
         weights, _ = await asyncio.to_thread(_get_file, "data/weights.json")
@@ -270,7 +242,6 @@ async def _hourly_system_check() -> None:
             ok.append("GitHub weights.json ✅")
         else:
             issues.append("weights.json missing or corrupt ❌")
-
         history, _ = await asyncio.to_thread(_get_file, "data/trade_history.json")
         trade_count = len(history) if isinstance(history, list) else 0
         if trade_count >= 15:
@@ -282,7 +253,6 @@ async def _hourly_system_check() -> None:
     except Exception as e:
         issues.append(f"GitHub db layer error: {e} ❌")
 
-    # ── 2. KNN model ─────────────────────────────────────────────────────────
     try:
         from ml_model import get_model
         model = get_model()
@@ -297,7 +267,6 @@ async def _hourly_system_check() -> None:
     except Exception as e:
         issues.append(f"KNN model error: {e} ❌")
 
-    # ── 3. Random Forest ─────────────────────────────────────────────────────
     try:
         from ml_ensemble import get_rf
         rf = get_rf()
@@ -310,7 +279,6 @@ async def _hourly_system_check() -> None:
     except Exception as e:
         issues.append(f"RF ensemble error: {e} ❌")
 
-    # ── 4. News pipeline ─────────────────────────────────────────────────────
     try:
         from db import _get_file
         from datetime import timedelta
@@ -327,17 +295,14 @@ async def _hourly_system_check() -> None:
     except Exception as e:
         issues.append(f"News cache error: {e} ❌")
 
-    # ── 5. Breaking news dedup ────────────────────────────────────────────────
     try:
         from db import _get_file
         seen, _ = await asyncio.to_thread(_get_file, "data/seen_headlines.json")
         seen_count = len(seen) if isinstance(seen, list) else len(_fj_seen_headlines)
         ok.append(f"Breaking news dedup — {seen_count} headlines tracked ✅")
     except Exception as e:
-        # Fall back to in-memory count
         ok.append(f"Breaking news dedup — {len(_fj_seen_headlines)} in memory ✅")
 
-    # ── 6. Latest signal ──────────────────────────────────────────────────────
     try:
         from db import _get_file
         signals, _ = await asyncio.to_thread(_get_file, "data/signals.json")
@@ -353,12 +318,11 @@ async def _hourly_system_check() -> None:
     except Exception as e:
         issues.append(f"signals.json error: {e} ❌")
 
-    # ── 7. Scheduler health (self-check) ─────────────────────────────────────
     try:
         if _scheduler and _scheduler.running:
             jobs = _scheduler.get_jobs()
             job_ids = [j.id for j in jobs]
-            expected = {"news_signal_cycle", "breaking_news_cycle", "hourly_system_check"}
+            expected = {"news_signal_cycle", "breaking_news_cycle", "hourly_system_check", "daily_market_brief"}
             missing = expected - set(job_ids)
             if not missing:
                 ok.append(f"Scheduler — {len(jobs)} jobs running ✅")
@@ -369,7 +333,6 @@ async def _hourly_system_check() -> None:
     except Exception as e:
         issues.append(f"Scheduler check error: {e} ❌")
 
-    # ── 8. Telegram connectivity ─────────────────────────────────────────────
     import os as _os
     tg_token   = _os.environ.get("TELEGRAM_BOT_TOKEN", "")
     tg_chat_id = _os.environ.get("TELEGRAM_CHAT_ID", "")
@@ -378,7 +341,6 @@ async def _hourly_system_check() -> None:
     else:
         issues.append("Telegram TOKEN or CHAT_ID missing ❌")
 
-    # ── 11. Railway keep-alive / cold-start check ─────────────────────────────
     try:
         import httpx as _httpx
         domain = _os.environ.get("RAILWAY_PUBLIC_DOMAIN", "")
@@ -395,13 +357,10 @@ async def _hourly_system_check() -> None:
     except Exception as e:
         issues.append(f"Railway keep-alive check failed: {e} ❌")
 
-    # ── 9. News velocity state ────────────────────────────────────────────────
     v_label = _latest_velocity.get("label", "UNKNOWN")
     v_mult  = _latest_velocity.get("multiplier", 1.0)
-    news_agg_val = _latest_news_agg
-    ok.append(f"News velocity — {v_label} ×{v_mult:.1f} | agg: {news_agg_val:+.3f} ✅")
+    ok.append(f"News velocity — {v_label} ×{v_mult:.1f} | agg: {_latest_news_agg:+.3f} ✅")
 
-    # ── 10. Feature check — ensure f9-f21 in stored trades ───────────────────
     try:
         from db import _get_file
         history, _ = await asyncio.to_thread(_get_file, "data/trade_history.json")
@@ -419,14 +378,11 @@ async def _hourly_system_check() -> None:
     except Exception as e:
         issues.append(f"Feature check error: {e} ❌")
 
-    # ── C1. Railway hours warning ─────────────────────────────────────────────
     try:
         import httpx as _httpx
         railway_token = _os.environ.get("RAILWAY_API_TOKEN", "")
         if railway_token:
-            query = """
-            query { me { usage { currentPeriodUsage { usageMinutes } usageLimit { maxUsageMinutes } } } }
-            """
+            query = "query { me { usage { currentPeriodUsage { usageMinutes } usageLimit { maxUsageMinutes } } } }"
             async with _httpx.AsyncClient(timeout=10) as client:
                 r = await client.post(
                     "https://backboard.railway.app/graphql/v2",
@@ -441,73 +397,47 @@ async def _hourly_system_check() -> None:
                 pct = used / limit * 100
                 ok.append(f"Railway hours: {used}/{limit} min ({pct:.0f}%) ✅")
                 if pct >= 95:
-                    critical_alerts.append((
-                        "Railway Free Tier CRITICAL",
-                        f"Usage at {pct:.0f}% ({used}/{limit} min) — service will stop very soon.",
-                        "Upgrade Railway plan immediately or service stops."
-                    ))
+                    critical_alerts.append(("Railway Free Tier CRITICAL", f"Usage at {pct:.0f}% ({used}/{limit} min) — service will stop very soon.", "Upgrade Railway plan immediately or service stops."))
                 elif pct >= 80:
-                    critical_alerts.append((
-                        "Railway Free Tier Warning",
-                        f"Usage at {pct:.0f}% ({used}/{limit} min) — approaching monthly limit.",
-                        "Consider upgrading Railway plan before limit is reached."
-                    ))
+                    critical_alerts.append(("Railway Free Tier Warning", f"Usage at {pct:.0f}% ({used}/{limit} min) — approaching monthly limit.", "Consider upgrading Railway plan before limit is reached."))
             else:
                 ok.append("Railway hours: usage data unavailable (paid plan?) ✅")
     except Exception as e:
         print(f"[system_check] Railway hours check failed: {e}")
 
-    # ── C2. GitHub token validity ─────────────────────────────────────────────
     try:
         from db import _get_file
         test, _ = await asyncio.to_thread(_get_file, "data/health.json")
         if test is None:
             issues.append("GitHub token may have expired — health.json unreadable ❌")
-            critical_alerts.append((
-                "GitHub Token May Be Expired",
-                "Cannot read data/health.json — ML data will not save.",
-                "Check GITHUB_TOKEN in Railway env vars and renew if expired."
-            ))
+            critical_alerts.append(("GitHub Token May Be Expired", "Cannot read data/health.json — ML data will not save.", "Check GITHUB_TOKEN in Railway env vars and renew if expired."))
         else:
             ok.append("GitHub token valid ✅")
     except Exception as e:
         err_str = str(e)
         if "401" in err_str or "403" in err_str or "Bad credentials" in err_str:
-            critical_alerts.append((
-                "GitHub Token Expired",
-                "GitHub API returned auth error — weights and trade history cannot be saved.",
-                "Renew GITHUB_TOKEN in Railway environment variables immediately."
-            ))
+            critical_alerts.append(("GitHub Token Expired", "GitHub API returned auth error — weights and trade history cannot be saved.", "Renew GITHUB_TOKEN in Railway environment variables immediately."))
         issues.append(f"GitHub token check failed: {e} ❌")
 
-    # ── C3. Webhook silence detector ─────────────────────────────────────────
     try:
         from db import _get_file
         from datetime import timedelta
         history, _ = await asyncio.to_thread(_get_file, "data/trade_history.json")
         if isinstance(history, list) and len(history) > 0:
-            last_trade_time = datetime.fromisoformat(
-                history[-1].get("created_at", "2000-01-01T00:00:00").replace("Z", "+00:00")
-            )
+            last_trade_time = datetime.fromisoformat(history[-1].get("created_at", "2000-01-01T00:00:00").replace("Z", "+00:00"))
             if last_trade_time.tzinfo is None:
                 last_trade_time = last_trade_time.replace(tzinfo=timezone.utc)
             hours_since = (datetime.now(timezone.utc) - last_trade_time).total_seconds() / 3600
-            # Only alert during market hours (Mon-Fri, 7-20 UTC) if silent >6h
             dow = datetime.now(timezone.utc).weekday()
             market_hour = 7 <= datetime.now(timezone.utc).hour < 20
             if dow < 5 and market_hour and hours_since > 6:
-                critical_alerts.append((
-                    "Webhook Silence Detected",
-                    f"No trade data received for {hours_since:.0f} hours during market hours.",
-                    "Check TradingView alerts — they may have expired or been disabled."
-                ))
+                critical_alerts.append(("Webhook Silence Detected", f"No trade data received for {hours_since:.0f} hours during market hours.", "Check TradingView alerts — they may have expired or been disabled."))
                 issues.append(f"No webhook activity for {hours_since:.0f}h during market hours ⚠️")
             else:
                 ok.append(f"Last webhook: {hours_since:.1f}h ago ✅")
     except Exception as e:
         print(f"[system_check] Webhook silence check failed: {e}")
 
-    # ── Auto-heal: deduplicate trade history ──────────────────────────────────
     try:
         from db import _get_file, _put_file
         history, sha = await asyncio.to_thread(_get_file, "data/trade_history.json")
@@ -528,36 +458,47 @@ async def _hourly_system_check() -> None:
     except Exception as e:
         print(f"[system_check] Dedup auto-fix failed: {e}")
 
-    # ── Auto-heal: retrain RF + GBM on every hourly cycle ────────────────────
     try:
         from ml_ensemble import get_rf, get_gbm
         from db import recent_outcomes
-        rf     = get_rf()
-        gbm    = get_gbm()
-        trades = await asyncio.to_thread(recent_outcomes, "XAUUSD", 500)
-        if len(trades) >= 15:
-            await asyncio.to_thread(rf.retrain, trades)
-            await asyncio.to_thread(gbm.train, trades)
-            print(f"[system_check] RF + GBM refreshed on {len(trades)} trades.")
-        else:
-            print(f"[system_check] Not enough trades ({len(trades)}) for ensemble retrain.")
+        for _pool in ["XAUUSD", "XAUUSD_2M", "XAUUSD_5M", "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_4H", "STOCKS_QUALITY_30M", "STOCKS_QUALITY_4H", "STOCKS_INDEX_30M", "STOCKS_INDEX_4H"]:
+            _trades = await asyncio.to_thread(recent_outcomes, _pool, 500)
+            if len(_trades) >= 15:
+                await asyncio.to_thread(get_rf(_pool).retrain, _trades)
+                await asyncio.to_thread(get_gbm(_pool).train, _trades)
+                print(f"[system_check] RF+GBM refreshed for {_pool} on {len(_trades)} trades.")
     except Exception as e:
         print(f"[system_check] Ensemble retrain failed: {e}")
 
-    # ── Log results ──────────────────────────────────────────────────────────
     n_issue = len(issues)
     print(f"[system_check] {len(ok)}/{len(ok)+n_issue} checks passed.")
     for iss in issues:
         print(f"[system_check] ISSUE: {iss}")
-
-    # ── Send critical alerts to personal Telegram ─────────────────────────────
     for title, detail, action in critical_alerts:
         print(f"[system_check] CRITICAL: {title} — {detail}")
         await send_critical_alert(title, detail, action)
 
 
+async def _daily_market_brief() -> None:
+    from datetime import datetime, timezone
+    now = datetime.now(timezone.utc)
+    if now.weekday() >= 5:
+        return
+    print("[daily] Generating daily market brief…")
+    try:
+        from daily_analysis import generate_daily_brief
+        from telegram_bot import send_text
+        msg = await asyncio.to_thread(generate_daily_brief)
+        if msg:
+            await send_text(msg)
+            print("[daily] Daily brief sent to Telegram.")
+        else:
+            print("[daily] Brief generation returned None — skipped.")
+    except Exception as e:
+        print(f"[daily] Brief error: {e}")
+
+
 async def _test_personal_alert() -> None:
-    """One-shot test of the personal Telegram alert."""
     from telegram_bot import send_critical_alert
     await send_critical_alert(
         "System Monitor Test",
@@ -571,29 +512,12 @@ def start_scheduler() -> AsyncIOScheduler:
     _load_seen_headlines()
     interval   = int(os.environ.get("SIGNAL_INTERVAL_MINUTES", "15"))
     _scheduler = AsyncIOScheduler()
-    _scheduler.add_job(
-        _news_signal_cycle,
-        trigger="interval",
-        minutes=interval,
-        id="news_signal_cycle",
-        replace_existing=True,
-    )
-    _scheduler.add_job(
-        _breaking_news_cycle,
-        trigger="interval",
-        minutes=2,
-        id="breaking_news_cycle",
-        replace_existing=True,
-    )
-    _scheduler.add_job(
-        _hourly_system_check,
-        trigger="interval",
-        hours=1,
-        id="hourly_system_check",
-        replace_existing=True,
-    )
+    _scheduler.add_job(_news_signal_cycle, trigger="interval", minutes=interval, id="news_signal_cycle", replace_existing=True)
+    _scheduler.add_job(_breaking_news_cycle, trigger="interval", minutes=2, id="breaking_news_cycle", replace_existing=True)
+    _scheduler.add_job(_hourly_system_check, trigger="interval", hours=1, id="hourly_system_check", replace_existing=True)
+    _scheduler.add_job(_daily_market_brief, trigger="cron", hour=8, minute=0, id="daily_market_brief", replace_existing=True)
     _scheduler.start()
-    print(f"[scheduler] Started — signal every {interval} min, breaking news every 2 min, system check every 60 min.")
+    print(f"[scheduler] Started — signal every {interval} min, breaking news every 2 min, system check every 60 min, daily brief at 08:00 UTC.")
     return _scheduler
 
 
