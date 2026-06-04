@@ -88,28 +88,27 @@ def _calc_pivots(ph, pl, pc, current, decimals):
 
 
 def _fetch_xauusd_tv(decimals: int = 2) -> dict | None:
-    """Fetch XAUUSD OHLCV from TradingView (ICMARKETS) via tvdatafeed."""
-    if not _TV_AVAILABLE:
-        print("[daily] tvdatafeed not installed — cannot fetch XAUUSD.")
-        return None
-    try:
-        tv   = TvDatafeed()
-        df   = tv.get_hist("XAUUSD", "ICMARKETS", interval=Interval.in_daily, n_bars=5)
-        if df is None or len(df) < 2:
-            print("[daily] tvdatafeed returned insufficient data for XAUUSD.")
-            return None
+    """Fetch XAUUSD from TradingView (ICMARKETS) via tvdatafeed, fallback to yfinance GC=F."""
+    if _TV_AVAILABLE:
+        try:
+            tv  = TvDatafeed()
+            df  = tv.get_hist("XAUUSD", "ICMARKETS", interval=Interval.in_daily, n_bars=5)
+            if df is not None and len(df) >= 2:
+                prev    = df.iloc[-2]
+                today   = df.iloc[-1]
+                return _calc_pivots(
+                    float(prev["high"]), float(prev["low"]), float(prev["close"]),
+                    float(today["close"]), decimals,
+                )
+            print("[daily] tvdatafeed returned insufficient data — falling back to yfinance.")
+        except Exception as e:
+            print(f"[daily] tvdatafeed failed ({e}) — falling back to yfinance GC=F.")
 
-        prev    = df.iloc[-2]
-        today   = df.iloc[-1]
-        ph      = float(prev["high"])
-        pl      = float(prev["low"])
-        pc      = float(prev["close"])
-        current = float(today["close"])
-
-        return _calc_pivots(ph, pl, pc, current, decimals)
-    except Exception as e:
-        print(f"[daily] tvdatafeed fetch failed for XAUUSD: {e}")
-        return None
+    # Fallback: yfinance gold futures
+    result = _fetch_levels_yf("GC=F", decimals)
+    if result:
+        print("[daily] XAUUSD: using yfinance GC=F fallback.")
+    return result
 
 
 def _fetch_levels_yf(ticker_sym: str, decimals: int = 2) -> dict | None:
