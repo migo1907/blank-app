@@ -480,9 +480,9 @@ async def _hourly_system_check() -> None:
         from ml_ensemble import get_rf, get_gbm
         from db import recent_outcomes
         retrain_pools = ["XAUUSD", "XAUUSD_2M", "XAUUSD_5M", "XAUUSD_30M", "XAUUSD_1H",
-                         "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_1H",
-                         "STOCKS_QUALITY_30M", "STOCKS_QUALITY_1H",
-                         "STOCKS_INDEX_30M", "STOCKS_INDEX_1H"]
+                         "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_4H",
+                         "STOCKS_QUALITY_30M", "STOCKS_QUALITY_4H",
+                         "STOCKS_INDEX_30M", "STOCKS_INDEX_4H"]
         for _pool in retrain_pools:
             _trades = await asyncio.to_thread(recent_outcomes, _pool, 500)
             if len(_trades) >= 15:

@@ -37,9 +37,9 @@ async def lifespan(app: FastAPI):
     from ml_ensemble import get_rf, get_gbm
     from db import recent_outcomes
     for _pool in ["XAUUSD", "XAUUSD_2M", "XAUUSD_5M", "XAUUSD_30M", "XAUUSD_1H",
-                  "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_1H",
-                  "STOCKS_QUALITY_30M", "STOCKS_QUALITY_1H",
-                  "STOCKS_INDEX_30M", "STOCKS_INDEX_1H"]:
+                  "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_4H",
+                  "STOCKS_QUALITY_30M", "STOCKS_QUALITY_4H",
+                  "STOCKS_INDEX_30M", "STOCKS_INDEX_4H"]:
         _hist = recent_outcomes(_pool, limit=500)
         if len(_hist) >= 15:
             get_rf(_pool).retrain(_hist)
