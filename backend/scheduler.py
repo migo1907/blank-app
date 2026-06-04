@@ -72,10 +72,11 @@ def _save_seen_headlines() -> None:
 async def _breaking_news_cycle() -> None:
     global _fj_seen_headlines
     try:
-        from news_fetcher import fetch_fj_breaking_direct
+        from news_fetcher import fetch_fj_breaking_direct, fetch_breaking_news
         from telegram_bot import send_text, send_critical_alert
         from datetime import datetime, timezone
 
+        # ── 1. FJ breaking banner (flash/popup item) ──────────────────────────
         breaking, is_401 = await asyncio.to_thread(fetch_fj_breaking_direct)
 
         if is_401:
@@ -86,27 +87,42 @@ async def _breaking_news_cycle() -> None:
             )
             return
 
-        if not breaking:
-            return
+        alerts: list[str] = []
+        if breaking:
+            alerts.append(breaking)
 
-        key = breaking[:80]
-        if key in _fj_seen_headlines:
+        # ── 2. FJ red ticker items (high-impact keywords in RSS feed) ─────────
+        ticker_items = await asyncio.to_thread(fetch_breaking_news)
+        for item in ticker_items:
+            headline = item.get("title", "").strip()
+            if headline:
+                alerts.append(headline)
+
+        if not alerts:
             return
 
         now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-        msg = (
-            f"\U0001f6a8 <b>BREAKING</b> — FinancialJuice\n"
-            f"━━━━━━━━━━━━━━━━━━━━\n"
-            f"\U0001f534 {breaking}\n\n"
-            f"⏰ {now}"
-        )
-        await send_text(msg)
-
         new_seen = set(_fj_seen_headlines)
-        new_seen.add(key)
-        _fj_seen_headlines = new_seen
-        await asyncio.to_thread(_save_seen_headlines)
-        print(f"[breaking] Sent to Telegram: {breaking[:80]}")
+        sent_any = False
+
+        for headline in alerts:
+            key = headline[:80]
+            if key in new_seen:
+                continue
+            msg = (
+                f"\U0001f6a8 <b>BREAKING</b> — FinancialJuice\n"
+                f"━━━━━━━━━━━━━━━━━━━━\n"
+                f"\U0001f534 {headline}\n\n"
+                f"⏰ {now}"
+            )
+            await send_text(msg)
+            new_seen.add(key)
+            sent_any = True
+            print(f"[breaking] Sent to Telegram: {headline[:80]}")
+
+        if sent_any:
+            _fj_seen_headlines = new_seen
+            await asyncio.to_thread(_save_seen_headlines)
 
     except Exception as e:
         print(f"[breaking] cycle error: {e}")
