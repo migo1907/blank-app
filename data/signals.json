@@ -1,25 +1,6 @@
 [
   {
     "symbol": "XAUUSD",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "news_score": 0.1344,
-    "combined_score": 0.0,
-    "session": "N/A",
-    "regime": "UNKNOWN",
-    "regime_label": "UNKNOWN",
-    "reasoning": "News velocity CONFLICTED",
-    "status": "NEUTRAL",
-    "expires_at": "2026-06-03T22:32:04.798815+00:00",
-    "id": 101,
-    "created_at": "2026-06-03T22:02:05.353803+00:00"
-  },
-  {
-    "symbol": "XAUUSD",
     "pool": "XAUUSD",
     "direction": "NEUTRAL",
     "confidence": 0.0,
@@ -1928,5 +1909,25 @@
     "expires_at": "2026-06-04T13:14:56.760946+00:00",
     "id": 101,
     "created_at": "2026-06-04T12:44:57.057143+00:00"
+  },
+  {
+    "symbol": "SPY",
+    "pool": "STOCKS_INDEX",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 1.0,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "news_score": -0.1754,
+    "combined_score": -0.3851,
+    "session": "PRE_MARKET",
+    "regime": "UNKNOWN",
+    "regime_label": "NORMAL",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:UNKNOWN(NORMAL)\u00d71.00 | sess:PRE_MARKET\u00d70.90 | confluence\u00d71.00 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.00) | news:neutral(-0.175) | combined:-0.385 \u2192 conf:0.416",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-04T13:14:58.790582+00:00",
+    "id": 101,
+    "created_at": "2026-06-04T12:44:59.085611+00:00"
   }
 ]
