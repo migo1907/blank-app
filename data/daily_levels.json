@@ -1,8 +1,8 @@
 {
-  "fetched_at": "2026-06-04T12:58:57.383716+00:00",
+  "fetched_at": "2026-06-04T15:16:15.987219+00:00",
   "assets": {
     "XAUUSD": {
-      "current": 4528.9,
+      "current": 4497.2,
       "prev_high": 4471.7,
       "prev_low": 4427.2,
       "prev_close": 4436.7,
@@ -14,37 +14,37 @@
       "s2": 4400.7,
       "s3": 4374.2,
       "expected_range_low": 4400.7,
-      "expected_range_high": 4546.9
+      "expected_range_high": 4515.2
     },
     "SPY": {
-      "current": 754.24,
-      "prev_high": 760.4,
-      "prev_low": 756.75,
-      "prev_close": 759.57,
-      "pivot": 758.91,
-      "r1": 761.06,
-      "r2": 762.56,
-      "r3": 764.71,
-      "s1": 757.41,
-      "s2": 755.26,
-      "s3": 753.76,
-      "expected_range_low": 752.08,
-      "expected_range_high": 762.56
+      "current": 755.76,
+      "prev_high": 758.8,
+      "prev_low": 753.57,
+      "prev_close": 754.24,
+      "pivot": 755.54,
+      "r1": 757.5,
+      "r2": 760.77,
+      "r3": 762.73,
+      "s1": 752.27,
+      "s2": 750.31,
+      "s3": 747.04,
+      "expected_range_low": 750.31,
+      "expected_range_high": 760.77
     },
     "QQQ": {
-      "current": 744.21,
-      "prev_high": 746.44,
-      "prev_low": 739.23,
-      "prev_close": 746.16,
-      "pivot": 743.94,
-      "r1": 748.66,
-      "r2": 751.15,
-      "r3": 755.87,
-      "s1": 741.45,
-      "s2": 736.73,
-      "s3": 734.24,
-      "expected_range_low": 736.73,
-      "expected_range_high": 751.15
+      "current": 740.07,
+      "prev_high": 748.65,
+      "prev_low": 741.01,
+      "prev_close": 744.21,
+      "pivot": 744.62,
+      "r1": 748.24,
+      "r2": 752.26,
+      "r3": 755.88,
+      "s1": 740.6,
+      "s2": 736.98,
+      "s3": 732.96,
+      "expected_range_low": 736.46,
+      "expected_range_high": 752.26
     }
   }
 }
