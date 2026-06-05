@@ -12,6 +12,8 @@ _latest_event:       dict  = {"detected": False, "event_type": "", "urgency": 0.
 _fj_seen_headlines:  set   = set()
 _last_sent_direction: str  = "NEUTRAL"
 _last_sent_direction_spy: str = "NEUTRAL"
+_last_ml_direction: str   = "NEUTRAL"
+_last_ml_direction_spy: str = "NEUTRAL"
 
 _SEEN_HEADLINES_PATH = "data/seen_headlines.json"
 _SEEN_HEADLINES_MAX  = 500
@@ -135,7 +137,7 @@ async def _breaking_news_cycle() -> None:
 
 
 async def _news_signal_cycle() -> None:
-    global _latest_news_agg, _latest_velocity, _latest_event, _fj_seen_headlines, _last_sent_direction, _last_sent_direction_spy
+    global _latest_news_agg, _latest_velocity, _latest_event, _fj_seen_headlines, _last_sent_direction, _last_sent_direction_spy, _last_ml_direction, _last_ml_direction_spy
     print("[scheduler] Starting news + velocity + signal cycle…")
 
     try:
@@ -182,6 +184,16 @@ async def _news_signal_cycle() -> None:
         else:
             print("[scheduler] Signal is NEUTRAL — not sending to Telegram.")
 
+        # ── Market Intelligence — fire on ML direction flip (regardless of confidence) ──
+        from telegram_bot import send_market_intelligence
+        ml_raw_dir = signal.get("reasoning", "")
+        # Extract raw ML direction from combined_score
+        ml_direction = "LONG" if signal.get("combined_score", 0) > 0 else "SHORT" if signal.get("combined_score", 0) < 0 else "NEUTRAL"
+        if ml_direction != "NEUTRAL" and ml_direction != _last_ml_direction:
+            await send_market_intelligence(signal)
+            _last_ml_direction = ml_direction
+            print(f"[scheduler] ML direction flipped → {ml_direction} — intelligence alert sent.")
+
         try:
             spy_signal = generate_signal(
                 current_features=get_latest_features("STOCKS_INDEX_30M"),
@@ -205,6 +217,13 @@ async def _news_signal_cycle() -> None:
                     print("[scheduler] SPY Telegram send failed.")
             else:
                 print(f"[scheduler] SPY signal is {spy_dir} — not sending.")
+
+            # SPY ML direction flip intelligence
+            spy_ml_dir = "LONG" if spy_signal.get("combined_score", 0) > 0 else "SHORT" if spy_signal.get("combined_score", 0) < 0 else "NEUTRAL"
+            if spy_ml_dir != "NEUTRAL" and spy_ml_dir != _last_ml_direction_spy:
+                await send_market_intelligence(spy_signal)
+                _last_ml_direction_spy = spy_ml_dir
+                print(f"[scheduler] SPY ML direction flipped → {spy_ml_dir} — intelligence alert sent.")
         except Exception as e:
             print(f"[scheduler] SPY signal error: {e}")
 
