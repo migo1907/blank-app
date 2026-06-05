@@ -173,36 +173,44 @@ def save_weights(pool: str, weights: dict) -> None:
 def insert_outcome(outcome: dict) -> None:
     pool = symbol_to_pool(outcome.get("symbol", "XAUUSD"), outcome.get("timeframe", ""))
     path = _pool_history_file(pool)
-    history, sha = _get_file(path)
-    if history is None:
-        history = []
 
-    # Deduplication — reject if same symbol|direction|entry_price|timeframe already exists.
-    # Prevents double-inserts when Pine Script fires both /webhook and /webhook/trade-outcome.
+    outcome.setdefault("id",         str(uuid.uuid4())[:8])
+    outcome.setdefault("pool",       pool)
+    outcome.setdefault("created_at", datetime.now(timezone.utc).isoformat())
+
     dedup_key = (
         f"{outcome.get('symbol','')}|{outcome.get('direction','')}|"
         f"{outcome.get('entry_price',0)}|{outcome.get('timeframe','')}"
     )
-    existing_keys = {
-        f"{t.get('symbol','')}|{t.get('direction','')}|{t.get('entry_price',0)}|{t.get('timeframe','')}"
-        for t in history
-    }
-    if dedup_key in existing_keys:
-        print(f"[db] Duplicate trade skipped: {dedup_key} pool={pool}")
-        return
 
-    outcome["id"] = str(uuid.uuid4())[:8]
-    outcome["pool"] = pool
-    outcome.setdefault("created_at", datetime.now(timezone.utc).isoformat())
-    history.append(outcome)
-    if len(history) > 1000:
-        history = history[-1000:]
-    _put_file(
-        path,
-        history,
-        sha,
-        f"data: record {outcome['outcome']} {outcome.get('direction','')} {pool} trade",
-    )
+    for attempt in range(3):
+        history, sha = _get_file(path)
+        if history is None:
+            history = []
+
+        existing_keys = {
+            f"{t.get('symbol','')}|{t.get('direction','')}|{t.get('entry_price',0)}|{t.get('timeframe','')}"
+            for t in history
+        }
+        if dedup_key in existing_keys:
+            print(f"[db] Duplicate trade skipped: {dedup_key} pool={pool}")
+            return
+
+        history.append(outcome)
+        if len(history) > 1000:
+            history = history[-1000:]
+        try:
+            _put_file(
+                path,
+                history,
+                sha,
+                f"data: record {outcome['outcome']} {outcome.get('direction','')} {pool} trade",
+            )
+            return
+        except Exception as e:
+            if attempt < 2 and "409" in str(e):
+                continue  # SHA stale — re-fetch and retry
+            raise
 
 
 def recent_outcomes(pool: str = "XAUUSD", limit: int = 200) -> list[dict]:
@@ -280,13 +288,20 @@ def log_raw_webhook(payload: dict) -> None:
             "received_at": datetime.now(timezone.utc).isoformat(),
             "payload":     payload,
         }
-        log, sha = _get_file(_WEBHOOK_LOG_PATH)
-        if not isinstance(log, list):
-            log = []
-        log.append(entry)
-        if len(log) > _WEBHOOK_LOG_MAX:
-            log = log[-_WEBHOOK_LOG_MAX:]
-        _put_file(_WEBHOOK_LOG_PATH, log, sha, "chore: webhook log")
+        for attempt in range(3):
+            log, sha = _get_file(_WEBHOOK_LOG_PATH)
+            if not isinstance(log, list):
+                log = []
+            log.append(entry)
+            if len(log) > _WEBHOOK_LOG_MAX:
+                log = log[-_WEBHOOK_LOG_MAX:]
+            try:
+                _put_file(_WEBHOOK_LOG_PATH, log, sha, "chore: webhook log")
+                break
+            except Exception as put_err:
+                if attempt < 2 and "409" in str(put_err):
+                    continue
+                raise put_err
     except Exception as e:
         print(f"[webhook_log] Failed to log payload: {e}")
 
