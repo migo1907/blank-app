@@ -48,8 +48,20 @@ def update_latest_features(pool: str, features: Features) -> None:
             "f25": features.f25,
             "updated_at": datetime.now(_tz.utc).isoformat(),
         }
-        _put_file(_FEATURE_CACHE_PATH, payload, sha,
-                  f"chore: update feature cache for {pool}")
+        for attempt in range(2):
+            try:
+                _put_file(_FEATURE_CACHE_PATH, payload, sha,
+                          f"chore: update feature cache for {pool}")
+                break
+            except Exception as put_err:
+                if attempt == 0 and "409" in str(put_err):
+                    # SHA stale — re-fetch and retry once
+                    existing2, sha = _get_file(_FEATURE_CACHE_PATH)
+                    if isinstance(existing2, dict):
+                        existing2.update(payload)
+                        payload = existing2
+                else:
+                    raise put_err
     except Exception as e:
         print(f"[features] Cache persist failed: {e}")
 
