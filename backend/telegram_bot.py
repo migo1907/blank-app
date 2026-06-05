@@ -269,7 +269,7 @@ async def send_market_intelligence(signal: dict, ml_direction: str) -> bool:
     conf_str = f"{confidence*100:.0f}%" if confidence > 0 else "—"
 
     msg = (
-        f"{dir_emoji} <b>ML DIRECTION — {symbol}</b>\n"
+        f"{dir_emoji} <b>DIRECTION — {symbol}</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
         f"Direction:  <b>{ml_direction}</b>\n"
         f"Confidence: <b>{conf_str}</b>\n\n"
