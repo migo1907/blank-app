@@ -332,7 +332,12 @@ def repair_missing_trades() -> list[str]:
             if not p.get("exit_price"):
                 continue
 
-            symbol    = p.get("symbol", "XAUUSD")
+            symbol    = p.get("symbol", "") or ""
+            if not symbol:
+                # Infer symbol from trade_id prefix: "SPY_123" → "SPY"
+                tid = p.get("trade_id", "") or ""
+                prefix = tid.split("_")[0] if "_" in tid else ""
+                symbol = prefix if prefix else "XAUUSD"
             direction = p.get("direction", "")
             entry_px  = float(p.get("entry_price", 0) or 0)
             exit_px   = float(p.get("exit_price", 0) or 0)
