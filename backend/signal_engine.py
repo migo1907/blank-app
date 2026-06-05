@@ -89,8 +89,8 @@ KNN_WEIGHT     = 0.35
 RF_WEIGHT      = 0.25
 GBM_WEIGHT     = 0.20
 NEWS_WEIGHT    = 0.20
-MIN_CONFIDENCE = 0.62        # XAUUSD — raised from 0.55 (early-stage data, be selective)
-MIN_CONFIDENCE_STOCKS = 0.65 # Stocks — raised from 0.58
+MIN_CONFIDENCE = 0.55        # XAUUSD — lowered from 0.62 (Option F: allow strong ML signals through)
+MIN_CONFIDENCE_STOCKS = 0.60 # Stocks — lowered from 0.65
 
 
 # ── Session intelligence (item 5) ─────────────────────────────────────────────
@@ -354,7 +354,10 @@ def generate_signal(
     event    = high_impact_event or {"detected": False, "urgency": 0.0}
 
     if v_label == "CONFLICTED":
-        return _neutral_signal(symbol, now, model, rf, "News velocity CONFLICTED", news_agg, pool)
+        # Bypass if all 3 ML models unanimously agree on direction (Option F)
+        all_agree = (knn_dir == rf_dir == gbm_dir)
+        if not all_agree:
+            return _neutral_signal(symbol, now, model, rf, "News velocity CONFLICTED", news_agg, pool)
 
     if event.get("detected") and event.get("urgency", 0) >= 0.9:
         v_mult = min(v_mult * 1.5, 3.0)
