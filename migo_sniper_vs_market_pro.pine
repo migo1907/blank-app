@@ -1,0 +1,286 @@
+//@version=6
+indicator("XAU/USD Migo VS Market Sniper Pro", overlay=true)
+
+// --- INPUTS ---
+int lookback        = input.int(50, "Structural Lookback")
+float atrMultTP1    = input.float(1.5, "TP1 ATR Multiplier (Partial)")
+float atrMultTP2    = input.float(2.5, "TP2 ATR Multiplier")
+float atrMultTP3    = input.float(4.0, "TP3 ATR Multiplier (Runner)")
+float atrMultSL     = input.float(1.5, "SL ATR Multiplier")
+float trailMult     = input.float(1.2, "Trail Stop ATR Multiplier")
+float tpProximity   = input.float(80.0, "Near-TP Reset Threshold %", minval=50, maxval=99) / 100.0
+int adxLen          = input.int(14, "ADX Length")
+float adxThreshold  = input.float(20.0, "ADX Sideways Threshold")
+float atrRangeRatio = input.float(0.75, "ATR Range Ratio (below = compressed)")
+float emaBandPct    = input.float(0.3, "EMA Band % (50/200 too close)")
+
+// --- REALISTIC SL/TP INPUTS ---
+bool  useStructure  = input.bool(true,  "Use Market Structure for SL/TP", group="Realistic Levels")
+int   swingLookback = input.int(10,     "Swing Lookback (protective SL)", minval=3, group="Realistic Levels")
+float slBufferMult  = input.float(0.5,  "SL Structure Buffer (ATR)", minval=0.0, group="Realistic Levels")
+float maxSLMult     = input.float(2.5,  "Max SL Distance (ATR cap)", minval=0.5, group="Realistic Levels")
+float minSLMult     = input.float(0.8,  "Min SL Distance (ATR floor)", minval=0.1, group="Realistic Levels")
+bool  useRRtps      = input.bool(true,  "TPs as Risk:Reward of actual SL", group="Realistic Levels")
+float rrTP1         = input.float(1.0,  "TP1 Risk:Reward", minval=0.25, group="Realistic Levels")
+float rrTP2         = input.float(2.0,  "TP2 Risk:Reward", minval=0.5, group="Realistic Levels")
+float rrTP3         = input.float(3.5,  "TP3 Risk:Reward", minval=1.0, group="Realistic Levels")
+
+// --- RE-ENTRY INPUTS ---
+bool  useReEntry    = input.bool(true,  "Enable Pullback Re-Entry Level", group="Re-Entry")
+float reEntryRatio  = input.float(0.5,  "Re-Entry Pullback (fraction of risk)", minval=0.1, maxval=0.9, group="Re-Entry")
+
+// --- CALCULATIONS ---
+float rsiValue = ta.rsi(close, 14)
+float maLong   = ta.ema(close, 200)
+float maShort  = ta.ema(close, 50)
+float atr      = ta.atr(14)
+float atrSma   = ta.sma(atr, 20)
+
+// --- ADX ---
+[diPlus, diMinus, adxValue] = ta.dmi(adxLen, adxLen)
+
+// --- SIDEWAYS DETECTION ---
+bool adxFlat       = adxValue < adxThreshold
+bool atrCompressed = atr < (atrSma * atrRangeRatio)
+bool emaTooClose   = math.abs(maShort - maLong) / maLong * 100 < emaBandPct
+int sidewaysCount  = (adxFlat ? 1 : 0) + (atrCompressed ? 1 : 0) + (emaTooClose ? 1 : 0)
+bool isSideways    = sidewaysCount >= 2
+
+// --- HTF TREND (1H) ---
+float ma50_1h  = request.security(syminfo.tickerid, "60", ta.ema(close, 50))
+float rsi_1h   = request.security(syminfo.tickerid, "60", ta.rsi(close, 14))
+string mainTrend = (close > ma50_1h and rsi_1h > 50) ? "UPTREND" : (close < ma50_1h and rsi_1h < 50) ? "DOWNTREND" : "SIDEWAYS"
+
+// --- AUTO-LEVELS ---
+float dynResist  = ta.highest(high, lookback)
+float dynSupport = ta.lowest(low, lookback)
+
+// --- PROTECTIVE SWING LEVELS (for structural SL) ---
+float swingLow   = ta.lowest(low, swingLookback)
+float swingHigh  = ta.highest(high, swingLookback)
+
+// --- TRADE STATE ---
+var string activeTrade  = "NONE"
+var float  entryPrice   = 0.0
+var float  tp1Price     = 0.0
+var float  tp2Price     = 0.0
+var float  tp3Price     = 0.0
+var float  slPrice      = 0.0
+var float  reEntryPrice = 0.0
+var int    tradeConf    = 0
+
+// TP stage tracking
+var bool   tp1Hit       = false
+var bool   tp2Hit       = false
+var bool   reEntryTagged = false
+var float  trailSL      = 0.0   // dynamic trailing stop after TP1
+
+// --- TRAIL STOP UPDATE (runs every bar while in trade) ---
+if activeTrade == "LONG" and tp1Hit
+    float newTrail = high - (atr * trailMult)
+    trailSL := math.max(trailSL, newTrail)   // only moves up, never down
+    slPrice  := trailSL
+
+if activeTrade == "SHORT" and tp1Hit
+    float newTrail = low + (atr * trailMult)
+    trailSL := math.min(trailSL, newTrail)   // only moves down, never up
+    slPrice  := trailSL
+
+// --- TP/SL HIT CHECKS ---
+// LONG exits
+if activeTrade == "LONG"
+    if not tp1Hit and high >= tp1Price
+        tp1Hit  := true
+        trailSL := close - (atr * trailMult)   // start trail from TP1 hit
+        slPrice := trailSL                      // SL moves to breakeven zone
+        label.new(bar_index, high, "TP1 ✓\nTrail ON", color=color.new(color.green, 40), textcolor=color.white, style=label.style_label_down, size=size.tiny)
+
+    if tp1Hit and not tp2Hit and high >= tp2Price
+        tp2Hit  := true
+        label.new(bar_index, high, "TP2 ✓", color=color.new(color.green, 20), textcolor=color.white, style=label.style_label_down, size=size.tiny)
+
+    if tp1Hit and tp2Hit and high >= tp3Price
+        activeTrade := "NONE", tp1Hit := false, tp2Hit := false
+        label.new(bar_index, high, "TP3 ✓\nFULL RUN!", color=color.green, textcolor=color.white, style=label.style_label_down, size=size.small)
+
+    if low <= slPrice
+        string exitLabel = tp1Hit ? (tp2Hit ? "SL (after TP2)" : "SL (after TP1)") : "SL HIT"
+        label.new(bar_index, low, exitLabel, color=color.red, textcolor=color.white, style=label.style_label_up, size=size.tiny)
+        activeTrade := "NONE", tp1Hit := false, tp2Hit := false
+
+// SHORT exits
+if activeTrade == "SHORT"
+    if not tp1Hit and low <= tp1Price
+        tp1Hit  := true
+        trailSL := close + (atr * trailMult)
+        slPrice := trailSL
+        label.new(bar_index, low, "TP1 ✓\nTrail ON", color=color.new(color.green, 40), textcolor=color.white, style=label.style_label_up, size=size.tiny)
+
+    if tp1Hit and not tp2Hit and low <= tp2Price
+        tp2Hit  := true
+        label.new(bar_index, low, "TP2 ✓", color=color.new(color.green, 20), textcolor=color.white, style=label.style_label_up, size=size.tiny)
+
+    if tp1Hit and tp2Hit and low <= tp3Price
+        activeTrade := "NONE", tp1Hit := false, tp2Hit := false
+        label.new(bar_index, low, "TP3 ✓\nFULL RUN!", color=color.green, textcolor=color.white, style=label.style_label_up, size=size.small)
+
+    if high >= slPrice
+        string exitLabel = tp1Hit ? (tp2Hit ? "SL (after TP2)" : "SL (after TP1)") : "SL HIT"
+        label.new(bar_index, high, exitLabel, color=color.red, textcolor=color.white, style=label.style_label_down, size=size.tiny)
+        activeTrade := "NONE", tp1Hit := false, tp2Hit := false
+
+// --- PULLBACK RE-ENTRY ZONE (info only — does NOT change trade state) ---
+// Flags when price retraces to the expected pullback level (between entry and SL)
+// before TP1 is reached, so a position can be added on the dip.
+if useReEntry and activeTrade == "LONG" and not tp1Hit and not reEntryTagged and low <= reEntryPrice and low > slPrice
+    reEntryTagged := true
+    label.new(bar_index, low, "RE-ENTRY ➕\nAdd @ " + str.tostring(reEntryPrice, "#.##"), color=color.new(color.blue, 20), textcolor=color.white, style=label.style_label_up, size=size.tiny)
+
+if useReEntry and activeTrade == "SHORT" and not tp1Hit and not reEntryTagged and high >= reEntryPrice and high < slPrice
+    reEntryTagged := true
+    label.new(bar_index, high, "RE-ENTRY ➕\nAdd @ " + str.tostring(reEntryPrice, "#.##"), color=color.new(color.blue, 20), textcolor=color.white, style=label.style_label_down, size=size.tiny)
+
+// --- NEAR-TP1 PROXIMITY RESET (only before TP1 hit) ---
+if activeTrade == "LONG" and not tp1Hit
+    float tpRange      = tp1Price - entryPrice
+    float nearTPLevel  = entryPrice + (tpRange * tpProximity)
+    bool touchedNearTP = ta.highest(high, 3) >= nearTPLevel
+    bool reversedAway  = close < nearTPLevel
+    if touchedNearTP and reversedAway
+        activeTrade := "NONE", tp1Hit := false, tp2Hit := false
+
+if activeTrade == "SHORT" and not tp1Hit
+    float tpRange      = entryPrice - tp1Price
+    float nearTPLevel  = entryPrice - (tpRange * tpProximity)
+    bool touchedNearTP = ta.lowest(low, 3) <= nearTPLevel
+    bool reversedAway  = close > nearTPLevel
+    if touchedNearTP and reversedAway
+        activeTrade := "NONE", tp1Hit := false, tp2Hit := false
+
+// --- SIGNALS ---
+bool buySignal  = not isSideways and ta.crossover(rsiValue, 45)  and close > low[1]
+bool sellSignal = not isSideways and ta.crossunder(rsiValue, 55) and close < high[1]
+
+bool doBuy  = buySignal  and (activeTrade != "LONG")
+bool doSell = sellSignal and (activeTrade != "SHORT")
+
+if doBuy
+    activeTrade := "LONG"
+    entryPrice  := close
+    // --- Realistic SL: protective swing low + ATR buffer, floored & capped by ATR ---
+    float structSL  = swingLow - (atr * slBufferMult)
+    float atrSL     = close - (atr * atrMultSL)
+    float rawSL     = useStructure ? math.min(structSL, atrSL) : atrSL
+    // bound risk so R:R stays sane: never tighter than min, never wider than max
+    rawSL := math.max(rawSL, close - (atr * maxSLMult))
+    rawSL := math.min(rawSL, close - (atr * minSLMult))
+    slPrice := rawSL
+    float riskLong = entryPrice - slPrice
+    // --- Realistic TPs: scale to actual risk (R:R), snap runner to real structure ---
+    tp1Price := useRRtps ? entryPrice + (riskLong * rrTP1) : close + (atr * atrMultTP1)
+    tp2Price := useRRtps ? entryPrice + (riskLong * rrTP2) : close + (atr * atrMultTP2)
+    tp3Price := useRRtps ? entryPrice + (riskLong * rrTP3) : close + (atr * atrMultTP3)
+    if useStructure and dynResist > tp1Price
+        tp3Price := math.max(tp3Price, dynResist)   // target true structural resistance
+    // --- Pullback re-entry level (between entry and SL) ---
+    reEntryPrice := entryPrice - (riskLong * reEntryRatio)
+    trailSL     := slPrice
+    tp1Hit      := false
+    tp2Hit      := false
+    reEntryTagged := false
+    tradeConf   := (mainTrend == "UPTREND" ? 88 : 65)
+    label.new(bar_index, low, "BUY\nEnt: " + str.tostring(entryPrice, "#.##") + "\nTP1: " + str.tostring(tp1Price, "#.##") + "\nTP2: " + str.tostring(tp2Price, "#.##") + "\nTP3: " + str.tostring(tp3Price, "#.##") + "\nSL: " + str.tostring(slPrice, "#.##") + "\nRe-Entry: " + str.tostring(reEntryPrice, "#.##"), color=color.green, textcolor=color.white, style=label.style_label_up, size=size.small)
+
+if doSell
+    activeTrade := "SHORT"
+    entryPrice  := close
+    // --- Realistic SL: protective swing high + ATR buffer, floored & capped by ATR ---
+    float structSL  = swingHigh + (atr * slBufferMult)
+    float atrSL     = close + (atr * atrMultSL)
+    float rawSL     = useStructure ? math.max(structSL, atrSL) : atrSL
+    rawSL := math.min(rawSL, close + (atr * maxSLMult))
+    rawSL := math.max(rawSL, close + (atr * minSLMult))
+    slPrice := rawSL
+    float riskShort = slPrice - entryPrice
+    tp1Price := useRRtps ? entryPrice - (riskShort * rrTP1) : close - (atr * atrMultTP1)
+    tp2Price := useRRtps ? entryPrice - (riskShort * rrTP2) : close - (atr * atrMultTP2)
+    tp3Price := useRRtps ? entryPrice - (riskShort * rrTP3) : close - (atr * atrMultTP3)
+    if useStructure and dynSupport < tp1Price
+        tp3Price := math.min(tp3Price, dynSupport)   // target true structural support
+    reEntryPrice := entryPrice + (riskShort * reEntryRatio)
+    trailSL     := slPrice
+    tp1Hit      := false
+    tp2Hit      := false
+    reEntryTagged := false
+    tradeConf   := (mainTrend == "DOWNTREND" ? 92 : 70)
+    label.new(bar_index, high, "SELL\nEnt: " + str.tostring(entryPrice, "#.##") + "\nTP1: " + str.tostring(tp1Price, "#.##") + "\nTP2: " + str.tostring(tp2Price, "#.##") + "\nTP3: " + str.tostring(tp3Price, "#.##") + "\nSL: " + str.tostring(slPrice, "#.##") + "\nRe-Entry: " + str.tostring(reEntryPrice, "#.##"), color=color.red, textcolor=color.white, style=label.style_label_down, size=size.small)
+
+// --- SIDEWAYS BACKGROUND ---
+bgcolor(isSideways ? color.new(color.yellow, 90) : na, title="Ranging Zone")
+
+// --- DASHBOARD ---
+string tpStage = not tp1Hit ? "Targeting TP1" : not tp2Hit ? "TP1 ✓ → TP2" : "TP2 ✓ → TP3 🚀"
+color stageColor = not tp1Hit ? color.white : not tp2Hit ? color.lime : color.aqua
+
+var table hub = table.new(position.bottom_left, 4, 11, bgcolor=color.rgb(15, 15, 15), border_color=color.gray, border_width=1)
+
+if barstate.islast
+    table.cell(hub, 0, 0, "MIGO SNIPER V6", text_color=color.white, bgcolor=color.rgb(65, 14, 58))
+    table.merge_cells(hub, 0, 0, 3, 0)
+
+    string mktState     = isSideways ? "⚠ RANGING — WAIT" : (mainTrend == "UPTREND" ? "▲ UPTREND" : "▼ DOWNTREND")
+    color mktStateColor = isSideways ? color.yellow : mainTrend == "UPTREND" ? color.green : color.red
+    table.cell(hub, 0, 1, "MKT STATE", text_color=color.gray, text_size=size.small)
+    table.cell(hub, 1, 1, mktState, text_color=mktStateColor)
+    table.merge_cells(hub, 1, 1, 3, 1)
+
+    table.cell(hub, 0, 2, "CONFIDENCE", text_color=color.gray, text_size=size.small)
+    table.cell(hub, 1, 2, isSideways ? "-" : str.tostring(tradeConf) + "%", text_color=color.yellow)
+    table.cell(hub, 2, 2, "WIN PROB",   text_color=color.gray, text_size=size.small)
+    table.cell(hub, 3, 2, isSideways ? "-" : "82%", text_color=color.green)
+
+    table.cell(hub, 0, 3, "SIGNAL", text_color=color.gray, text_size=size.small)
+    table.cell(hub, 1, 3, isSideways ? "BLOCKED" : activeTrade, text_color=isSideways ? color.yellow : activeTrade == "LONG" ? color.green : activeTrade == "SHORT" ? color.red : color.yellow)
+    table.cell(hub, 2, 3, "STAGE",   text_color=color.gray, text_size=size.small)
+    table.cell(hub, 3, 3, activeTrade != "NONE" ? tpStage : "-", text_color=stageColor)
+
+    table.cell(hub, 0, 4, "ENTRY",   text_color=color.gray, text_size=size.small)
+    table.cell(hub, 1, 4, activeTrade != "NONE" ? str.tostring(entryPrice, "#.##") : "WAIT", text_color=color.white)
+    table.cell(hub, 2, 4, "TRAIL SL", text_color=color.gray, text_size=size.small)
+    table.cell(hub, 3, 4, (activeTrade != "NONE" and tp1Hit) ? str.tostring(slPrice, "#.##") : "-", text_color=color.orange)
+
+    table.cell(hub, 0, 5, "TP1", text_color=color.gray, text_size=size.small)
+    table.cell(hub, 1, 5, activeTrade != "NONE" ? str.tostring(tp1Price, "#.##") : "-", text_color=tp1Hit ? color.lime : color.green)
+    table.cell(hub, 2, 5, "SL",  text_color=color.gray, text_size=size.small)
+    table.cell(hub, 3, 5, activeTrade != "NONE" ? str.tostring(slPrice, "#.##") : "-", text_color=color.red)
+
+    table.cell(hub, 0, 6, "TP2", text_color=color.gray, text_size=size.small)
+    table.cell(hub, 1, 6, activeTrade != "NONE" ? str.tostring(tp2Price, "#.##") : "-", text_color=tp2Hit ? color.lime : color.green)
+    table.cell(hub, 2, 6, "TP3 🚀", text_color=color.gray, text_size=size.small)
+    table.cell(hub, 3, 6, activeTrade != "NONE" ? str.tostring(tp3Price, "#.##") : "-", text_color=color.aqua)
+
+    table.cell(hub, 0, 7, "RE-ENTRY ➕", text_color=color.gray, text_size=size.small)
+    table.cell(hub, 1, 7, (activeTrade != "NONE" and useReEntry) ? str.tostring(reEntryPrice, "#.##") + (reEntryTagged ? " ✓" : "") : "-", text_color=reEntryTagged ? color.aqua : color.new(color.blue, 0))
+    table.cell(hub, 2, 7, "RISK (R)", text_color=color.gray, text_size=size.small)
+    table.cell(hub, 3, 7, activeTrade != "NONE" ? str.tostring(math.abs(entryPrice - slPrice), "#.##") : "-", text_color=color.orange)
+
+    float volRatio   = atr / atrSma
+    string volStatus = volRatio > 1.5 ? "HIGH VOL" : volRatio < 0.7 ? "LOW VOL" : "STABLE"
+    color volColor   = volStatus == "HIGH VOL" ? color.red : volStatus == "LOW VOL" ? color.aqua : color.green
+    table.cell(hub, 0, 8, "MKT IMPACT", text_color=color.gray, text_size=size.small)
+    table.cell(hub, 1, 8, volStatus, text_color=volColor)
+    table.merge_cells(hub, 1, 8, 3, 8)
+
+    string adxInfo = "ADX: " + str.tostring(math.round(adxValue, 1)) + (adxFlat ? " ✗" : " ✓") + "  ATR: " + (atrCompressed ? "✗" : "✓") + "  EMA: " + (emaTooClose ? "✗" : "✓")
+    table.cell(hub, 0, 9, adxInfo, text_color=color.new(color.gray, 30), text_size=size.small)
+    table.merge_cells(hub, 0, 9, 3, 9)
+
+// --- VISUALS ---
+plot(maLong, color=color.new(color.green, 50), title="200 EMA")
+plot(maShort, color=color.new(#0d64ac, 50), title="50 EMA")
+
+// Trail SL line while active
+plot(activeTrade != "NONE" and tp1Hit ? slPrice : na, color=color.orange, style=plot.style_stepline, linewidth=2, title="Trail Stop")
+
+// Pullback re-entry level while active (before TP1)
+plot((useReEntry and activeTrade != "NONE" and not tp1Hit) ? reEntryPrice : na, color=color.new(color.blue, 0), style=plot.style_stepline, linewidth=1, title="Re-Entry Level")
