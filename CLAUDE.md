@@ -25,6 +25,6 @@
 - Scheduler: 4 jobs — signal every 15min, breaking news every 2min, system check every 60min, daily brief at 08:00 UTC
 - ML: AdaptiveKNN + RandomForest + GradientBoosting, pool-aware (9 pools)
 - `get_rf(pool)` and `get_gbm(pool)` always take a pool argument
-- Features: 25 features (F1-F25); F25 = time-of-day sine, computed server-side (not from webhook)
+- Features: 25 features (F1-F25), all computed in Pine Script and sent via webhook
 - XAUUSD data: TVC:GOLD scanner (spot, ~$1-3 from ICMARKETS) + GC=F prev day H/L/C → pivot levels
 - Daily levels written to `data/daily_levels.json` by GitHub Actions (07:50 UTC Mon-Fri), fetched at runtime from GitHub raw URL
