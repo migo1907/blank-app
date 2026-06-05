@@ -1,24 +1,5 @@
 [
   {
-    "symbol": "XAUUSD",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "news_score": -0.1008,
-    "combined_score": 0.0,
-    "session": "N/A",
-    "regime": "UNKNOWN",
-    "regime_label": "UNKNOWN",
-    "reasoning": "News velocity CONFLICTED",
-    "status": "NEUTRAL",
-    "expires_at": "2026-06-05T01:21:34.247085+00:00",
-    "id": 101,
-    "created_at": "2026-06-05T00:51:34.643013+00:00"
-  },
-  {
     "symbol": "SPY",
     "direction": "NEUTRAL",
     "confidence": 0.0,
@@ -1920,5 +1901,25 @@
     "expires_at": "2026-06-05T12:56:14.989597+00:00",
     "id": 101,
     "created_at": "2026-06-05T12:26:15.308241+00:00"
+  },
+  {
+    "symbol": "XAUUSD",
+    "pool": "XAUUSD",
+    "direction": "SHORT",
+    "confidence": 0.6526,
+    "tier": "MED",
+    "ml_score": 0.584,
+    "rf_score": 0.0299,
+    "gbm_score": 0.0,
+    "news_score": -0.2138,
+    "combined_score": -0.5118,
+    "session": "OVERLAP",
+    "regime": "UNKNOWN",
+    "regime_label": "NORMAL",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:UNKNOWN(NORMAL)\u00d71.00 | sess:OVERLAP\u00d71.25 | confluence\u00d71.00 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.00) | news:bearish(-0.214) | combined:-0.512 \u2192 conf:0.653 \u26a1 NFP",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-05T13:09:03.627744+00:00",
+    "id": 101,
+    "created_at": "2026-06-05T12:39:04.181883+00:00"
   }
 ]
