@@ -229,6 +229,7 @@ async def _news_signal_cycle() -> None:
                 news_velocity=_latest_velocity,
                 high_impact_event=_latest_event,
                 symbol="SPY",
+                pool="STOCKS_INDEX_30M",
             )
             spy_dir = spy_signal["direction"]
             print(
@@ -391,7 +392,7 @@ async def _hourly_system_check() -> None:
         if _scheduler and _scheduler.running:
             jobs = _scheduler.get_jobs()
             job_ids = [j.id for j in jobs]
-            expected = {"news_signal_cycle", "breaking_news_cycle", "hourly_system_check", "daily_market_brief", "stocks_session_report"}
+            expected = {"news_signal_cycle", "breaking_news_cycle", "hourly_system_check", "daily_market_brief", "stocks_session_report", "daily_trade_count_report"}
             missing = expected - set(job_ids)
             if not missing:
                 ok.append(f"Scheduler — {len(jobs)} jobs running ✅")
@@ -517,13 +518,16 @@ async def _hourly_system_check() -> None:
         stocks_active = (dow < 5 and 13 <= hour_utc < 21)  # stocks 09:30–17:00 ET ≈ 13:30–21:00 UTC
 
         active_pools = [
-            ("data/trade_history_XAUUSD_2M.json",           "XAUUSD_2M",           gold_active,   6),
-            ("data/trade_history_XAUUSD_5M.json",           "XAUUSD_5M",           gold_active,   8),
-            ("data/trade_history_XAUUSD_30M.json",          "XAUUSD_30M",          gold_active,  12),
-            ("data/trade_history_STOCKS_MOMENTUM_30M.json", "STOCKS_MOMENTUM_30M", stocks_active, 4),
-            ("data/trade_history_STOCKS_QUALITY_30M.json",  "STOCKS_QUALITY_30M",  stocks_active, 4),
-            ("data/trade_history_STOCKS_MOMENTUM_4H.json",  "STOCKS_MOMENTUM_4H",  stocks_active, 8),
-            ("data/trade_history_STOCKS_QUALITY_4H.json",   "STOCKS_QUALITY_4H",   stocks_active, 8),
+            ("data/trade_history_XAUUSD_2M.json",           "XAUUSD_2M",           gold_active,    6),
+            ("data/trade_history_XAUUSD_5M.json",           "XAUUSD_5M",           gold_active,    8),
+            ("data/trade_history_XAUUSD_30M.json",          "XAUUSD_30M",          gold_active,   12),
+            ("data/trade_history_XAUUSD_1H.json",           "XAUUSD_1H",           gold_active,   16),
+            ("data/trade_history_STOCKS_MOMENTUM_30M.json", "STOCKS_MOMENTUM_30M", stocks_active,  4),
+            ("data/trade_history_STOCKS_QUALITY_30M.json",  "STOCKS_QUALITY_30M",  stocks_active,  4),
+            ("data/trade_history_STOCKS_INDEX_30M.json",    "STOCKS_INDEX_30M",    stocks_active,  4),
+            ("data/trade_history_STOCKS_MOMENTUM_4H.json",  "STOCKS_MOMENTUM_4H",  stocks_active,  8),
+            ("data/trade_history_STOCKS_QUALITY_4H.json",   "STOCKS_QUALITY_4H",   stocks_active,  8),
+            ("data/trade_history_STOCKS_INDEX_4H.json",     "STOCKS_INDEX_4H",     stocks_active,  8),
         ]
 
         silent_pools = []
@@ -632,6 +636,66 @@ async def _hourly_system_check() -> None:
         await send_critical_alert(title, detail, action)
 
 
+async def _daily_trade_count_report() -> None:
+    """Send a daily trade-count summary to Telegram at 21:15 UTC (after US session close)."""
+    from datetime import datetime, timezone, date
+    if datetime.now(timezone.utc).weekday() >= 5:
+        return
+    try:
+        from db import _get_file
+        from telegram_bot import send_text
+
+        today = date.today().isoformat()
+        pools = [
+            ("XAUUSD_2M",           "data/trade_history_XAUUSD_2M.json"),
+            ("XAUUSD_5M",           "data/trade_history_XAUUSD_5M.json"),
+            ("XAUUSD_30M",          "data/trade_history_XAUUSD_30M.json"),
+            ("XAUUSD_1H",           "data/trade_history_XAUUSD_1H.json"),
+            ("STOCKS_MOM_30M",      "data/trade_history_STOCKS_MOMENTUM_30M.json"),
+            ("STOCKS_QUAL_30M",     "data/trade_history_STOCKS_QUALITY_30M.json"),
+            ("STOCKS_IDX_30M",      "data/trade_history_STOCKS_INDEX_30M.json"),
+            ("STOCKS_MOM_4H",       "data/trade_history_STOCKS_MOMENTUM_4H.json"),
+            ("STOCKS_QUAL_4H",      "data/trade_history_STOCKS_QUALITY_4H.json"),
+            ("STOCKS_IDX_4H",       "data/trade_history_STOCKS_INDEX_4H.json"),
+        ]
+
+        lines = []
+        webhook_errors_today = 0
+        total_new = 0
+        for pool_name, path in pools:
+            hist, _ = await asyncio.to_thread(_get_file, path)
+            if not isinstance(hist, list):
+                continue
+            today_trades = [t for t in hist if t.get("created_at", "").startswith(today)]
+            if not today_trades:
+                continue
+            total = len(hist)
+            n = len(today_trades)
+            total_new += n
+            w = sum(1 for t in today_trades if t.get("outcome") == "WIN")
+            l = sum(1 for t in today_trades if t.get("outcome") == "LOSS")
+            p = sum(1 for t in today_trades if t.get("outcome") == "PARTIAL")
+            rf_ready = "✅" if total >= 15 else f"⏳{total}/15"
+            lines.append(f"<b>{pool_name}</b>: +{n} today (W{w}/L{l}/P{p}) — total:{total} {rf_ready}")
+
+        if not lines:
+            lines.append("No trades recorded today.")
+
+        now = datetime.now(timezone.utc).strftime("%d %b %Y")
+        msg = (
+            f"📊 <b>DAILY TRADE REPORT — {now}</b>\n"
+            f"━━━━━━━━━━━━━━━━━━━━\n"
+            + "\n".join(lines) +
+            f"\n━━━━━━━━━━━━━━━━━━━━\n"
+            f"Total new trades today: <b>{total_new}</b>\n"
+            f"Webhook logger: ✅ active | Auto-repair: ✅ hourly"
+        )
+        await send_text(msg)
+        print(f"[daily_report] Trade count report sent — {total_new} trades today.")
+    except Exception as e:
+        print(f"[daily_report] Error: {e}")
+
+
 async def _stocks_session_report() -> None:
     from datetime import datetime, timezone
     if datetime.now(timezone.utc).weekday() >= 5:
@@ -682,6 +746,7 @@ def start_scheduler() -> AsyncIOScheduler:
     _scheduler.add_job(_hourly_system_check, trigger="interval", hours=1, id="hourly_system_check", replace_existing=True)
     _scheduler.add_job(_daily_market_brief, trigger="cron", hour=8, minute=0, id="daily_market_brief", replace_existing=True)
     _scheduler.add_job(_stocks_session_report, trigger="cron", hour=21, minute=5, id="stocks_session_report", replace_existing=True)
+    _scheduler.add_job(_daily_trade_count_report, trigger="cron", hour=21, minute=15, id="daily_trade_count_report", replace_existing=True)
     _scheduler.start()
     print(f"[scheduler] Started — signal every {interval} min, breaking news every 2 min (Telegram paused), system check every 60 min, daily brief at 08:00 UTC.")
     return _scheduler

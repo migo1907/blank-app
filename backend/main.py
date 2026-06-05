@@ -84,6 +84,7 @@ class TradeOutcomePayload(BaseModel):
     entry_price: float = 0.0
     exit_price:  float = 0.0
     ml_score:    float = 0.5
+    symbol:      Optional[str]   = None
     f1:  float = 0.0
     f2:  float = 0.0
     f3:  float = 0.0
@@ -256,7 +257,7 @@ async def trade_outcome(payload: TradeOutcomePayload):
     from ml_ensemble import get_rf, get_gbm
     from db import insert_outcome, recent_outcomes, symbol_to_pool
 
-    sym  = getattr(payload, "symbol", "XAUUSD") or "XAUUSD"
+    sym  = payload.symbol or "XAUUSD"
     pool = symbol_to_pool(sym, payload.timeframe or "")
     model = get_model(pool)
     features = Features(

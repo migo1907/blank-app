@@ -176,6 +176,21 @@ def insert_outcome(outcome: dict) -> None:
     history, sha = _get_file(path)
     if history is None:
         history = []
+
+    # Deduplication — reject if same symbol|direction|entry_price|timeframe already exists.
+    # Prevents double-inserts when Pine Script fires both /webhook and /webhook/trade-outcome.
+    dedup_key = (
+        f"{outcome.get('symbol','')}|{outcome.get('direction','')}|"
+        f"{outcome.get('entry_price',0)}|{outcome.get('timeframe','')}"
+    )
+    existing_keys = {
+        f"{t.get('symbol','')}|{t.get('direction','')}|{t.get('entry_price',0)}|{t.get('timeframe','')}"
+        for t in history
+    }
+    if dedup_key in existing_keys:
+        print(f"[db] Duplicate trade skipped: {dedup_key} pool={pool}")
+        return
+
     outcome["id"] = str(uuid.uuid4())[:8]
     outcome["pool"] = pool
     outcome.setdefault("created_at", datetime.now(timezone.utc).isoformat())
@@ -248,15 +263,18 @@ def expire_old_signals(symbol: str = "XAUUSD") -> None:
 
 
 _WEBHOOK_LOG_PATH = "data/webhook_log.json"
-_WEBHOOK_LOG_MAX  = 500  # keep last 500 entries
+_WEBHOOK_LOG_MAX  = 2000  # keep last 2000 trade-close entries
 
 def log_raw_webhook(payload: dict) -> None:
     """
-    Append the raw webhook payload to data/webhook_log.json before any processing.
-    Called before validation so even malformed payloads are captured.
+    Append raw trade-close webhooks to data/webhook_log.json.
+    Only stores payloads with exit_price (actual closes, not signal entries).
     Capped at _WEBHOOK_LOG_MAX entries (oldest dropped first).
     Never raises — logging must not block or break the main flow.
     """
+    # Only log trade closes — signal entries (no exit_price) can't be repaired and waste space
+    if not payload.get("exit_price"):
+        return
     try:
         entry = {
             "received_at": datetime.now(timezone.utc).isoformat(),

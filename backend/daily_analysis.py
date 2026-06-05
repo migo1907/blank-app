@@ -28,7 +28,7 @@ except ImportError:
 # GitHub raw URL for pre-fetched levels (updated by GitHub Actions at 07:50 UTC)
 _LEVELS_URL = (
     "https://raw.githubusercontent.com/migo1907/blank-app/"
-    "claude/hopeful-pasteur-VVHCl/data/daily_levels.json"
+    "data/data/daily_levels.json"
 )
 
 SYMBOLS_TV = {
