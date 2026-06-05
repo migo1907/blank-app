@@ -15,6 +15,8 @@ _last_sent_direction_spy: str = "NEUTRAL"
 _last_ml_direction: str   = "NEUTRAL"
 _last_ml_direction_spy: str = "NEUTRAL"
 _startup_cycle: bool = True  # suppress intelligence alert on first cycle after restart
+_webhook_errors:  int = 0   # count of failed trade webhooks since last hourly check
+_webhook_ok:      int = 0   # count of successful trade webhooks since last hourly check
 
 _SEEN_HEADLINES_PATH = "data/seen_headlines.json"
 _SEEN_HEADLINES_MAX  = 500
@@ -28,6 +30,14 @@ def get_latest_velocity() -> dict:
 
 def get_latest_event() -> dict:
     return _latest_event
+
+def record_webhook_ok() -> None:
+    global _webhook_ok
+    _webhook_ok += 1
+
+def record_webhook_error() -> None:
+    global _webhook_errors
+    _webhook_errors += 1
 
 
 def _load_seen_headlines() -> set:
@@ -496,6 +506,69 @@ async def _hourly_system_check() -> None:
                 ok.append(f"Last webhook: {hours_since:.1f}h ago ✅")
     except Exception as e:
         print(f"[system_check] Webhook silence check failed: {e}")
+
+    # ── Webhook trade flow check (per pool) ──────────────────────────────────────
+    try:
+        global _webhook_errors, _webhook_ok
+        now_utc  = datetime.now(timezone.utc)
+        dow      = now_utc.weekday()           # 0=Mon … 4=Fri
+        hour_utc = now_utc.hour
+        gold_active   = True                   # gold trades 24/5
+        stocks_active = (dow < 5 and 13 <= hour_utc < 21)  # stocks 09:30–17:00 ET ≈ 13:30–21:00 UTC
+
+        active_pools = [
+            ("data/trade_history_XAUUSD_2M.json",           "XAUUSD_2M",           gold_active,   6),
+            ("data/trade_history_XAUUSD_5M.json",           "XAUUSD_5M",           gold_active,   8),
+            ("data/trade_history_XAUUSD_30M.json",          "XAUUSD_30M",          gold_active,  12),
+            ("data/trade_history_STOCKS_MOMENTUM_30M.json", "STOCKS_MOMENTUM_30M", stocks_active, 4),
+            ("data/trade_history_STOCKS_QUALITY_30M.json",  "STOCKS_QUALITY_30M",  stocks_active, 4),
+            ("data/trade_history_STOCKS_MOMENTUM_4H.json",  "STOCKS_MOMENTUM_4H",  stocks_active, 8),
+            ("data/trade_history_STOCKS_QUALITY_4H.json",   "STOCKS_QUALITY_4H",   stocks_active, 8),
+        ]
+
+        silent_pools = []
+        for path, pool_name, is_active, max_silent_hours in active_pools:
+            if not is_active:
+                continue
+            try:
+                hist, _ = await asyncio.to_thread(_get_file, path)
+                if isinstance(hist, list) and hist:
+                    last_ts = datetime.fromisoformat(hist[-1].get("created_at", "2000-01-01T00:00:00+00:00").replace("Z", "+00:00"))
+                    if last_ts.tzinfo is None:
+                        last_ts = last_ts.replace(tzinfo=timezone.utc)
+                    hours_since = (now_utc - last_ts).total_seconds() / 3600
+                    if hours_since > max_silent_hours:
+                        silent_pools.append(f"{pool_name}: {hours_since:.0f}h since last trade")
+            except Exception:
+                pass
+
+        if silent_pools:
+            detail = "\n".join(silent_pools)
+            critical_alerts.append((
+                "Trade Flow Gap Detected",
+                f"Pools with no new trades during active hours:\n{detail}",
+                "Check TradingView webhook log for 422 errors or expired alerts."
+            ))
+            issues.append(f"Trade flow gap in {len(silent_pools)} pool(s) ⚠️")
+        else:
+            ok.append("Trade flow — all active pools receiving data ✅")
+
+        # Webhook error counter check
+        if _webhook_errors > 0:
+            critical_alerts.append((
+                "Webhook Errors Detected",
+                f"{_webhook_errors} webhook(s) failed in the last hour — {_webhook_ok} succeeded.",
+                "Check Railway logs for details. Trades may not be recording correctly."
+            ))
+            issues.append(f"{_webhook_errors} webhook error(s) in last hour ⚠️")
+            _webhook_errors = 0
+            _webhook_ok     = 0
+        else:
+            ok.append(f"Webhook errors — none in last hour ({_webhook_ok} ok) ✅")
+            _webhook_ok = 0
+
+    except Exception as e:
+        print(f"[system_check] Trade flow check failed: {e}")
 
     try:
         from db import _get_file, _put_file

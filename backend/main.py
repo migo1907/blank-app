@@ -296,7 +296,11 @@ async def trade_outcome(payload: TradeOutcomePayload):
             if len(history) >= 15:
                 await asyncio.to_thread(get_rf(pool).retrain, history)
                 await asyncio.to_thread(get_gbm(pool).train, history)
+            from scheduler import record_webhook_ok
+            record_webhook_ok()
         except Exception as e:
+            from scheduler import record_webhook_error
+            record_webhook_error()
             print(f"[trade-outcome] background persist error: {e}")
     asyncio.create_task(_persist())
 
@@ -445,7 +449,11 @@ async def unified_webhook(payload: UnifiedPayload):
                 if len(history) >= 15:
                     await asyncio.to_thread(get_rf(pool).retrain, history)
                     await asyncio.to_thread(get_gbm(pool).train, history)
+                from scheduler import record_webhook_ok
+                record_webhook_ok()
             except Exception as e:
+                from scheduler import record_webhook_error
+                record_webhook_error()
                 print(f"[webhook] background persist error: {e}")
         asyncio.create_task(_persist())
 
