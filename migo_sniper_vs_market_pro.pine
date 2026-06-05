@@ -17,7 +17,7 @@ float emaBandPct    = input.float(0.3, "EMA Band % (50/200 too close)")
 // --- REALISTIC SL/TP INPUTS ---
 bool  useStructure  = input.bool(true,  "Use Market Structure for SL/TP", group="Realistic Levels")
 int   swingLookback = input.int(10,     "Swing Lookback (protective SL)", minval=3, group="Realistic Levels")
-float slBufferMult  = input.float(0.5,  "SL Structure Buffer (ATR)", minval=0.0, group="Realistic Levels")
+float slBufferMult  = input.float(0.7,  "SL Structure Buffer (ATR)", minval=0.0, group="Realistic Levels")
 float maxSLMult     = input.float(2.5,  "Max SL Distance (ATR cap)", minval=0.5, group="Realistic Levels")
 float minSLMult     = input.float(0.8,  "Min SL Distance (ATR floor)", minval=0.1, group="Realistic Levels")
 bool  useRRtps      = input.bool(true,  "TPs as Risk:Reward of actual SL", group="Realistic Levels")
@@ -27,7 +27,7 @@ float rrTP3         = input.float(3.5,  "TP3 Risk:Reward", minval=1.0, group="Re
 
 // --- RE-ENTRY INPUTS ---
 bool  useReEntry    = input.bool(true,  "Enable Pullback Re-Entry Level", group="Re-Entry")
-float reEntryRatio  = input.float(0.5,  "Re-Entry Pullback (fraction of risk)", minval=0.1, maxval=0.9, group="Re-Entry")
+float reEntryRatio  = input.float(0.4,  "Re-Entry Pullback (fraction of risk)", minval=0.1, maxval=0.9, group="Re-Entry")
 
 // --- CALCULATIONS ---
 float rsiValue = ta.rsi(close, 14)
