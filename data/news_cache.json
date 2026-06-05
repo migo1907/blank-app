@@ -1,356 +1,5 @@
 [
   {
-    "source": "MarketWatch Top",
-    "headline": "We thought we found the perfect luxury retirement community, but it\u2019s millions of dollars in debt. Are we trapped?",
-    "url": "https://www.marketwatch.com/story/we-thought-we-found-the-perfect-luxury-retirement-community-but-its-millions-of-dollars-in-debt-are-we-trapped-cde2e8f5?mod=mw_rss_topstories",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "retirement",
-      "real estate",
-      "unrelated"
-    ],
-    "fetched_at": "2026-06-05T16:39:18.812290+00:00"
-  },
-  {
-    "source": "Investing.com Comm",
-    "headline": "Wall St slides as chip stocks fall, jobs data fuels hawkish Fed fears",
-    "url": "https://www.investing.com/news/stock-market-news/nasdaq-sp-futures-slip-as-semiconductors-drag-payrolls-in-focus-4728127",
-    "sentiment_score": -0.6,
-    "impact": "MEDIUM",
-    "keywords": [
-      "hawkish Fed",
-      "dollar strength",
-      "risk off"
-    ],
-    "fetched_at": "2026-06-05T16:39:18.812290+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Sterling today: Pound slips as strong U.S. payrolls boost dollar",
-    "url": "https://www.investing.com/news/forex-news/sterling-today-pound-under-pressure-as-strong-us-labour-market-lifts-greenback-4728596",
-    "sentiment_score": -0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "strong dollar",
-      "payrolls data",
-      "rate expectations"
-    ],
-    "fetched_at": "2026-06-05T16:39:18.812290+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Dollar eases modestly with U.S.-Iran tensions, nonfarm payrolls in focus",
-    "url": "https://www.investing.com/news/forex-news/dollar-steadies-with-usiran-tensions-nonfarm-payrolls-in-focus-4727838",
-    "sentiment_score": 0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "Iran tensions",
-      "safe haven",
-      "risk premium"
-    ],
-    "fetched_at": "2026-06-05T16:39:18.812290+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "U.S. dollar slips marginally as risk sentiment outweighs safe haven demand",
-    "url": "https://www.investing.com/news/forex-news/asia-fx-steadies-after-tumbling-on-stronger-dollar-gulf-tensions-4725667",
-    "sentiment_score": 0.3,
-    "impact": "LOW",
-    "keywords": [
-      "risk sentiment",
-      "safe haven demand",
-      "mixed signals"
-    ],
-    "fetched_at": "2026-06-05T16:39:18.812290+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Sterling today: Pound edges higher but gains look fragile before payrolls",
-    "url": "https://www.investing.com/news/forex-news/sterling-today-pound-edges-higher-but-gains-look-fragile-before-payrolls-4726693",
-    "sentiment_score": -0.3,
-    "impact": "LOW",
-    "keywords": [
-      "sterling weakness",
-      "payroll uncertainty",
-      "mixed"
-    ],
-    "fetched_at": "2026-06-05T16:39:18.812290+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Canadian dollar falls to eight-week low on trade tensions",
-    "url": "https://www.investing.com/news/forex-news/canadian-dollar-falls-to-eightweek-low-on-trade-tensions-93CH-4725030",
-    "sentiment_score": -0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "trade tensions",
-      "dollar strength",
-      "risk off"
-    ],
-    "fetched_at": "2026-06-05T16:39:18.812290+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Dollar rises on U.S.-Iran tensions, higher rates; yen hits key intervention levels",
-    "url": "https://www.investing.com/news/forex-news/asia-fx-steady-amid-gulf-tensions-us-tariff-plans-yen-intervention-risks-return-4723306",
-    "sentiment_score": -0.7,
-    "impact": "HIGH",
-    "keywords": [
-      "dollar strength",
-      "rate expectations",
-      "geopolitical premium"
-    ],
-    "fetched_at": "2026-06-05T16:39:18.812290+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Yen falls to 160 per dollar as Gulf tensions boost greenback",
-    "url": "https://www.investing.com/news/forex-news/yen-falls-to-160-per-dollar-as-gulf-tensions-boost-greenback-93CH-4724738",
-    "sentiment_score": -0.6,
-    "impact": "MEDIUM",
-    "keywords": [
-      "yen weakness",
-      "dollar strength",
-      "safe haven rotation"
-    ],
-    "fetched_at": "2026-06-05T16:39:18.812290+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Sterling today: Pound slips as stronger dollar, oil rebound weigh on sentiment",
-    "url": "https://www.investing.com/news/forex-news/sterling-today-pound-slips-as-stronger-dollar-oil-rebound-weigh-on-sentiment-4724414",
-    "sentiment_score": -0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "dollar strength",
-      "oil rebound",
-      "sentiment headwind"
-    ],
-    "fetched_at": "2026-06-05T16:39:18.812290+00:00"
-  },
-  {
-    "source": "Mining.com",
-    "headline": "Poland, China lead renewed central bank gold buying",
-    "url": "https://www.mining.com/poland-china-lead-renewed-central-bank-gold-buying/",
-    "sentiment_score": 0.9,
-    "impact": "HIGH",
-    "keywords": [
-      "central bank demand",
-      "gold accumulation",
-      "bullish"
-    ],
-    "fetched_at": "2026-06-05T16:39:18.812290+00:00"
-  },
-  {
-    "source": "Mining.com",
-    "headline": "Solar silver thrifting not enough to curb demand",
-    "url": "https://www.mining.com/solar-thrifting-not-enough-to-curb-demand/",
-    "sentiment_score": 0.6,
-    "impact": "MEDIUM",
-    "keywords": [
-      "silver demand",
-      "supply deficit",
-      "bullish"
-    ],
-    "fetched_at": "2026-06-05T16:39:18.812290+00:00"
-  },
-  {
-    "source": "Mining.com",
-    "headline": "Fortune advances Nico cobalt-gold project as cash hurdle looms",
-    "url": "https://www.mining.com/fortune-advances-nico-cobalt-gold-project-as-cash-hurdle-looms/",
-    "sentiment_score": 0.4,
-    "impact": "LOW",
-    "keywords": [
-      "gold project development",
-      "junior explorer",
-      "minor bullish"
-    ],
-    "fetched_at": "2026-06-05T16:39:18.812290+00:00"
-  },
-  {
-    "source": "Mining.com",
-    "headline": "Silver X acquires full ownership of Peru gold project from Barrick",
-    "url": "https://www.mining.com/silver-x-acquires-full-ownership-of-peru-gold-project-from-barrick/",
-    "sentiment_score": 0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "consolidation",
-      "gold project",
-      "supply"
-    ],
-    "fetched_at": "2026-06-05T16:39:18.812290+00:00"
-  },
-  {
-    "source": "Mining.com",
-    "headline": "Gold price seen hitting record $4,920 as bull run resumes",
-    "url": "https://www.mining.com/gold-price-seen-hitting-record-4920-as-bull-run-resumes/",
-    "sentiment_score": 0.9,
-    "impact": "HIGH",
-    "keywords": [
-      "price target",
-      "bull run",
-      "strong bullish sentiment"
-    ],
-    "fetched_at": "2026-06-05T16:39:18.812290+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "US Employment Tracker Post-NFP - FJElite",
-    "url": "https://www.financialjuice.com/News/9621940/US-Employment-Tracker-Post-NFP---FJElite.aspx?xy=rss",
-    "sentiment_score": -0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "NFP",
-      "employment",
-      "labor market"
-    ],
-    "fetched_at": "2026-06-05T16:54:19.200422+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "NFP Market Reactions & Deviations - FJElite",
-    "url": "https://www.financialjuice.com/News/9621939/NFP-Market-Reactions--Deviations---FJElite.aspx?xy=rss",
-    "sentiment_score": -0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "NFP",
-      "market reaction",
-      "volatility"
-    ],
-    "fetched_at": "2026-06-05T16:54:19.200422+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "IAEA: Informed of serious incident during today's de-mining phase of agreed localized ceasefire near Zaporizhzhia nuclear plant",
-    "url": "https://www.financialjuice.com/News/9621937/IAEA-Informed-of-serious-incident-during-todays-de-mining-phase-of-agreed-localized-ceasefire-near-Zaporizhzhia-nuclear-plant.aspx?xy=rss",
-    "sentiment_score": 0.2,
-    "impact": "LOW",
-    "keywords": [
-      "geopolitical",
-      "Ukraine",
-      "risk"
-    ],
-    "fetched_at": "2026-06-05T16:54:19.200422+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Khamenei meeting with Trump will not happen, Iranian aide tells CNN",
-    "url": "https://www.financialjuice.com/News/9621888/Khamenei-meeting-with-Trump-will-not-happen-Iranian-aide-tells-CNN.aspx?xy=rss",
-    "sentiment_score": 0.1,
-    "impact": "LOW",
-    "keywords": [
-      "geopolitical",
-      "Iran",
-      "diplomacy"
-    ],
-    "fetched_at": "2026-06-05T16:54:19.200422+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Iran's Rezaei warned that Iran will \u201cdrag the war\u201d beyond the Persian Gulf if the US resumes the conflict - CNN",
-    "url": "https://www.financialjuice.com/News/9621887/Irans-Rezaei-warned-that-Iran-will-drag-the-war-beyond-the-Persian-Gulf-if-the-US-resumes-the-conflict---CNN.aspx?xy=rss",
-    "sentiment_score": 0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "geopolitical risk",
-      "Iran",
-      "conflict"
-    ],
-    "fetched_at": "2026-06-05T16:54:19.200422+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Iran supreme leader's adviser: talks deadlocked over $24 bln - CNN",
-    "url": "https://www.financialjuice.com/News/9621885/Iran-supreme-leaders-adviser-talks-deadlocked-over-24-bln---CNN.aspx?xy=rss",
-    "sentiment_score": 0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "geopolitical tension",
-      "Iran",
-      "negotiations"
-    ],
-    "fetched_at": "2026-06-05T16:54:19.200422+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "US Energy Secretary Wright: The US is going to add 40 million barrels to the SPR after the Iran conflict is over - Fox Business.",
-    "url": "https://www.financialjuice.com/News/9621840/US-Energy-Secretary-Wright-The-US-is-going-to-add-40-million-barrels-to-the-SPR-after-the-Iran-conflict-is-over---Fox-Business.aspx?xy=rss",
-    "sentiment_score": -0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "oil supply",
-      "SPR",
-      "energy"
-    ],
-    "fetched_at": "2026-06-05T16:54:19.200422+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Trump: Growth does not mean inflation.",
-    "url": "https://www.financialjuice.com/News/9621751/Trump-Growth-does-not-mean-inflation.aspx?xy=rss",
-    "sentiment_score": -0.2,
-    "impact": "LOW",
-    "keywords": [
-      "inflation",
-      "growth",
-      "monetary policy"
-    ],
-    "fetched_at": "2026-06-05T16:54:19.200422+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Fed's Hammack: It's reasonable to keep rates steady for now but if recent trends continue, it may soon be appropriate to act against high inflation.",
-    "url": "https://www.financialjuice.com/News/9621740/Feds-Hammack-Its-reasonable-to-keep-rates-steady-for-now-but-if-recent-trends-continue-it-may-soon-be-appropriate-to-act-against-high-inflation.aspx?xy=rss",
-    "sentiment_score": -0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "Fed hawkish",
-      "inflation",
-      "rates"
-    ],
-    "fetched_at": "2026-06-05T16:54:19.200422+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Fed's Hammack: Jobs report affirms labor market is roughly in balance.",
-    "url": "https://www.financialjuice.com/News/9621739/Feds-Hammack-Jobs-report-affirms-labor-market-is-roughly-in-balance.aspx?xy=rss",
-    "sentiment_score": -0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "labor market",
-      "Fed policy",
-      "rates"
-    ],
-    "fetched_at": "2026-06-05T16:54:19.200422+00:00"
-  },
-  {
-    "source": "MarketWatch Top",
-    "headline": "We thought we found the perfect luxury retirement community, but it\u2019s millions of dollars in debt. Are we trapped?",
-    "url": "https://www.marketwatch.com/story/we-thought-we-found-the-perfect-luxury-retirement-community-but-its-millions-of-dollars-in-debt-are-we-trapped-cde2e8f5?mod=mw_rss_topstories",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "retirement",
-      "real estate",
-      "unrelated"
-    ],
-    "fetched_at": "2026-06-05T16:54:19.200422+00:00"
-  },
-  {
-    "source": "Investing.com Comm",
-    "headline": "Wall St slides as chip stocks fall, jobs data fuels hawkish Fed fears",
-    "url": "https://www.investing.com/news/stock-market-news/nasdaq-sp-futures-slip-as-semiconductors-drag-payrolls-in-focus-4728127",
-    "sentiment_score": -0.6,
-    "impact": "HIGH",
-    "keywords": [
-      "Fed hawkish",
-      "strong jobs",
-      "dollar strength"
-    ],
-    "fetched_at": "2026-06-05T16:54:19.200422+00:00"
-  },
-  {
     "source": "Investing.com Forex",
     "headline": "Sterling today: Pound slips as strong U.S. payrolls boost dollar",
     "url": "https://www.investing.com/news/forex-news/sterling-today-pound-under-pressure-as-strong-us-labour-market-lifts-greenback-4728596",
@@ -2592,5 +2241,356 @@
       "price target"
     ],
     "fetched_at": "2026-06-05T18:00:47.752466+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Iran Oil Ministry: The debris removal at two damaged refineries in South Pars is 60% complete.",
+    "url": "https://www.financialjuice.com/News/9622045/Iran-Oil-Ministry-The-debris-removal-at-two-damaged-refineries-in-South-Pars-is-60-complete.aspx?xy=rss",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "Iran",
+      "refinery",
+      "infrastructure"
+    ],
+    "fetched_at": "2026-06-05T18:15:43.898310+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Trump: I will leave rate cut to Warsh during October meeting.",
+    "url": "https://www.financialjuice.com/News/9622005/Trump-I-will-leave-rate-cut-to-Warsh-during-October-meeting.aspx?xy=rss",
+    "sentiment_score": -0.6,
+    "impact": "MEDIUM",
+    "keywords": [
+      "rate cut",
+      "hawkish",
+      "stronger dollar"
+    ],
+    "fetched_at": "2026-06-05T18:15:43.898310+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Senator Warren calls on Nvidia President to testify June 11th. $NVDA",
+    "url": "https://www.financialjuice.com/News/9622001/Senator-Warren-calls-on-Nvidia-President-to-testify-June-11th-NVDA.aspx?xy=rss",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "Nvidia",
+      "regulation",
+      "tech"
+    ],
+    "fetched_at": "2026-06-05T18:15:43.898310+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "US states are preparing a lawsuit to block Paramount's acquisition of Warner Bros - sources $PSKY $WBD",
+    "url": "https://www.financialjuice.com/News/9621982/US-states-are-preparing-a-lawsuit-to-block-Paramounts-acquisition-of-Warner-Bros---sources-PSKY-WBD.aspx?xy=rss",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "merger",
+      "antitrust",
+      "media"
+    ],
+    "fetched_at": "2026-06-05T18:15:43.898310+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "US Employment Tracker Post-NFP - FJElite",
+    "url": "https://www.financialjuice.com/News/9621940/US-Employment-Tracker-Post-NFP---FJElite.aspx?xy=rss",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "employment",
+      "tracking",
+      "economic data"
+    ],
+    "fetched_at": "2026-06-05T18:15:43.898310+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "NFP Market Reactions & Deviations - FJElite",
+    "url": "https://www.financialjuice.com/News/9621939/NFP-Market-Reactions--Deviations---FJElite.aspx?xy=rss",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "NFP",
+      "market reaction",
+      "labor"
+    ],
+    "fetched_at": "2026-06-05T18:15:43.898310+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "IAEA: Informed of serious incident during today's de-mining phase of agreed localized ceasefire near Zaporizhzhia nuclear plant",
+    "url": "https://www.financialjuice.com/News/9621937/IAEA-Informed-of-serious-incident-during-todays-de-mining-phase-of-agreed-localized-ceasefire-near-Zaporizhzhia-nuclear-plant.aspx?xy=rss",
+    "sentiment_score": 0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "geopolitical risk",
+      "Ukraine",
+      "nuclear"
+    ],
+    "fetched_at": "2026-06-05T18:15:43.898310+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Khamenei meeting with Trump will not happen, Iranian aide tells CNN",
+    "url": "https://www.financialjuice.com/News/9621888/Khamenei-meeting-with-Trump-will-not-happen-Iranian-aide-tells-CNN.aspx?xy=rss",
+    "sentiment_score": 0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "geopolitical risk",
+      "Iran",
+      "safe haven"
+    ],
+    "fetched_at": "2026-06-05T18:15:43.898310+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Iran's Rezaei warned that Iran will \u201cdrag the war\u201d beyond the Persian Gulf if the US resumes the conflict - CNN",
+    "url": "https://www.financialjuice.com/News/9621887/Irans-Rezaei-warned-that-Iran-will-drag-the-war-beyond-the-Persian-Gulf-if-the-US-resumes-the-conflict---CNN.aspx?xy=rss",
+    "sentiment_score": 0.6,
+    "impact": "MEDIUM",
+    "keywords": [
+      "geopolitical risk",
+      "conflict escalation",
+      "safe haven"
+    ],
+    "fetched_at": "2026-06-05T18:15:43.898310+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Iran supreme leader's adviser: talks deadlocked over $24 bln - CNN",
+    "url": "https://www.financialjuice.com/News/9621885/Iran-supreme-leaders-adviser-talks-deadlocked-over-24-bln---CNN.aspx?xy=rss",
+    "sentiment_score": 0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "geopolitical risk",
+      "Iran tensions",
+      "safe haven"
+    ],
+    "fetched_at": "2026-06-05T18:15:43.898310+00:00"
+  },
+  {
+    "source": "MarketWatch Top",
+    "headline": "This credit-card pointsmaxxer booked a $16,000 first-class Emirates flight for $400 \u2014 and you can, too",
+    "url": "https://www.marketwatch.com/story/this-credit-card-pointsmaxxer-booked-a-16-000-first-class-emirates-flight-for-400-and-you-can-too-46f99294?mod=mw_rss_topstories",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "travel rewards",
+      "credit card",
+      "consumer"
+    ],
+    "fetched_at": "2026-06-05T18:15:43.898310+00:00"
+  },
+  {
+    "source": "MarketWatch Top",
+    "headline": "We thought we found the perfect luxury retirement community, but it\u2019s millions of dollars in debt. Are we trapped?",
+    "url": "https://www.marketwatch.com/story/we-thought-we-found-the-perfect-luxury-retirement-community-but-its-millions-of-dollars-in-debt-are-we-trapped-cde2e8f5?mod=mw_rss_topstories",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "retirement",
+      "real estate",
+      "debt"
+    ],
+    "fetched_at": "2026-06-05T18:15:43.898310+00:00"
+  },
+  {
+    "source": "Investing.com Comm",
+    "headline": "Paramount and Warner Bros trade lower on report of U.S. states suing to block deal",
+    "url": "https://www.investing.com/news/stock-market-news/paramount-and-warner-bros-trade-lower-on-report-of-us-states-suing-to-block-deal-93CH-4729004",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "media merger",
+      "stock",
+      "antitrust"
+    ],
+    "fetched_at": "2026-06-05T18:15:43.898310+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Sterling today: Pound slips as strong U.S. payrolls boost dollar",
+    "url": "https://www.investing.com/news/forex-news/sterling-today-pound-under-pressure-as-strong-us-labour-market-lifts-greenback-4728596",
+    "sentiment_score": -0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "strong dollar",
+      "NFP",
+      "bearish gold"
+    ],
+    "fetched_at": "2026-06-05T18:15:43.898310+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Dollar eases modestly with U.S.-Iran tensions, nonfarm payrolls in focus",
+    "url": "https://www.investing.com/news/forex-news/dollar-steadies-with-usiran-tensions-nonfarm-payrolls-in-focus-4727838",
+    "sentiment_score": 0.3,
+    "impact": "MEDIUM",
+    "keywords": [
+      "geopolitical risk",
+      "safe haven",
+      "dollar weakness"
+    ],
+    "fetched_at": "2026-06-05T18:15:43.898310+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "U.S. dollar slips marginally as risk sentiment outweighs safe haven demand",
+    "url": "https://www.investing.com/news/forex-news/asia-fx-steadies-after-tumbling-on-stronger-dollar-gulf-tensions-4725667",
+    "sentiment_score": 0.2,
+    "impact": "MEDIUM",
+    "keywords": [
+      "risk sentiment",
+      "safe haven",
+      "dollar weakness"
+    ],
+    "fetched_at": "2026-06-05T18:15:43.898310+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Sterling today: Pound edges higher but gains look fragile before payrolls",
+    "url": "https://www.investing.com/news/forex-news/sterling-today-pound-edges-higher-but-gains-look-fragile-before-payrolls-4726693",
+    "sentiment_score": -0.3,
+    "impact": "MEDIUM",
+    "keywords": [
+      "strong dollar",
+      "NFP",
+      "bearish"
+    ],
+    "fetched_at": "2026-06-05T18:15:43.898310+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Canadian dollar falls to eight-week low on trade tensions",
+    "url": "https://www.investing.com/news/forex-news/canadian-dollar-falls-to-eightweek-low-on-trade-tensions-93CH-4725030",
+    "sentiment_score": -0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "stronger dollar",
+      "trade tensions",
+      "currency weakness"
+    ],
+    "fetched_at": "2026-06-05T18:15:43.898310+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Dollar rises on U.S.-Iran tensions, higher rates; yen hits key intervention levels",
+    "url": "https://www.investing.com/news/forex-news/asia-fx-steady-amid-gulf-tensions-us-tariff-plans-yen-intervention-risks-return-4723306",
+    "sentiment_score": -0.7,
+    "impact": "HIGH",
+    "keywords": [
+      "strong dollar",
+      "geopolitical",
+      "rate expectations"
+    ],
+    "fetched_at": "2026-06-05T18:15:43.898310+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Yen falls to 160 per dollar as Gulf tensions boost greenback",
+    "url": "https://www.investing.com/news/forex-news/yen-falls-to-160-per-dollar-as-gulf-tensions-boost-greenback-93CH-4724738",
+    "sentiment_score": -0.6,
+    "impact": "HIGH",
+    "keywords": [
+      "strong dollar",
+      "yen weakness",
+      "safe haven flows reversed"
+    ],
+    "fetched_at": "2026-06-05T18:15:43.898310+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Sterling today: Pound slips as stronger dollar, oil rebound weigh on sentiment",
+    "url": "https://www.investing.com/news/forex-news/sterling-today-pound-slips-as-stronger-dollar-oil-rebound-weigh-on-sentiment-4724414",
+    "sentiment_score": -0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "strong dollar",
+      "oil rebound",
+      "bearish gold"
+    ],
+    "fetched_at": "2026-06-05T18:15:43.898310+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Gold price nearly flat on the year as rate hike chances surge",
+    "url": "https://www.mining.com/gold-price-nearly-flat-on-the-year-as-rate-hike-chances-surge/",
+    "sentiment_score": -0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "rate hike",
+      "strong dollar",
+      "headwinds"
+    ],
+    "fetched_at": "2026-06-05T18:15:43.898310+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Poland, China lead renewed central bank gold buying",
+    "url": "https://www.mining.com/poland-china-lead-renewed-central-bank-gold-buying/",
+    "sentiment_score": 0.7,
+    "impact": "HIGH",
+    "keywords": [
+      "central bank buying",
+      "demand",
+      "bullish"
+    ],
+    "fetched_at": "2026-06-05T18:15:43.898310+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Solar silver thrifting not enough to curb demand",
+    "url": "https://www.mining.com/solar-thrifting-not-enough-to-curb-demand/",
+    "sentiment_score": 0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "silver demand",
+      "supply constraint",
+      "bullish"
+    ],
+    "fetched_at": "2026-06-05T18:15:43.898310+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Fortune advances Nico cobalt-gold project as cash hurdle looms",
+    "url": "https://www.mining.com/fortune-advances-nico-cobalt-gold-project-as-cash-hurdle-looms/",
+    "sentiment_score": 0.3,
+    "impact": "MEDIUM",
+    "keywords": [
+      "gold project",
+      "development",
+      "exploration"
+    ],
+    "fetched_at": "2026-06-05T18:15:43.898310+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Silver X acquires full ownership of Peru gold project from Barrick",
+    "url": "https://www.mining.com/silver-x-acquires-full-ownership-of-peru-gold-project-from-barrick/",
+    "sentiment_score": 0.3,
+    "impact": "MEDIUM",
+    "keywords": [
+      "acquisition",
+      "gold project",
+      "Peru"
+    ],
+    "fetched_at": "2026-06-05T18:15:43.898310+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Gold price seen hitting record $4,920 as bull run resumes",
+    "url": "https://www.mining.com/gold-price-seen-hitting-record-4920-as-bull-run-resumes/",
+    "sentiment_score": 0.8,
+    "impact": "HIGH",
+    "keywords": [
+      "record price",
+      "bull run",
+      "strong bullish sentiment"
+    ],
+    "fetched_at": "2026-06-05T18:15:43.898310+00:00"
   }
 ]
