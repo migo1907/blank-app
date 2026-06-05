@@ -271,3 +271,108 @@ def log_raw_webhook(payload: dict) -> None:
         _put_file(_WEBHOOK_LOG_PATH, log, sha, "chore: webhook log")
     except Exception as e:
         print(f"[webhook_log] Failed to log payload: {e}")
+
+
+def repair_missing_trades() -> list[str]:
+    """
+    Read webhook_log.json, compare each logged payload against the pool it belongs to.
+    Any payload not found in the pool → insert it automatically.
+    Returns a list of repair messages (one per inserted trade).
+    Match key: symbol + direction + entry_price + timeframe (unique per trade).
+    """
+    repaired = []
+    try:
+        log, _ = _get_file(_WEBHOOK_LOG_PATH)
+        if not isinstance(log, list) or not log:
+            return repaired
+
+        # Build a set of existing trade keys per pool for fast lookup
+        pool_keys: dict[str, set] = {}
+
+        def _get_pool_keys(pool: str) -> set:
+            if pool not in pool_keys:
+                path = _pool_history_file(pool)
+                hist, _ = _get_file(path)
+                if isinstance(hist, list):
+                    pool_keys[pool] = {
+                        f"{t.get('symbol','')}|{t.get('direction','')}|{t.get('entry_price',0)}|{t.get('timeframe','')}"
+                        for t in hist
+                    }
+                else:
+                    pool_keys[pool] = set()
+            return pool_keys[pool]
+
+        for entry in log:
+            p = entry.get("payload", {})
+            outcome = p.get("outcome", "")
+            # Only process trade closes — skip heartbeats and signal entries
+            if not outcome or outcome.upper() in ("HEARTBEAT", ""):
+                continue
+            if p.get("trade_id") == "heartbeat":
+                continue
+            # Skip if no exit price (signal entry, not a close)
+            if not p.get("exit_price"):
+                continue
+
+            symbol    = p.get("symbol", "XAUUSD")
+            direction = p.get("direction", "")
+            entry_px  = float(p.get("entry_price", 0) or 0)
+            exit_px   = float(p.get("exit_price", 0) or 0)
+            timeframe = str(p.get("timeframe", "") or "")
+
+            if not direction or entry_px == 0:
+                continue
+
+            pool    = symbol_to_pool(symbol, timeframe)
+            key     = f"{symbol}|{direction}|{entry_px}|{timeframe}"
+            keys    = _get_pool_keys(pool)
+
+            if key in keys:
+                continue  # already stored — skip
+
+            # Reconstruct trade record and insert
+            raw_pct = (exit_px - entry_px) / max(entry_px, 0.0001) * 100
+            pnl_pct = raw_pct if direction == "LONG" else -raw_pct
+
+            # Normalize outcome
+            norm = outcome.upper().strip()
+            if norm in ("WIN", "TP3", "TP2", "TP1"):           norm = "WIN"
+            elif norm in ("LOSS", "SL"):                        norm = "LOSS"
+            elif norm in ("PARTIAL", "SL_TP1", "SL_TP2",
+                          "SL_TP3", "TP1_SL", "TP2_SL"):       norm = "PARTIAL"
+            else:                                               norm = "LOSS"
+
+            trade_row: dict = {
+                "symbol":       symbol,
+                "direction":    direction,
+                "trigger":      p.get("trigger", "") or "",
+                "entry_price":  entry_px,
+                "exit_price":   exit_px,
+                "outcome":      norm,
+                "ml_outcome":   p.get("ml_outcome") or norm,
+                "mfe":          float(p.get("mfe", 0) or 0),
+                "tp_stage":     p.get("tp_stage", "") or "",
+                "timeframe":    timeframe,
+                "pnl_pct":      round(pnl_pct, 4),
+                "ml_bull_score": float(p.get("ml_score", 0.5) or 0.5),
+                "created_at":   entry.get("received_at", datetime.now(timezone.utc).isoformat()),
+                "_repaired":    True,
+            }
+            # Attach features f1-f25
+            for i in range(1, 26):
+                trade_row[f"f{i}"] = float(p.get(f"f{i}", 0) or 0)
+
+            try:
+                insert_outcome(trade_row)
+                # Update cached keys so duplicate log entries don't double-insert
+                pool_keys[pool].add(key)
+                msg = f"[auto-repair] Inserted missing {norm} {direction} {symbol} {timeframe}m entry={entry_px} pool={pool}"
+                print(msg)
+                repaired.append(msg)
+            except Exception as e:
+                print(f"[auto-repair] Insert failed for {key}: {e}")
+
+    except Exception as e:
+        print(f"[auto-repair] repair_missing_trades failed: {e}")
+
+    return repaired
