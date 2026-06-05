@@ -570,6 +570,23 @@ async def _hourly_system_check() -> None:
     except Exception as e:
         print(f"[system_check] Trade flow check failed: {e}")
 
+    # ── Auto-repair missing trades from webhook log ───────────────────────────────
+    try:
+        from db import repair_missing_trades
+        repaired = await asyncio.to_thread(repair_missing_trades)
+        if repaired:
+            detail = "\n".join(repaired)
+            await send_critical_alert(
+                "Auto-Repair: Missing Trades Recovered",
+                f"{len(repaired)} trade(s) missing from pools were auto-inserted:\n{detail}",
+                "Trades recovered from webhook_log.json — check data branch to verify.",
+            )
+            issues.append(f"Auto-repaired {len(repaired)} missing trade(s) ✅")
+        else:
+            ok.append("Auto-repair scan — no missing trades found ✅")
+    except Exception as e:
+        print(f"[system_check] Auto-repair failed: {e}")
+
     try:
         from db import _get_file, _put_file
         history, sha = await asyncio.to_thread(_get_file, "data/trade_history.json")
