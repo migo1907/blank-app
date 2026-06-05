@@ -74,8 +74,8 @@ app = FastAPI(
 
 class TradeOutcomePayload(BaseModel):
     secret:      str
-    trade_id:    str
-    direction:   Literal["LONG", "SHORT"]
+    trade_id:    Optional[str]   = None
+    direction:   str
     outcome:     str
     ml_outcome:  Optional[str]   = None
     mfe:         float           = 0.0
