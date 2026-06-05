@@ -76,13 +76,13 @@ class TradeOutcomePayload(BaseModel):
     secret:      str
     trade_id:    str
     direction:   Literal["LONG", "SHORT"]
-    outcome:     Literal["WIN", "LOSS", "PARTIAL"]
+    outcome:     Literal["WIN", "LOSS", "PARTIAL", "HEARTBEAT"]
     ml_outcome:  Optional[str]   = None
     mfe:         float           = 0.0
     timeframe:   Optional[str]   = None
     tp_stage:    str = ""
-    entry_price: float
-    exit_price:  float
+    entry_price: float = 0.0
+    exit_price:  float = 0.0
     ml_score:    float = 0.5
     f1:  float = 0.0
     f2:  float = 0.0
@@ -206,6 +206,26 @@ async def test_telegram(secret: str = ""):
 async def trade_outcome(payload: TradeOutcomePayload):
     _validate_secret(payload.secret)
 
+    # HEARTBEAT — update feature cache only, no trade record
+    if payload.outcome == "HEARTBEAT":
+        from ml_model import Features
+        from db import symbol_to_pool
+        from signal_engine import update_latest_features
+        sym  = getattr(payload, "symbol", "XAUUSD") or "XAUUSD"
+        pool = symbol_to_pool(sym, payload.timeframe or "")
+        features = Features(
+            f1=payload.f1, f2=payload.f2, f3=payload.f3, f4=payload.f4,
+            f5=payload.f5, f6=payload.f6, f7=payload.f7, f8=payload.f8,
+            f9=payload.f9, f10=payload.f10, f11=payload.f11, f12=payload.f12,
+            f13=payload.f13, f14=payload.f14, f15=payload.f15, f16=payload.f16,
+            f17=payload.f17, f18=payload.f18, f19=payload.f19, f20=payload.f20,
+            f21=payload.f21, f22=payload.f22, f23=payload.f23, f24=payload.f24,
+            f25=payload.f25,
+        )
+        update_latest_features(pool, features)
+        print(f"[heartbeat] Cache updated for pool={pool}")
+        return {"status": "ok", "outcome": "HEARTBEAT", "pool": pool}
+
     from ml_model import get_model, Features
     from ml_ensemble import get_rf, get_gbm
     from db import insert_outcome, recent_outcomes, symbol_to_pool
@@ -321,6 +341,25 @@ async def unified_webhook(payload: UnifiedPayload):
             "event":       get_latest_event().get("event_type", ""),
         }))
         return {"status": "ok", "routed_to": "signal-entry", "direction": payload.direction}
+
+    if payload.outcome == "HEARTBEAT":
+        from ml_model import Features
+        from db import symbol_to_pool
+        from signal_engine import update_latest_features
+        sym2 = payload.symbol or "XAUUSD"
+        pool = symbol_to_pool(sym2, payload.timeframe or "")
+        features = Features(
+            f1=payload.f1, f2=payload.f2, f3=payload.f3, f4=payload.f4,
+            f5=payload.f5, f6=payload.f6, f7=payload.f7, f8=payload.f8,
+            f9=payload.f9, f10=payload.f10, f11=payload.f11, f12=payload.f12,
+            f13=payload.f13, f14=payload.f14, f15=payload.f15, f16=payload.f16,
+            f17=payload.f17, f18=payload.f18, f19=payload.f19, f20=payload.f20,
+            f21=payload.f21, f22=payload.f22, f23=payload.f23, f24=payload.f24,
+            f25=payload.f25,
+        )
+        update_latest_features(pool, features)
+        print(f"[heartbeat] Cache updated for pool={pool}")
+        return {"status": "ok", "outcome": "HEARTBEAT", "pool": pool}
 
     if is_outcome:
         from ml_model import get_model, Features
