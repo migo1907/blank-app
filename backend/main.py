@@ -218,6 +218,12 @@ async def trade_outcome(payload: TradeOutcomePayload):
     _validate_secret(payload.secret)
     payload.outcome = _normalize_outcome(payload.outcome)
 
+    # Log raw payload before any processing (skip heartbeats to save space)
+    if payload.outcome != "HEARTBEAT":
+        asyncio.create_task(asyncio.to_thread(
+            __import__("db").log_raw_webhook, payload.model_dump()
+        ))
+
     # HEARTBEAT — update feature cache only, no trade record
     if payload.outcome == "HEARTBEAT":
         from ml_model import Features
@@ -344,6 +350,12 @@ async def unified_webhook(payload: UnifiedPayload):
 
     if payload.outcome is not None:
         payload.outcome = _normalize_outcome(payload.outcome)
+
+    # Log raw payload before processing (skip heartbeats to save space)
+    if payload.outcome != "HEARTBEAT" and payload.trade_id != "heartbeat":
+        asyncio.create_task(asyncio.to_thread(
+            __import__("db").log_raw_webhook, payload.model_dump()
+        ))
 
     is_entry  = payload.tp1 is not None and payload.sl is not None
     is_outcome = payload.trade_id is not None and payload.outcome is not None

@@ -245,3 +245,29 @@ def insert_signal(signal: dict) -> dict:
 def expire_old_signals(symbol: str = "XAUUSD") -> None:
     # Handled passively — old signals are just overwritten in the file
     pass
+
+
+_WEBHOOK_LOG_PATH = "data/webhook_log.json"
+_WEBHOOK_LOG_MAX  = 500  # keep last 500 entries
+
+def log_raw_webhook(payload: dict) -> None:
+    """
+    Append the raw webhook payload to data/webhook_log.json before any processing.
+    Called before validation so even malformed payloads are captured.
+    Capped at _WEBHOOK_LOG_MAX entries (oldest dropped first).
+    Never raises — logging must not block or break the main flow.
+    """
+    try:
+        entry = {
+            "received_at": datetime.now(timezone.utc).isoformat(),
+            "payload":     payload,
+        }
+        log, sha = _get_file(_WEBHOOK_LOG_PATH)
+        if not isinstance(log, list):
+            log = []
+        log.append(entry)
+        if len(log) > _WEBHOOK_LOG_MAX:
+            log = log[-_WEBHOOK_LOG_MAX:]
+        _put_file(_WEBHOOK_LOG_PATH, log, sha, "chore: webhook log")
+    except Exception as e:
+        print(f"[webhook_log] Failed to log payload: {e}")
