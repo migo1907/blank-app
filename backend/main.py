@@ -76,7 +76,7 @@ class TradeOutcomePayload(BaseModel):
     secret:      str
     trade_id:    str
     direction:   Literal["LONG", "SHORT"]
-    outcome:     Literal["WIN", "LOSS", "PARTIAL", "HEARTBEAT"]
+    outcome:     str
     ml_outcome:  Optional[str]   = None
     mfe:         float           = 0.0
     timeframe:   Optional[str]   = None
@@ -202,9 +202,21 @@ async def test_telegram(secret: str = ""):
     return {"status": "sent", "chat_id": chat_id, "token_prefix": token[:10] + "..."}
 
 
+def _normalize_outcome(raw: str) -> str:
+    """Map Pine Script outcome strings to internal WIN/LOSS/PARTIAL/HEARTBEAT."""
+    v = raw.upper().strip()
+    if v == "HEARTBEAT":                          return "HEARTBEAT"
+    if v in ("WIN", "TP3", "TP2", "TP1"):         return "WIN"
+    if v in ("LOSS", "SL"):                        return "LOSS"
+    if v in ("PARTIAL", "SL_TP1", "SL_TP2",
+             "SL_TP3", "TP1_SL", "TP2_SL"):       return "PARTIAL"
+    return "LOSS"  # unknown → treat as loss
+
+
 @app.post("/webhook/trade-outcome")
 async def trade_outcome(payload: TradeOutcomePayload):
     _validate_secret(payload.secret)
+    payload.outcome = _normalize_outcome(payload.outcome)
 
     # HEARTBEAT — update feature cache only, no trade record
     if payload.outcome == "HEARTBEAT":
@@ -325,6 +337,9 @@ async def signal_entry(payload: SignalEntryPayload):
 @app.post("/webhook")
 async def unified_webhook(payload: UnifiedPayload):
     _validate_secret(payload.secret)
+
+    if payload.outcome is not None:
+        payload.outcome = _normalize_outcome(payload.outcome)
 
     is_entry  = payload.tp1 is not None and payload.sl is not None
     is_outcome = payload.trade_id is not None and payload.outcome is not None
