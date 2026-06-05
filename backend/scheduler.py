@@ -46,8 +46,11 @@ def _load_seen_headlines() -> set:
         signals, _ = _get_file("data/signals.json")
         if isinstance(signals, list) and signals:
             for sig in reversed(signals):
-                sym = sig.get("symbol", "XAUUSD")
-                d   = sig.get("direction")
+                sym   = sig.get("symbol", "XAUUSD")
+                d     = sig.get("direction")
+                score = sig.get("combined_score", 0.0)
+                ml_d  = "LONG" if score > 0 else "SHORT" if score < 0 else "NEUTRAL"
+
                 if d not in ("NEUTRAL", None, ""):
                     if sym == "SPY" and _last_sent_direction_spy == "NEUTRAL":
                         _last_sent_direction_spy = d
@@ -55,7 +58,20 @@ def _load_seen_headlines() -> set:
                     elif sym != "SPY" and _last_sent_direction == "NEUTRAL":
                         _last_sent_direction = d
                         print(f"[scheduler] Last sent direction restored: {d}")
-                if _last_sent_direction != "NEUTRAL" and _last_sent_direction_spy != "NEUTRAL":
+
+                if ml_d != "NEUTRAL":
+                    if sym == "SPY" and _last_ml_direction_spy == "NEUTRAL":
+                        _last_ml_direction_spy = ml_d
+                        print(f"[scheduler] SPY last ML direction restored: {ml_d}")
+                    elif sym != "SPY" and _last_ml_direction == "NEUTRAL":
+                        _last_ml_direction = ml_d
+                        print(f"[scheduler] Last ML direction restored: {ml_d}")
+
+                all_restored = (
+                    _last_sent_direction != "NEUTRAL" and _last_sent_direction_spy != "NEUTRAL" and
+                    _last_ml_direction   != "NEUTRAL" and _last_ml_direction_spy   != "NEUTRAL"
+                )
+                if all_restored:
                     break
     except Exception as e:
         print(f"[scheduler] Could not restore last sent direction: {e}")
