@@ -14,6 +14,7 @@ _last_sent_direction: str  = "NEUTRAL"
 _last_sent_direction_spy: str = "NEUTRAL"
 _last_ml_direction: str   = "NEUTRAL"
 _last_ml_direction_spy: str = "NEUTRAL"
+_startup_cycle: bool = True  # suppress intelligence alert on first cycle after restart
 
 _SEEN_HEADLINES_PATH = "data/seen_headlines.json"
 _SEEN_HEADLINES_MAX  = 500
@@ -153,7 +154,7 @@ async def _breaking_news_cycle() -> None:
 
 
 async def _news_signal_cycle() -> None:
-    global _latest_news_agg, _latest_velocity, _latest_event, _fj_seen_headlines, _last_sent_direction, _last_sent_direction_spy, _last_ml_direction, _last_ml_direction_spy
+    global _latest_news_agg, _latest_velocity, _latest_event, _fj_seen_headlines, _last_sent_direction, _last_sent_direction_spy, _last_ml_direction, _last_ml_direction_spy, _startup_cycle
     print("[scheduler] Starting news + velocity + signal cycle…")
 
     try:
@@ -204,9 +205,12 @@ async def _news_signal_cycle() -> None:
         from telegram_bot import send_market_intelligence
         ml_direction = "LONG" if signal.get("combined_score", 0) > 0 else "SHORT" if signal.get("combined_score", 0) < 0 else "NEUTRAL"
         if ml_direction != "NEUTRAL" and ml_direction != _last_ml_direction:
-            await send_market_intelligence(signal, ml_direction)
+            if _startup_cycle:
+                print(f"[scheduler] Startup cycle — suppressing intelligence alert, direction={ml_direction}.")
+            else:
+                await send_market_intelligence(signal, ml_direction)
+                print(f"[scheduler] ML direction flipped → {ml_direction} — intelligence alert sent.")
             _last_ml_direction = ml_direction
-            print(f"[scheduler] ML direction flipped → {ml_direction} — intelligence alert sent.")
 
         try:
             spy_signal = generate_signal(
@@ -235,12 +239,16 @@ async def _news_signal_cycle() -> None:
             # SPY ML direction flip intelligence
             spy_ml_dir = "LONG" if spy_signal.get("combined_score", 0) > 0 else "SHORT" if spy_signal.get("combined_score", 0) < 0 else "NEUTRAL"
             if spy_ml_dir != "NEUTRAL" and spy_ml_dir != _last_ml_direction_spy:
-                await send_market_intelligence(spy_signal, spy_ml_dir)
+                if _startup_cycle:
+                    print(f"[scheduler] Startup cycle — suppressing SPY intelligence alert, direction={spy_ml_dir}.")
+                else:
+                    await send_market_intelligence(spy_signal, spy_ml_dir)
+                    print(f"[scheduler] SPY ML direction flipped → {spy_ml_dir} — intelligence alert sent.")
                 _last_ml_direction_spy = spy_ml_dir
-                print(f"[scheduler] SPY ML direction flipped → {spy_ml_dir} — intelligence alert sent.")
         except Exception as e:
             print(f"[scheduler] SPY signal error: {e}")
 
+        _startup_cycle = False  # first cycle complete — normal firing from here on
         asyncio.create_task(_write_health_status(signal, agg, velocity, len(fj_breaking)))
 
     except Exception as e:
