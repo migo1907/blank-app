@@ -229,23 +229,19 @@ async def send_stocks_session_report() -> bool:
     return await _send(msg)
 
 
-async def send_market_intelligence(signal: dict) -> bool:
+async def send_market_intelligence(signal: dict, ml_direction: str) -> bool:
     """
     Send market intelligence alert when ML direction changes.
     Fires regardless of confidence — purely on direction flip.
     """
-    direction  = signal.get("direction", "NEUTRAL")
     confidence = signal.get("confidence", 0.0)
     regime     = signal.get("regime", "UNKNOWN")
     session    = signal.get("session", "")
     event      = signal.get("high_impact_event", "")
     symbol     = signal.get("symbol", "XAUUSD").split(":")[-1]
-    ml_score   = signal.get("ml_score", 0.5)
-    rf_score   = signal.get("rf_score", 0.5)
-    gbm_score  = signal.get("gbm_score", 0.5)
     now        = datetime.now(timezone.utc).strftime("%H:%M UTC — %d %b %Y")
 
-    dir_emoji  = "🟢" if direction == "LONG" else "🔴" if direction == "SHORT" else "⚪"
+    dir_emoji  = "🟢" if ml_direction == "LONG" else "🔴"
 
     regime_map = {
         "TRENDING_BEAR": "📉 Trending Bear",
@@ -273,11 +269,10 @@ async def send_market_intelligence(signal: dict) -> bool:
     conf_str = f"{confidence*100:.0f}%" if confidence > 0 else "—"
 
     msg = (
-        f"{dir_emoji} <b>ML DIRECTION FLIP — {symbol}</b>\n"
+        f"{dir_emoji} <b>ML DIRECTION — {symbol}</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
-        f"Direction:  <b>{direction}</b>\n"
+        f"Direction:  <b>{ml_direction}</b>\n"
         f"Confidence: <b>{conf_str}</b>\n\n"
-        f"🧠 KNN: {ml_score*100:.0f}%  RF: {rf_score*100:.0f}%  GBM: {gbm_score*100:.0f}%\n"
         f"📊 Regime:  {regime_label}\n"
         f"⏱ Session: {sess_label}\n"
     )

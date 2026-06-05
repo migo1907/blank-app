@@ -186,11 +186,9 @@ async def _news_signal_cycle() -> None:
 
         # ── Market Intelligence — fire on ML direction flip (regardless of confidence) ──
         from telegram_bot import send_market_intelligence
-        ml_raw_dir = signal.get("reasoning", "")
-        # Extract raw ML direction from combined_score
         ml_direction = "LONG" if signal.get("combined_score", 0) > 0 else "SHORT" if signal.get("combined_score", 0) < 0 else "NEUTRAL"
         if ml_direction != "NEUTRAL" and ml_direction != _last_ml_direction:
-            await send_market_intelligence(signal)
+            await send_market_intelligence(signal, ml_direction)
             _last_ml_direction = ml_direction
             print(f"[scheduler] ML direction flipped → {ml_direction} — intelligence alert sent.")
 
@@ -221,7 +219,7 @@ async def _news_signal_cycle() -> None:
             # SPY ML direction flip intelligence
             spy_ml_dir = "LONG" if spy_signal.get("combined_score", 0) > 0 else "SHORT" if spy_signal.get("combined_score", 0) < 0 else "NEUTRAL"
             if spy_ml_dir != "NEUTRAL" and spy_ml_dir != _last_ml_direction_spy:
-                await send_market_intelligence(spy_signal)
+                await send_market_intelligence(spy_signal, spy_ml_dir)
                 _last_ml_direction_spy = spy_ml_dir
                 print(f"[scheduler] SPY ML direction flipped → {spy_ml_dir} — intelligence alert sent.")
         except Exception as e:
