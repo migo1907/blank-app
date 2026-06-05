@@ -222,7 +222,15 @@ async def trade_outcome(payload: TradeOutcomePayload):
             f21=payload.f21, f22=payload.f22, f23=payload.f23, f24=payload.f24,
             f25=payload.f25,
         )
-        update_latest_features(pool, features)
+        # Update in-memory cache immediately, persist to GitHub in background
+        from signal_engine import _latest_features
+        _latest_features[pool] = features
+        async def _persist_heartbeat():
+            try:
+                await asyncio.to_thread(update_latest_features, pool, features)
+            except Exception as e:
+                print(f"[heartbeat] persist error: {e}")
+        asyncio.create_task(_persist_heartbeat())
         print(f"[heartbeat] Cache updated for pool={pool}")
         return {"status": "ok", "outcome": "HEARTBEAT", "pool": pool}
 
@@ -357,7 +365,14 @@ async def unified_webhook(payload: UnifiedPayload):
             f21=payload.f21, f22=payload.f22, f23=payload.f23, f24=payload.f24,
             f25=payload.f25,
         )
-        update_latest_features(pool, features)
+        from signal_engine import _latest_features
+        _latest_features[pool] = features
+        async def _persist_hb():
+            try:
+                await asyncio.to_thread(update_latest_features, pool, features)
+            except Exception as e:
+                print(f"[heartbeat] persist error: {e}")
+        asyncio.create_task(_persist_hb())
         print(f"[heartbeat] Cache updated for pool={pool}")
         return {"status": "ok", "outcome": "HEARTBEAT", "pool": pool}
 
