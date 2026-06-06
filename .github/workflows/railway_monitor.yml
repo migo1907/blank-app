@@ -1,0 +1,88 @@
+name: Railway System Monitor
+
+on:
+  schedule:
+    - cron: '*/15 6-22 * * 1-5'   # every 15 min, Mon-Fri 06:00-22:00 UTC
+  workflow_dispatch:
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      - name: Checkout data branch
+        uses: actions/checkout@v4
+        with:
+          ref: data
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Probe Railway endpoints
+        run: |
+          python3 - <<'EOF'
+          import json, os, subprocess
+          from datetime import datetime, timezone
+          from urllib.request import urlopen, Request
+          from urllib.error import URLError, HTTPError
+
+          BASE = "https://blank-app-production-a8bd.up.railway.app"
+          SECRET = "gold2026"
+          NOW = datetime.now(timezone.utc).isoformat()
+
+          def probe(path, timeout=12):
+              url = f"{BASE}{path}"
+              try:
+                  req = Request(url, headers={"User-Agent": "railway-monitor/1.0"})
+                  with urlopen(req, timeout=timeout) as r:
+                      body = r.read().decode("utf-8", errors="replace")
+                      try:
+                          data = json.loads(body)
+                      except Exception:
+                          data = {"raw": body[:500]}
+                      return r.status, data
+              except HTTPError as e:
+                  return e.code, {"error": str(e)}
+              except URLError as e:
+                  return 0, {"error": str(e.reason)}
+              except Exception as e:
+                  return 0, {"error": str(e)}
+
+          health_status, health_data   = probe("/health")
+          dash_status,   dash_data     = probe(f"/dashboard?secret={SECRET}")
+          weights_status, weights_data = probe(f"/weights?secret={SECRET}")
+
+          status = {
+              "checked_at": NOW,
+              "health": {
+                  "status_code": health_status,
+                  "data": health_data,
+              },
+              "dashboard": {
+                  "status_code": dash_status,
+                  "data": dash_data,
+              },
+              "weights": {
+                  "status_code": weights_status,
+                  "data": weights_data,
+              },
+              "overall": "ok" if health_status == 200 else "degraded",
+          }
+
+          os.makedirs("data", exist_ok=True)
+          with open("data/railway_status.json", "w") as f:
+              json.dump(status, f, indent=2)
+
+          print(f"[monitor] health={health_status} dash={dash_status} weights={weights_status}")
+          print(f"[monitor] overall={status['overall']}")
+          EOF
+
+      - name: Commit status snapshot
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/railway_status.json
+          git diff --cached --quiet || git commit -m "chore: railway status snapshot $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git push

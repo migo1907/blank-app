@@ -273,8 +273,8 @@ async def _write_health_status(signal: dict, news_agg: float, velocity: dict, br
         from ml_model import get_model
         from ml_ensemble import get_rf
         from db import recent_outcomes
-        model  = get_model()
-        rf     = get_rf()
+        model  = get_model("XAUUSD_2M")
+        rf     = get_rf("XAUUSD_2M")
         trades = await asyncio.to_thread(recent_outcomes, "XAUUSD_2M", 500)
         status = {
             "timestamp":      datetime.now(timezone.utc).isoformat(),

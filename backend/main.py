@@ -16,6 +16,27 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# In-memory TTL dedup: prevents double KNN weight updates when TradingView fires the
+# same trade outcome to both /webhook/trade-outcome and /webhook within 1-2 seconds.
+_outcome_dedup_seen: dict[str, float] = {}   # dedup_key → epoch seconds
+_OUTCOME_DEDUP_TTL = 30.0  # seconds
+
+
+def _outcome_is_duplicate(symbol: str, direction: str, entry_price: float, exit_price: float, timeframe: str) -> bool:
+    """Returns True if this exact outcome was already processed within TTL window."""
+    import time
+    now = time.monotonic()
+    key = f"{symbol}|{direction}|{entry_price}|{exit_price}|{timeframe}"
+    # Evict stale entries
+    stale = [k for k, ts in _outcome_dedup_seen.items() if now - ts > _OUTCOME_DEDUP_TTL]
+    for k in stale:
+        del _outcome_dedup_seen[k]
+    if key in _outcome_dedup_seen:
+        return True
+    _outcome_dedup_seen[key] = now
+    return False
+
+
 def _tod_sine() -> float:
     """Time-of-Day sine: 0→2π over 24 h, peaks ~06:00 UTC (London open)."""
     h = datetime.now(timezone.utc).hour + datetime.now(timezone.utc).minute / 60
@@ -277,7 +298,11 @@ async def trade_outcome(payload: TradeOutcomePayload):
     )
 
     ml_label = payload.ml_outcome or payload.outcome
-    model.update_on_outcome(features, payload.direction, ml_label)
+    _is_dup = _outcome_is_duplicate(sym, payload.direction, payload.entry_price, payload.exit_price, payload.timeframe or "")
+    if not _is_dup:
+        model.update_on_outcome(features, payload.direction, ml_label)
+    else:
+        print(f"[trade-outcome] Duplicate within {_OUTCOME_DEDUP_TTL}s — skipping weight update for {sym} {payload.direction} entry={payload.entry_price}")
 
     from signal_engine import update_latest_features
     update_latest_features(pool, features)
@@ -431,7 +456,11 @@ async def unified_webhook(payload: UnifiedPayload):
             f25=payload.f25,
         )
         ml_label = payload.ml_outcome or payload.outcome
-        model.update_on_outcome(features, payload.direction, ml_label)
+        _is_dup2 = _outcome_is_duplicate(sym2, payload.direction, payload.entry_price or 0.0, payload.exit_price or 0.0, payload.timeframe or "")
+        if not _is_dup2:
+            model.update_on_outcome(features, payload.direction, ml_label)
+        else:
+            print(f"[webhook] Duplicate within {_OUTCOME_DEDUP_TTL}s — skipping weight update for {sym2} {payload.direction} entry={payload.entry_price}")
 
         from signal_engine import update_latest_features
         update_latest_features(pool, features)
