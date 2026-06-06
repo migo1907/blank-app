@@ -743,9 +743,9 @@ def start_scheduler() -> AsyncIOScheduler:
     _scheduler.add_job(_news_signal_cycle, trigger="interval", minutes=interval, id="news_signal_cycle", replace_existing=True)
     _scheduler.add_job(_breaking_news_cycle, trigger="interval", minutes=2, id="breaking_news_cycle", replace_existing=True)
     _scheduler.add_job(_hourly_system_check, trigger="interval", hours=1, id="hourly_system_check", replace_existing=True)
-    _scheduler.add_job(_daily_market_brief, trigger="cron", hour=8, minute=0, id="daily_market_brief", replace_existing=True)
-    _scheduler.add_job(_stocks_session_report, trigger="cron", hour=21, minute=5, id="stocks_session_report", replace_existing=True)
-    _scheduler.add_job(_daily_trade_count_report, trigger="cron", hour=21, minute=15, id="daily_trade_count_report", replace_existing=True)
+    _scheduler.add_job(_daily_market_brief, trigger="cron", hour=8, minute=0, id="daily_market_brief", replace_existing=True, misfire_grace_time=600)
+    _scheduler.add_job(_stocks_session_report, trigger="cron", hour=21, minute=5, id="stocks_session_report", replace_existing=True, misfire_grace_time=600)
+    _scheduler.add_job(_daily_trade_count_report, trigger="cron", hour=21, minute=15, id="daily_trade_count_report", replace_existing=True, misfire_grace_time=600)
     _scheduler.start()
     print(f"[scheduler] Started — signal every {interval} min, breaking news every 2 min (Telegram paused), system check every 60 min, daily brief at 08:00 UTC.")
     return _scheduler

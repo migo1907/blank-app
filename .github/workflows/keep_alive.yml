@@ -1,0 +1,42 @@
+name: Railway Keep-Alive
+
+on:
+  schedule:
+    # Every 5 minutes Mon–Fri 06:00–22:00 UTC (market hours coverage)
+    # GitHub Actions cron cannot filter by day/hour natively, so we run
+    # every 5 min 24/7 and let the workflow skip outside trading hours.
+    # Cost: ~288 runs/day × ~5s = negligible (well within 2000 min/month free).
+    - cron: "*/5 * * * *"
+  workflow_dispatch:   # allow manual trigger
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check trading hours (skip weekends and off-hours)
+        id: hours_check
+        run: |
+          HOUR=$(date -u +%H)
+          DOW=$(date -u +%u)   # 1=Mon … 7=Sun
+          if [ "$DOW" -ge 6 ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Weekend — skipping ping."
+          elif [ "$HOUR" -lt 6 ] || [ "$HOUR" -ge 22 ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Outside 06:00–22:00 UTC — skipping ping."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "Market hours — pinging Railway."
+          fi
+
+      - name: Ping Railway health endpoint
+        if: steps.hours_check.outputs.skip == 'false'
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            --max-time 15 \
+            "https://blank-app-production-a8bd.up.railway.app/health")
+          echo "Health check status: $STATUS"
+          if [ "$STATUS" != "200" ]; then
+            echo "WARNING: /health returned $STATUS"
+            exit 1
+          fi

@@ -22,19 +22,26 @@ async def _send(text: str) -> bool:
     if not TOKEN or not CHAT_ID:
         print("[telegram] TOKEN or CHAT_ID not set — skipping.")
         return False
+    import asyncio as _asyncio
     url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
-    try:
-        async with httpx.AsyncClient(timeout=10) as client:
-            resp = await client.post(url, json={
-                "chat_id":    CHAT_ID,
-                "text":       text,
-                "parse_mode": "HTML",
-            })
-            resp.raise_for_status()
-            return True
-    except Exception as e:
-        print(f"[telegram] Send failed: {e}")
-        return False
+    for attempt in range(3):
+        try:
+            async with httpx.AsyncClient(timeout=10) as client:
+                resp = await client.post(url, json={
+                    "chat_id":    CHAT_ID,
+                    "text":       text,
+                    "parse_mode": "HTML",
+                })
+                resp.raise_for_status()
+                return True
+        except Exception as e:
+            if attempt < 2:
+                wait = 1 if attempt == 0 else 3
+                print(f"[telegram] Send failed (attempt {attempt+1}/3): {e} — retrying in {wait}s")
+                await _asyncio.sleep(wait)
+            else:
+                print(f"[telegram] Send failed after 3 attempts: {e}")
+    return False
 
 
 async def send_entry_signal(s: dict) -> bool:
@@ -301,16 +308,23 @@ async def send_critical_alert(title: str, detail: str, action: str = "") -> bool
     if action:
         msg += f"\n🔧 <i>{action}</i>\n"
     msg += f"\n⏰ {now}"
+    import asyncio as _asyncio
     url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
-    try:
-        async with httpx.AsyncClient(timeout=10) as client:
-            resp = await client.post(url, json={
-                "chat_id":    PERSONAL_CHAT_ID,
-                "text":       msg,
-                "parse_mode": "HTML",
-            })
-            resp.raise_for_status()
-            return True
-    except Exception as e:
-        print(f"[critical] Personal alert failed: {e}")
-        return False
+    for attempt in range(3):
+        try:
+            async with httpx.AsyncClient(timeout=10) as client:
+                resp = await client.post(url, json={
+                    "chat_id":    PERSONAL_CHAT_ID,
+                    "text":       msg,
+                    "parse_mode": "HTML",
+                })
+                resp.raise_for_status()
+                return True
+        except Exception as e:
+            if attempt < 2:
+                wait = 1 if attempt == 0 else 3
+                print(f"[critical] Personal alert failed (attempt {attempt+1}/3): {e} — retrying in {wait}s")
+                await _asyncio.sleep(wait)
+            else:
+                print(f"[critical] Personal alert failed after 3 attempts: {e}")
+    return False
