@@ -231,9 +231,10 @@ async def test_telegram(secret: str = ""):
 
 
 def _normalize_outcome(raw: str) -> str:
-    """Map Pine Script outcome strings to internal WIN/LOSS/PARTIAL/HEARTBEAT."""
+    """Map Pine Script outcome strings to internal WIN/LOSS/PARTIAL/HEARTBEAT/PROGRESS."""
     v = raw.upper().strip()
     if v == "HEARTBEAT":                          return "HEARTBEAT"
+    if v in ("TP1_HIT", "TP2_HIT"):              return "PROGRESS"
     if v in ("WIN", "TP3", "TP2", "TP1"):         return "WIN"
     if v in ("LOSS", "SL"):                        return "LOSS"
     if v in ("PARTIAL", "SL_TP1", "SL_TP2",
@@ -279,6 +280,11 @@ async def trade_outcome(payload: TradeOutcomePayload):
         asyncio.create_task(_persist_heartbeat())
         print(f"[heartbeat] Cache updated for pool={pool}")
         return {"status": "ok", "outcome": "HEARTBEAT", "pool": pool}
+
+    # PROGRESS — TP1/TP2 milestone reached but trade still open; log only, no ML or DB write
+    if payload.outcome == "PROGRESS":
+        print(f"[progress] {payload.symbol} {payload.direction} {payload.tp_stage} @ {payload.exit_price}")
+        return {"status": "ok", "outcome": "PROGRESS", "stage": payload.tp_stage}
 
     from ml_model import get_model, Features
     from ml_ensemble import get_rf, get_gbm
@@ -438,6 +444,11 @@ async def unified_webhook(payload: UnifiedPayload):
         asyncio.create_task(_persist_hb())
         print(f"[heartbeat] Cache updated for pool={pool}")
         return {"status": "ok", "outcome": "HEARTBEAT", "pool": pool}
+
+    # PROGRESS — TP1/TP2 milestone; log only (webhook_log already written above), no ML or DB
+    if payload.outcome == "PROGRESS":
+        print(f"[progress] {payload.symbol} {payload.direction} {payload.tp_stage} @ {payload.exit_price}")
+        return {"status": "ok", "outcome": "PROGRESS", "stage": payload.tp_stage}
 
     if is_outcome:
         from ml_model import get_model, Features

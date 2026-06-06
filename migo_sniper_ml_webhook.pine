@@ -429,12 +429,15 @@ if activeTrade == "SHORT" and tp1Hit
 if activeTrade == "LONG"
     if not tp1Hit and high >= tp1Price
         tp1Hit  := true
-        trailSL := close - atr * trailMult
+        // Break-even guarantee: trail stop must be at or above entry price
+        trailSL := math.max(close - atr * trailMult, entryPrice)
         slPrice := trailSL
+        alert(buildPayload(activeTrade, "TP1_HIT", "TP1_HIT", "TP1", entryPrice, tp1Price, mlBull, activeTrigger, mfeFav, timeframe.period), alert.freq_once_per_bar_close)
         label.new(bar_index, high, "TP1 ✓\nTrail ON", color=color.new(color.green, 40), textcolor=color.white, style=label.style_label_down, size=size.tiny)
 
     if tp1Hit and not tp2Hit and high >= tp2Price
         tp2Hit := true
+        alert(buildPayload(activeTrade, "TP2_HIT", "TP2_HIT", "TP2", entryPrice, tp2Price, mlBull, activeTrigger, mfeFav, timeframe.period), alert.freq_once_per_bar_close)
         label.new(bar_index, high, "TP2 ✓", color=color.new(color.green, 20), textcolor=color.white, style=label.style_label_down, size=size.tiny)
 
     if tp1Hit and tp2Hit and high >= tp3Price
@@ -472,12 +475,15 @@ if activeTrade == "LONG"
 if activeTrade == "SHORT"
     if not tp1Hit and low <= tp1Price
         tp1Hit  := true
-        trailSL := close + atr * trailMult
+        // Break-even guarantee: trail stop must be at or below entry price
+        trailSL := math.min(close + atr * trailMult, entryPrice)
         slPrice := trailSL
+        alert(buildPayload(activeTrade, "TP1_HIT", "TP1_HIT", "TP1", entryPrice, tp1Price, mlBear, activeTrigger, mfeFav, timeframe.period), alert.freq_once_per_bar_close)
         label.new(bar_index, low, "TP1 ✓\nTrail ON", color=color.new(color.green, 40), textcolor=color.white, style=label.style_label_up, size=size.tiny)
 
     if tp1Hit and not tp2Hit and low <= tp2Price
         tp2Hit := true
+        alert(buildPayload(activeTrade, "TP2_HIT", "TP2_HIT", "TP2", entryPrice, tp2Price, mlBear, activeTrigger, mfeFav, timeframe.period), alert.freq_once_per_bar_close)
         label.new(bar_index, low, "TP2 ✓", color=color.new(color.green, 20), textcolor=color.white, style=label.style_label_up, size=size.tiny)
 
     if tp1Hit and tp2Hit and low <= tp3Price
