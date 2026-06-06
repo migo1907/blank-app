@@ -21,7 +21,6 @@ float tp2_inp      = input.float(2.5,  "TP2 ATR Multiplier",        group="⚙�
 float tp3_inp      = input.float(4.0,  "TP3 ATR Multiplier Runner", group="⚙️ Trade")
 float sl_inp       = input.float(1.5,  "SL ATR Multiplier",         group="⚙️ Trade")
 float trailMult    = input.float(1.2,  "Trail Stop Multiplier (TP1)", group="⚙️ Trade")
-float trailMult2   = input.float(0.7,  "Trail Tighten at TP2 (ATR)", group="⚙️ Trade")
 float tpProximity  = input.float(80.0, "Near-TP Reset %",           group="⚙️ Trade", minval=50, maxval=99) / 100.0
 int   adxLen       = input.int(14,     "ADX Length",                group="🔎 Filters")
 float adxThreshold = input.float(20.0, "ADX Sideways Threshold",    group="🔎 Filters")
@@ -56,7 +55,8 @@ float atrMultTP1  = autoTF ? (isTF2 ? 1.0 : isTF5 ? 1.5 : isTF15 ? 2.0 : 2.5) : 
 float atrMultTP2  = autoTF ? (isTF2 ? 1.8 : isTF5 ? 2.5 : isTF15 ? 3.5 : 4.5) : tp2_inp
 float atrMultTP3  = autoTF ? (isTF2 ? 3.0 : isTF5 ? 4.0 : isTF15 ? 5.5 : 7.0) : tp3_inp
 float atrMultSL    = autoTF ? (isTF2 ? 0.8 : isTF5 ? 1.5 : isTF15 ? 2.0 : 2.5) : sl_inp
-float atrMultTrl2  = autoTF ? (isTF2 ? 0.5 : isTF5 ? 0.7 : isTF15 ? 0.9 : 1.2) : trailMult2
+// TP2 trail tighten — always auto, not exposed as input (tighter = lock in TP2 profit)
+float atrMultTrl2  = isTF2 ? 0.5 : isTF5 ? 0.7 : isTF15 ? 0.9 : 1.2
 int   mlDepth      = autoTF ? (isTF2 ? 150 : isTF5 ? 250 : isTF15 ? 350 : 500 ) : mlDepth_inp
 int   kWin        = autoTF ? (isTF2 ? 5   : isTF5 ? 8   : isTF15 ? 12  : 16  ) : kWin_inp
 
