@@ -169,6 +169,12 @@ def _validate_secret(secret: str) -> None:
         raise HTTPException(status_code=403, detail="Invalid webhook secret.")
 
 
+@app.get("/market-hours")
+async def market_hours():
+    from market_calendar import get_market_status
+    return get_market_status()
+
+
 @app.api_route("/health", methods=["GET", "POST", "HEAD"])
 async def health():
     from scheduler import _scheduler, start_scheduler, _news_signal_cycle
