@@ -454,9 +454,10 @@ if activeTrade == "LONG"
         string exitLbl  = tp1Hit ? (tp2Hit ? "SL (after TP2)" : "SL (after TP1)") : "SL HIT"
         string outcome  = tp1Hit ? "PARTIAL" : "LOSS"
         string stage    = tp2Hit ? "SL_TP2" : (tp1Hit ? "SL_TP1" : "SL")
-        // ml_outcome = WIN if price moved ≥ 70% of SL distance toward TP before stopping
-        float  slDist   = entryPrice - slPrice
-        string mlOut    = (not tp1Hit and mfeFav >= slDist * 0.875) ? "WIN" : outcome
+        // ml_outcome: any TP hit = WIN (trail above entry, trade is profitable regardless of close)
+        // SL before TP1 = LOSS, unless price moved ≥87.5% of the SL distance toward TP
+        float  slDist   = math.abs(entryPrice - slPrice)
+        string mlOut    = tp1Hit ? "WIN" : (mfeFav >= slDist * 0.875 ? "WIN" : "LOSS")
         if not tp1Hit
             totalLosses += 1
             penalizeWeightsLong(lossPenalty)
@@ -500,9 +501,10 @@ if activeTrade == "SHORT"
         string exitLbl  = tp1Hit ? (tp2Hit ? "SL (after TP2)" : "SL (after TP1)") : "SL HIT"
         string outcome  = tp1Hit ? "PARTIAL" : "LOSS"
         string stage    = tp2Hit ? "SL_TP2" : (tp1Hit ? "SL_TP1" : "SL")
-        // ml_outcome = WIN if price moved ≥ 70% of SL distance toward TP before stopping
-        float  slDist   = slPrice - entryPrice
-        string mlOut    = (not tp1Hit and mfeFav >= slDist * 0.875) ? "WIN" : outcome
+        // ml_outcome: any TP hit = WIN (trail above entry, trade is profitable regardless of close)
+        // SL before TP1 = LOSS, unless price moved ≥87.5% of the SL distance toward TP
+        float  slDist   = math.abs(slPrice - entryPrice)
+        string mlOut    = tp1Hit ? "WIN" : (mfeFav >= slDist * 0.875 ? "WIN" : "LOSS")
         if not tp1Hit
             totalLosses += 1
             penalizeWeightsShort(lossPenalty)

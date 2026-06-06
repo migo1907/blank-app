@@ -306,7 +306,7 @@ async def trade_outcome(payload: TradeOutcomePayload):
     ml_label = payload.ml_outcome or payload.outcome
     _is_dup = _outcome_is_duplicate(sym, payload.direction, payload.entry_price, payload.exit_price, payload.timeframe or "")
     if not _is_dup:
-        model.update_on_outcome(features, payload.direction, ml_label)
+        model.update_on_outcome(features, payload.direction, ml_label, tp_stage=payload.tp_stage or "")
     else:
         print(f"[trade-outcome] Duplicate within {_OUTCOME_DEDUP_TTL}s — skipping weight update for {sym} {payload.direction} entry={payload.entry_price}")
 
@@ -469,7 +469,7 @@ async def unified_webhook(payload: UnifiedPayload):
         ml_label = payload.ml_outcome or payload.outcome
         _is_dup2 = _outcome_is_duplicate(sym2, payload.direction, payload.entry_price or 0.0, payload.exit_price or 0.0, payload.timeframe or "")
         if not _is_dup2:
-            model.update_on_outcome(features, payload.direction, ml_label)
+            model.update_on_outcome(features, payload.direction, ml_label, tp_stage=payload.tp_stage or "")
         else:
             print(f"[webhook] Duplicate within {_OUTCOME_DEDUP_TTL}s — skipping weight update for {sym2} {payload.direction} entry={payload.entry_price}")
 

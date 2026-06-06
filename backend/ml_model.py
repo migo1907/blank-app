@@ -177,15 +177,16 @@ class AdaptiveKNN:
         for row in history:
             hist_vec = [float(row.get(col, 0.0)) for col in FEATURE_NAMES]
             dist = _lorentzian_dist(current_vec, hist_vec, self._weights)
-            outcome  = row.get("outcome", "LOSS")
+            # Use ml_outcome if present (e.g. SL_TP1 stored as WIN); fall back to outcome
+            outcome   = row.get("ml_outcome") or row.get("outcome", "LOSS")
             direction = row.get("direction", "LONG")
-            pnl      = float(row.get("pnl_pct", 0.0))
+            pnl       = float(row.get("pnl_pct", 0.0))
             # +1 = price moved UP, -1 = price moved DOWN
-            if outcome == "WIN":
+            if outcome in ("WIN", "PARTIAL"):
                 label = 1 if direction == "LONG" else -1
             elif outcome == "LOSS":
                 label = 1 if direction == "SHORT" else -1
-            else:  # PARTIAL — use pnl sign
+            else:
                 label = 1 if pnl > 0 else -1
             distances.append((dist, label))
 
@@ -199,14 +200,31 @@ class AdaptiveKNN:
 
     # ── Adaptive weight update ────────────────────────────────
 
-    def update_on_outcome(self, features: Features, direction: str, outcome: str) -> None:
-        """Call after each trade closes. outcome: 'WIN' | 'LOSS' | 'PARTIAL'"""
+    def update_on_outcome(self, features: Features, direction: str, outcome: str, tp_stage: str = "") -> None:
+        """
+        Call after each trade closes.
+        outcome : 'WIN' | 'LOSS' | 'PARTIAL' (PARTIAL kept for backward compat)
+        tp_stage: 'TP3' | 'SL_TP2' | 'SL_TP1' | 'SL' — determines reward size for WIN outcomes.
+
+        Scoring logic (user-defined):
+          TP3        → full win   (1.0×)
+          SL_TP2     → medium win (0.7×)  reached TP2, trail stopped — still profitable
+          SL_TP1     → low win    (0.4×)  reached TP1, trail stopped — break-even or small profit
+          LOSS / SL  → full penalty
+        """
         feat_list = features.as_list()
         is_long = direction == "LONG"
 
-        if outcome == "WIN":
+        if outcome in ("WIN", "PARTIAL"):
             self._total_wins += 1
-            delta = self.learn_rate * self.win_reward
+            # Grade reward by how far price traveled
+            if tp_stage == "SL_TP1":
+                multiplier = 0.4
+            elif tp_stage == "SL_TP2":
+                multiplier = 0.7
+            else:                          # TP3, or any WIN without a stage
+                multiplier = 1.0
+            delta = self.learn_rate * self.win_reward * multiplier
             for i, fv in enumerate(feat_list):
                 sign = 1.0 if (fv >= 0 and is_long) or (fv < 0 and not is_long) else -1.0
                 self._weights[i] = _clamp(self._weights[i] + sign * delta)
@@ -217,13 +235,6 @@ class AdaptiveKNN:
             for i, fv in enumerate(feat_list):
                 sign = 1.0 if (fv >= 0 and is_long) or (fv < 0 and not is_long) else -1.0
                 self._weights[i] = _clamp(self._weights[i] - sign * delta)
-
-        elif outcome == "PARTIAL":
-            self._total_wins += 1
-            delta = self.learn_rate * self.win_reward * 0.4
-            for i, fv in enumerate(feat_list):
-                sign = 1.0 if (fv >= 0 and is_long) or (fv < 0 and not is_long) else -1.0
-                self._weights[i] = _clamp(self._weights[i] + sign * delta)
 
         self._dirty = True
 
