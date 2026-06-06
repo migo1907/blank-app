@@ -409,7 +409,35 @@ buildPayload(dir, outcome, mlOut, stage, entPx, exitPx, mlSc, trig, mfe, tf) =>
     p1 + p2 + p3 + p4 + p5 + p6 + f1s + f2s + f3s + f4s + f5s + f6s + f7s + f8s + f9s + f10s + f11s + f12s + f13s + f14s + f15s + f16s + f17s + f18s + f19s + f20s + f21s + f22s + f23s + f24s + f25s
 
 // ═══════════════════════════════════════════════════════
-// MFE TRACKING — max favorable excursion since entry (price units)
+// HEARTBEAT PAYLOAD BUILDER — current live F1-F25 (not entry snapshot)
+// Fires every bar to keep backend feature cache fresh between trades
+// ═══════════════════════════════════════════════════════
+buildHeartbeatPayload(tf) =>
+    string h1  = '{"secret":"' + webhookSecret + '"'
+    string h2  = ',"trade_id":"heartbeat"'
+    string h3  = ',"direction":"LONG","outcome":"HEARTBEAT","ml_outcome":"HEARTBEAT","tp_stage":"","trigger":""'
+    string h4  = ',"entry_price":0,"exit_price":0,"ml_score":0,"mfe":0'
+    string h5  = ',"timeframe":"' + tf + '","symbol":"' + syminfo.ticker + '"'
+    string hf1  = ',"f1":'  + str.tostring(f1,  "#.####") + ',"f2":'  + str.tostring(f2,  "#.####")
+    string hf3  = ',"f3":'  + str.tostring(f3,  "#.####") + ',"f4":'  + str.tostring(f4,  "#.####")
+    string hf5  = ',"f5":'  + str.tostring(f5,  "#.####") + ',"f6":'  + str.tostring(f6,  "#.####")
+    string hf7  = ',"f7":'  + str.tostring(f7,  "#.####") + ',"f8":'  + str.tostring(f8,  "#.####")
+    string hf9  = ',"f9":'  + str.tostring(f9,  "#.####") + ',"f10":' + str.tostring(f10, "#.####")
+    string hf11 = ',"f11":' + str.tostring(f11, "#.####") + ',"f12":' + str.tostring(f12, "#.####")
+    string hf13 = ',"f13":' + str.tostring(f13, "#.####") + ',"f14":' + str.tostring(f14, "#.####")
+    string hf15 = ',"f15":' + str.tostring(f15, "#.####") + ',"f16":' + str.tostring(f16, "#.####")
+    string hf17 = ',"f17":' + str.tostring(f17, "#.####") + ',"f18":' + str.tostring(f18, "#.####")
+    string hf19 = ',"f19":' + str.tostring(f19, "#.####") + ',"f20":' + str.tostring(f20, "#.####")
+    string hf21 = ',"f21":' + str.tostring(f21, "#.####") + ',"f22":' + str.tostring(f22, "#.####")
+    string hf23 = ',"f23":' + str.tostring(f23, "#.####") + ',"f24":' + str.tostring(f24, "#.####")
+    string hf25 = ',"f25":' + str.tostring(f25, "#.####") + '}'
+    h1 + h2 + h3 + h4 + h5 + hf1 + hf3 + hf5 + hf7 + hf9 + hf11 + hf13 + hf15 + hf17 + hf19 + hf21 + hf23 + hf25
+
+// Fire heartbeat every bar close — keeps backend feature cache fresh between trades
+if barstate.isconfirmed
+    alert(buildHeartbeatPayload(timeframe.period), alert.freq_once_per_bar_close)
+
+
 if activeTrade == "LONG"
     mfeFav := math.max(mfeFav, high - entryPrice)
 if activeTrade == "SHORT"
