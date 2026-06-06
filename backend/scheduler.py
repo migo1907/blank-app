@@ -312,14 +312,14 @@ async def _hourly_system_check() -> None:
             ok.append("GitHub weights.json ✅")
         else:
             issues.append("weights.json missing or corrupt ❌")
-        history, _ = await asyncio.to_thread(_get_file, "data/trade_history.json")
-        trade_count = len(history) if isinstance(history, list) else 0
+        history_2m, _ = await asyncio.to_thread(_get_file, "data/trade_history_XAUUSD_2M.json")
+        trade_count = len(history_2m) if isinstance(history_2m, list) else 0
         if trade_count >= 15:
-            ok.append(f"trade_history.json — {trade_count} trades ✅")
+            ok.append(f"XAUUSD_2M pool — {trade_count} trades ✅")
         elif trade_count > 0:
-            issues.append(f"trade_history.json — only {trade_count} trades (need 15 for RF) ⚠️")
+            issues.append(f"XAUUSD_2M pool — only {trade_count} trades (need 15 for RF) ⚠️")
         else:
-            issues.append("trade_history.json empty ❌")
+            issues.append("XAUUSD_2M pool empty ❌")
     except Exception as e:
         issues.append(f"GitHub db layer error: {e} ❌")
 
@@ -433,18 +433,20 @@ async def _hourly_system_check() -> None:
 
     try:
         from db import _get_file
-        history, _ = await asyncio.to_thread(_get_file, "data/trade_history.json")
-        if isinstance(history, list) and len(history) > 0:
-            last_trade = history[-1]
-            f21_present = "f21_vwap" in last_trade
-            f9_present  = "f9_fvg"  in last_trade
-            if f21_present and f9_present:
-                ok.append("Feature vector f1-f21 present in latest trade ✅")
+        hist_2m, _ = await asyncio.to_thread(_get_file, "data/trade_history_XAUUSD_2M.json")
+        if isinstance(hist_2m, list) and len(hist_2m) > 0:
+            last_trade = hist_2m[-1]
+            f25_present = "f25_tod"  in last_trade
+            f9_present  = "f9_fvg"   in last_trade
+            if f25_present and f9_present:
+                ok.append("Feature vector f1-f25 present in latest XAUUSD_2M trade ✅")
             else:
                 missing_f = []
-                if not f9_present:  missing_f.append("f9-f14")
-                if not f21_present: missing_f.append("f21")
-                issues.append(f"Latest trade missing features: {missing_f} — old data ⚠️")
+                if not f9_present:  missing_f.append("f9_fvg")
+                if not f25_present: missing_f.append("f25_tod")
+                issues.append(f"Latest XAUUSD_2M trade missing features: {missing_f} ⚠️")
+        else:
+            issues.append("XAUUSD_2M has no trades — feature check skipped ⚠️")
     except Exception as e:
         issues.append(f"Feature check error: {e} ❌")
 
@@ -492,19 +494,21 @@ async def _hourly_system_check() -> None:
     try:
         from db import _get_file
         from datetime import timedelta
-        history, _ = await asyncio.to_thread(_get_file, "data/trade_history.json")
-        if isinstance(history, list) and len(history) > 0:
-            last_trade_time = datetime.fromisoformat(history[-1].get("created_at", "2000-01-01T00:00:00").replace("Z", "+00:00"))
+        hist_2m, _ = await asyncio.to_thread(_get_file, "data/trade_history_XAUUSD_2M.json")
+        if isinstance(hist_2m, list) and len(hist_2m) > 0:
+            last_trade_time = datetime.fromisoformat(hist_2m[-1].get("created_at", "2000-01-01T00:00:00").replace("Z", "+00:00"))
             if last_trade_time.tzinfo is None:
                 last_trade_time = last_trade_time.replace(tzinfo=timezone.utc)
             hours_since = (datetime.now(timezone.utc) - last_trade_time).total_seconds() / 3600
             dow = datetime.now(timezone.utc).weekday()
             market_hour = 7 <= datetime.now(timezone.utc).hour < 20
             if dow < 5 and market_hour and hours_since > 6:
-                critical_alerts.append(("Webhook Silence Detected", f"No trade data received for {hours_since:.0f} hours during market hours.", "Check TradingView alerts — they may have expired or been disabled."))
-                issues.append(f"No webhook activity for {hours_since:.0f}h during market hours ⚠️")
+                critical_alerts.append(("Webhook Silence Detected", f"No XAUUSD_2M trade data received for {hours_since:.0f} hours during market hours.", "Check TradingView alerts — they may have expired or been disabled."))
+                issues.append(f"No XAUUSD_2M webhook activity for {hours_since:.0f}h during market hours ⚠️")
             else:
-                ok.append(f"Last webhook: {hours_since:.1f}h ago ✅")
+                ok.append(f"XAUUSD_2M last webhook: {hours_since:.1f}h ago ✅")
+        else:
+            issues.append("XAUUSD_2M pool empty — webhook silence check skipped ⚠️")
     except Exception as e:
         print(f"[system_check] Webhook silence check failed: {e}")
 
@@ -593,21 +597,22 @@ async def _hourly_system_check() -> None:
 
     try:
         from db import _get_file, _put_file
-        history, sha = await asyncio.to_thread(_get_file, "data/trade_history.json")
-        if isinstance(history, list) and len(history) > 0:
-            seen_ids = set()
+        for _dedup_pool in ["XAUUSD_2M", "XAUUSD_5M", "XAUUSD_30M", "XAUUSD_1H"]:
+            _path = f"data/trade_history_{_dedup_pool}.json"
+            _hist, _sha = await asyncio.to_thread(_get_file, _path)
+            if not isinstance(_hist, list) or len(_hist) == 0:
+                continue
+            seen_keys: set = set()
             deduped = []
-            for trade in history:
-                tid = str(trade.get("id", "")) + trade.get("created_at", "")
-                if tid not in seen_ids:
-                    seen_ids.add(tid)
+            for trade in _hist:
+                key = f"{trade.get('symbol','')}|{trade.get('direction','')}|{trade.get('entry_price',0)}|{trade.get('timeframe','')}"
+                if key not in seen_keys:
+                    seen_keys.add(key)
                     deduped.append(trade)
-            if len(deduped) < len(history):
-                removed = len(history) - len(deduped)
-                await asyncio.to_thread(_put_file, "data/trade_history.json", deduped, sha, f"chore: deduplicate {removed} duplicate trades")
-                print(f"[system_check] Auto-fixed: removed {removed} duplicate trades.")
-            else:
-                print(f"[system_check] Trade history clean — no duplicates.")
+            if len(deduped) < len(_hist):
+                removed = len(_hist) - len(deduped)
+                await asyncio.to_thread(_put_file, _path, deduped, _sha, f"chore: deduplicate {removed} dupes in {_dedup_pool}")
+                print(f"[system_check] Auto-dedup: removed {removed} dupes from {_dedup_pool}.")
     except Exception as e:
         print(f"[system_check] Dedup auto-fix failed: {e}")
 

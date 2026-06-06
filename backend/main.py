@@ -662,7 +662,7 @@ async def dashboard(secret: str = ""):
 
     model = get_model()
     rf    = get_rf()
-    recent_trades     = recent_outcomes("XAUUSD", limit=10)
+    recent_trades     = recent_outcomes("XAUUSD_2M", limit=10)
     recent_news_items = recent_news(hours=4)
     top3              = model.top_features(3)
 

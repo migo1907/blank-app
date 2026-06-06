@@ -113,12 +113,12 @@ def _session_multiplier(now_utc: datetime, is_stock: bool = False) -> tuple[floa
         if 16 <= h < 19:  return 1.10, "NYSE_AFTERNOON"
         if 12 <= h < 13:  return 0.90, "PRE_MARKET"
         return 0.60, "CLOSED"
-    if 8 <= h < 12:   return 1.15, "LONDON"      # High XAUUSD liquidity
-    if 7 <= h < 8:    return 0.90, "LONDON_OPEN"  # First hour — erratic spreads
-    if 12 <= h < 13:  return 1.25, "OVERLAP"
-    if 13 <= h < 16:  return 1.20, "NEW_YORK"
-    if 16 <= h < 20:  return 1.00, "NY_LATE"
-    if 0 <= h < 7:    return 0.85, "ASIAN"        # Low XAUUSD volume
+    if 13 <= h < 17:  return 1.30, "OVERLAP"      # London/NY overlap — highest gold volatility
+    if 8  <= h < 13:  return 1.15, "LONDON"       # London session
+    if 7  <= h < 8:   return 0.90, "LONDON_OPEN"  # First hour — erratic spreads
+    if 17 <= h < 20:  return 1.10, "NEW_YORK"     # NY afternoon (London closed)
+    if 20 <= h < 22:  return 0.90, "NY_LATE"      # Thin NY close
+    if 0  <= h < 7:   return 0.85, "ASIAN"        # Low XAUUSD volume
     return 0.65, "OFF"
 
 
