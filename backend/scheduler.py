@@ -275,7 +275,7 @@ async def _write_health_status(signal: dict, news_agg: float, velocity: dict, br
         from db import recent_outcomes
         model  = get_model()
         rf     = get_rf()
-        trades = await asyncio.to_thread(recent_outcomes, "XAUUSD", 500)
+        trades = await asyncio.to_thread(recent_outcomes, "XAUUSD_2M", 500)
         status = {
             "timestamp":      datetime.now(timezone.utc).isoformat(),
             "signal":         signal["direction"],
@@ -514,7 +514,7 @@ async def _hourly_system_check() -> None:
         now_utc  = datetime.now(timezone.utc)
         dow      = now_utc.weekday()           # 0=Mon … 4=Fri
         hour_utc = now_utc.hour
-        gold_active   = True                   # gold trades 24/5
+        gold_active   = (dow < 5)              # gold trades Mon-Fri; skip weekend silence alerts
         stocks_active = (dow < 5 and 13 <= hour_utc < 21)  # stocks 09:30–17:00 ET ≈ 13:30–21:00 UTC
 
         active_pools = [
@@ -660,7 +660,6 @@ async def _daily_trade_count_report() -> None:
         ]
 
         lines = []
-        webhook_errors_today = 0
         total_new = 0
         for pool_name, path in pools:
             hist, _ = await asyncio.to_thread(_get_file, path)

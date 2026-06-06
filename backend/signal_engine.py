@@ -342,9 +342,8 @@ def generate_signal(
     if current_features and len(history) >= model.k:
         bull_score, bear_score = model.predict(current_features, history)
     else:
-        wr         = model.win_rate
-        bull_score = wr
-        bear_score = 1.0 - wr
+        bull_score = 0.5
+        bear_score = 0.5
 
     # ── RF + GBM scores ─────────────────────────────────────────────────────────────
     feat_list      = current_features.as_list() if current_features else [0.0] * 25
