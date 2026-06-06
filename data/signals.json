@@ -1,25 +1,5 @@
 [
   {
-    "symbol": "XAUUSD",
-    "pool": "XAUUSD",
-    "direction": "SHORT",
-    "confidence": 0.6207,
-    "tier": "MED",
-    "ml_score": 0.584,
-    "rf_score": 0.0299,
-    "gbm_score": 0.0,
-    "news_score": -0.2753,
-    "combined_score": -0.5071,
-    "session": "NEW_YORK",
-    "regime": "UNKNOWN",
-    "regime_label": "NORMAL",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:UNKNOWN(NORMAL)\u00d71.00 | sess:NEW_YORK\u00d71.20 | confluence\u00d71.00 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.00) | news:bearish(-0.275) | combined:-0.507 \u2192 conf:0.621 \u26a1 NFP",
-    "status": "ACTIVE",
-    "expires_at": "2026-06-05T16:09:19.561094+00:00",
-    "id": 101,
-    "created_at": "2026-06-05T15:39:19.889023+00:00"
-  },
-  {
     "symbol": "SPY",
     "pool": "STOCKS_INDEX",
     "direction": "NEUTRAL",
@@ -1961,5 +1941,24 @@
     "expires_at": "2026-06-06T03:17:10.440389+00:00",
     "id": 101,
     "created_at": "2026-06-06T02:47:10.732521+00:00"
+  },
+  {
+    "symbol": "XAUUSD",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "news_score": -0.037,
+    "combined_score": 0.0,
+    "session": "N/A",
+    "regime": "UNKNOWN",
+    "regime_label": "UNKNOWN",
+    "reasoning": "Weekend \u2014 market closed",
+    "status": "NEUTRAL",
+    "expires_at": "2026-06-06T03:32:08.328865+00:00",
+    "id": 101,
+    "created_at": "2026-06-06T03:02:08.694486+00:00"
   }
 ]
