@@ -20,7 +20,8 @@ float tp1_inp      = input.float(1.5,  "TP1 ATR Multiplier",        group="⚙�
 float tp2_inp      = input.float(2.5,  "TP2 ATR Multiplier",        group="⚙️ Trade")
 float tp3_inp      = input.float(4.0,  "TP3 ATR Multiplier Runner", group="⚙️ Trade")
 float sl_inp       = input.float(1.5,  "SL ATR Multiplier",         group="⚙️ Trade")
-float trailMult    = input.float(1.2,  "Trail Stop Multiplier",     group="⚙️ Trade")
+float trailMult    = input.float(1.2,  "Trail Stop Multiplier (TP1)", group="⚙️ Trade")
+float trailMult2   = input.float(0.7,  "Trail Tighten at TP2 (ATR)", group="⚙️ Trade")
 float tpProximity  = input.float(80.0, "Near-TP Reset %",           group="⚙️ Trade", minval=50, maxval=99) / 100.0
 int   adxLen       = input.int(14,     "ADX Length",                group="🔎 Filters")
 float adxThreshold = input.float(20.0, "ADX Sideways Threshold",    group="🔎 Filters")
@@ -54,8 +55,9 @@ int   lookback    = autoTF ? (isTF2 ? 30  : isTF5 ? 50  : isTF15 ? 75  : 100) : 
 float atrMultTP1  = autoTF ? (isTF2 ? 1.0 : isTF5 ? 1.5 : isTF15 ? 2.0 : 2.5) : tp1_inp
 float atrMultTP2  = autoTF ? (isTF2 ? 1.8 : isTF5 ? 2.5 : isTF15 ? 3.5 : 4.5) : tp2_inp
 float atrMultTP3  = autoTF ? (isTF2 ? 3.0 : isTF5 ? 4.0 : isTF15 ? 5.5 : 7.0) : tp3_inp
-float atrMultSL   = autoTF ? (isTF2 ? 0.8 : isTF5 ? 1.5 : isTF15 ? 2.0 : 2.5) : sl_inp
-int   mlDepth     = autoTF ? (isTF2 ? 150 : isTF5 ? 250 : isTF15 ? 350 : 500 ) : mlDepth_inp
+float atrMultSL    = autoTF ? (isTF2 ? 0.8 : isTF5 ? 1.5 : isTF15 ? 2.0 : 2.5) : sl_inp
+float atrMultTrl2  = autoTF ? (isTF2 ? 0.5 : isTF5 ? 0.7 : isTF15 ? 0.9 : 1.2) : trailMult2
+int   mlDepth      = autoTF ? (isTF2 ? 150 : isTF5 ? 250 : isTF15 ? 350 : 500 ) : mlDepth_inp
 int   kWin        = autoTF ? (isTF2 ? 5   : isTF5 ? 8   : isTF15 ? 12  : 16  ) : kWin_inp
 
 // ═══════════════════════════════════════════════════════
@@ -416,12 +418,14 @@ if activeTrade == "SHORT"
 // TRAIL STOP
 // ═══════════════════════════════════════════════════════
 if activeTrade == "LONG" and tp1Hit
-    trailSL := math.max(trailSL, high - atr * trailMult)
-    slPrice  := trailSL
+    float tmL  = tp2Hit ? atrMultTrl2 : trailMult
+    trailSL   := math.max(trailSL, high - atr * tmL)
+    slPrice   := trailSL
 
 if activeTrade == "SHORT" and tp1Hit
-    trailSL := math.min(trailSL, low + atr * trailMult)
-    slPrice  := trailSL
+    float tmS  = tp2Hit ? atrMultTrl2 : trailMult
+    trailSL   := math.min(trailSL, low + atr * tmS)
+    slPrice   := trailSL
 
 // ═══════════════════════════════════════════════════════
 // LONG EXITS + ADAPTIVE UPDATE + WEBHOOK
@@ -436,9 +440,11 @@ if activeTrade == "LONG"
         label.new(bar_index, high, "TP1 ✓\nTrail ON", color=color.new(color.green, 40), textcolor=color.white, style=label.style_label_down, size=size.tiny)
 
     if tp1Hit and not tp2Hit and high >= tp2Price
-        tp2Hit := true
+        tp2Hit  := true
+        trailSL := math.max(trailSL, high - atr * atrMultTrl2)
+        slPrice := trailSL
         alert(buildPayload(activeTrade, "TP2_HIT", "TP2_HIT", "TP2", entryPrice, tp2Price, mlBull, activeTrigger, mfeFav, timeframe.period), alert.freq_once_per_bar_close)
-        label.new(bar_index, high, "TP2 ✓", color=color.new(color.green, 20), textcolor=color.white, style=label.style_label_down, size=size.tiny)
+        label.new(bar_index, high, "TP2 ✓\nTrail ↑", color=color.new(color.green, 20), textcolor=color.white, style=label.style_label_down, size=size.tiny)
 
     if tp1Hit and tp2Hit and high >= tp3Price
         totalWins += 1
@@ -483,9 +489,11 @@ if activeTrade == "SHORT"
         label.new(bar_index, low, "TP1 ✓\nTrail ON", color=color.new(color.green, 40), textcolor=color.white, style=label.style_label_up, size=size.tiny)
 
     if tp1Hit and not tp2Hit and low <= tp2Price
-        tp2Hit := true
+        tp2Hit  := true
+        trailSL := math.min(trailSL, low + atr * atrMultTrl2)
+        slPrice := trailSL
         alert(buildPayload(activeTrade, "TP2_HIT", "TP2_HIT", "TP2", entryPrice, tp2Price, mlBear, activeTrigger, mfeFav, timeframe.period), alert.freq_once_per_bar_close)
-        label.new(bar_index, low, "TP2 ✓", color=color.new(color.green, 20), textcolor=color.white, style=label.style_label_up, size=size.tiny)
+        label.new(bar_index, low, "TP2 ✓\nTrail ↑", color=color.new(color.green, 20), textcolor=color.white, style=label.style_label_up, size=size.tiny)
 
     if tp1Hit and tp2Hit and low <= tp3Price
         totalWins += 1
