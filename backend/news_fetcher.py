@@ -270,9 +270,16 @@ def _fj_save_session(resp_headers: dict) -> None:
             elif p.startswith("ASP.NET_SessionId="):
                 new_aspnet = p.split("=", 1)[1]
 
+        new_auth_val   = new_auth   or _fj_cookie_cache.get("fj_session_cookie") or FJ_SESSION_COOKIE
+        new_aspnet_val = new_aspnet or _fj_cookie_cache.get("fj_aspnet_session") or FJ_ASPNET_SESSION
+        old_auth_val   = _fj_cookie_cache.get("fj_session_cookie", "")
+        old_aspnet_val = _fj_cookie_cache.get("fj_aspnet_session", "")
+        # Only write to GitHub if cookie actually changed — avoids ~720 commits/day
+        if new_auth_val == old_auth_val and new_aspnet_val == old_aspnet_val:
+            return
         payload = {
-            "fj_session_cookie": new_auth   or _fj_cookie_cache.get("fj_session_cookie") or FJ_SESSION_COOKIE,
-            "fj_aspnet_session": new_aspnet or _fj_cookie_cache.get("fj_aspnet_session") or FJ_ASPNET_SESSION,
+            "fj_session_cookie": new_auth_val,
+            "fj_aspnet_session": new_aspnet_val,
             "fj_uid":   FJ_UID,
             "fj_uname": FJ_UNAME,
             "fj_email": FJ_EMAIL,
