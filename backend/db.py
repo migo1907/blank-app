@@ -136,7 +136,7 @@ STOCKS_MOMENTUM = {
 STOCKS_QUALITY = {
     "META","GOOGL","GOOG","MSFT","AAPL","ADBE","IBKR","PATH","NOW","CRM",
 }
-STOCKS_INDEX = {"QQQ","SPY","SPX"}
+STOCKS_INDEX = {"QQQ","SPY","SPX500"}
 
 
 def symbol_to_pool(symbol: str, timeframe: str = "") -> str:
