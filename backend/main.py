@@ -169,7 +169,7 @@ class SignalEntryPayload(BaseModel):
 
 class UnifiedPayload(BaseModel):
     secret:      str
-    direction:   Literal["LONG", "SHORT"]
+    direction:   str
     timeframe:   Optional[str]   = None
     trigger:     Optional[str]   = None
     symbol:      Optional[str]   = None
@@ -459,6 +459,9 @@ async def unified_webhook(payload: UnifiedPayload):
     is_entry   = payload.tp1 is not None and payload.sl is not None and not is_outcome
 
     if is_entry:
+        if payload.direction not in ("LONG", "SHORT"):
+            print(f"[webhook] Ignoring entry with direction={payload.direction!r} — not LONG/SHORT")
+            return {"status": "ignored", "reason": "invalid_direction"}
         from htf_bias import is_htf, store_bias, get_active_bias
         sym = payload.symbol or "XAUUSD"
         tf  = payload.timeframe or "5"
@@ -536,6 +539,9 @@ async def unified_webhook(payload: UnifiedPayload):
         return {"status": "ok", "outcome": "PROGRESS", "stage": payload.tp_stage}
 
     if is_outcome:
+        if payload.direction not in ("LONG", "SHORT"):
+            print(f"[webhook] Ignoring outcome with direction={payload.direction!r} — not LONG/SHORT")
+            return {"status": "ignored", "reason": "invalid_direction"}
         from ml_model import get_model, Features
         from ml_ensemble import get_rf, get_gbm
         from db import insert_outcome, recent_outcomes, symbol_to_pool
