@@ -140,6 +140,20 @@ var int    reachedTP1   = 0
 var int    reachedTP2   = 0
 var int    reachedTP3   = 0
 
+// --- EXPECTANCY (R-multiple) TRACKING ---
+// initRisk = entry-to-initial-SL distance (=1R). Each closed trade adds its realized
+// R (exit vs entry / initRisk) so we can read avg R, total R and profit factor.
+var float  initRisk     = na
+var float  totalR       = 0.0
+var float  grossWinR    = 0.0
+var float  grossLossR   = 0.0
+var int    rTrades      = 0
+
+// Helper applied inline at every exit: record realized R for one closed trade
+f_recordR(float exitPx, float entryPx, float risk, bool isLong) =>
+    float rMult = isLong ? (exitPx - entryPx) / risk : (entryPx - exitPx) / risk
+    rMult
+
 // TP stage tracking
 var bool   tp1Hit       = false
 var bool   tp2Hit       = false
@@ -186,6 +200,13 @@ if activeTrade == "LONG"
     if tp1Hit and tp2Hit and high >= tp3Price
         tradeWins += 1
         reachedTP3 += 1
+        float rM = f_recordR(tp3Price, entryPrice, initRisk, true)
+        totalR += rM
+        rTrades += 1
+        if rM >= 0
+            grossWinR += rM
+        else
+            grossLossR += -rM
         activeTrade := "NONE", tp1Hit := false, tp2Hit := false
         label.new(bar_index, high, "TP3 ✓\nFULL RUN!", color=color.green, textcolor=color.white, style=label.style_label_down, size=size.small)
 
@@ -194,6 +215,13 @@ if activeTrade == "LONG"
             tradeWins += 1       // trail/locked SL after TP1 -> WIN (>= breakeven)
         else
             tradeLosses += 1     // hit hard SL before TP1 -> LOSS
+        float rM = f_recordR(slPrice, entryPrice, initRisk, true)
+        totalR += rM
+        rTrades += 1
+        if rM >= 0
+            grossWinR += rM
+        else
+            grossLossR += -rM
         string exitLabel = tp1Hit ? (tp2Hit ? "SL (after TP2)" : "SL (after TP1)") : "SL HIT"
         label.new(bar_index, low, exitLabel, color=color.red, textcolor=color.white, style=label.style_label_up, size=size.tiny)
         activeTrade := "NONE", tp1Hit := false, tp2Hit := false
@@ -219,6 +247,13 @@ if activeTrade == "SHORT"
     if tp1Hit and tp2Hit and low <= tp3Price
         tradeWins += 1
         reachedTP3 += 1
+        float rM = f_recordR(tp3Price, entryPrice, initRisk, false)
+        totalR += rM
+        rTrades += 1
+        if rM >= 0
+            grossWinR += rM
+        else
+            grossLossR += -rM
         activeTrade := "NONE", tp1Hit := false, tp2Hit := false
         label.new(bar_index, low, "TP3 ✓\nFULL RUN!", color=color.green, textcolor=color.white, style=label.style_label_up, size=size.small)
 
@@ -227,6 +262,13 @@ if activeTrade == "SHORT"
             tradeWins += 1       // trail/locked SL after TP1 -> WIN (>= breakeven)
         else
             tradeLosses += 1     // hit hard SL before TP1 -> LOSS
+        float rM = f_recordR(slPrice, entryPrice, initRisk, false)
+        totalR += rM
+        rTrades += 1
+        if rM >= 0
+            grossWinR += rM
+        else
+            grossLossR += -rM
         string exitLabel = tp1Hit ? (tp2Hit ? "SL (after TP2)" : "SL (after TP1)") : "SL HIT"
         label.new(bar_index, high, exitLabel, color=color.red, textcolor=color.white, style=label.style_label_down, size=size.tiny)
         activeTrade := "NONE", tp1Hit := false, tp2Hit := false
@@ -301,6 +343,13 @@ if doBuy
             tradeWins += 1       // short closed in profit on the flip -> WIN
         else
             tradeLosses += 1     // short closed in loss on the flip -> LOSS
+        float rM = f_recordR(close, entryPrice, initRisk, false)
+        totalR += rM
+        rTrades += 1
+        if rM >= 0
+            grossWinR += rM
+        else
+            grossLossR += -rM
         label.new(bar_index, high, "FLIP EXIT\n→ BUY", color=color.new(color.orange, 20), textcolor=color.white, style=label.style_label_down, size=size.tiny)
     activeTrade := "LONG"
     entryPrice  := close
@@ -313,6 +362,7 @@ if doBuy
     rawSL := math.min(rawSL, close - (atr * minSLMult))
     slPrice := rawSL
     float riskLong = entryPrice - slPrice
+    initRisk := riskLong   // 1R for this trade (used by the expectancy tracker)
     // --- Adaptive TPs: scale to actual risk (auto R:R), snap runner to real structure ---
     tp1Price := useRRtps ? entryPrice + (riskLong * effRR1) : close + (atr * effTP1m)
     tp2Price := useRRtps ? entryPrice + (riskLong * effRR2) : close + (atr * effTP2m)
@@ -336,6 +386,13 @@ if doSell
             tradeWins += 1       // long closed in profit on the flip -> WIN
         else
             tradeLosses += 1     // long closed in loss on the flip -> LOSS
+        float rM = f_recordR(close, entryPrice, initRisk, true)
+        totalR += rM
+        rTrades += 1
+        if rM >= 0
+            grossWinR += rM
+        else
+            grossLossR += -rM
         label.new(bar_index, low, "FLIP EXIT\n→ SELL", color=color.new(color.orange, 20), textcolor=color.white, style=label.style_label_up, size=size.tiny)
     activeTrade := "SHORT"
     entryPrice  := close
@@ -347,6 +404,7 @@ if doSell
     rawSL := math.max(rawSL, close + (atr * minSLMult))
     slPrice := rawSL
     float riskShort = slPrice - entryPrice
+    initRisk := riskShort   // 1R for this trade (used by the expectancy tracker)
     tp1Price := useRRtps ? entryPrice - (riskShort * effRR1) : close - (atr * effTP1m)
     tp2Price := useRRtps ? entryPrice - (riskShort * effRR2) : close - (atr * effTP2m)
     tp3Price := useRRtps ? entryPrice - (riskShort * effRR3) : close - (atr * effTP3m)
@@ -419,7 +477,7 @@ bgcolor((useSessions and not sessionOK) ? color.new(color.gray, 88) : na, title=
 string tpStage = not tp1Hit ? "Targeting TP1" : not tp2Hit ? "TP1 ✓ → TP2" : "TP2 ✓ → TP3 🚀"
 color stageColor = not tp1Hit ? color.white : not tp2Hit ? color.lime : color.aqua
 
-var table hub = table.new(position.bottom_left, 4, 11, bgcolor=color.rgb(15, 15, 15), border_color=color.gray, border_width=1)
+var table hub = table.new(position.bottom_left, 4, 12, bgcolor=color.rgb(15, 15, 15), border_color=color.gray, border_width=1)
 
 if barstate.islast
     table.cell(hub, 0, 0, "MIGO SNIPER V6", text_color=color.white, bgcolor=color.rgb(65, 14, 58))
@@ -488,6 +546,13 @@ if barstate.islast
     string tpReach = "REACHED  TP1:" + str.tostring(reachedTP1) + "  →TP2:" + str.tostring(reachedTP2) + "  →TP3:" + str.tostring(reachedTP3) + "   | trail-out aTP1:" + str.tostring(trailAfterTP1) + "  aTP2:" + str.tostring(trailAfterTP2)
     table.cell(hub, 0, 10, tpReach, text_color=color.new(color.aqua, 10), text_size=size.small)
     table.merge_cells(hub, 0, 10, 3, 10)
+
+    float  avgR  = rTrades > 0 ? totalR / rTrades : na
+    float  pf    = grossLossR > 0 ? grossWinR / grossLossR : na
+    color  expCol = na(avgR) ? color.gray : avgR > 0 ? color.green : color.red
+    string expTxt = rTrades > 0 ? "EXPECTANCY  avgR:" + str.tostring(avgR, "#.##") + "R   totalR:" + str.tostring(totalR, "#.#") + "R   PF:" + (na(pf) ? "∞" : str.tostring(pf, "#.##")) + "   (" + str.tostring(rTrades) + " trades)" : "EXPECTANCY  — no closed trades yet"
+    table.cell(hub, 0, 11, expTxt, text_color=expCol, text_size=size.small)
+    table.merge_cells(hub, 0, 11, 3, 11)
 
 // --- VISUALS ---
 plot(maLong, color=color.new(color.green, 50), title="200 EMA")
