@@ -38,6 +38,8 @@ bool require4H       = input.bool(true, "Also require HTF-2 trend alignment", gr
 bool autoHTF         = input.bool(true, "Auto higher timeframes (standard TF per chart)", group="Signal Filters")
 bool requireADXtrend = input.bool(true, "Require ADX above threshold on signal", group="Signal Filters")
 bool requireExpansion = input.bool(true, "Require ATR not compressed on signal", group="Signal Filters")
+bool pullbackMode    = input.bool(true, "Pullback entry (buy dips / sell rallies)", group="Signal Filters")
+int  pbEmaLen        = input.int(20,   "Pullback value EMA length", minval=5, group="Signal Filters")
 
 // --- SESSION FILTER (avoid noisy hours) ---
 bool   useSessions = input.bool(true,  "Restrict signals to selected sessions", group="Sessions")
@@ -55,6 +57,7 @@ float maLong   = ta.ema(close, 200)
 float maShort  = ta.ema(close, 50)
 float atr      = ta.atr(14)
 float atrSma   = ta.sma(atr, 20)
+float ema20    = ta.ema(close, pbEmaLen)   // pullback "value" zone
 
 // --- ADX ---
 [diPlus, diMinus, adxValue] = ta.dmi(adxLen, adxLen)
@@ -253,8 +256,16 @@ bool adxOK        = (not requireADXtrend) or (adxValue >= adxThreshold)
 bool expansionOK  = (not requireExpansion) or (not atrCompressed)
 bool filtersOK    = not isSideways and adxOK and expansionOK and sessionOK
 
-bool buySignal  = filtersOK and trendOKlong  and ta.crossover(rsiValue, 45)  and close > low[1]
-bool sellSignal = filtersOK and trendOKshort and ta.crossunder(rsiValue, 55) and close < high[1]
+// Pullback entry: price dips to the value EMA, then rejects with a confirmation
+// candle in the trend direction (buy the dip / sell the rally). RSI confirms momentum.
+bool pbLong   = low <= ema20  and close > ema20 and close > open and rsiValue > 50
+bool pbShort  = high >= ema20 and close < ema20 and close < open and rsiValue < 50
+// Original momentum entry (used when pullback mode is off)
+bool momLong  = ta.crossover(rsiValue, 45)  and close > low[1]
+bool momShort = ta.crossunder(rsiValue, 55) and close < high[1]
+
+bool buySignal  = filtersOK and trendOKlong  and (pullbackMode ? pbLong  : momLong)
+bool sellSignal = filtersOK and trendOKshort and (pullbackMode ? pbShort : momShort)
 
 bool doBuy  = buySignal  and (activeTrade != "LONG")
 bool doSell = sellSignal and (activeTrade != "SHORT")
@@ -451,6 +462,7 @@ if barstate.islast
 // --- VISUALS ---
 plot(maLong, color=color.new(color.green, 50), title="200 EMA")
 plot(maShort, color=color.new(#0d64ac, 50), title="50 EMA")
+plot(pullbackMode ? ema20 : na, color=color.new(color.yellow, 30), title="Pullback Value EMA")
 
 // Trail SL line while active
 plot(activeTrade != "NONE" and tp1Hit ? slPrice : na, color=color.orange, style=plot.style_stepline, linewidth=2, title="Trail Stop")
