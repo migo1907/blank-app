@@ -260,6 +260,54 @@ if doSell
     tradeConf   := (mainTrend == "DOWNTREND" ? 92 : 70)
     label.new(bar_index, high, "SELL\nEnt: " + str.tostring(entryPrice, "#.##") + "\nTP1: " + str.tostring(tp1Price, "#.##") + "\nTP2: " + str.tostring(tp2Price, "#.##") + "\nTP3: " + str.tostring(tp3Price, "#.##") + "\nSL: " + str.tostring(slPrice, "#.##") + "\nRe-Entry: " + str.tostring(reEntryPrice, "#.##"), color=color.red, textcolor=color.white, style=label.style_label_down, size=size.small)
 
+// --- LAST-SIGNAL LEVEL LINES (only the most recent signal is shown) ---
+bool showLevels = input.bool(true, "Show last-signal level lines", group="Visuals")
+
+var line  lnEntry = na
+var line  lnTP1   = na
+var line  lnTP2   = na
+var line  lnTP3   = na
+var line  lnSL    = na
+var line  lnTrail = na
+var label lbEntry = na
+var label lbTP1   = na
+var label lbTP2   = na
+var label lbTP3   = na
+var label lbSL    = na
+var label lbTrail = na
+
+// On every fresh signal, wipe the previous signal's drawings and redraw the new set
+if showLevels and (doBuy or doSell)
+    line.delete(lnEntry), line.delete(lnTP1), line.delete(lnTP2), line.delete(lnTP3), line.delete(lnSL), line.delete(lnTrail)
+    label.delete(lbEntry), label.delete(lbTP1), label.delete(lbTP2), label.delete(lbTP3), label.delete(lbSL), label.delete(lbTrail)
+    lnTrail := na
+    lbTrail := na
+    lnEntry := line.new(bar_index, entryPrice, bar_index + 1, entryPrice, extend=extend.right, color=color.new(color.white, 0),  width=1, style=line.style_solid)
+    lnTP1   := line.new(bar_index, tp1Price,   bar_index + 1, tp1Price,   extend=extend.right, color=color.new(color.green, 0),  width=1, style=line.style_dashed)
+    lnTP2   := line.new(bar_index, tp2Price,   bar_index + 1, tp2Price,   extend=extend.right, color=color.new(color.green, 25), width=1, style=line.style_dashed)
+    lnTP3   := line.new(bar_index, tp3Price,   bar_index + 1, tp3Price,   extend=extend.right, color=color.new(color.aqua, 0),   width=1, style=line.style_dashed)
+    lnSL    := line.new(bar_index, slPrice,    bar_index + 1, slPrice,    extend=extend.right, color=color.new(color.red, 0),    width=1, style=line.style_dashed)
+    lbEntry := label.new(bar_index, entryPrice, "ENTRY " + str.tostring(entryPrice, "#.##"), style=label.style_label_left, color=color.new(color.black, 100), textcolor=color.white,  size=size.small)
+    lbTP1   := label.new(bar_index, tp1Price,   "TP1 "   + str.tostring(tp1Price,   "#.##"), style=label.style_label_left, color=color.new(color.black, 100), textcolor=color.green,  size=size.small)
+    lbTP2   := label.new(bar_index, tp2Price,   "TP2 "   + str.tostring(tp2Price,   "#.##"), style=label.style_label_left, color=color.new(color.black, 100), textcolor=color.green,  size=size.small)
+    lbTP3   := label.new(bar_index, tp3Price,   "TP3 "   + str.tostring(tp3Price,   "#.##"), style=label.style_label_left, color=color.new(color.black, 100), textcolor=color.aqua,   size=size.small)
+    lbSL    := label.new(bar_index, slPrice,    "SL "    + str.tostring(slPrice,    "#.##"), style=label.style_label_left, color=color.new(color.black, 100), textcolor=color.red,    size=size.small)
+
+// Trail line — appears only once the trail is activated (after TP1), updates each bar
+if showLevels and activeTrade != "NONE" and tp1Hit
+    if na(lnTrail)
+        lnTrail := line.new(bar_index, slPrice, bar_index + 1, slPrice, extend=extend.right, color=color.new(color.orange, 0), width=2, style=line.style_solid)
+        lbTrail := label.new(bar_index, slPrice, "TRAIL " + str.tostring(slPrice, "#.##"), style=label.style_label_left, color=color.new(color.black, 100), textcolor=color.orange, size=size.small)
+    else
+        line.set_y1(lnTrail, slPrice), line.set_y2(lnTrail, slPrice)
+        label.set_y(lbTrail, slPrice), label.set_text(lbTrail, "TRAIL " + str.tostring(slPrice, "#.##"))
+
+// Keep all price tags pinned to the right edge (current bar)
+if showLevels and not na(lnEntry)
+    label.set_x(lbEntry, bar_index), label.set_x(lbTP1, bar_index), label.set_x(lbTP2, bar_index), label.set_x(lbTP3, bar_index), label.set_x(lbSL, bar_index)
+    if not na(lbTrail)
+        label.set_x(lbTrail, bar_index)
+
 // --- SIDEWAYS BACKGROUND ---
 bgcolor(isSideways ? color.new(color.yellow, 90) : na, title="Ranging Zone")
 
