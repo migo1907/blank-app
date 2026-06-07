@@ -1,24 +1,5 @@
 [
   {
-    "symbol": "SPY",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "news_score": 0.0,
-    "combined_score": 0.0,
-    "session": "N/A",
-    "regime": "UNKNOWN",
-    "regime_label": "UNKNOWN",
-    "reasoning": "Weekend \u2014 market closed",
-    "status": "NEUTRAL",
-    "expires_at": "2026-06-07T13:17:47.791630+00:00",
-    "id": 101,
-    "created_at": "2026-06-07T12:47:48.048489+00:00"
-  },
-  {
     "symbol": "XAUUSD",
     "direction": "NEUTRAL",
     "confidence": 0.0,
@@ -1978,6 +1959,26 @@
     "status": "NEUTRAL",
     "expires_at": "2026-06-07T23:19:43.618168+00:00",
     "created_at": "2026-06-07T22:49:43.618226+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "SPY",
+    "pool": "STOCKS_INDEX_30M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "news_score": -0.0384,
+    "combined_score": 0.0,
+    "session": "CLOSED",
+    "regime": "NORMAL",
+    "regime_label": "NORMAL",
+    "reasoning": "Weekend \u2014 market closed",
+    "status": "NEUTRAL",
+    "expires_at": "2026-06-07T23:19:45.104492+00:00",
+    "created_at": "2026-06-07T22:49:45.104533+00:00",
     "id": 101
   }
 ]
