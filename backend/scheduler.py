@@ -262,7 +262,7 @@ async def _news_signal_cycle() -> None:
             print(f"[scheduler] SPY signal error: {e}")
 
         _startup_cycle = False  # first cycle complete — normal firing from here on
-        asyncio.create_task(_write_health_status(signal, agg, velocity, len(fj_breaking)))
+        asyncio.create_task(_write_health_status(signal, _latest_news_agg, _latest_velocity, len(fj_breaking)))
 
     except Exception as e:
         print(f"[scheduler] Cycle error: {e}")

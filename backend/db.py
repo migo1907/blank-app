@@ -55,6 +55,25 @@ def _parse_ts(ts: str) -> datetime:
 
 # ── Low-level GitHub file API ─────────────────────────────────────────────────
 
+def _github_retry_wait(resp) -> None:
+    """Sleep if GitHub signals rate limiting via Retry-After or x-ratelimit-reset headers."""
+    import time
+    retry_after = resp.headers.get("Retry-After")
+    if retry_after:
+        try:
+            time.sleep(min(int(retry_after), 60))
+            return
+        except (ValueError, TypeError):
+            pass
+    reset = resp.headers.get("x-ratelimit-reset")
+    if reset:
+        try:
+            wait = max(0, int(reset) - int(time.time()))
+            time.sleep(min(wait, 60))
+        except (ValueError, TypeError):
+            pass
+
+
 def _get_file(path: str) -> tuple[dict | list | None, str | None]:
     """Returns (content, sha). sha is needed for updates."""
     with httpx.Client(timeout=10) as client:
@@ -65,6 +84,9 @@ def _get_file(path: str) -> tuple[dict | list | None, str | None]:
         )
     if resp.status_code == 404:
         return None, None
+    if resp.status_code in (403, 429):
+        _github_retry_wait(resp)
+        resp.raise_for_status()
     resp.raise_for_status()
     data = resp.json()
     content = json.loads(base64.b64decode(data["content"]).decode())
@@ -89,6 +111,9 @@ def _put_file(path: str, content: dict | list, sha: str | None, message: str) ->
                 headers=HEADERS,
                 json=payload,
             )
+        if resp.status_code in (403, 429) and attempt < 2:
+            _github_retry_wait(resp)
+            continue
         if resp.status_code == 409 and attempt < 2:
             # SHA stale — re-fetch and retry
             _, current_sha = _get_file(path)
@@ -296,8 +321,27 @@ def insert_signal(signal: dict) -> dict:
 
 
 def expire_old_signals(symbol: str = "XAUUSD") -> None:
-    # Handled passively — old signals are just overwritten in the file
-    pass
+    """Mark ACTIVE signals past their expires_at as EXPIRED in the signals file."""
+    now = datetime.now(timezone.utc)
+    try:
+        signals, sha = _get_file("data/signals.json")
+        if not isinstance(signals, list):
+            return
+        changed = False
+        for s in signals:
+            if s.get("status") != "ACTIVE":
+                continue
+            try:
+                exp = _parse_ts(s.get("expires_at", "2000-01-01T00:00:00+00:00"))
+                if now > exp:
+                    s["status"] = "EXPIRED"
+                    changed = True
+            except Exception:
+                continue
+        if changed:
+            _put_file("data/signals.json", signals, sha, "chore: expire stale ACTIVE signals")
+    except Exception as e:
+        print(f"[db] expire_old_signals failed (non-fatal): {e}")
 
 
 _WEBHOOK_LOG_PATH = "data/webhook_log.json"

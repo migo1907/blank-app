@@ -432,7 +432,24 @@ def fetch_fj_breaking_direct() -> tuple[str, bool]:
 
         if status == 200:
             _fj_save_session(dict(resp.headers))
-            breaking = _parse_fj_breaking(resp.json().get("breaking") or "")
+            try:
+                payload = resp.json()
+            except Exception:
+                # HTML page returned with 200 — session cookie expired but server didn't 401
+                print("[breaking] FJ returned non-JSON 200 — treating as session expiry, attempting re-login…")
+                if _fj_auto_login():
+                    new_cookie = _fj_cookie_str()
+                    status2, resp2 = _do_request(new_cookie)
+                    if status2 == 200:
+                        try:
+                            payload = resp2.json()
+                        except Exception:
+                            return "", True
+                        _fj_save_session(dict(resp2.headers))
+                        breaking = _parse_fj_breaking(payload.get("breaking") or "")
+                        return breaking, False
+                return "", True
+            breaking = _parse_fj_breaking(payload.get("breaking") or "")
             if breaking:
                 print(f"[breaking] FJ red item: {breaking[:80]}")
             return breaking, False
@@ -666,7 +683,7 @@ def score_headlines_with_claude(articles: list[dict]) -> list[dict]:
 
     try:
         response = client.messages.create(
-            model="claude-haiku-4-5-20251001",
+            model="claude-haiku-4-5",
             max_tokens=1500,
             messages=[{"role": "user", "content": XAU_SENTIMENT_PROMPT.format(headlines=numbered)}],
         )

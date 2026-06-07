@@ -77,6 +77,9 @@ async def lifespan(app: FastAPI):
     from htf_bias import load_bias_store
     load_bias_store()
 
+    if not WEBHOOK_SECRET:
+        print("[startup] ⚠ WARNING: WEBHOOK_SECRET is not set — all webhook endpoints are open to unauthenticated requests.")
+
     print("[startup] Starting scheduler…")
     from scheduler import start_scheduler, _news_signal_cycle
     start_scheduler()

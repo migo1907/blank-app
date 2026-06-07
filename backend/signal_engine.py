@@ -291,9 +291,9 @@ def _dynamic_weights(history: list[dict]) -> tuple[float, float, float, float]:
     n = len(history)
     # Zero-weight RF/GBM until enough data to avoid overfitting (research: 50+ for RF, 80+ for GBM)
     if n < 50:
-        return 0.80, 0.00, 0.00, 0.20
+        return 0.75, 0.00, 0.00, 0.25
     if n < 80:
-        return 0.60, 0.40, 0.00, 0.00
+        return 0.55, 0.35, 0.00, 0.10
     recent = history[:20]  # history[0] is most recent (recent_outcomes reverses the list)
     wins   = sum(1 for t in recent if t.get("outcome") == "WIN")
     wr     = wins / len(recent)
@@ -399,7 +399,7 @@ def generate_signal(
     regime = _detect_regime(current_features)
     regime_mult, regime_label = _regime_context(regime, direction_raw, pool)
     sess_mult, session_name = _session_multiplier(now, is_stock=is_stock)
-    confluence_mult = _confluence_score(current_features, direction_raw, regime_label)
+    confluence_mult = _confluence_score(current_features, direction_raw, regime)
     agreement_mult = _agreement_multiplier(knn_dir, rf_dir, gbm_dir)
     trigger_mult = _trigger_quality_multiplier(history, trigger)
     rapid_mult   = _rapid_fire_penalty(history, direction_raw, trigger, now)
