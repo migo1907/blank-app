@@ -60,6 +60,7 @@ async def send_entry_signal(s: dict) -> bool:
     news      = s.get("news_score", 0.0)
     velocity  = s.get("velocity", "NORMAL")
     event     = s.get("event", "")
+    htf_bias  = s.get("htf_bias")  # dict from htf_bias store, or None
 
     dir_emoji    = "🟢" if direction == "LONG" else "🔴"
     symbol_clean = symbol.split(":")[-1]
@@ -67,9 +68,22 @@ async def send_entry_signal(s: dict) -> bool:
     asset_emoji  = "🥇" if is_gold else "📊"
     now          = datetime.now(timezone.utc).strftime("%H:%M UTC — %d %b %Y")
 
+    if htf_bias:
+        from htf_bias import bias_remaining_label, tf_label
+        htf_tf      = tf_label(htf_bias.get("timeframe", ""))
+        htf_trigger = htf_bias.get("trigger", "")
+        remaining   = bias_remaining_label(htf_bias)
+        trigger_line = f" · {htf_trigger}" if htf_trigger else ""
+        confirmation = f"✅ HTF Bias: {htf_tf} {direction}{trigger_line}  (⏳ {remaining})\n"
+        title = f"{dir_emoji} <b>CONFIRMED {direction} SIGNAL</b> — {asset_emoji} {symbol_clean}"
+    else:
+        confirmation = ""
+        title = f"{dir_emoji} <b>{direction} SIGNAL</b> — {asset_emoji} {symbol_clean}"
+
     msg = (
-        f"{dir_emoji} <b>{direction} SIGNAL</b> — {asset_emoji} {symbol_clean}\n"
+        f"{title}\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
+        f"{confirmation}"
         f"⏱ Timeframe: {tf}\n"
         f"Strength:  {tier}\n\n"
         f"📍 Entry:  {entry:.2f}\n"

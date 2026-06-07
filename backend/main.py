@@ -361,13 +361,27 @@ async def trade_outcome(payload: TradeOutcomePayload):
 @app.post("/webhook/signal-entry")
 async def signal_entry(payload: SignalEntryPayload):
     _validate_secret(payload.secret)
+    from htf_bias import is_htf, store_bias, get_active_bias
+    sym = payload.symbol or "XAUUSD"
+    tf  = payload.timeframe or "5"
+
+    if is_htf(tf):
+        store_bias(sym, payload.direction, tf, payload.trigger or "", payload.ml_score)
+        print(f"[signal-entry] HTF bias stored: {payload.direction} {sym} TF={tf}")
+        return {"status": "ok", "routed_to": "htf-bias", "direction": payload.direction, "timeframe": tf}
+
+    bias = get_active_bias(sym, payload.direction)
+    if bias is None:
+        print(f"[signal-entry] Suppressed {payload.direction} {sym} TF={tf} — no active HTF bias")
+        return {"status": "ok", "routed_to": "suppressed", "reason": "no_htf_bias"}
+
     from telegram_bot import send_entry_signal
     from scheduler import get_latest_news_sentiment, get_latest_velocity, get_latest_event
     asyncio.create_task(send_entry_signal({
         "direction":   payload.direction,
-        "timeframe":   payload.timeframe,
+        "timeframe":   tf,
         "trigger":     payload.trigger,
-        "symbol":      payload.symbol,
+        "symbol":      sym,
         "entry_price": payload.entry_price,
         "tp1":         payload.tp1,
         "tp2":         payload.tp2,
@@ -378,8 +392,9 @@ async def signal_entry(payload: SignalEntryPayload):
         "news_score":  get_latest_news_sentiment(),
         "velocity":    get_latest_velocity().get("label", "NORMAL"),
         "event":       get_latest_event().get("event_type", ""),
+        "htf_bias":    bias,
     }))
-    return {"status": "ok", "direction": payload.direction, "timeframe": payload.timeframe}
+    return {"status": "ok", "routed_to": "signal-entry", "direction": payload.direction, "htf_confirmed": True}
 
 
 @app.post("/webhook")
@@ -399,13 +414,27 @@ async def unified_webhook(payload: UnifiedPayload):
     is_outcome = payload.trade_id is not None and payload.outcome is not None
 
     if is_entry:
+        from htf_bias import is_htf, store_bias, get_active_bias
+        sym = payload.symbol or "XAUUSD"
+        tf  = payload.timeframe or "5"
+
+        if is_htf(tf):
+            store_bias(sym, payload.direction, tf, payload.trigger or "", payload.ml_score)
+            print(f"[webhook] HTF bias stored: {payload.direction} {sym} TF={tf}")
+            return {"status": "ok", "routed_to": "htf-bias", "direction": payload.direction, "timeframe": tf}
+
+        bias = get_active_bias(sym, payload.direction)
+        if bias is None:
+            print(f"[webhook] Suppressed {payload.direction} {sym} TF={tf} — no active HTF bias")
+            return {"status": "ok", "routed_to": "suppressed", "reason": "no_htf_bias"}
+
         from telegram_bot import send_entry_signal
         from scheduler import get_latest_news_sentiment, get_latest_velocity, get_latest_event
         asyncio.create_task(send_entry_signal({
             "direction":   payload.direction,
-            "timeframe":   payload.timeframe or "5",
+            "timeframe":   tf,
             "trigger":     payload.trigger or "RSI",
-            "symbol":      payload.symbol or "XAUUSD",
+            "symbol":      sym,
             "entry_price": payload.entry_price or 0.0,
             "tp1":         payload.tp1 or 0.0,
             "tp2":         payload.tp2 or 0.0,
@@ -416,8 +445,9 @@ async def unified_webhook(payload: UnifiedPayload):
             "news_score":  get_latest_news_sentiment(),
             "velocity":    get_latest_velocity().get("label", "NORMAL"),
             "event":       get_latest_event().get("event_type", ""),
+            "htf_bias":    bias,
         }))
-        return {"status": "ok", "routed_to": "signal-entry", "direction": payload.direction}
+        return {"status": "ok", "routed_to": "signal-entry", "direction": payload.direction, "htf_confirmed": True}
 
     if payload.outcome == "HEARTBEAT":
         from ml_model import Features
