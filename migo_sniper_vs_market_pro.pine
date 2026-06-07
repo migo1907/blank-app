@@ -105,6 +105,12 @@ var float  slPrice      = 0.0
 var float  reEntryPrice = 0.0
 var int    tradeConf    = 0
 
+// --- WIN/LOSS TRACKING ---
+// Win  = exited via TP3, OR via the trail/locked SL after TP1 (always >= breakeven)
+// Loss = hit the original hard SL before TP1 was ever reached
+var int    tradeWins    = 0
+var int    tradeLosses  = 0
+
 // TP stage tracking
 var bool   tp1Hit       = false
 var bool   tp2Hit       = false
@@ -145,10 +151,15 @@ if activeTrade == "LONG"
         label.new(bar_index, high, "TP2 ✓\nTP1 LOCKED", color=color.new(color.green, 20), textcolor=color.white, style=label.style_label_down, size=size.tiny)
 
     if tp1Hit and tp2Hit and high >= tp3Price
+        tradeWins += 1
         activeTrade := "NONE", tp1Hit := false, tp2Hit := false
         label.new(bar_index, high, "TP3 ✓\nFULL RUN!", color=color.green, textcolor=color.white, style=label.style_label_down, size=size.small)
 
     if low <= slPrice
+        if tp1Hit
+            tradeWins += 1       // trail/locked SL after TP1 -> WIN (>= breakeven)
+        else
+            tradeLosses += 1     // hit hard SL before TP1 -> LOSS
         string exitLabel = tp1Hit ? (tp2Hit ? "SL (after TP2)" : "SL (after TP1)") : "SL HIT"
         label.new(bar_index, low, exitLabel, color=color.red, textcolor=color.white, style=label.style_label_up, size=size.tiny)
         activeTrade := "NONE", tp1Hit := false, tp2Hit := false
@@ -170,10 +181,15 @@ if activeTrade == "SHORT"
         label.new(bar_index, low, "TP2 ✓\nTP1 LOCKED", color=color.new(color.green, 20), textcolor=color.white, style=label.style_label_up, size=size.tiny)
 
     if tp1Hit and tp2Hit and low <= tp3Price
+        tradeWins += 1
         activeTrade := "NONE", tp1Hit := false, tp2Hit := false
         label.new(bar_index, low, "TP3 ✓\nFULL RUN!", color=color.green, textcolor=color.white, style=label.style_label_up, size=size.small)
 
     if high >= slPrice
+        if tp1Hit
+            tradeWins += 1       // trail/locked SL after TP1 -> WIN (>= breakeven)
+        else
+            tradeLosses += 1     // hit hard SL before TP1 -> LOSS
         string exitLabel = tp1Hit ? (tp2Hit ? "SL (after TP2)" : "SL (after TP1)") : "SL HIT"
         label.new(bar_index, high, exitLabel, color=color.red, textcolor=color.white, style=label.style_label_down, size=size.tiny)
         activeTrade := "NONE", tp1Hit := false, tp2Hit := false
@@ -350,10 +366,14 @@ if barstate.islast
     table.cell(hub, 1, 1, mktState, text_color=mktStateColor)
     table.merge_cells(hub, 1, 1, 3, 1)
 
+    int   totalRes = tradeWins + tradeLosses
+    float winRate  = totalRes > 0 ? 100.0 * tradeWins / totalRes : na
+    string wrText  = totalRes > 0 ? str.tostring(math.round(winRate)) + "% (" + str.tostring(tradeWins) + "/" + str.tostring(totalRes) + ")" : "-"
+    color  wrColor = na(winRate) ? color.gray : winRate >= 50 ? color.green : color.red
     table.cell(hub, 0, 2, "CONFIDENCE", text_color=color.gray, text_size=size.small)
     table.cell(hub, 1, 2, isSideways ? "-" : str.tostring(tradeConf) + "%", text_color=color.yellow)
-    table.cell(hub, 2, 2, "WIN PROB",   text_color=color.gray, text_size=size.small)
-    table.cell(hub, 3, 2, isSideways ? "-" : "82%", text_color=color.green)
+    table.cell(hub, 2, 2, "WIN RATE",   text_color=color.gray, text_size=size.small)
+    table.cell(hub, 3, 2, wrText, text_color=wrColor)
 
     table.cell(hub, 0, 3, "SIGNAL", text_color=color.gray, text_size=size.small)
     table.cell(hub, 1, 3, isSideways ? "BLOCKED" : activeTrade, text_color=isSideways ? color.yellow : activeTrade == "LONG" ? color.green : activeTrade == "SHORT" ? color.red : color.yellow)
