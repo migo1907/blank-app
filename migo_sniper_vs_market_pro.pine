@@ -29,6 +29,11 @@ float rrTP3         = input.float(3.5,  "TP3 Risk:Reward", minval=1.0, group="Re
 bool  useReEntry    = input.bool(true,  "Enable Pullback Re-Entry Level", group="Re-Entry")
 float reEntryRatio  = input.float(0.4,  "Re-Entry Pullback (fraction of risk)", minval=0.1, maxval=0.9, group="Re-Entry")
 
+// --- SIGNAL FILTERS (avoid sideways) ---
+bool requireHTFTrend = input.bool(true, "Only trade with 1H trend (skip ranging)", group="Signal Filters")
+bool requireADXtrend = input.bool(true, "Require ADX above threshold on signal", group="Signal Filters")
+bool requireExpansion = input.bool(true, "Require ATR not compressed on signal", group="Signal Filters")
+
 // --- CALCULATIONS ---
 float rsiValue = ta.rsi(close, 14)
 float maLong   = ta.ema(close, 200)
@@ -158,8 +163,15 @@ if activeTrade == "SHORT" and not tp1Hit
         activeTrade := "NONE", tp1Hit := false, tp2Hit := false
 
 // --- SIGNALS ---
-bool buySignal  = not isSideways and ta.crossover(rsiValue, 45)  and close > low[1]
-bool sellSignal = not isSideways and ta.crossunder(rsiValue, 55) and close < high[1]
+// Sideways guards: HTF trend alignment, real ADX trend, and volatility expansion
+bool trendOKlong  = (not requireHTFTrend) or mainTrend == "UPTREND"
+bool trendOKshort = (not requireHTFTrend) or mainTrend == "DOWNTREND"
+bool adxOK        = (not requireADXtrend) or (adxValue >= adxThreshold)
+bool expansionOK  = (not requireExpansion) or (not atrCompressed)
+bool filtersOK    = not isSideways and adxOK and expansionOK
+
+bool buySignal  = filtersOK and trendOKlong  and ta.crossover(rsiValue, 45)  and close > low[1]
+bool sellSignal = filtersOK and trendOKshort and ta.crossunder(rsiValue, 55) and close < high[1]
 
 bool doBuy  = buySignal  and (activeTrade != "LONG")
 bool doSell = sellSignal and (activeTrade != "SHORT")
