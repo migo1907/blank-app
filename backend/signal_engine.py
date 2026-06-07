@@ -340,7 +340,7 @@ def generate_signal(
     # ── Weekend guard ──────────────────────────────────────────────────────────
     dow_mult = _day_of_week_multiplier(now)
     if dow_mult == 0.0:
-        return _neutral_signal(symbol, now, model, rf, "Weekend — market closed", news_agg, pool, current_features)
+        return _neutral_signal(symbol, now, model, rf, "Weekend — market closed", news_agg, pool, current_features, is_stock=is_stock)
 
     # ── KNN score ─────────────────────────────────────────────────────────────────
     if current_features and len(history) >= model.k:
@@ -372,7 +372,7 @@ def generate_signal(
         # Bypass if all 3 ML models unanimously agree on direction (Option F)
         all_agree = (knn_dir == rf_dir == gbm_dir)
         if not all_agree:
-            return _neutral_signal(symbol, now, model, rf, "News velocity CONFLICTED", news_agg, pool, current_features)
+            return _neutral_signal(symbol, now, model, rf, "News velocity CONFLICTED", news_agg, pool, current_features, is_stock=is_stock)
 
     if event.get("detected") and event.get("urgency", 0) >= 0.9:
         v_mult = min(v_mult * 1.5, 3.0)
@@ -484,8 +484,8 @@ def generate_signal(
 
 
 def _neutral_signal(symbol, now, model, rf, reason, news_agg, pool: str = "XAUUSD_2M",
-                    features=None):
-    _sess_mult, _session = _session_multiplier(now)
+                    features=None, is_stock: bool = False):
+    _sess_mult, _session = _session_multiplier(now, is_stock=is_stock)
     _regime = _detect_regime(features)
     row = {
         "symbol":         symbol,

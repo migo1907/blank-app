@@ -230,8 +230,9 @@ async def send_stocks_session_report() -> bool:
         tp_lbl  = _tp_label(t)
         emoji   = "✅" if outcome in ("WIN", "PARTIAL") else "❌"
         dir_e   = "🟢" if direct == "LONG" else "🔴"
-        tf      = t.get("timeframe", "?")
-        lines.append(f"{emoji} {dir_e} <b>{sym}</b>  {tf}m  Entry: {entry:.2f}  {tp_lbl}")
+        tf_raw  = str(t.get("timeframe", "?"))
+        tf_disp = {"60": "1H", "240": "4H", "1H": "1H", "4H": "4H", "1h": "1H", "4h": "4H"}.get(tf_raw, f"{tf_raw}m")
+        lines.append(f"{emoji} {dir_e} <b>{sym}</b>  {tf_disp}  Entry: {entry:.2f}  {tp_lbl}")
 
     now = datetime.now(timezone.utc).strftime("%d %b %Y")
     body = "\n".join(lines)

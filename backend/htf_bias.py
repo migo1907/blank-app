@@ -31,6 +31,11 @@ def _normalize_tf(timeframe: str) -> str:
     return {"1H": "60", "1h": "60", "4H": "240", "4h": "240"}.get(tf, tf)
 
 
+def _normalize_symbol(symbol: str) -> str:
+    """Strip exchange prefix so 'TVC:GOLD' and 'ICMARKETS:XAUUSD' both resolve to the bare ticker."""
+    return symbol.split(":")[-1].upper()
+
+
 def is_htf(timeframe: str) -> bool:
     return _normalize_tf(timeframe) in {"30", "60", "240"}
 
@@ -87,35 +92,37 @@ def load_bias_store() -> None:
 
 
 def store_bias(symbol: str, direction: str, timeframe: str, trigger: str = "", ml_score: float = 0.5) -> None:
+    sym   = _normalize_symbol(symbol)
     tf    = _normalize_tf(timeframe)
     hours = _EXPIRY_HOURS.get(tf, 2)
-    key   = f"{symbol}_{tf}"
+    key   = f"{sym}_{tf}"
     with _bias_lock:
         existing = _bias_store.get(key)
         if existing and existing["direction"] != direction:
-            print(f"[htf_bias] ⚠ Direction flip for {symbol} TF={tf}m: {existing['direction']} → {direction} — previous bias overwritten")
+            print(f"[htf_bias] ⚠ Direction flip for {sym} TF={tf}m: {existing['direction']} → {direction} — previous bias overwritten")
         _bias_store[key] = {
             "direction":  direction,
             "timeframe":  tf,
-            "symbol":     symbol,
+            "symbol":     sym,
             "trigger":    trigger,
             "ml_score":   ml_score,
             "stored_at":  datetime.now(timezone.utc).isoformat(),
             "expires_at": (datetime.now(timezone.utc) + timedelta(hours=hours)).isoformat(),
         }
-    print(f"[htf_bias] Stored {direction} bias for {symbol} TF={tf}m expires_in={hours}h")
+    print(f"[htf_bias] Stored {direction} bias for {sym} TF={tf}m expires_in={hours}h")
     _persist()
 
 
 def get_active_bias(symbol: str, direction: str) -> dict | None:
     """Return the most recent non-expired bias matching symbol+direction across all HTF timeframes."""
+    sym = _normalize_symbol(symbol)
     now = datetime.now(timezone.utc)
     best: dict | None = None
     expired_keys = []
 
     with _bias_lock:
         for key, bias in list(_bias_store.items()):
-            if not key.startswith(f"{symbol}_"):
+            if not key.startswith(f"{sym}_"):
                 continue
             try:
                 expires = _parse_ts(bias["expires_at"])
