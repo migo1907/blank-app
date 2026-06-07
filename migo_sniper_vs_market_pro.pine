@@ -106,8 +106,9 @@ var float  reEntryPrice = 0.0
 var int    tradeConf    = 0
 
 // --- WIN/LOSS TRACKING ---
-// Win  = exited via TP3, OR via the trail/locked SL after TP1 (always >= breakeven)
-// Loss = hit the original hard SL before TP1 was ever reached
+// Win  = exited via TP3, OR via the trail/locked SL after TP1/TP2 (always >= breakeven),
+//        OR flipped by an opposite signal while in profit
+// Loss = hit the original hard SL before TP1, OR flipped by an opposite signal while in loss
 var int    tradeWins    = 0
 var int    tradeLosses  = 0
 
@@ -244,6 +245,13 @@ bool doBuy  = buySignal  and (activeTrade != "LONG")
 bool doSell = sellSignal and (activeTrade != "SHORT")
 
 if doBuy
+    // opposite-signal flip: the new buy closes any open short first, acting as a stop
+    if activeTrade == "SHORT"
+        if close <= entryPrice
+            tradeWins += 1       // short closed in profit on the flip -> WIN
+        else
+            tradeLosses += 1     // short closed in loss on the flip -> LOSS
+        label.new(bar_index, high, "FLIP EXIT\n→ BUY", color=color.new(color.orange, 20), textcolor=color.white, style=label.style_label_down, size=size.tiny)
     activeTrade := "LONG"
     entryPrice  := close
     // --- Adaptive SL: protective swing low + auto ATR buffer, floored & capped by ATR ---
@@ -272,6 +280,13 @@ if doBuy
     label.new(bar_index, low, "BUY\nEnt: " + str.tostring(entryPrice, "#.##") + "\nTP1: " + str.tostring(tp1Price, "#.##") + "\nTP2: " + str.tostring(tp2Price, "#.##") + "\nTP3: " + str.tostring(tp3Price, "#.##") + "\nSL: " + str.tostring(slPrice, "#.##") + "\nRe-Entry: " + str.tostring(reEntryPrice, "#.##"), color=color.green, textcolor=color.white, style=label.style_label_up, size=size.small)
 
 if doSell
+    // opposite-signal flip: the new sell closes any open long first, acting as a stop
+    if activeTrade == "LONG"
+        if close >= entryPrice
+            tradeWins += 1       // long closed in profit on the flip -> WIN
+        else
+            tradeLosses += 1     // long closed in loss on the flip -> LOSS
+        label.new(bar_index, low, "FLIP EXIT\n→ SELL", color=color.new(color.orange, 20), textcolor=color.white, style=label.style_label_up, size=size.tiny)
     activeTrade := "SHORT"
     entryPrice  := close
     // --- Adaptive SL: protective swing high + auto ATR buffer, floored & capped by ATR ---
