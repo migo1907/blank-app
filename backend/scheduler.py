@@ -524,16 +524,19 @@ async def _hourly_system_check() -> None:
         stocks_active = (dow < 5 and 13 <= hour_utc < 21)  # stocks 09:30–17:00 ET ≈ 13:30–21:00 UTC
 
         active_pools = [
-            ("data/trade_history_XAUUSD_2M.json",           "XAUUSD_2M",           gold_active,    6),
-            ("data/trade_history_XAUUSD_5M.json",           "XAUUSD_5M",           gold_active,    8),
-            ("data/trade_history_XAUUSD_30M.json",          "XAUUSD_30M",          gold_active,   12),
-            ("data/trade_history_XAUUSD_1H.json",           "XAUUSD_1H",           gold_active,   16),
-            ("data/trade_history_STOCKS_MOMENTUM_30M.json", "STOCKS_MOMENTUM_30M", stocks_active,  4),
-            ("data/trade_history_STOCKS_QUALITY_30M.json",  "STOCKS_QUALITY_30M",  stocks_active,  4),
-            ("data/trade_history_STOCKS_INDEX_30M.json",    "STOCKS_INDEX_30M",    stocks_active,  4),
-            ("data/trade_history_STOCKS_MOMENTUM_4H.json",  "STOCKS_MOMENTUM_4H",  stocks_active,  8),
-            ("data/trade_history_STOCKS_QUALITY_4H.json",   "STOCKS_QUALITY_4H",   stocks_active,  8),
-            ("data/trade_history_STOCKS_INDEX_4H.json",     "STOCKS_INDEX_4H",     stocks_active,  8),
+            ("data/trade_history_XAUUSD_2M.json",            "XAUUSD_2M",            gold_active,    6),
+            ("data/trade_history_XAUUSD_5M.json",            "XAUUSD_5M",            gold_active,    8),
+            ("data/trade_history_XAUUSD_30M.json",           "XAUUSD_30M",           gold_active,   12),
+            ("data/trade_history_XAUUSD_1H.json",            "XAUUSD_1H",            gold_active,   16),
+            ("data/trade_history_STOCKS_MOMENTUM_15M.json",  "STOCKS_MOMENTUM_15M",  stocks_active,  3),
+            ("data/trade_history_STOCKS_MOMENTUM_30M.json",  "STOCKS_MOMENTUM_30M",  stocks_active,  4),
+            ("data/trade_history_STOCKS_QUALITY_15M.json",   "STOCKS_QUALITY_15M",   stocks_active,  3),
+            ("data/trade_history_STOCKS_QUALITY_30M.json",   "STOCKS_QUALITY_30M",   stocks_active,  4),
+            ("data/trade_history_STOCKS_INDEX_15M.json",     "STOCKS_INDEX_15M",     stocks_active,  3),
+            ("data/trade_history_STOCKS_INDEX_30M.json",     "STOCKS_INDEX_30M",     stocks_active,  4),
+            ("data/trade_history_STOCKS_MOMENTUM_4H.json",   "STOCKS_MOMENTUM_4H",   stocks_active,  8),
+            ("data/trade_history_STOCKS_QUALITY_4H.json",    "STOCKS_QUALITY_4H",    stocks_active,  8),
+            ("data/trade_history_STOCKS_INDEX_4H.json",      "STOCKS_INDEX_4H",      stocks_active,  8),
         ]
 
         silent_pools = []
@@ -610,7 +613,7 @@ async def _hourly_system_check() -> None:
             seen_keys: set = set()
             deduped = []
             for trade in _hist:
-                key = f"{trade.get('symbol','')}|{trade.get('direction','')}|{trade.get('entry_price',0)}|{trade.get('timeframe','')}"
+                key = f"{trade.get('symbol','')}|{trade.get('direction','')}|{trade.get('entry_price',0)}|{trade.get('timeframe','')}|{trade.get('exit_price',0)}"
                 if key not in seen_keys:
                     seen_keys.add(key)
                     deduped.append(trade)

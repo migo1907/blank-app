@@ -166,6 +166,7 @@ def symbol_to_pool(symbol: str, timeframe: str = "") -> str:
     elif ticker in STOCKS_MOMENTUM:
         base = "STOCKS_MOMENTUM"
     else:
+        print(f"[db] symbol_to_pool: unknown ticker '{ticker}' — defaulting to STOCKS_MOMENTUM")
         base = "STOCKS_MOMENTUM"
     return f"{base}_{suffix}" if suffix else base
 
@@ -227,6 +228,8 @@ def insert_outcome(outcome: dict) -> None:
     outcome.setdefault("id",         str(uuid.uuid4())[:8])
     outcome.setdefault("pool",       pool)
     outcome.setdefault("created_at", datetime.now(timezone.utc).isoformat())
+    outcome.setdefault("regime",     "UNKNOWN")
+    outcome.setdefault("session",    "UNKNOWN")
 
     dedup_key = (
         f"{outcome.get('symbol','')}|{outcome.get('direction','')}|"
@@ -240,7 +243,7 @@ def insert_outcome(outcome: dict) -> None:
             history = []
 
         existing_keys = {
-            f"{t.get('symbol','')}|{t.get('direction','')}|{t.get('entry_price',0)}|{t.get('timeframe','')}"
+            f"{t.get('symbol','')}|{t.get('direction','')}|{t.get('entry_price',0)}|{t.get('timeframe','')}|{t.get('exit_price',0)}"
             for t in history
         }
         if dedup_key in existing_keys:
@@ -326,7 +329,7 @@ def insert_signal(signal: dict) -> dict:
     return signal
 
 
-def expire_old_signals(symbol: str = "XAUUSD") -> None:
+def expire_old_signals(symbol: str = "") -> None:
     """Mark ACTIVE signals past their expires_at as EXPIRED in the signals file."""
     now = datetime.now(timezone.utc)
     try:

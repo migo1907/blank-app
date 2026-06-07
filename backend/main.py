@@ -406,18 +406,23 @@ async def signal_entry(payload: SignalEntryPayload):
 
     from telegram_bot import send_entry_signal
     from scheduler import get_latest_news_sentiment, get_latest_velocity, get_latest_event
+    entry = payload.entry_price or 0.0
+    if entry <= 0:
+        print(f"[signal-entry] Missing entry_price for {sym} {payload.direction} — skipping Telegram")
+        return {"status": "ok", "routed_to": "suppressed", "reason": "no_entry_price"}
+
     asyncio.create_task(send_entry_signal({
         "direction":   payload.direction,
         "timeframe":   tf,
-        "trigger":     payload.trigger,
+        "trigger":     payload.trigger or "RSI",
         "symbol":      sym,
-        "entry_price": payload.entry_price,
-        "tp1":         payload.tp1,
-        "tp2":         payload.tp2,
-        "tp3":         payload.tp3,
-        "sl":          payload.sl,
+        "entry_price": entry,
+        "tp1":         payload.tp1 or 0.0,
+        "tp2":         payload.tp2 or 0.0,
+        "tp3":         payload.tp3 or 0.0,
+        "sl":          payload.sl or 0.0,
         "ml_score":    payload.ml_score,
-        "tier":        payload.tier,
+        "tier":        payload.tier or "MED",
         "news_score":  get_latest_news_sentiment(),
         "velocity":    get_latest_velocity().get("label", "NORMAL"),
         "event":       get_latest_event().get("event_type", ""),
