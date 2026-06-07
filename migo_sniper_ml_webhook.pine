@@ -474,7 +474,8 @@ if activeTrade == "LONG"
         alert(buildPayload(activeTrade, "TP2_HIT", "TP2_HIT", "TP2", entryPrice, tp2Price, mlBull, activeTrigger, mfeFav, timeframe.period), alert.freq_once_per_bar_close)
         label.new(bar_index, high, "TP2 ✓\nTrail ↑", color=color.new(color.green, 20), textcolor=color.white, style=label.style_label_down, size=size.tiny)
 
-    if tp1Hit and tp2Hit and high >= tp3Price
+    bool closedTP3L = tp1Hit and tp2Hit and high >= tp3Price
+    if closedTP3L
         totalWins += 1
         updateWeightsLong(winReward)
         alert(buildPayload(activeTrade, "WIN", "WIN", "TP3", entryPrice, high, mlBull, activeTrigger, mfeFav, timeframe.period), alert.freq_once_per_bar_close)
@@ -484,12 +485,10 @@ if activeTrade == "LONG"
         mfeFav  := 0.0
         label.new(bar_index, high, "TP3 ✓\nFULL RUN! ☁️", color=color.green, textcolor=color.white, style=label.style_label_down, size=size.small)
 
-    if low <= slPrice
+    if not closedTP3L and low <= slPrice
         string exitLbl  = tp1Hit ? (tp2Hit ? "SL (after TP2)" : "SL (after TP1)") : "SL HIT"
         string outcome  = tp1Hit ? "PARTIAL" : "LOSS"
         string stage    = tp2Hit ? "SL_TP2" : (tp1Hit ? "SL_TP1" : "SL")
-        // ml_outcome: any TP hit = WIN (trail above entry, trade is profitable regardless of close)
-        // SL before TP1 = LOSS, unless price moved ≥87.5% of the SL distance toward TP
         float  slDist   = math.abs(entryPrice - slPrice)
         string mlOut    = tp1Hit ? "WIN" : (mfeFav >= slDist * 0.875 ? "WIN" : "LOSS")
         if not tp1Hit
@@ -503,6 +502,7 @@ if activeTrade == "LONG"
         activeTrade := "NONE"
         tp1Hit := false
         tp2Hit := false
+        mfeFav := 0.0
 
 // ═══════════════════════════════════════════════════════
 // SHORT EXITS + ADAPTIVE UPDATE + WEBHOOK
@@ -523,7 +523,8 @@ if activeTrade == "SHORT"
         alert(buildPayload(activeTrade, "TP2_HIT", "TP2_HIT", "TP2", entryPrice, tp2Price, mlBear, activeTrigger, mfeFav, timeframe.period), alert.freq_once_per_bar_close)
         label.new(bar_index, low, "TP2 ✓\nTrail ↑", color=color.new(color.green, 20), textcolor=color.white, style=label.style_label_up, size=size.tiny)
 
-    if tp1Hit and tp2Hit and low <= tp3Price
+    bool closedTP3S = tp1Hit and tp2Hit and low <= tp3Price
+    if closedTP3S
         totalWins += 1
         updateWeightsShort(winReward)
         alert(buildPayload(activeTrade, "WIN", "WIN", "TP3", entryPrice, low, mlBear, activeTrigger, mfeFav, timeframe.period), alert.freq_once_per_bar_close)
@@ -533,12 +534,10 @@ if activeTrade == "SHORT"
         mfeFav  := 0.0
         label.new(bar_index, low, "TP3 ✓\nFULL RUN! ☁️", color=color.green, textcolor=color.white, style=label.style_label_up, size=size.small)
 
-    if high >= slPrice
+    if not closedTP3S and high >= slPrice
         string exitLbl  = tp1Hit ? (tp2Hit ? "SL (after TP2)" : "SL (after TP1)") : "SL HIT"
         string outcome  = tp1Hit ? "PARTIAL" : "LOSS"
         string stage    = tp2Hit ? "SL_TP2" : (tp1Hit ? "SL_TP1" : "SL")
-        // ml_outcome: any TP hit = WIN (trail above entry, trade is profitable regardless of close)
-        // SL before TP1 = LOSS, unless price moved ≥87.5% of the SL distance toward TP
         float  slDist   = math.abs(slPrice - entryPrice)
         string mlOut    = tp1Hit ? "WIN" : (mfeFav >= slDist * 0.875 ? "WIN" : "LOSS")
         if not tp1Hit
@@ -564,6 +563,7 @@ if activeTrade == "LONG" and not tp1Hit
         activeTrade := "NONE"
         tp1Hit := false
         tp2Hit := false
+        mfeFav := 0.0
 
 if activeTrade == "SHORT" and not tp1Hit
     float tpRange     = entryPrice - tp1Price
@@ -572,6 +572,7 @@ if activeTrade == "SHORT" and not tp1Hit
         activeTrade := "NONE"
         tp1Hit := false
         tp2Hit := false
+        mfeFav := 0.0
 
 // ═══════════════════════════════════════════════════════
 // MULTI-TRIGGER ENTRY SYSTEM (unchanged logic)
@@ -736,7 +737,7 @@ color  dxyCol  = f17 > 0.0 ? color.lime : f17 < 0.0 ? color.red : color.gray
 string tfLabel = isTF2 ? "2min" : isTF5 ? "5min" : isTF15 ? "15min" : isTF1H ? "1H" : str.tostring(tfMins) + "min"
 string autoStr = autoTF ? "AUTO·" + tfLabel : "MANUAL"
 
-var table hub = table.new(position.bottom_left, 4, 19, bgcolor=color.rgb(15,15,15), border_color=color.gray, border_width=1)
+var table hub = table.new(position.bottom_left, 4, 15, bgcolor=color.rgb(15,15,15), border_color=color.gray, border_width=1)
 
 if barstate.islast
     table.cell(hub, 0, 0, "MIGO SNIPER  [ML + ADAPTIVE + ☁️ v3·25F]", text_color=color.white, bgcolor=color.rgb(65,14,58))
@@ -819,17 +820,3 @@ if barstate.islast
     table.cell(hub, 1, 14, volStatus, text_color=volColor)
     table.merge_cells(hub, 1, 14, 3, 14)
 
-    string adxInfo = "ADX:" + str.tostring(math.round(adxVal, 1)) + (adxFlat ? "✗" : "✓") + "  ATR:" + (atrCompressed ? "✗" : "✓") + "  EMA:" + (emaTooClose ? "✗" : "✓")
-    table.cell(hub, 0, 15, adxInfo, text_color=color.new(color.gray, 30), text_size=size.small)
-    table.merge_cells(hub, 0, 15, 3, 15)
-
-    string mlInfo = "k=" + str.tostring(mlK) + "  depth=" + str.tostring(mlDepth) + "  lag=" + str.tostring(mlLag) + "  min=" + str.tostring(math.round(mlMinScore * 100)) + "%"
-    table.cell(hub, 0, 16, mlInfo, text_color=color.new(color.gray, 40), text_size=size.tiny)
-    table.merge_cells(hub, 0, 16, 3, 16)
-
-    string smcToggle = "SMC:" + (useSMC ? "ON" : "OFF") + " Sess:" + (useSession ? "ON" : "OFF") + " MTF:" + (useMTF ? "ON" : "OFF") + " DXY:" + (useDXY ? "ON" : "OFF") + " F22-25:" + (useNewFeats ? "ON" : "OFF")
-    table.cell(hub, 0, 17, smcToggle, text_color=color.new(color.aqua, 30), text_size=size.tiny)
-    table.merge_cells(hub, 0, 17, 3, 17)
-
-    table.cell(hub, 0, 18, "☁️ CLOUD SYNC ACTIVE — 25F outcomes sent to backend", text_color=color.new(color.aqua, 40), text_size=size.tiny)
-    table.merge_cells(hub, 0, 18, 3, 18)
