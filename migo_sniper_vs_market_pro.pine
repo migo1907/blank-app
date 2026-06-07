@@ -43,6 +43,8 @@ bool pullbackMode    = input.bool(true, "Pullback entry (buy dips / sell rallies
 int  pbEmaLen        = input.int(20,   "Pullback value EMA length", minval=5, group="Signal Filters")
 bool strongConfirm   = input.bool(true, "Strong confirmation (candle close + RSI rising)", group="Signal Filters")
 float closeFrac      = input.float(0.33, "Confirm candle close in top/bottom fraction", minval=0.1, maxval=0.5, group="Signal Filters")
+bool momoEntry       = input.bool(true, "Momentum breakout entry (catch strong moves)", group="Signal Filters")
+int  brkLen          = input.int(10,   "Breakout lookback (bars)", minval=3, group="Signal Filters")
 
 // --- SESSION FILTER (avoid noisy hours) ---
 bool   useSessions = input.bool(true,  "Restrict signals to selected sessions", group="Sessions")
@@ -335,8 +337,19 @@ float barRange  = high - low
 bool  strongUp  = (not strongConfirm) or (close >= high - barRange * closeFrac and rsiValue > rsiValue[1])
 bool  strongDn  = (not strongConfirm) or (close <= low  + barRange * closeFrac and rsiValue < rsiValue[1])
 
-bool buySignal  = filtersOK and trendOKlong  and (pullbackMode ? pbLong  : momLong)  and strongUp
-bool sellSignal = filtersOK and trendOKshort and (pullbackMode ? pbShort : momShort) and strongDn
+// Momentum breakout: a strong expansion candle that breaks the recent range in the
+// 1H trend direction. Needs only 1H (not 4H) and no pullback — catches fast moves
+// (e.g. a massive volatile drop) that the pullback entry sits out.
+bool brkLong  = momoEntry and close > ta.highest(high, brkLen)[1] and not atrCompressed and trend1h == "UPTREND"
+bool brkShort = momoEntry and close < ta.lowest(low,  brkLen)[1]  and not atrCompressed and trend1h == "DOWNTREND"
+
+// Base entry (pullback or original momentum) with full confluence + confirmation,
+// OR a clean breakout (1H-only). Either path can trigger.
+bool baseLong  = (pullbackMode ? pbLong  : momLong)  and trendOKlong  and strongUp
+bool baseShort = (pullbackMode ? pbShort : momShort) and trendOKshort and strongDn
+
+bool buySignal  = filtersOK and (baseLong  or brkLong)
+bool sellSignal = filtersOK and (baseShort or brkShort)
 
 bool doBuy  = buySignal  and (activeTrade != "LONG")
 bool doSell = sellSignal and (activeTrade != "SHORT")
