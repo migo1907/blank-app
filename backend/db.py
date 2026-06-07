@@ -149,7 +149,8 @@ def symbol_to_pool(symbol: str, timeframe: str = "") -> str:
         t = str(tf).strip().upper().replace("MIN","").replace("H","")
         if t in ("1", "2"):          return "2M"
         if t in ("3", "4", "5"):     return "5M"
-        if t in ("15", "20", "30"):  return "30M"
+        if t in ("15",):             return "15M"
+        if t in ("20", "30"):        return "30M"
         if t in ("60",):             return "1H"
         if t in ("240",):            return "4H"
         return ""
