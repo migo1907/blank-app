@@ -175,12 +175,15 @@ class RandomForestEnsemble:
 # ── Pool-aware singletons — one RF per pool ──────────────────────────────────
 
 _rf_pool: dict[str, RandomForestEnsemble] = {}
+_rf_pool_lock = threading.Lock()
 
 
 def get_rf(pool: str = "XAUUSD") -> RandomForestEnsemble:
     """Get or create a RandomForestEnsemble for the given pool."""
     if pool not in _rf_pool:
-        _rf_pool[pool] = RandomForestEnsemble()
+        with _rf_pool_lock:
+            if pool not in _rf_pool:  # double-checked locking
+                _rf_pool[pool] = RandomForestEnsemble()
     return _rf_pool[pool]
 
 
@@ -268,10 +271,13 @@ class GradientBoostEnsemble:
 # ── Pool-aware singletons — one GBM per pool ─────────────────────────────────
 
 _gbm_pool: dict[str, GradientBoostEnsemble] = {}
+_gbm_pool_lock = threading.Lock()
 
 
 def get_gbm(pool: str = "XAUUSD") -> GradientBoostEnsemble:
     """Get or create a GradientBoostEnsemble for the given pool."""
     if pool not in _gbm_pool:
-        _gbm_pool[pool] = GradientBoostEnsemble()
+        with _gbm_pool_lock:
+            if pool not in _gbm_pool:  # double-checked locking
+                _gbm_pool[pool] = GradientBoostEnsemble()
     return _gbm_pool[pool]

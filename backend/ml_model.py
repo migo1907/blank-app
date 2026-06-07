@@ -4,6 +4,7 @@ Expanded to 25 features (v3·25F).
 Weights survive across sessions — true cross-session learning.
 """
 import math
+import threading
 from dataclasses import dataclass
 from db import load_weights, save_weights, recent_outcomes
 
@@ -265,13 +266,16 @@ class AdaptiveKNN:
 
 # Pool-aware singletons — one AdaptiveKNN per ML pool
 _models: dict[str, AdaptiveKNN] = {}
+_models_lock = threading.Lock()
 
 
 def get_model(pool: str = "XAUUSD") -> AdaptiveKNN:
     """Get or create an AdaptiveKNN model for the given pool name."""
     if pool not in _models:
-        m = AdaptiveKNN()
-        m.load(pool)
-        _models[pool] = m
-        print(f"[ml] Loaded model for pool '{pool}'")
+        with _models_lock:
+            if pool not in _models:  # double-checked locking
+                m = AdaptiveKNN()
+                m.load(pool)
+                _models[pool] = m
+                print(f"[ml] Loaded model for pool '{pool}'")
     return _models[pool]

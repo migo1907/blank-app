@@ -63,22 +63,29 @@ def _get_file(path: str) -> tuple[dict | list | None, str | None]:
 
 
 def _put_file(path: str, content: dict | list, sha: str | None, message: str) -> None:
-    """Create or update a file in the repo."""
+    """Create or update a file in the repo. Retries on 409 SHA conflict (re-fetches SHA)."""
     encoded = base64.b64encode(json.dumps(content, indent=2).encode()).decode()
-    payload: dict = {
-        "message": message,
-        "content": encoded,
-        "branch": GITHUB_BRANCH,
-    }
-    if sha:
-        payload["sha"] = sha
-    with httpx.Client(timeout=15) as client:
-        resp = client.put(
-            f"{BASE_URL}/repos/{GITHUB_REPO}/contents/{path}",
-            headers=HEADERS,
-            json=payload,
-        )
-    resp.raise_for_status()
+    current_sha = sha
+    for attempt in range(3):
+        payload: dict = {
+            "message": message,
+            "content": encoded,
+            "branch":  GITHUB_BRANCH,
+        }
+        if current_sha:
+            payload["sha"] = current_sha
+        with httpx.Client(timeout=15) as client:
+            resp = client.put(
+                f"{BASE_URL}/repos/{GITHUB_REPO}/contents/{path}",
+                headers=HEADERS,
+                json=payload,
+            )
+        if resp.status_code == 409 and attempt < 2:
+            # SHA stale — re-fetch and retry
+            _, current_sha = _get_file(path)
+            continue
+        resp.raise_for_status()
+        return
 
 
 # ── Symbol → ML pool routing ───────────────────────────────────────────────────
@@ -253,15 +260,22 @@ def recent_news(hours: int = 4) -> list[dict]:
 # ── Signals ────────────────────────────────────────────────────────────────────
 
 def insert_signal(signal: dict) -> dict:
-    signals, sha = _get_file("data/signals.json")
-    if signals is None:
-        signals = []
-    signal["id"] = len(signals) + 1
     signal.setdefault("created_at", datetime.now(timezone.utc).isoformat())
-    signals.append(signal)
-    if len(signals) > 100:
-        signals = signals[-100:]
-    _put_file("data/signals.json", signals, sha, f"data: new {signal.get('direction','?')} signal")
+    for attempt in range(3):
+        signals, sha = _get_file("data/signals.json")
+        if signals is None:
+            signals = []
+        signal["id"] = len(signals) + 1
+        signals.append(signal)
+        if len(signals) > 100:
+            signals = signals[-100:]
+        try:
+            _put_file("data/signals.json", signals, sha, f"data: new {signal.get('direction','?')} signal")
+            return signal
+        except Exception as e:
+            if attempt < 2 and "409" in str(e):
+                continue
+            raise
     return signal
 
 

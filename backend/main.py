@@ -73,6 +73,10 @@ async def lifespan(app: FastAPI):
     from signal_engine import load_feature_cache
     load_feature_cache()
 
+    print("[startup] Loading HTF bias store from GitHub…")
+    from htf_bias import load_bias_store
+    load_bias_store()
+
     print("[startup] Starting scheduler…")
     from scheduler import start_scheduler, _news_signal_cycle
     start_scheduler()
@@ -440,8 +444,13 @@ async def unified_webhook(payload: UnifiedPayload):
             __import__("db").log_raw_webhook, payload.model_dump()
         ))
 
-    is_entry  = payload.tp1 is not None and payload.sl is not None
-    is_outcome = payload.trade_id is not None and payload.outcome is not None
+    # Outcome payloads always carry trade_id + outcome — they must be checked FIRST.
+    # Entry payloads can also carry tp1/sl but never trade_id + outcome together.
+    # Checking is_entry first was a bug: a trade-close that happened to include tp1/sl
+    # would be routed to HTF bias store and the trade record would be permanently lost.
+    is_outcome = payload.trade_id is not None and payload.outcome is not None and \
+                 payload.outcome not in ("HEARTBEAT", "PROGRESS")
+    is_entry   = payload.tp1 is not None and payload.sl is not None and not is_outcome
 
     if is_entry:
         from htf_bias import is_htf, store_bias, get_active_bias
