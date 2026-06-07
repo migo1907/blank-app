@@ -332,7 +332,8 @@ async def trade_outcome(payload: TradeOutcomePayload):
     pnl_pct = raw_pct if payload.direction == "LONG" else -raw_pct
 
     from signal_engine import _detect_regime, _session_multiplier
-    _, _session = _session_multiplier(datetime.now(timezone.utc))
+    _is_stock_pool = not pool.startswith("XAUUSD")
+    _, _session = _session_multiplier(datetime.now(timezone.utc), is_stock=_is_stock_pool)
     _regime     = _detect_regime(features)
     outcome_row = {
         "symbol":        sym,
@@ -480,12 +481,16 @@ async def unified_webhook(payload: UnifiedPayload):
 
         from telegram_bot import send_entry_signal
         from scheduler import get_latest_news_sentiment, get_latest_velocity, get_latest_event
+        entry = payload.entry_price or 0.0
+        if entry <= 0:
+            print(f"[webhook] Missing entry_price for {sym} {payload.direction} — skipping Telegram")
+            return {"status": "ok", "routed_to": "suppressed", "reason": "no_entry_price"}
         asyncio.create_task(send_entry_signal({
             "direction":   payload.direction,
             "timeframe":   tf,
             "trigger":     payload.trigger or "RSI",
             "symbol":      sym,
-            "entry_price": payload.entry_price or 0.0,
+            "entry_price": entry,
             "tp1":         payload.tp1 or 0.0,
             "tp2":         payload.tp2 or 0.0,
             "tp3":         payload.tp3 or 0.0,
@@ -562,7 +567,8 @@ async def unified_webhook(payload: UnifiedPayload):
             pnl_pct = 0.0
 
         from signal_engine import _detect_regime, _session_multiplier
-        _, _session = _session_multiplier(datetime.now(timezone.utc))
+        _is_stock_pool2 = not pool.startswith("XAUUSD")
+        _, _session = _session_multiplier(datetime.now(timezone.utc), is_stock=_is_stock_pool2)
         _regime     = _detect_regime(features)
         outcome_row = {
             "symbol":        sym2,

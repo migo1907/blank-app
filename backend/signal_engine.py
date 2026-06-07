@@ -110,7 +110,7 @@ def _session_multiplier(now_utc: datetime, is_stock: bool = False) -> tuple[floa
     h = now_utc.hour
     if is_stock:
         if 13 <= h < 16:  return 1.25, "NYSE_OPEN"
-        if 16 <= h < 19:  return 1.10, "NYSE_AFTERNOON"
+        if 16 <= h < 20:  return 1.10, "NYSE_AFTERNOON"
         if 12 <= h < 13:  return 0.90, "PRE_MARKET"
         return 0.60, "CLOSED"
     if 13 <= h < 17:  return 1.30, "OVERLAP"      # London/NY overlap — highest gold volatility
