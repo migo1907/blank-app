@@ -8,6 +8,7 @@ float atrMultTP2    = input.float(2.5, "TP2 ATR Multiplier")
 float atrMultTP3    = input.float(4.0, "TP3 ATR Multiplier (Runner)")
 float atrMultSL     = input.float(1.5, "SL ATR Multiplier")
 float trailMult     = input.float(1.2, "Trail Stop ATR Multiplier")
+bool  useTrail      = input.bool(true, "Activate Trailing Stop (after TP1)")
 float tpProximity   = input.float(80.0, "Near-TP Reset Threshold %", minval=50, maxval=99) / 100.0
 int adxLen          = input.int(14, "ADX Length")
 float adxThreshold  = input.float(20.0, "ADX Sideways Threshold")
@@ -150,16 +151,18 @@ var float  lockSL       = na    // hard profit floor — SL can never cross back
 // lockSL guarantees a green position never flips red: once TP1 hits it sits at
 // breakeven(+buffer), and once TP2 hits it ratchets up to the TP1 profit.
 if activeTrade == "LONG" and tp1Hit
-    float newTrail = high - (atr * effTrail)
-    trailSL := math.max(trailSL, newTrail)   // only moves up, never down
-    trailSL := math.max(trailSL, lockSL)     // never below the locked profit floor
-    slPrice  := trailSL
+    if useTrail
+        float newTrail = high - (atr * effTrail)
+        trailSL := math.max(trailSL, newTrail)   // only moves up, never down
+    trailSL := math.max(trailSL, lockSL)         // never below the locked profit floor
+    slPrice := useTrail ? trailSL : lockSL       // trail off -> stop sits at the lock only
 
 if activeTrade == "SHORT" and tp1Hit
-    float newTrail = low + (atr * effTrail)
-    trailSL := math.min(trailSL, newTrail)   // only moves down, never up
-    trailSL := math.min(trailSL, lockSL)     // never above the locked profit floor
-    slPrice  := trailSL
+    if useTrail
+        float newTrail = low + (atr * effTrail)
+        trailSL := math.min(trailSL, newTrail)   // only moves down, never up
+    trailSL := math.min(trailSL, lockSL)         // never above the locked profit floor
+    slPrice := useTrail ? trailSL : lockSL       // trail off -> stop sits at the lock only
 
 // --- TP/SL HIT CHECKS ---
 // LONG exits
@@ -169,7 +172,7 @@ if activeTrade == "LONG"
         reachedTP1 += 1
         lockSL  := entryPrice + (atr * beBufferMult)        // lock breakeven (+buffer) — no more red
         trailSL := math.max(close - (atr * effTrail), lockSL)
-        slPrice := trailSL
+        slPrice := useTrail ? trailSL : lockSL
         label.new(bar_index, high, "TP1 ✓\nBE LOCKED", color=color.new(color.green, 40), textcolor=color.white, style=label.style_label_down, size=size.tiny)
 
     if tp1Hit and not tp2Hit and high >= tp2Price
@@ -177,7 +180,7 @@ if activeTrade == "LONG"
         reachedTP2 += 1
         lockSL  := math.max(lockSL, tp1Price)               // ratchet floor up to TP1 profit
         trailSL := math.max(trailSL, lockSL)
-        slPrice := trailSL
+        slPrice := useTrail ? trailSL : lockSL
         label.new(bar_index, high, "TP2 ✓\nTP1 LOCKED", color=color.new(color.green, 20), textcolor=color.white, style=label.style_label_down, size=size.tiny)
 
     if tp1Hit and tp2Hit and high >= tp3Price
@@ -202,7 +205,7 @@ if activeTrade == "SHORT"
         reachedTP1 += 1
         lockSL  := entryPrice - (atr * beBufferMult)        // lock breakeven (+buffer) — no more red
         trailSL := math.min(close + (atr * effTrail), lockSL)
-        slPrice := trailSL
+        slPrice := useTrail ? trailSL : lockSL
         label.new(bar_index, low, "TP1 ✓\nBE LOCKED", color=color.new(color.green, 40), textcolor=color.white, style=label.style_label_up, size=size.tiny)
 
     if tp1Hit and not tp2Hit and low <= tp2Price
@@ -210,7 +213,7 @@ if activeTrade == "SHORT"
         reachedTP2 += 1
         lockSL  := math.min(lockSL, tp1Price)               // ratchet floor down to TP1 profit
         trailSL := math.min(trailSL, lockSL)
-        slPrice := trailSL
+        slPrice := useTrail ? trailSL : lockSL
         label.new(bar_index, low, "TP2 ✓\nTP1 LOCKED", color=color.new(color.green, 20), textcolor=color.white, style=label.style_label_up, size=size.tiny)
 
     if tp1Hit and tp2Hit and low <= tp3Price
