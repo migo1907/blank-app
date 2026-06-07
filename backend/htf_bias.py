@@ -10,6 +10,7 @@ Expiry windows: 30M=2h, 1H=4h (60min), 4H=8h (240min)
 Persistence: bias store is saved to data/htf_bias.json on every write and
 loaded on startup — survives Railway restarts.
 """
+import threading
 from datetime import datetime, timezone, timedelta
 
 _bias_store: dict[str, dict] = {}
@@ -23,14 +24,20 @@ def is_htf(timeframe: str) -> bool:
     return str(timeframe).strip() in _HTF_TIMEFRAMES
 
 
-def _persist() -> None:
-    """Save current bias store to GitHub. Never raises — persistence must not block."""
+def _do_persist() -> None:
+    """Blocking GitHub write — always called from a background thread."""
     try:
         from db import _get_file, _put_file
         _, sha = _get_file(_GITHUB_PATH)
         _put_file(_GITHUB_PATH, _bias_store, sha, "chore: update htf_bias store")
     except Exception as e:
         print(f"[htf_bias] persist failed (non-fatal): {e}")
+
+
+def _persist() -> None:
+    """Fire-and-forget persist — spawns a daemon thread so the event loop is never blocked."""
+    t = threading.Thread(target=_do_persist, daemon=True)
+    t.start()
 
 
 def load_bias_store() -> None:
@@ -60,6 +67,9 @@ def load_bias_store() -> None:
 def store_bias(symbol: str, direction: str, timeframe: str, trigger: str = "", ml_score: float = 0.5) -> None:
     tf    = str(timeframe).strip()
     hours = _EXPIRY_HOURS.get(tf, 2)
+    existing = _bias_store.get(symbol)
+    if existing and existing["direction"] != direction:
+        print(f"[htf_bias] ⚠ Direction flip for {symbol}: {existing['direction']} → {direction} TF={tf}m — previous bias overwritten")
     _bias_store[symbol] = {
         "direction":  direction,
         "timeframe":  tf,

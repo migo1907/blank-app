@@ -221,39 +221,6 @@ async def test_personal_alert(secret: str = ""):
     return {"status": "sent", "chat_id": "966897595"}
 
 
-@app.get("/test-confirmed-signal")
-async def test_confirmed_signal(secret: str = ""):
-    _validate_secret(secret)
-    from telegram_bot import send_entry_signal
-    from datetime import datetime, timezone, timedelta
-    mock_bias = {
-        "direction":  "SHORT",
-        "timeframe":  "30",
-        "trigger":    "BOS",
-        "ml_score":   0.72,
-        "stored_at":  datetime.now(timezone.utc).isoformat(),
-        "expires_at": (datetime.now(timezone.utc) + timedelta(hours=1, minutes=40)).isoformat(),
-    }
-    sent = await send_entry_signal({
-        "direction":   "SHORT",
-        "timeframe":   "2",
-        "trigger":     "BOS",
-        "symbol":      "XAUUSD",
-        "entry_price": 4502.12,
-        "tp1":         4496.66,
-        "tp2":         4492.30,
-        "tp3":         4485.75,
-        "sl":          4506.49,
-        "ml_score":    0.72,
-        "tier":        "⚡ LOW",
-        "news_score":  0.0,
-        "velocity":    "NORMAL",
-        "event":       "",
-        "htf_bias":    mock_bias,
-    })
-    return {"status": "sent" if sent else "failed"}
-
-
 @app.get("/test-telegram")
 async def test_telegram(secret: str = ""):
     _validate_secret(secret)

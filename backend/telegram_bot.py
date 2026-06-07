@@ -1,4 +1,5 @@
 import os
+import html
 import httpx
 from datetime import datetime, timezone
 from dotenv import load_dotenv
@@ -63,7 +64,7 @@ async def send_entry_signal(s: dict) -> bool:
     htf_bias  = s.get("htf_bias")  # dict from htf_bias store, or None
 
     dir_emoji    = "🟢" if direction == "LONG" else "🔴"
-    symbol_clean = symbol.split(":")[-1]
+    symbol_clean = html.escape(symbol.split(":")[-1])
     is_gold      = symbol_clean in ("XAUUSD", "GOLD", "GC")
     asset_emoji  = "🥇" if is_gold else "📊"
     now          = datetime.now(timezone.utc).strftime("%H:%M UTC — %d %b %Y")

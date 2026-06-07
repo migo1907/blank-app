@@ -657,7 +657,11 @@ def score_headlines_with_claude(articles: list[dict]) -> list[dict]:
     if not articles:
         return []
 
-    client   = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    if not api_key:
+        print("[news] ANTHROPIC_API_KEY not set — skipping Claude sentiment scoring")
+        return [{"score": 0.0, "impact": "LOW", "keywords": []}] * len(articles)
+    client = anthropic.Anthropic(api_key=api_key)
     numbered = "\n".join(f"{i+1}. {a['title']}" for i, a in enumerate(articles))
 
     try:

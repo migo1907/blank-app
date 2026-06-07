@@ -164,15 +164,18 @@ def load_weights(pool: str = "XAUUSD") -> dict:
 
 def save_weights(pool: str, weights: dict) -> None:
     path = _pool_weights_file(pool)
-    _, sha = _get_file(path)
     weights["updated_at"] = datetime.now(timezone.utc).isoformat()
     weights["symbol"] = pool
-    _put_file(
-        path,
-        weights,
-        sha,
-        f"chore: update {pool} weights — wins={weights.get('total_wins',0)} losses={weights.get('total_losses',0)}",
-    )
+    msg = f"chore: update {pool} weights — wins={weights.get('total_wins',0)} losses={weights.get('total_losses',0)}"
+    for attempt in range(3):
+        _, sha = _get_file(path)  # always re-fetch SHA to avoid overwriting concurrent updates
+        try:
+            _put_file(path, weights, sha, msg)
+            return
+        except Exception as e:
+            if attempt < 2 and "409" in str(e):
+                continue
+            raise
 
 
 # ── Trade outcomes ─────────────────────────────────────────────────────────────
@@ -265,7 +268,8 @@ def insert_signal(signal: dict) -> dict:
         signals, sha = _get_file("data/signals.json")
         if signals is None:
             signals = []
-        signal["id"] = len(signals) + 1
+        if "id" not in signal:  # assign ID once — don't mutate on retry
+            signal["id"] = len(signals) + 1
         signals.append(signal)
         if len(signals) > 100:
             signals = signals[-100:]
@@ -274,6 +278,7 @@ def insert_signal(signal: dict) -> dict:
             return signal
         except Exception as e:
             if attempt < 2 and "409" in str(e):
+                signals = []  # reset so next attempt re-fetches clean list
                 continue
             raise
     return signal

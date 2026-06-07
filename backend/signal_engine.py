@@ -413,6 +413,7 @@ def generate_signal(
         * rapid_mult
     )
 
+    confidence = min(1.0, confidence)  # multipliers can compound above 1.0 — clamp to valid range
     raw_confidence = confidence
     direction = direction_raw if confidence >= min_conf else "NEUTRAL"
     if direction == "NEUTRAL":
