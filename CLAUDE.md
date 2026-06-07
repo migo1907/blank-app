@@ -20,7 +20,11 @@
 - Personal Telegram chat ID: `966897595` (critical alerts only)
 - No Telegram for errors — Railway console only
 
-## Architecture
+## TODO
+- [ ] Pine Script: add `isTF30` bucket — 30M chart currently falls through to 1H/4H ATR multipliers (too wide TP/SL for 30M). Add dedicated 30M values to all multiplier chains.
+- [ ] Check market open hours logic — verify `stocks_active` window in scheduler.py and `_session_multiplier` in signal_engine.py match actual exchange open hours for all pools.
+
+
 - FastAPI backend on Railway (Python 3.13)
 - Scheduler: 4 jobs — signal every 15min, breaking news every 2min, system check every 60min, daily brief at 08:00 UTC
 - ML: AdaptiveKNN + RandomForest + GradientBoosting, pool-aware (9 pools)
