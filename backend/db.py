@@ -162,7 +162,7 @@ def symbol_to_pool(symbol: str, timeframe: str = "") -> str:
 
     suffix = _tf_suffix(timeframe) if timeframe else ""
 
-    if ticker in ("XAUUSD", "GOLD", "GC", "GC=F"):
+    if ticker in ("XAUUSD", "GOLD", "GC"):
         return f"XAUUSD_{suffix}" if suffix else "XAUUSD"
     if ticker in STOCKS_INDEX:
         base = "STOCKS_INDEX"
