@@ -222,7 +222,7 @@ Phase 4:  ⏳ Earliest Feb–Mar 2027 (gated by 58%+ WR over 200 consecutive tra
 
 ---
 
-## 🔴 Known Issues — Open (as of June 4, 2026)
+## 🔴 Known Issues — Open (as of June 7, 2026)
 
 | # | Issue | Impact | Fix Trigger |
 |---|-------|--------|-------------|
@@ -232,6 +232,9 @@ Phase 4:  ⏳ Earliest Feb–Mar 2027 (gated by 58%+ WR over 200 consecutive tra
 | 4 | F22–F25 absent from the 25 historical trades (old Pine Script didn't have them) | Low | Resolves naturally — new trades have all 25 features |
 | 5 | CLAUDE.md still says "F25 computed server-side" — outdated after June 4 fix | Low | Update CLAUDE.md next session |
 | 6 | Stocks alerts: only 2 active (30M + 4H) — STOCKS_QUALITY and STOCKS_INDEX pools have no alerts | Medium | Add TradingView alerts for quality/index stocks when ready |
+| 7 | `main.py` lines ~347 & ~540 — `update_latest_features()` called synchronously in async handler, blocks event loop on every trade outcome | High | Fix Monday after verifying Railway response times >1s |
+| 8 | `scheduler.py` line ~192 — `get_latest_features("XAUUSD")` wrong pool; heartbeats update `XAUUSD_2M` only, so 15-min signal cycle runs with None features — ML ensemble contributes nothing, signals driven by news only | High | Fix Monday after verifying scheduler logs show NEUTRAL even when market moving |
+| 9 | `main.py` `/weights` and `/feature-importance` endpoints — `get_model()` and `get_rf()` called without pool, defaults to base `XAUUSD` instead of `XAUUSD_2M` | Medium | Fix with issues 7 & 8 |
 
 ---
 
