@@ -75,13 +75,11 @@ async def send_entry_signal(s: dict) -> bool:
         remaining   = bias_remaining_label(htf_bias)
         trigger_line = f" · {htf_trigger}" if htf_trigger else ""
         confirmation = f"✅ HTF Bias: {htf_tf} {direction}{trigger_line}  (⏳ {remaining})\n"
-        title = f"{dir_emoji} <b>CONFIRMED {direction} SIGNAL</b> — {asset_emoji} {symbol_clean}"
     else:
         confirmation = ""
-        title = f"{dir_emoji} <b>{direction} SIGNAL</b> — {asset_emoji} {symbol_clean}"
 
     msg = (
-        f"{title}\n"
+        f"{dir_emoji} <b>{direction} SIGNAL</b> — {asset_emoji} {symbol_clean}\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
         f"{confirmation}"
         f"⏱ Timeframe: {tf}\n"
