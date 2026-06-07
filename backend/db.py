@@ -146,7 +146,12 @@ def symbol_to_pool(symbol: str, timeframe: str = "") -> str:
     # Normalise TradingView timeframe.period → suffix
     # TradingView sends minutes as strings: "2","5","30","60","240"
     def _tf_suffix(tf: str) -> str:
-        t = str(tf).strip().upper().replace("MIN","").replace("H","")
+        # Intercept shorthand labels BEFORE stripping — "1H"→"1" and "4H"→"4"
+        # would match the wrong numeric buckets if we stripped first.
+        normalized = str(tf).strip().upper()
+        if normalized in ("1H", "60M"):  return "1H"
+        if normalized in ("4H", "240M"): return "4H"
+        t = normalized.replace("MIN","").replace("H","")
         if t in ("1", "2"):          return "2M"
         if t in ("3", "4", "5"):     return "5M"
         if t in ("15",):             return "15M"
