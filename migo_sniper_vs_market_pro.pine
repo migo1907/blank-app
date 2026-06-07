@@ -35,9 +35,7 @@ float reEntryRatio  = input.float(0.4,  "Re-Entry Pullback (fraction of risk)", 
 // --- SIGNAL FILTERS (avoid sideways) ---
 bool requireHTFTrend = input.bool(true, "Only trade with HTF-1 trend (skip ranging)", group="Signal Filters")
 bool require4H       = input.bool(true, "Also require HTF-2 trend alignment", group="Signal Filters")
-bool autoHTF         = input.bool(true, "Auto higher timeframes (scale to chart TF)", group="Signal Filters")
-int  htf1Mult        = input.int(4,  "HTF-1 = chart × N", minval=2, group="Signal Filters")
-int  htf2Mult        = input.int(16, "HTF-2 = chart × N", minval=4, group="Signal Filters")
+bool autoHTF         = input.bool(true, "Auto higher timeframes (standard TF per chart)", group="Signal Filters")
 bool requireADXtrend = input.bool(true, "Require ADX above threshold on signal", group="Signal Filters")
 bool requireExpansion = input.bool(true, "Require ATR not compressed on signal", group="Signal Filters")
 
@@ -69,15 +67,15 @@ int sidewaysCount  = (adxFlat ? 1 : 0) + (atrCompressed ? 1 : 0) + (emaTooClose 
 bool isSideways    = sidewaysCount >= 2
 
 // --- HTF TREND (auto higher timeframes, dual confluence) ---
-// HTF resolutions scale with the chart: HTF-1 = chart×N1, HTF-2 = chart×N2.
+// Snaps to STANDARD timeframes that traders actually watch, scaled to the chart:
+//   <=1m -> 15m / 1h    |   2-3m -> 30m / 2h   |   5-15m -> 1h / 4h
+//   30m-1h -> 4h / D    |   >1h  -> D  / W
 // (Falls back to fixed 1H / 4H when "Auto higher timeframes" is off.)
-int    baseSec = timeframe.in_seconds()
-int    s1 = baseSec * htf1Mult
-int    s2 = baseSec * htf2Mult
-string htf1 = not autoHTF ? "60"  : s1 < 60 ? str.tostring(s1) + "S" : s1 < 86400 ? str.tostring(s1 / 60) : str.tostring(s1 / 86400) + "D"
-string htf2 = not autoHTF ? "240" : s2 < 60 ? str.tostring(s2) + "S" : s2 < 86400 ? str.tostring(s2 / 60) : str.tostring(s2 / 86400) + "D"
-string lbl1 = not autoHTF ? "1h"  : s1 < 3600 ? str.tostring(s1 / 60) + "m" : s1 < 86400 ? str.tostring(s1 / 3600) + "h" : str.tostring(s1 / 86400) + "D"
-string lbl2 = not autoHTF ? "4h"  : s2 < 3600 ? str.tostring(s2 / 60) + "m" : s2 < 86400 ? str.tostring(s2 / 3600) + "h" : str.tostring(s2 / 86400) + "D"
+int    baseMin = timeframe.in_seconds() / 60
+string htf1 = not autoHTF ? "60"  : baseMin <= 1 ? "15"  : baseMin <= 3 ? "30"  : baseMin <= 15 ? "60"  : baseMin <= 60 ? "240" : "D"
+string htf2 = not autoHTF ? "240" : baseMin <= 1 ? "60"  : baseMin <= 3 ? "120" : baseMin <= 15 ? "240" : baseMin <= 60 ? "D"   : "W"
+string lbl1 = not autoHTF ? "1h"  : baseMin <= 1 ? "15m" : baseMin <= 3 ? "30m" : baseMin <= 15 ? "1h"  : baseMin <= 60 ? "4h"  : "D"
+string lbl2 = not autoHTF ? "4h"  : baseMin <= 1 ? "1h"  : baseMin <= 3 ? "2h"  : baseMin <= 15 ? "4h"  : baseMin <= 60 ? "D"   : "W"
 float ma50_1h  = request.security(syminfo.tickerid, htf1, ta.ema(close, 50))
 float rsi_1h   = request.security(syminfo.tickerid, htf1, ta.rsi(close, 14))
 float ma50_4h  = request.security(syminfo.tickerid, htf2, ta.ema(close, 50))
