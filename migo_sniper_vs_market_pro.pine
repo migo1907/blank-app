@@ -40,6 +40,8 @@ bool requireADXtrend = input.bool(true, "Require ADX above threshold on signal",
 bool requireExpansion = input.bool(true, "Require ATR not compressed on signal", group="Signal Filters")
 bool pullbackMode    = input.bool(true, "Pullback entry (buy dips / sell rallies)", group="Signal Filters")
 int  pbEmaLen        = input.int(20,   "Pullback value EMA length", minval=5, group="Signal Filters")
+bool strongConfirm   = input.bool(true, "Strong confirmation (candle close + RSI rising)", group="Signal Filters")
+float closeFrac      = input.float(0.33, "Confirm candle close in top/bottom fraction", minval=0.1, maxval=0.5, group="Signal Filters")
 
 // --- SESSION FILTER (avoid noisy hours) ---
 bool   useSessions = input.bool(true,  "Restrict signals to selected sessions", group="Sessions")
@@ -264,8 +266,14 @@ bool pbShort  = high >= ema20 and close < ema20 and close < open and rsiValue < 
 bool momLong  = ta.crossover(rsiValue, 45)  and close > low[1]
 bool momShort = ta.crossunder(rsiValue, 55) and close < high[1]
 
-bool buySignal  = filtersOK and trendOKlong  and (pullbackMode ? pbLong  : momLong)
-bool sellSignal = filtersOK and trendOKshort and (pullbackMode ? pbShort : momShort)
+// Enhanced confirmation: the trigger candle must close strongly in the trade
+// direction (top/bottom fraction of its range) AND RSI must be turning, not fading.
+float barRange  = high - low
+bool  strongUp  = (not strongConfirm) or (close >= high - barRange * closeFrac and rsiValue > rsiValue[1])
+bool  strongDn  = (not strongConfirm) or (close <= low  + barRange * closeFrac and rsiValue < rsiValue[1])
+
+bool buySignal  = filtersOK and trendOKlong  and (pullbackMode ? pbLong  : momLong)  and strongUp
+bool sellSignal = filtersOK and trendOKshort and (pullbackMode ? pbShort : momShort) and strongDn
 
 bool doBuy  = buySignal  and (activeTrade != "LONG")
 bool doSell = sellSignal and (activeTrade != "SHORT")
