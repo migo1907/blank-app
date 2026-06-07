@@ -126,6 +126,11 @@ var float  slPrice      = 0.0
 var float  reEntryPrice = 0.0
 var int    tradeConf    = 0
 
+// --- LAST SIGNAL TIMESTAMP ---
+var int    lastSigBar   = na    // bar_index of the most recent signal
+var int    lastSigTime  = na    // time (ms) of the most recent signal
+var string lastSigDir   = "—"   // direction of the most recent signal
+
 // --- WIN/LOSS TRACKING ---
 // Win  = exited via TP3, OR via the trail/locked SL after TP1/TP2 (always >= breakeven),
 //        OR flipped by an opposite signal while in profit
@@ -419,6 +424,12 @@ if doSell
     tradeConf   := (mainTrend == "DOWNTREND" ? 92 : 70)
     label.new(bar_index, high, "SELL\nEnt: " + str.tostring(entryPrice, "#.##") + "\nTP1: " + str.tostring(tp1Price, "#.##") + "\nTP2: " + str.tostring(tp2Price, "#.##") + "\nTP3: " + str.tostring(tp3Price, "#.##") + "\nSL: " + str.tostring(slPrice, "#.##") + "\nRe-Entry: " + str.tostring(reEntryPrice, "#.##"), color=color.red, textcolor=color.white, style=label.style_label_down, size=size.small)
 
+// Stamp the most recent signal (time + bar) for the "LAST SIGNAL" readout
+if doBuy or doSell
+    lastSigBar  := bar_index
+    lastSigTime := time
+    lastSigDir  := doBuy ? "BUY" : "SELL"
+
 // --- LAST-SIGNAL LEVEL LINES (only the most recent signal is shown) ---
 bool showLevels = input.bool(true, "Show last-signal level lines", group="Visuals")
 
@@ -477,7 +488,7 @@ bgcolor((useSessions and not sessionOK) ? color.new(color.gray, 88) : na, title=
 string tpStage = not tp1Hit ? "Targeting TP1" : not tp2Hit ? "TP1 ✓ → TP2" : "TP2 ✓ → TP3 🚀"
 color stageColor = not tp1Hit ? color.white : not tp2Hit ? color.lime : color.aqua
 
-var table hub = table.new(position.bottom_left, 4, 12, bgcolor=color.rgb(15, 15, 15), border_color=color.gray, border_width=1)
+var table hub = table.new(position.bottom_left, 4, 13, bgcolor=color.rgb(15, 15, 15), border_color=color.gray, border_width=1)
 
 if barstate.islast
     table.cell(hub, 0, 0, "MIGO SNIPER V6", text_color=color.white, bgcolor=color.rgb(65, 14, 58))
@@ -553,6 +564,14 @@ if barstate.islast
     string expTxt = rTrades > 0 ? "EXPECTANCY  avgR:" + str.tostring(avgR, "#.##") + "R   totalR:" + str.tostring(totalR, "#.#") + "R   PF:" + (na(pf) ? "∞" : str.tostring(pf, "#.##")) + "   (" + str.tostring(rTrades) + " trades)" : "EXPECTANCY  — no closed trades yet"
     table.cell(hub, 0, 11, expTxt, text_color=expCol, text_size=size.small)
     table.merge_cells(hub, 0, 11, 3, 11)
+
+    float  msSince  = na(lastSigTime) ? na : timenow - lastSigTime
+    int    barsAgo  = na(lastSigBar) ? na : bar_index - lastSigBar
+    string ago = na(msSince) ? "no signals in view" : msSince >= 86400000 ? str.tostring(math.floor(msSince / 86400000)) + "d " + str.tostring(math.floor((msSince % 86400000) / 3600000)) + "h ago" : msSince >= 3600000 ? str.tostring(math.floor(msSince / 3600000)) + "h " + str.tostring(math.floor((msSince % 3600000) / 60000)) + "m ago" : str.tostring(math.floor(msSince / 60000)) + "m ago"
+    string lastTxt = na(lastSigTime) ? "LAST SIGNAL  — none in loaded history" : "LAST SIGNAL  " + lastSigDir + "  " + ago + "  (" + str.tostring(barsAgo) + " bars)"
+    color  lastCol = na(lastSigTime) ? color.gray : lastSigDir == "BUY" ? color.lime : color.orange
+    table.cell(hub, 0, 12, lastTxt, text_color=lastCol, text_size=size.small)
+    table.merge_cells(hub, 0, 12, 3, 12)
 
 // --- VISUALS ---
 plot(maLong, color=color.new(color.green, 50), title="200 EMA")
