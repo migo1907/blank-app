@@ -33,8 +33,11 @@ bool  useReEntry    = input.bool(true,  "Enable Pullback Re-Entry Level", group=
 float reEntryRatio  = input.float(0.4,  "Re-Entry Pullback (fraction of risk)", minval=0.1, maxval=0.9, group="Re-Entry")
 
 // --- SIGNAL FILTERS (avoid sideways) ---
-bool requireHTFTrend = input.bool(true, "Only trade with 1H trend (skip ranging)", group="Signal Filters")
-bool require4H       = input.bool(true, "Also require 4H trend alignment", group="Signal Filters")
+bool requireHTFTrend = input.bool(true, "Only trade with HTF-1 trend (skip ranging)", group="Signal Filters")
+bool require4H       = input.bool(true, "Also require HTF-2 trend alignment", group="Signal Filters")
+bool autoHTF         = input.bool(true, "Auto higher timeframes (scale to chart TF)", group="Signal Filters")
+int  htf1Mult        = input.int(4,  "HTF-1 = chart × N", minval=2, group="Signal Filters")
+int  htf2Mult        = input.int(16, "HTF-2 = chart × N", minval=4, group="Signal Filters")
 bool requireADXtrend = input.bool(true, "Require ADX above threshold on signal", group="Signal Filters")
 bool requireExpansion = input.bool(true, "Require ATR not compressed on signal", group="Signal Filters")
 
@@ -65,14 +68,23 @@ bool emaTooClose   = math.abs(maShort - maLong) / maLong * 100 < emaBandPct
 int sidewaysCount  = (adxFlat ? 1 : 0) + (atrCompressed ? 1 : 0) + (emaTooClose ? 1 : 0)
 bool isSideways    = sidewaysCount >= 2
 
-// --- HTF TREND (1H + 4H confluence) ---
-float ma50_1h  = request.security(syminfo.tickerid, "60",  ta.ema(close, 50))
-float rsi_1h   = request.security(syminfo.tickerid, "60",  ta.rsi(close, 14))
-float ma50_4h  = request.security(syminfo.tickerid, "240", ta.ema(close, 50))
-float rsi_4h   = request.security(syminfo.tickerid, "240", ta.rsi(close, 14))
+// --- HTF TREND (auto higher timeframes, dual confluence) ---
+// HTF resolutions scale with the chart: HTF-1 = chart×N1, HTF-2 = chart×N2.
+// (Falls back to fixed 1H / 4H when "Auto higher timeframes" is off.)
+int    baseSec = timeframe.in_seconds()
+int    s1 = baseSec * htf1Mult
+int    s2 = baseSec * htf2Mult
+string htf1 = not autoHTF ? "60"  : s1 < 60 ? str.tostring(s1) + "S" : s1 < 86400 ? str.tostring(s1 / 60) : str.tostring(s1 / 86400) + "D"
+string htf2 = not autoHTF ? "240" : s2 < 60 ? str.tostring(s2) + "S" : s2 < 86400 ? str.tostring(s2 / 60) : str.tostring(s2 / 86400) + "D"
+string lbl1 = not autoHTF ? "1h"  : s1 < 3600 ? str.tostring(s1 / 60) + "m" : s1 < 86400 ? str.tostring(s1 / 3600) + "h" : str.tostring(s1 / 86400) + "D"
+string lbl2 = not autoHTF ? "4h"  : s2 < 3600 ? str.tostring(s2 / 60) + "m" : s2 < 86400 ? str.tostring(s2 / 3600) + "h" : str.tostring(s2 / 86400) + "D"
+float ma50_1h  = request.security(syminfo.tickerid, htf1, ta.ema(close, 50))
+float rsi_1h   = request.security(syminfo.tickerid, htf1, ta.rsi(close, 14))
+float ma50_4h  = request.security(syminfo.tickerid, htf2, ta.ema(close, 50))
+float rsi_4h   = request.security(syminfo.tickerid, htf2, ta.rsi(close, 14))
 string trend1h = (close > ma50_1h and rsi_1h > 50) ? "UPTREND" : (close < ma50_1h and rsi_1h < 50) ? "DOWNTREND" : "SIDEWAYS"
 string trend4h = (close > ma50_4h and rsi_4h > 50) ? "UPTREND" : (close < ma50_4h and rsi_4h < 50) ? "DOWNTREND" : "SIDEWAYS"
-string mainTrend = trend1h   // 1H remains the primary trend for confidence/dashboard
+string mainTrend = trend1h   // HTF-1 remains the primary trend for confidence/dashboard
 
 // --- AUTO-LEVELS ---
 float dynResist  = ta.highest(high, lookback)
@@ -383,7 +395,7 @@ if barstate.islast
     string arrow1h      = trend1h == "UPTREND" ? "▲" : trend1h == "DOWNTREND" ? "▼" : "–"
     string arrow4h      = trend4h == "UPTREND" ? "▲" : trend4h == "DOWNTREND" ? "▼" : "–"
     bool   htfAligned   = trend1h == trend4h and trend1h != "SIDEWAYS"
-    string mktState     = isSideways ? "⚠ RANGING — WAIT" : "1H " + arrow1h + "   4H " + arrow4h + (htfAligned ? "  ✓" : "  ✗")
+    string mktState     = isSideways ? "⚠ RANGING — WAIT" : lbl1 + " " + arrow1h + "   " + lbl2 + " " + arrow4h + (htfAligned ? "  ✓" : "  ✗")
     color mktStateColor = isSideways ? color.yellow : not htfAligned ? color.orange : trend1h == "UPTREND" ? color.green : color.red
     table.cell(hub, 0, 1, "MKT STATE", text_color=color.gray, text_size=size.small)
     table.cell(hub, 1, 1, mktState, text_color=mktStateColor)
