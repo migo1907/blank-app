@@ -349,7 +349,15 @@ async def trade_outcome(payload: TradeOutcomePayload):
 
     async def _persist():
         try:
-            await asyncio.to_thread(model.save, pool)
+            for _save_attempt in range(3):
+                try:
+                    await asyncio.to_thread(model.save, pool)
+                    break
+                except Exception as _se:
+                    if _save_attempt < 2:
+                        await asyncio.sleep(1 << _save_attempt)
+                    else:
+                        raise
             await asyncio.to_thread(insert_outcome, outcome_row)
             history = await asyncio.to_thread(recent_outcomes, pool, 500)
             if len(history) >= 50:
@@ -526,7 +534,7 @@ async def unified_webhook(payload: UnifiedPayload):
         entry = payload.entry_price or 0.0
         exit_ = payload.exit_price or 0.0
         if entry and exit_:
-            raw_pct = (exit_ - entry) / entry * 100
+            raw_pct = (exit_ - entry) / max(entry, 0.0001) * 100
             pnl_pct = raw_pct if payload.direction == "LONG" else -raw_pct
         else:
             pnl_pct = 0.0
@@ -554,7 +562,15 @@ async def unified_webhook(payload: UnifiedPayload):
 
         async def _persist():
             try:
-                await asyncio.to_thread(model.save, pool)
+                for _save_attempt in range(3):
+                try:
+                    await asyncio.to_thread(model.save, pool)
+                    break
+                except Exception as _se:
+                    if _save_attempt < 2:
+                        await asyncio.sleep(1 << _save_attempt)
+                    else:
+                        raise
                 await asyncio.to_thread(insert_outcome, outcome_row)
                 history = await asyncio.to_thread(recent_outcomes, pool, 500)
                 if len(history) >= 50:

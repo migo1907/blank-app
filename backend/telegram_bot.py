@@ -69,10 +69,9 @@ async def send_entry_signal(s: dict) -> bool:
     asset_emoji  = "🥇" if is_gold else "📊"
     now          = datetime.now(timezone.utc).strftime("%H:%M UTC — %d %b %Y")
 
-    if htf_bias:
+    if htf_bias and isinstance(htf_bias, dict) and htf_bias.get("timeframe") and htf_bias.get("expires_at"):
         from htf_bias import bias_remaining_label, tf_label
-        htf_tf      = tf_label(htf_bias.get("timeframe", ""))
-        htf_trigger = htf_bias.get("trigger", "")
+        htf_tf      = tf_label(htf_bias["timeframe"])
         remaining   = bias_remaining_label(htf_bias)
         confirmation = f"✅ HTF Bias: {htf_tf} {direction}  (⏳ {remaining})\n"
     else:

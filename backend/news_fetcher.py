@@ -687,9 +687,12 @@ def score_headlines_with_claude(articles: list[dict]) -> list[dict]:
             max_tokens=1500,
             messages=[{"role": "user", "content": XAU_SENTIMENT_PROMPT.format(headlines=numbered)}],
         )
+        if not response.content or not response.content[0].text:
+            raise ValueError("Claude returned empty response content")
         raw = response.content[0].text.strip()
         if raw.startswith("```"):
-            raw = raw.split("```")[1]
+            parts = raw.split("```")
+            raw = parts[1] if len(parts) >= 2 else raw
             if raw.startswith("json"):
                 raw = raw[4:]
         scores = json.loads(raw)

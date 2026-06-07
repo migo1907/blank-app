@@ -261,7 +261,8 @@ class AdaptiveKNN:
         return paired[:n]
 
     def top_feature(self) -> str:
-        return self.top_features(1)[0][0]
+        tops = self.top_features(1)
+        return tops[0][0] if tops else "UNKNOWN"
 
 
 # Pool-aware singletons — one AdaptiveKNN per ML pool

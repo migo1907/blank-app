@@ -118,6 +118,11 @@ def _put_file(path: str, content: dict | list, sha: str | None, message: str) ->
             # SHA stale — re-fetch and retry
             _, current_sha = _get_file(path)
             continue
+        if resp.status_code == 422 and attempt < 2:
+            # Unprocessable — re-fetch SHA/state and retry after short wait
+            import time as _time; _time.sleep(0.5)
+            _, current_sha = _get_file(path)
+            continue
         resp.raise_for_status()
         return
 
@@ -431,7 +436,10 @@ def repair_missing_trades() -> list[str]:
                 # Infer symbol from trade_id prefix: "SPY_123" → "SPY"
                 tid = p.get("trade_id", "") or ""
                 prefix = tid.split("_")[0] if "_" in tid else ""
-                symbol = prefix if prefix else "XAUUSD"
+                if not prefix:
+                    print(f"[auto-repair] Skipping entry — no symbol and no recoverable trade_id prefix")
+                    continue
+                symbol = prefix
             direction = p.get("direction", "")
             entry_px  = float(p.get("entry_price", 0) or 0)
             exit_px   = float(p.get("exit_price", 0) or 0)

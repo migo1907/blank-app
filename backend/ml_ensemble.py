@@ -248,6 +248,9 @@ class GradientBoostEnsemble:
     def predict(self, features: list[float]) -> float:
         if not _SKLEARN_AVAILABLE or not self._trained or self._model is None:
             return 0.5
+        if len(features) != len(FEATURE_NAMES):
+            print(f"[gbm] Feature vector length {len(features)} != expected {len(FEATURE_NAMES)} — returning 0.5")
+            return 0.5
         X = np.array([features], dtype=np.float32)
         try:
             with self._lock:
