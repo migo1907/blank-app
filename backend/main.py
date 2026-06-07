@@ -343,9 +343,6 @@ async def trade_outcome(payload: TradeOutcomePayload):
     else:
         print(f"[trade-outcome] Duplicate within {_OUTCOME_DEDUP_TTL}s — skipping weight update for {sym} {payload.direction} entry={payload.entry_price}")
 
-    from signal_engine import update_latest_features
-    update_latest_features(pool, features)
-
     raw_pct = (payload.exit_price - payload.entry_price) / max(payload.entry_price, 0.0001) * 100
     pnl_pct = raw_pct if payload.direction == "LONG" else -raw_pct
 
@@ -536,9 +533,6 @@ async def unified_webhook(payload: UnifiedPayload):
         else:
             print(f"[webhook] Duplicate within {_OUTCOME_DEDUP_TTL}s — skipping weight update for {sym2} {payload.direction} entry={payload.entry_price}")
 
-        from signal_engine import update_latest_features
-        update_latest_features(pool, features)
-
         entry = payload.entry_price or 0.0
         exit_ = payload.exit_price or 0.0
         if entry and exit_:
@@ -585,12 +579,13 @@ async def unified_webhook(payload: UnifiedPayload):
 
 
 @app.get("/weights")
-async def get_weights(secret: str = ""):
+async def get_weights(secret: str = "", pool: str = "XAUUSD_2M"):
     _validate_secret(secret)
     from ml_model import get_model
-    model = get_model()
+    model = get_model(pool)
     top3 = model.top_features(3)
     return {
+        "pool":         pool,
         "weights":      {f"w{i+1}": round(w, 4) for i, w in enumerate(model.weights)},
         "total_wins":   model._total_wins,
         "total_losses": model._total_losses,
@@ -600,13 +595,13 @@ async def get_weights(secret: str = ""):
 
 
 @app.get("/feature-importance")
-async def feature_importance(secret: str = ""):
+async def feature_importance(secret: str = "", pool: str = "XAUUSD_2M"):
     _validate_secret(secret)
     from ml_model import get_model, FEATURE_NAMES
     from ml_ensemble import get_rf
 
-    model = get_model()
-    rf    = get_rf()
+    model = get_model(pool)
+    rf    = get_rf(pool)
 
     knn_top = model.top_features(5)
     rf_top  = rf.top_features(5)
@@ -756,20 +751,21 @@ async def railway_status(secret: str = ""):
 
 
 @app.get("/dashboard")
-async def dashboard(secret: str = ""):
+async def dashboard(secret: str = "", pool: str = "XAUUSD_2M"):
     _validate_secret(secret)
     from ml_model import get_model
     from ml_ensemble import get_rf
     from db import recent_outcomes, recent_news
     from scheduler import get_latest_news_sentiment, get_latest_velocity, get_latest_event
 
-    model = get_model()
-    rf    = get_rf()
-    recent_trades     = recent_outcomes("XAUUSD_2M", limit=10)
+    model = get_model(pool)
+    rf    = get_rf(pool)
+    recent_trades     = recent_outcomes(pool, limit=10)
     recent_news_items = recent_news(hours=4)
     top3              = model.top_features(3)
 
     return {
+        "pool": pool,
         "model": {
             "weights":      {f"w{i+1}": round(w, 4) for i, w in enumerate(model.weights)},
             "win_rate":     round(model.win_rate * 100, 1),

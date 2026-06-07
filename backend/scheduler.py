@@ -189,7 +189,7 @@ async def _news_signal_cycle() -> None:
             _latest_event    = event
 
         signal = generate_signal(
-            current_features=get_latest_features("XAUUSD"),
+            current_features=get_latest_features("XAUUSD_2M"),
             news_agg=_latest_news_agg,
             news_velocity=_latest_velocity,
             high_impact_event=_latest_event,
