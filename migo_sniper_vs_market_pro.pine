@@ -132,6 +132,13 @@ var int    tradeConf    = 0
 var int    tradeWins    = 0
 var int    tradeLosses  = 0
 
+// --- TP STAGE REACH COUNTERS (how far winners get) ---
+// reachedTP1 = trades that tagged TP1; reachedTP2 = of those, how many went on to TP2; etc.
+// "trailed out after TP1" = reachedTP1 - reachedTP2 ; "after TP2" = reachedTP2 - reachedTP3
+var int    reachedTP1   = 0
+var int    reachedTP2   = 0
+var int    reachedTP3   = 0
+
 // TP stage tracking
 var bool   tp1Hit       = false
 var bool   tp2Hit       = false
@@ -159,6 +166,7 @@ if activeTrade == "SHORT" and tp1Hit
 if activeTrade == "LONG"
     if not tp1Hit and high >= tp1Price
         tp1Hit  := true
+        reachedTP1 += 1
         lockSL  := entryPrice + (atr * beBufferMult)        // lock breakeven (+buffer) — no more red
         trailSL := math.max(close - (atr * effTrail), lockSL)
         slPrice := trailSL
@@ -166,6 +174,7 @@ if activeTrade == "LONG"
 
     if tp1Hit and not tp2Hit and high >= tp2Price
         tp2Hit  := true
+        reachedTP2 += 1
         lockSL  := math.max(lockSL, tp1Price)               // ratchet floor up to TP1 profit
         trailSL := math.max(trailSL, lockSL)
         slPrice := trailSL
@@ -173,6 +182,7 @@ if activeTrade == "LONG"
 
     if tp1Hit and tp2Hit and high >= tp3Price
         tradeWins += 1
+        reachedTP3 += 1
         activeTrade := "NONE", tp1Hit := false, tp2Hit := false
         label.new(bar_index, high, "TP3 ✓\nFULL RUN!", color=color.green, textcolor=color.white, style=label.style_label_down, size=size.small)
 
@@ -189,6 +199,7 @@ if activeTrade == "LONG"
 if activeTrade == "SHORT"
     if not tp1Hit and low <= tp1Price
         tp1Hit  := true
+        reachedTP1 += 1
         lockSL  := entryPrice - (atr * beBufferMult)        // lock breakeven (+buffer) — no more red
         trailSL := math.min(close + (atr * effTrail), lockSL)
         slPrice := trailSL
@@ -196,6 +207,7 @@ if activeTrade == "SHORT"
 
     if tp1Hit and not tp2Hit and low <= tp2Price
         tp2Hit  := true
+        reachedTP2 += 1
         lockSL  := math.min(lockSL, tp1Price)               // ratchet floor down to TP1 profit
         trailSL := math.min(trailSL, lockSL)
         slPrice := trailSL
@@ -203,6 +215,7 @@ if activeTrade == "SHORT"
 
     if tp1Hit and tp2Hit and low <= tp3Price
         tradeWins += 1
+        reachedTP3 += 1
         activeTrade := "NONE", tp1Hit := false, tp2Hit := false
         label.new(bar_index, low, "TP3 ✓\nFULL RUN!", color=color.green, textcolor=color.white, style=label.style_label_up, size=size.small)
 
@@ -466,6 +479,12 @@ if barstate.islast
     string adxInfo = "ADX: " + str.tostring(math.round(adxValue, 1)) + (adxFlat ? " ✗" : " ✓") + "  ATR: " + (atrCompressed ? "✗" : "✓") + "  EMA: " + (emaTooClose ? "✗" : "✓") + autoInfo
     table.cell(hub, 0, 9, adxInfo, text_color=color.new(color.gray, 30), text_size=size.small)
     table.merge_cells(hub, 0, 9, 3, 9)
+
+    int    trailAfterTP1 = reachedTP1 - reachedTP2   // tagged TP1 but trailed out before TP2
+    int    trailAfterTP2 = reachedTP2 - reachedTP3   // tagged TP2 but trailed out before TP3
+    string tpReach = "REACHED  TP1:" + str.tostring(reachedTP1) + "  →TP2:" + str.tostring(reachedTP2) + "  →TP3:" + str.tostring(reachedTP3) + "   | trail-out aTP1:" + str.tostring(trailAfterTP1) + "  aTP2:" + str.tostring(trailAfterTP2)
+    table.cell(hub, 0, 10, tpReach, text_color=color.new(color.aqua, 10), text_size=size.small)
+    table.merge_cells(hub, 0, 10, 3, 10)
 
 // --- VISUALS ---
 plot(maLong, color=color.new(color.green, 50), title="200 EMA")
