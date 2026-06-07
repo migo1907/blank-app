@@ -304,6 +304,11 @@ async def trade_outcome(payload: TradeOutcomePayload):
     from db import insert_outcome, recent_outcomes, symbol_to_pool
 
     sym  = payload.symbol or "XAUUSD"
+
+    if not payload.entry_price or not payload.exit_price:
+        print(f"[trade-outcome] Missing entry/exit price for {sym} {payload.direction} — skipping")
+        return {"status": "ok", "skipped": "missing_prices"}
+
     pool = symbol_to_pool(sym, payload.timeframe or "")
     model = get_model(pool)
     features = Features(
