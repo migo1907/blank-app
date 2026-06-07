@@ -152,7 +152,7 @@ class TradeOutcomePayload(BaseModel):
 class SignalEntryPayload(BaseModel):
     secret:      str
     direction:   Literal["LONG", "SHORT"]
-    timeframe:   str = "5m"
+    timeframe:   str = "5"
     trigger:     str = "RSI"
     symbol:      str = "XAUUSD"
     entry_price: float
