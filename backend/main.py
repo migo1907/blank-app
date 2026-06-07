@@ -58,7 +58,7 @@ RAILWAY_SERVICE_ID = os.environ.get("RAILWAY_SERVICE_ID", "e4310b2b-3a37-440e-a3
 async def lifespan(app: FastAPI):
     print("[startup] Loading ML model (25F) from storage…")
     from ml_model import get_model
-    get_model()
+    get_model("XAUUSD_2M")
 
     print("[startup] Priming RF + GBM ensembles for all pools…")
     from ml_ensemble import get_rf, get_gbm

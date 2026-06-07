@@ -4,10 +4,15 @@ Sources: Reuters, FXStreet, Kitco, MarketWatch + NewsAPI
 """
 import os
 import json
+import time
 import httpx
 import anthropic
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
+
+# Rate-limit guard: minimum seconds between FJ RSS fetches
+_FJ_RSS_MIN_INTERVAL = 30.0
+_fj_rss_last_fetch: float = 0.0
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -190,6 +195,12 @@ def fetch_rss_headlines() -> list[dict]:
 
 def _fetch_fj_rss() -> list[dict]:
     """Fetch FinancialJuice RSS using session cookie. Returns [] on failure."""
+    global _fj_rss_last_fetch
+    now = time.monotonic()
+    if now - _fj_rss_last_fetch < _FJ_RSS_MIN_INTERVAL:
+        print(f"[breaking] FJ RSS rate-limit guard — skipping fetch ({now - _fj_rss_last_fetch:.0f}s since last)")
+        return []
+    _fj_rss_last_fetch = now
     cookie_str = _fj_cookie_str()
     if not cookie_str:
         return []
