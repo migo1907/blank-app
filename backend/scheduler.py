@@ -193,6 +193,8 @@ async def _news_signal_cycle() -> None:
             news_agg=_latest_news_agg,
             news_velocity=_latest_velocity,
             high_impact_event=_latest_event,
+            symbol="XAUUSD",
+            pool="XAUUSD_2M",
         )
         print(
             f"[scheduler] Signal: {signal['direction']} "
@@ -619,13 +621,13 @@ async def _hourly_system_check() -> None:
     try:
         from ml_ensemble import get_rf, get_gbm
         from db import recent_outcomes
-        retrain_pools = ["XAUUSD", "XAUUSD_2M", "XAUUSD_5M", "XAUUSD_30M", "XAUUSD_1H",
+        retrain_pools = ["XAUUSD_2M", "XAUUSD_5M", "XAUUSD_30M", "XAUUSD_1H",
                          "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_4H",
                          "STOCKS_QUALITY_30M", "STOCKS_QUALITY_4H",
                          "STOCKS_INDEX_30M", "STOCKS_INDEX_4H"]
         for _pool in retrain_pools:
             _trades = await asyncio.to_thread(recent_outcomes, _pool, 500)
-            if len(_trades) >= 15:
+            if len(_trades) >= 50:
                 await asyncio.to_thread(get_rf(_pool).retrain, _trades)
                 await asyncio.to_thread(get_gbm(_pool).train, _trades)
                 print(f"[system_check] RF+GBM refreshed for {_pool} on {len(_trades)} trades.")
@@ -744,7 +746,13 @@ def start_scheduler() -> AsyncIOScheduler:
     global _scheduler
     _load_seen_headlines()
     interval   = int(os.environ.get("SIGNAL_INTERVAL_MINUTES", "15"))
-    _scheduler = AsyncIOScheduler()
+    _scheduler = AsyncIOScheduler(
+        job_defaults={
+            "coalesce":           True,
+            "max_instances":      1,
+            "misfire_grace_time": 30,
+        }
+    )
     _scheduler.add_job(_news_signal_cycle, trigger="interval", minutes=interval, id="news_signal_cycle", replace_existing=True)
     _scheduler.add_job(_breaking_news_cycle, trigger="interval", minutes=2, id="breaking_news_cycle", replace_existing=True)
     _scheduler.add_job(_hourly_system_check, trigger="interval", hours=1, id="hourly_system_check", replace_existing=True)
@@ -758,5 +766,5 @@ def start_scheduler() -> AsyncIOScheduler:
 
 def stop_scheduler() -> None:
     if _scheduler and _scheduler.running:
-        _scheduler.shutdown(wait=False)
+        _scheduler.shutdown(wait=True)
         print("[scheduler] Stopped.")

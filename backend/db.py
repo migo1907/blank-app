@@ -354,6 +354,8 @@ def repair_missing_trades() -> list[str]:
                     pool_keys[pool] = set()
             return pool_keys[pool]
 
+        _pending: dict[str, list] = {}
+
         for entry in log:
             p = entry.get("payload", {})
             outcome = p.get("outcome", "")
@@ -422,15 +424,44 @@ def repair_missing_trades() -> list[str]:
             for i in range(1, 26):
                 trade_row[f"f{i}"] = float(p.get(f"f{i}", 0) or 0)
 
+            # Batch: accumulate rows per pool, write once per pool at the end
+            pool_keys[pool].add(key)
+            _pending.setdefault(pool, []).append(trade_row)
+            msg = f"[auto-repair] Queued missing {norm} {direction} {symbol} {timeframe}m entry={entry_px} pool={pool}"
+            print(msg)
+            repaired.append(msg)
+
+        # Flush batched rows — one GitHub read+write per pool
+        for _pool, rows in _pending.items():
             try:
-                insert_outcome(trade_row)
-                # Update cached keys so duplicate log entries don't double-insert
-                pool_keys[pool].add(key)
-                msg = f"[auto-repair] Inserted missing {norm} {direction} {symbol} {timeframe}m entry={entry_px} pool={pool}"
-                print(msg)
-                repaired.append(msg)
+                path = _pool_history_file(_pool)
+                for attempt in range(3):
+                    history, sha = _get_file(path)
+                    if history is None:
+                        history = []
+                    existing_keys = {
+                        f"{t.get('symbol','')}|{t.get('direction','')}|{t.get('entry_price',0)}|{t.get('timeframe','')}"
+                        for t in history
+                    }
+                    for row in rows:
+                        dk = f"{row.get('symbol','')}|{row.get('direction','')}|{row.get('entry_price',0)}|{row.get('timeframe','')}"
+                        if dk not in existing_keys:
+                            row.setdefault("id", str(uuid.uuid4())[:8])
+                            row.setdefault("pool", _pool)
+                            row.setdefault("created_at", datetime.now(timezone.utc).isoformat())
+                            history.append(row)
+                            existing_keys.add(dk)
+                    if len(history) > 1000:
+                        history = history[-1000:]
+                    try:
+                        _put_file(path, history, sha, f"data: auto-repair batch {_pool} +{len(rows)}")
+                        break
+                    except Exception as e:
+                        if attempt < 2 and "409" in str(e):
+                            continue
+                        raise
             except Exception as e:
-                print(f"[auto-repair] Insert failed for {key}: {e}")
+                print(f"[auto-repair] Batch flush failed for {_pool}: {e}")
 
     except Exception as e:
         print(f"[auto-repair] repair_missing_trades failed: {e}")

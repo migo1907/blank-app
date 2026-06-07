@@ -57,12 +57,12 @@ async def lifespan(app: FastAPI):
     print("[startup] Priming RF + GBM ensembles for all pools…")
     from ml_ensemble import get_rf, get_gbm
     from db import recent_outcomes
-    for _pool in ["XAUUSD", "XAUUSD_2M", "XAUUSD_5M", "XAUUSD_30M", "XAUUSD_1H",
+    for _pool in ["XAUUSD_2M", "XAUUSD_5M", "XAUUSD_30M", "XAUUSD_1H",
                   "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_4H",
                   "STOCKS_QUALITY_30M", "STOCKS_QUALITY_4H",
                   "STOCKS_INDEX_30M", "STOCKS_INDEX_4H"]:
         _hist = recent_outcomes(_pool, limit=500)
-        if len(_hist) >= 15:
+        if len(_hist) >= 50:
             get_rf(_pool).retrain(_hist)
             get_gbm(_pool).train(_hist)
             print(f"[startup] RF+GBM trained for {_pool} on {len(_hist)} trades.")
@@ -317,6 +317,9 @@ async def trade_outcome(payload: TradeOutcomePayload):
     raw_pct = (payload.exit_price - payload.entry_price) / max(payload.entry_price, 0.0001) * 100
     pnl_pct = raw_pct if payload.direction == "LONG" else -raw_pct
 
+    from signal_engine import _detect_regime, _session_multiplier
+    _, _session = _session_multiplier(datetime.now(timezone.utc))
+    _regime     = _detect_regime(features)
     outcome_row = {
         "symbol":        sym,
         "direction":     payload.direction,
@@ -330,6 +333,8 @@ async def trade_outcome(payload: TradeOutcomePayload):
         "timeframe":     payload.timeframe or "",
         "pnl_pct":       round(pnl_pct, 4),
         "ml_bull_score": payload.ml_score,
+        "regime":        _regime,
+        "session":       _session,
     }
     outcome_row.update(features.as_db_dict())
 
@@ -338,7 +343,7 @@ async def trade_outcome(payload: TradeOutcomePayload):
             await asyncio.to_thread(model.save, pool)
             await asyncio.to_thread(insert_outcome, outcome_row)
             history = await asyncio.to_thread(recent_outcomes, pool, 500)
-            if len(history) >= 15:
+            if len(history) >= 50:
                 await asyncio.to_thread(get_rf(pool).retrain, history)
                 await asyncio.to_thread(get_gbm(pool).train, history)
             from scheduler import record_webhook_ok
@@ -517,6 +522,9 @@ async def unified_webhook(payload: UnifiedPayload):
         else:
             pnl_pct = 0.0
 
+        from signal_engine import _detect_regime, _session_multiplier
+        _, _session = _session_multiplier(datetime.now(timezone.utc))
+        _regime     = _detect_regime(features)
         outcome_row = {
             "symbol":        sym2,
             "direction":     payload.direction,
@@ -530,6 +538,8 @@ async def unified_webhook(payload: UnifiedPayload):
             "timeframe":     payload.timeframe or "",
             "pnl_pct":       round(pnl_pct, 4),
             "ml_bull_score": payload.ml_score,
+            "regime":        _regime,
+            "session":       _session,
         }
         outcome_row.update(features.as_db_dict())
 

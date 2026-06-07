@@ -288,8 +288,12 @@ def _confluence_score(features: Features | None, direction: str, regime: str) ->
 
 # ── Dynamic component weights based on recent accuracy ───────────────────────────────
 def _dynamic_weights(history: list[dict]) -> tuple[float, float, float, float]:
-    if len(history) < 20:
-        return KNN_WEIGHT, RF_WEIGHT, GBM_WEIGHT, NEWS_WEIGHT
+    n = len(history)
+    # Zero-weight RF/GBM until enough data to avoid overfitting (research: 50+ for RF, 80+ for GBM)
+    if n < 50:
+        return 0.80, 0.00, 0.00, 0.20
+    if n < 80:
+        return 0.60, 0.40, 0.00, 0.00
     recent = history[-20:]
     wins   = sum(1 for t in recent if t.get("outcome") == "WIN")
     wr     = wins / len(recent)
