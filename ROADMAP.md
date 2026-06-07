@@ -224,6 +224,18 @@ Phase 4:  ⏳ Earliest Feb–Mar 2027 (gated by 58%+ WR over 200 consecutive tra
 
 ## 🔴 Known Issues — Open (as of June 7, 2026)
 
+### Recently Fixed (June 7)
+| # | Issue | Status |
+|---|-------|--------|
+| H1 | `main.py` — `is_entry` checked before `is_outcome`: trade-close payloads with tp1/sl silently routed to HTF bias store, trade record lost | ✅ Fixed |
+| H2 | `htf_bias.py` — bias store in-memory only, lost on Railway restart, signals suppressed silently after redeploy | ✅ Fixed — persists to `data/htf_bias.json`, loads on startup |
+| H3 | `ml_model.py` — race condition in `get_model()` singleton init, second concurrent request overwrites first's loaded weights | ✅ Fixed — double-checked locking |
+| H4 | `db.py` — `_put_file()` no retry on 409 conflict, `save_weights()` permanently lost weight update on SHA conflict | ✅ Fixed — 3-retry with SHA re-fetch |
+| M3 | `ml_ensemble.py` — same race condition in `get_rf()` / `get_gbm()` singleton init | ✅ Fixed — double-checked locking |
+| M6 | `db.py` — `insert_signal()` no 409 retry, concurrent signal writes silently dropped | ✅ Fixed — 3-retry loop |
+
+
+
 | # | Issue | Impact | Fix Trigger |
 |---|-------|--------|-------------|
 | 1 | `weights.json` missing — KNN adaptive weights never persisted to GitHub | Medium | Auto-creates on first WIN trade |
