@@ -20,6 +20,7 @@ int   swingLookback = input.int(10,     "Swing Lookback (protective SL)", minval
 float slBufferMult  = input.float(0.7,  "SL Structure Buffer (ATR)", minval=0.0, group="Realistic Levels")
 float maxSLMult     = input.float(2.5,  "Max SL Distance (ATR cap)", minval=0.5, group="Realistic Levels")
 float minSLMult     = input.float(0.8,  "Min SL Distance (ATR floor)", minval=0.1, group="Realistic Levels")
+float beBufferMult  = input.float(0.1,  "Breakeven Lock Buffer (ATR) at TP1", minval=0.0, group="Realistic Levels")
 bool  useRRtps      = input.bool(true,  "TPs as Risk:Reward of actual SL", group="Realistic Levels")
 float rrTP1         = input.float(1.0,  "TP1 Risk:Reward", minval=0.25, group="Realistic Levels")
 float rrTP2         = input.float(2.0,  "TP2 Risk:Reward", minval=0.5, group="Realistic Levels")
@@ -89,16 +90,21 @@ var bool   tp1Hit       = false
 var bool   tp2Hit       = false
 var bool   reEntryTagged = false
 var float  trailSL      = 0.0   // dynamic trailing stop after TP1
+var float  lockSL       = na    // hard profit floor — SL can never cross back below/above this
 
 // --- TRAIL STOP UPDATE (runs every bar while in trade) ---
+// lockSL guarantees a green position never flips red: once TP1 hits it sits at
+// breakeven(+buffer), and once TP2 hits it ratchets up to the TP1 profit.
 if activeTrade == "LONG" and tp1Hit
     float newTrail = high - (atr * trailMult)
     trailSL := math.max(trailSL, newTrail)   // only moves up, never down
+    trailSL := math.max(trailSL, lockSL)     // never below the locked profit floor
     slPrice  := trailSL
 
 if activeTrade == "SHORT" and tp1Hit
     float newTrail = low + (atr * trailMult)
     trailSL := math.min(trailSL, newTrail)   // only moves down, never up
+    trailSL := math.min(trailSL, lockSL)     // never above the locked profit floor
     slPrice  := trailSL
 
 // --- TP/SL HIT CHECKS ---
@@ -106,13 +112,17 @@ if activeTrade == "SHORT" and tp1Hit
 if activeTrade == "LONG"
     if not tp1Hit and high >= tp1Price
         tp1Hit  := true
-        trailSL := close - (atr * trailMult)   // start trail from TP1 hit
-        slPrice := trailSL                      // SL moves to breakeven zone
-        label.new(bar_index, high, "TP1 ✓\nTrail ON", color=color.new(color.green, 40), textcolor=color.white, style=label.style_label_down, size=size.tiny)
+        lockSL  := entryPrice + (atr * beBufferMult)        // lock breakeven (+buffer) — no more red
+        trailSL := math.max(close - (atr * trailMult), lockSL)
+        slPrice := trailSL
+        label.new(bar_index, high, "TP1 ✓\nBE LOCKED", color=color.new(color.green, 40), textcolor=color.white, style=label.style_label_down, size=size.tiny)
 
     if tp1Hit and not tp2Hit and high >= tp2Price
         tp2Hit  := true
-        label.new(bar_index, high, "TP2 ✓", color=color.new(color.green, 20), textcolor=color.white, style=label.style_label_down, size=size.tiny)
+        lockSL  := math.max(lockSL, tp1Price)               // ratchet floor up to TP1 profit
+        trailSL := math.max(trailSL, lockSL)
+        slPrice := trailSL
+        label.new(bar_index, high, "TP2 ✓\nTP1 LOCKED", color=color.new(color.green, 20), textcolor=color.white, style=label.style_label_down, size=size.tiny)
 
     if tp1Hit and tp2Hit and high >= tp3Price
         activeTrade := "NONE", tp1Hit := false, tp2Hit := false
@@ -127,13 +137,17 @@ if activeTrade == "LONG"
 if activeTrade == "SHORT"
     if not tp1Hit and low <= tp1Price
         tp1Hit  := true
-        trailSL := close + (atr * trailMult)
+        lockSL  := entryPrice - (atr * beBufferMult)        // lock breakeven (+buffer) — no more red
+        trailSL := math.min(close + (atr * trailMult), lockSL)
         slPrice := trailSL
-        label.new(bar_index, low, "TP1 ✓\nTrail ON", color=color.new(color.green, 40), textcolor=color.white, style=label.style_label_up, size=size.tiny)
+        label.new(bar_index, low, "TP1 ✓\nBE LOCKED", color=color.new(color.green, 40), textcolor=color.white, style=label.style_label_up, size=size.tiny)
 
     if tp1Hit and not tp2Hit and low <= tp2Price
         tp2Hit  := true
-        label.new(bar_index, low, "TP2 ✓", color=color.new(color.green, 20), textcolor=color.white, style=label.style_label_up, size=size.tiny)
+        lockSL  := math.min(lockSL, tp1Price)               // ratchet floor down to TP1 profit
+        trailSL := math.min(trailSL, lockSL)
+        slPrice := trailSL
+        label.new(bar_index, low, "TP2 ✓\nTP1 LOCKED", color=color.new(color.green, 20), textcolor=color.white, style=label.style_label_up, size=size.tiny)
 
     if tp1Hit and tp2Hit and low <= tp3Price
         activeTrade := "NONE", tp1Hit := false, tp2Hit := false
@@ -214,6 +228,7 @@ if doBuy
     // --- Pullback re-entry level (between entry and SL) ---
     reEntryPrice := entryPrice - (riskLong * reEntryRatio)
     trailSL     := slPrice
+    lockSL      := na
     tp1Hit      := false
     tp2Hit      := false
     reEntryTagged := false
@@ -238,6 +253,7 @@ if doSell
         tp3Price := math.min(tp3Price, dynSupport)   // target true structural support
     reEntryPrice := entryPrice + (riskShort * reEntryRatio)
     trailSL     := slPrice
+    lockSL      := na
     tp1Hit      := false
     tp2Hit      := false
     reEntryTagged := false
