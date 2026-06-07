@@ -132,6 +132,10 @@ class RandomForestEnsemble:
         if not _SKLEARN_AVAILABLE or not self._trained or self._model is None:
             return 0.5
 
+        if len(features) != len(FEATURE_NAMES):
+            print(f"[ensemble] Feature vector length {len(features)} != expected {len(FEATURE_NAMES)} — returning 0.5")
+            return 0.5
+
         import numpy as np  # already imported at module level but kept for clarity
 
         X = np.array([features], dtype=np.float32)

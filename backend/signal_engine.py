@@ -340,7 +340,7 @@ def generate_signal(
     # ── Weekend guard ──────────────────────────────────────────────────────────
     dow_mult = _day_of_week_multiplier(now)
     if dow_mult == 0.0:
-        return _neutral_signal(symbol, now, model, rf, "Weekend — market closed", news_agg, pool)
+        return _neutral_signal(symbol, now, model, rf, "Weekend — market closed", news_agg, pool, current_features)
 
     # ── KNN score ─────────────────────────────────────────────────────────────────
     if current_features and len(history) >= model.k:
@@ -372,7 +372,7 @@ def generate_signal(
         # Bypass if all 3 ML models unanimously agree on direction (Option F)
         all_agree = (knn_dir == rf_dir == gbm_dir)
         if not all_agree:
-            return _neutral_signal(symbol, now, model, rf, "News velocity CONFLICTED", news_agg, pool)
+            return _neutral_signal(symbol, now, model, rf, "News velocity CONFLICTED", news_agg, pool, current_features)
 
     if event.get("detected") and event.get("urgency", 0) >= 0.9:
         v_mult = min(v_mult * 1.5, 3.0)
@@ -483,9 +483,13 @@ def generate_signal(
     }
 
 
-def _neutral_signal(symbol, now, model, rf, reason, news_agg, pool: str = "XAUUSD_2M"):
+def _neutral_signal(symbol, now, model, rf, reason, news_agg, pool: str = "XAUUSD_2M",
+                    features=None):
+    _sess_mult, _session = _session_multiplier(now)
+    _regime = _detect_regime(features)
     row = {
         "symbol":         symbol,
+        "pool":           pool,
         "direction":      "NEUTRAL",
         "confidence":     0.0,
         "tier":           "LOW",
@@ -494,9 +498,9 @@ def _neutral_signal(symbol, now, model, rf, reason, news_agg, pool: str = "XAUUS
         "gbm_score":      0.5,
         "news_score":     round(news_agg, 4),
         "combined_score": 0.0,
-        "session":        "N/A",
-        "regime":         "UNKNOWN",
-        "regime_label":   "UNKNOWN",
+        "session":        _session,
+        "regime":         _regime,
+        "regime_label":   _regime,
         "reasoning":      reason,
         "status":         "NEUTRAL",
         "expires_at":     (now + timedelta(minutes=30)).isoformat(),
@@ -506,6 +510,8 @@ def _neutral_signal(symbol, now, model, rf, reason, news_agg, pool: str = "XAUUS
     return {
         **row,
         "id":                None,
+        "pool":              pool,
+        "symbol":            symbol,
         "timestamp":         now.strftime("%Y-%m-%d %H:%M UTC"),
         "total_wins":        model._total_wins,
         "total_losses":      model._total_losses,

@@ -43,6 +43,12 @@ def _tod_sine() -> float:
     return math.sin(2 * math.pi * h / 24)
 
 WEBHOOK_SECRET    = os.environ.get("WEBHOOK_SECRET", "")
+VALID_POOLS = {
+    "XAUUSD_2M", "XAUUSD_5M", "XAUUSD_30M", "XAUUSD_1H",
+    "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_4H",
+    "STOCKS_QUALITY_30M",  "STOCKS_QUALITY_4H",
+    "STOCKS_INDEX_30M",    "STOCKS_INDEX_4H",
+}
 RAILWAY_API_TOKEN  = os.environ.get("RAILWAY_API_TOKEN", "")
 RAILWAY_PROJECT_ID = os.environ.get("RAILWAY_PROJECT_ID", "bcc5442d-2f19-4dfa-ad25-219a5c70868a")
 RAILWAY_SERVICE_ID = os.environ.get("RAILWAY_SERVICE_ID", "e4310b2b-3a37-440e-a3b7-a14ea476f8a1")
@@ -564,12 +570,15 @@ async def unified_webhook(payload: UnifiedPayload):
 
         return {"status": "ok", "routed_to": "trade-outcome", "outcome": payload.outcome, "ml_outcome": ml_label}
 
+    print(f"[webhook] Unmatched payload — tp1={payload.tp1} sl={payload.sl} trade_id={payload.trade_id} outcome={payload.outcome}")
     return {"status": "ignored", "reason": "payload did not match entry or outcome pattern"}
 
 
 @app.get("/weights")
 async def get_weights(secret: str = "", pool: str = "XAUUSD_2M"):
     _validate_secret(secret)
+    if pool not in VALID_POOLS:
+        raise HTTPException(status_code=400, detail=f"Unknown pool '{pool}'. Valid: {sorted(VALID_POOLS)}")
     from ml_model import get_model
     model = get_model(pool)
     top3 = model.top_features(3)
@@ -586,6 +595,8 @@ async def get_weights(secret: str = "", pool: str = "XAUUSD_2M"):
 @app.get("/feature-importance")
 async def feature_importance(secret: str = "", pool: str = "XAUUSD_2M"):
     _validate_secret(secret)
+    if pool not in VALID_POOLS:
+        raise HTTPException(status_code=400, detail=f"Unknown pool '{pool}'. Valid: {sorted(VALID_POOLS)}")
     from ml_model import get_model, FEATURE_NAMES
     from ml_ensemble import get_rf
 
@@ -742,6 +753,8 @@ async def railway_status(secret: str = ""):
 @app.get("/dashboard")
 async def dashboard(secret: str = "", pool: str = "XAUUSD_2M"):
     _validate_secret(secret)
+    if pool not in VALID_POOLS:
+        raise HTTPException(status_code=400, detail=f"Unknown pool '{pool}'. Valid: {sorted(VALID_POOLS)}")
     from ml_model import get_model
     from ml_ensemble import get_rf
     from db import recent_outcomes, recent_news
