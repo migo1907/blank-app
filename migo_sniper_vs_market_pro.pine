@@ -34,6 +34,16 @@ bool requireHTFTrend = input.bool(true, "Only trade with 1H trend (skip ranging)
 bool requireADXtrend = input.bool(true, "Require ADX above threshold on signal", group="Signal Filters")
 bool requireExpansion = input.bool(true, "Require ATR not compressed on signal", group="Signal Filters")
 
+// --- SESSION FILTER (avoid noisy hours) ---
+bool   useSessions = input.bool(true,  "Restrict signals to selected sessions", group="Sessions")
+string sessTZ      = input.string("UTC", "Session Timezone", options=["UTC", "America/New_York", "Europe/London", "Asia/Tokyo", "Asia/Dubai"], group="Sessions")
+bool   tradeAsia   = input.bool(false, "Trade Asia session", group="Sessions")
+string asiaSess    = input.session("0000-0800", "Asia hours", group="Sessions")
+bool   tradeLondon = input.bool(true,  "Trade London session", group="Sessions")
+string londonSess  = input.session("0700-1600", "London hours", group="Sessions")
+bool   tradeNY     = input.bool(true,  "Trade New York session", group="Sessions")
+string nySess      = input.session("1200-2100", "New York hours", group="Sessions")
+
 // --- CALCULATIONS ---
 float rsiValue = ta.rsi(close, 14)
 float maLong   = ta.ema(close, 200)
@@ -162,13 +172,20 @@ if activeTrade == "SHORT" and not tp1Hit
     if touchedNearTP and reversedAway
         activeTrade := "NONE", tp1Hit := false, tp2Hit := false
 
+// --- SESSION STATE ---
+bool inAsia    = tradeAsia   and not na(time(timeframe.period, asiaSess,   sessTZ))
+bool inLondon  = tradeLondon and not na(time(timeframe.period, londonSess, sessTZ))
+bool inNY      = tradeNY     and not na(time(timeframe.period, nySess,     sessTZ))
+bool sessionOK = (not useSessions) or inAsia or inLondon or inNY
+string sessLabel = not useSessions ? "ALL" : (inLondon and inNY) ? "LDN+NY" : inLondon ? "LONDON" : inNY ? "NEW YORK" : inAsia ? "ASIA" : "OFF-HRS"
+
 // --- SIGNALS ---
-// Sideways guards: HTF trend alignment, real ADX trend, and volatility expansion
+// Sideways guards: HTF trend alignment, real ADX trend, volatility expansion, active session
 bool trendOKlong  = (not requireHTFTrend) or mainTrend == "UPTREND"
 bool trendOKshort = (not requireHTFTrend) or mainTrend == "DOWNTREND"
 bool adxOK        = (not requireADXtrend) or (adxValue >= adxThreshold)
 bool expansionOK  = (not requireExpansion) or (not atrCompressed)
-bool filtersOK    = not isSideways and adxOK and expansionOK
+bool filtersOK    = not isSideways and adxOK and expansionOK and sessionOK
 
 bool buySignal  = filtersOK and trendOKlong  and ta.crossover(rsiValue, 45)  and close > low[1]
 bool sellSignal = filtersOK and trendOKshort and ta.crossunder(rsiValue, 55) and close < high[1]
@@ -230,6 +247,9 @@ if doSell
 // --- SIDEWAYS BACKGROUND ---
 bgcolor(isSideways ? color.new(color.yellow, 90) : na, title="Ranging Zone")
 
+// --- OFF-SESSION BACKGROUND ---
+bgcolor((useSessions and not sessionOK) ? color.new(color.gray, 88) : na, title="Off-Session (no signals)")
+
 // --- DASHBOARD ---
 string tpStage = not tp1Hit ? "Targeting TP1" : not tp2Hit ? "TP1 ✓ → TP2" : "TP2 ✓ → TP3 🚀"
 color stageColor = not tp1Hit ? color.white : not tp2Hit ? color.lime : color.aqua
@@ -279,9 +299,12 @@ if barstate.islast
     float volRatio   = atr / atrSma
     string volStatus = volRatio > 1.5 ? "HIGH VOL" : volRatio < 0.7 ? "LOW VOL" : "STABLE"
     color volColor   = volStatus == "HIGH VOL" ? color.red : volStatus == "LOW VOL" ? color.aqua : color.green
+    bool sessActive = (not useSessions) or sessionOK
+    color sessColor = not useSessions ? color.gray : sessionOK ? color.green : color.red
     table.cell(hub, 0, 8, "MKT IMPACT", text_color=color.gray, text_size=size.small)
     table.cell(hub, 1, 8, volStatus, text_color=volColor)
-    table.merge_cells(hub, 1, 8, 3, 8)
+    table.cell(hub, 2, 8, "SESSION", text_color=color.gray, text_size=size.small)
+    table.cell(hub, 3, 8, sessLabel + (sessActive ? "" : " ⛔"), text_color=sessColor)
 
     string adxInfo = "ADX: " + str.tostring(math.round(adxValue, 1)) + (adxFlat ? " ✗" : " ✓") + "  ATR: " + (atrCompressed ? "✗" : "✓") + "  EMA: " + (emaTooClose ? "✗" : "✓")
     table.cell(hub, 0, 9, adxInfo, text_color=color.new(color.gray, 30), text_size=size.small)
