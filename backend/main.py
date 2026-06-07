@@ -393,6 +393,12 @@ async def signal_entry(payload: SignalEntryPayload):
         print(f"[signal-entry] HTF bias stored: {payload.direction} {sym} TF={tf}")
         return {"status": "ok", "routed_to": "htf-bias", "direction": payload.direction, "timeframe": tf}
 
+    # 2M XAUUSD signals are used only for ML data collection — not sent to Telegram
+    is_xauusd = sym.upper().split(":")[-1] in ("XAUUSD", "GOLD", "GC")
+    if is_xauusd and str(tf).strip() == "2":
+        print(f"[signal-entry] 2M XAUUSD signal received — ML only, not sent to Telegram")
+        return {"status": "ok", "routed_to": "ml-only", "reason": "2m_xauusd_suppressed"}
+
     bias = get_active_bias(sym, payload.direction)
     if bias is None:
         print(f"[signal-entry] Suppressed {payload.direction} {sym} TF={tf} — no active HTF bias")
@@ -450,6 +456,12 @@ async def unified_webhook(payload: UnifiedPayload):
             store_bias(sym, payload.direction, tf, payload.trigger or "", payload.ml_score)
             print(f"[webhook] HTF bias stored: {payload.direction} {sym} TF={tf}")
             return {"status": "ok", "routed_to": "htf-bias", "direction": payload.direction, "timeframe": tf}
+
+        # 2M XAUUSD signals are used only for ML data collection — not sent to Telegram
+        is_xauusd = sym.upper().split(":")[-1] in ("XAUUSD", "GOLD", "GC")
+        if is_xauusd and str(tf).strip() == "2":
+            print(f"[webhook] 2M XAUUSD signal received — ML only, not sent to Telegram")
+            return {"status": "ok", "routed_to": "ml-only", "reason": "2m_xauusd_suppressed"}
 
         bias = get_active_bias(sym, payload.direction)
         if bias is None:
