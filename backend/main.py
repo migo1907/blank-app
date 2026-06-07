@@ -18,7 +18,7 @@ load_dotenv()
 
 # In-memory TTL dedup: prevents double KNN weight updates when TradingView fires the
 # same trade outcome to both /webhook/trade-outcome and /webhook within 1-2 seconds.
-_outcome_dedup_seen: dict[str, float] = {}   # dedup_key → epoch seconds
+_outcome_dedup_seen: dict[str, float] = {}   # dedup_key → monotonic seconds
 _OUTCOME_DEDUP_TTL = 30.0  # seconds
 
 
