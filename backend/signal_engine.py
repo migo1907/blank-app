@@ -294,7 +294,7 @@ def _dynamic_weights(history: list[dict]) -> tuple[float, float, float, float]:
         return 0.80, 0.00, 0.00, 0.20
     if n < 80:
         return 0.60, 0.40, 0.00, 0.00
-    recent = history[-20:]
+    recent = history[:20]  # history[0] is most recent (recent_outcomes reverses the list)
     wins   = sum(1 for t in recent if t.get("outcome") == "WIN")
     wr     = wins / len(recent)
     if wr >= 0.60:
@@ -483,7 +483,7 @@ def generate_signal(
     }
 
 
-def _neutral_signal(symbol, now, model, rf, reason, news_agg, pool: str = "XAUUSD"):
+def _neutral_signal(symbol, now, model, rf, reason, news_agg, pool: str = "XAUUSD_2M"):
     row = {
         "symbol":         symbol,
         "direction":      "NEUTRAL",

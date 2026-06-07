@@ -132,9 +132,6 @@ class RandomForestEnsemble:
         if not _SKLEARN_AVAILABLE or not self._trained or self._model is None:
             return 0.5
 
-        if not _SKLEARN_AVAILABLE:
-            return 0.5
-
         import numpy as np  # already imported at module level but kept for clarity
 
         X = np.array([features], dtype=np.float32)

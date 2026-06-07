@@ -327,7 +327,7 @@ async def _hourly_system_check() -> None:
 
     try:
         from ml_model import get_model
-        model = get_model()
+        model = get_model("XAUUSD_2M")
         wins  = model._total_wins
         losses = model._total_losses
         wr    = model.win_rate
@@ -341,7 +341,7 @@ async def _hourly_system_check() -> None:
 
     try:
         from ml_ensemble import get_rf
-        rf = get_rf()
+        rf = get_rf("XAUUSD_2M")
         if rf.is_trained:
             top_rf = rf.top_features(1)
             top_rf_name = top_rf[0][0] if top_rf else "?"
@@ -599,7 +599,10 @@ async def _hourly_system_check() -> None:
 
     try:
         from db import _get_file, _put_file
-        for _dedup_pool in ["XAUUSD_2M", "XAUUSD_5M", "XAUUSD_30M", "XAUUSD_1H"]:
+        for _dedup_pool in ["XAUUSD_2M", "XAUUSD_5M", "XAUUSD_30M", "XAUUSD_1H",
+                             "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_4H",
+                             "STOCKS_QUALITY_30M", "STOCKS_QUALITY_4H",
+                             "STOCKS_INDEX_30M", "STOCKS_INDEX_4H"]:
             _path = f"data/trade_history_{_dedup_pool}.json"
             _hist, _sha = await asyncio.to_thread(_get_file, _path)
             if not isinstance(_hist, list) or len(_hist) == 0:

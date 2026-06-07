@@ -44,6 +44,15 @@ DEFAULT_WEIGHTS = {
 }
 
 
+def _parse_ts(ts: str) -> datetime:
+    """Parse ISO timestamp to timezone-aware UTC datetime, safe for both naive and aware strings."""
+    ts = ts.replace("Z", "+00:00")
+    dt = datetime.fromisoformat(ts)
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
+
+
 # ── Low-level GitHub file API ─────────────────────────────────────────────────
 
 def _get_file(path: str) -> tuple[dict | list | None, str | None]:
@@ -190,7 +199,8 @@ def insert_outcome(outcome: dict) -> None:
 
     dedup_key = (
         f"{outcome.get('symbol','')}|{outcome.get('direction','')}|"
-        f"{outcome.get('entry_price',0)}|{outcome.get('timeframe','')}"
+        f"{outcome.get('entry_price',0)}|{outcome.get('timeframe','')}|"
+        f"{outcome.get('exit_price',0)}"
     )
 
     for attempt in range(3):
@@ -256,7 +266,7 @@ def recent_news(hours: int = 4) -> list[dict]:
     cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
     return [
         n for n in cache
-        if datetime.fromisoformat(n.get("fetched_at", "2000-01-01")).replace(tzinfo=timezone.utc) >= cutoff
+        if _parse_ts(n.get("fetched_at", "2000-01-01T00:00:00+00:00")) >= cutoff
     ]
 
 
@@ -278,7 +288,8 @@ def insert_signal(signal: dict) -> dict:
             return signal
         except Exception as e:
             if attempt < 2 and "409" in str(e):
-                signals = []  # reset so next attempt re-fetches clean list
+                signals = []            # reset so next attempt re-fetches clean list
+                signal.pop("id", None)  # re-assign ID from fresh list on next iteration
                 continue
             raise
     return signal

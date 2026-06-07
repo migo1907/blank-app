@@ -39,7 +39,7 @@ def _outcome_is_duplicate(symbol: str, direction: str, entry_price: float, exit_
 
 def _tod_sine() -> float:
     """Time-of-Day sine: 0→2π over 24 h, peaks ~06:00 UTC (London open)."""
-    h = datetime.now(timezone.utc).hour + datetime.now(timezone.utc).minute / 60
+    _now = datetime.now(timezone.utc); h = _now.hour + _now.minute / 60
     return math.sin(2 * math.pi * h / 24)
 
 WEBHOOK_SECRET    = os.environ.get("WEBHOOK_SECRET", "")
@@ -548,7 +548,7 @@ async def unified_webhook(payload: UnifiedPayload):
                 await asyncio.to_thread(model.save, pool)
                 await asyncio.to_thread(insert_outcome, outcome_row)
                 history = await asyncio.to_thread(recent_outcomes, pool, 500)
-                if len(history) >= 15:
+                if len(history) >= 50:
                     await asyncio.to_thread(get_rf(pool).retrain, history)
                     await asyncio.to_thread(get_gbm(pool).train, history)
                 from scheduler import record_webhook_ok
