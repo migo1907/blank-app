@@ -218,7 +218,7 @@ def generate_daily_brief() -> str | None:
     asset_data = "\n".join(asset_blocks)
 
     try:
-        client   = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+        client   = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
         response = client.messages.create(
             model="claude-haiku-4-5-20251001",
             max_tokens=800,

@@ -485,6 +485,8 @@ def repair_missing_trades() -> list[str]:
                 "pnl_pct":      round(pnl_pct, 4),
                 "ml_bull_score": float(p.get("ml_score", 0.5) or 0.5),
                 "created_at":   entry.get("received_at", datetime.now(timezone.utc).isoformat()),
+                "regime":       "UNKNOWN",
+                "session":      "UNKNOWN",
                 "_repaired":    True,
             }
             # Attach features f1-f25

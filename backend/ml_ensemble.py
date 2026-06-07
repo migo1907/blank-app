@@ -124,7 +124,7 @@ class RandomForestEnsemble:
 
     def predict(self, features: list[float]) -> float:
         """
-        Predict WIN probability for a given 20-feature vector.
+        Predict WIN probability for a given 25-feature vector.
 
         Returns:
             float in [0.0, 1.0]. Returns 0.5 if model not yet trained.

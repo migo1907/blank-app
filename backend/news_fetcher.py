@@ -694,7 +694,7 @@ def score_headlines_with_claude(articles: list[dict]) -> list[dict]:
 
     try:
         response = client.messages.create(
-            model="claude-haiku-4-5",
+            model="claude-haiku-4-5-20251001",
             max_tokens=1500,
             messages=[{"role": "user", "content": XAU_SENTIMENT_PROMPT.format(headlines=numbered)}],
         )

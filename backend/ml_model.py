@@ -167,7 +167,7 @@ class AdaptiveKNN:
     def predict(self, current: Features, history: list[dict]) -> tuple[float, float]:
         """
         Returns (bull_score, bear_score) in [0, 1].
-        history: list of trade_outcome rows with f1_rsi..f20_fib and outcome fields.
+        history: list of trade_outcome rows with f1_rsi..f25_tod and outcome fields.
         """
         if len(history) < self.k:
             return 0.5, 0.5
