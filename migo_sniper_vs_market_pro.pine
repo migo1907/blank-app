@@ -21,6 +21,8 @@ float slBufferMult  = input.float(0.7,  "SL Structure Buffer (ATR)", minval=0.0,
 float maxSLMult     = input.float(2.5,  "Max SL Distance (ATR cap)", minval=0.5, group="Realistic Levels")
 float minSLMult     = input.float(0.8,  "Min SL Distance (ATR floor)", minval=0.1, group="Realistic Levels")
 float beBufferMult  = input.float(0.1,  "Breakeven Lock Buffer (ATR) at TP1", minval=0.0, group="Realistic Levels")
+bool  autoAdaptive  = input.bool(true,  "Auto-adapt SL/TP/Trail to volatility & trend", group="Realistic Levels")
+float adaptStrength = input.float(1.0,  "Adaptation Strength (0 = off, 2 = aggressive)", minval=0.0, maxval=2.0, group="Realistic Levels")
 bool  useRRtps      = input.bool(true,  "TPs as Risk:Reward of actual SL", group="Realistic Levels")
 float rrTP1         = input.float(1.0,  "TP1 Risk:Reward", minval=0.25, group="Realistic Levels")
 float rrTP2         = input.float(2.0,  "TP2 Risk:Reward", minval=0.5, group="Realistic Levels")
@@ -75,6 +77,24 @@ float dynSupport = ta.lowest(low, lookback)
 float swingLow   = ta.lowest(low, swingLookback)
 float swingHigh  = ta.highest(high, swingLookback)
 
+// --- ADAPTIVE ENGINE (auto-tunes SL / TP / Trail to live market state) ---
+// volFactor: current volatility vs its 20-bar average (clamped) -> widens stops/targets in high vol
+// trendStr : 0 at the ADX threshold, 1 once ADX is +20 above it -> extends targets & loosens trail in strong trends
+float volFactor = math.max(0.7, math.min(1.6, atr / atrSma))
+float trendStr  = math.max(0.0, math.min(1.0, (adxValue - adxThreshold) / 20.0))
+float kAdapt    = autoAdaptive ? adaptStrength : 0.0
+float fVol      = autoAdaptive ? volFactor : 1.0
+
+// Effective (auto) multipliers — fall back to the raw inputs when auto is off
+float effSLmult = atrMultSL  * fVol
+float effTrail  = trailMult  * fVol * (1.0 + 0.50 * trendStr * kAdapt)
+float effRR1    = rrTP1
+float effRR2    = rrTP2 + (0.5 * trendStr * kAdapt)
+float effRR3    = rrTP3 + (1.5 * trendStr * kAdapt)
+float effTP1m   = atrMultTP1 * fVol
+float effTP2m   = atrMultTP2 * fVol * (1.0 + 0.30 * trendStr * kAdapt)
+float effTP3m   = atrMultTP3 * fVol * (1.0 + 0.60 * trendStr * kAdapt)
+
 // --- TRADE STATE ---
 var string activeTrade  = "NONE"
 var float  entryPrice   = 0.0
@@ -96,13 +116,13 @@ var float  lockSL       = na    // hard profit floor — SL can never cross back
 // lockSL guarantees a green position never flips red: once TP1 hits it sits at
 // breakeven(+buffer), and once TP2 hits it ratchets up to the TP1 profit.
 if activeTrade == "LONG" and tp1Hit
-    float newTrail = high - (atr * trailMult)
+    float newTrail = high - (atr * effTrail)
     trailSL := math.max(trailSL, newTrail)   // only moves up, never down
     trailSL := math.max(trailSL, lockSL)     // never below the locked profit floor
     slPrice  := trailSL
 
 if activeTrade == "SHORT" and tp1Hit
-    float newTrail = low + (atr * trailMult)
+    float newTrail = low + (atr * effTrail)
     trailSL := math.min(trailSL, newTrail)   // only moves down, never up
     trailSL := math.min(trailSL, lockSL)     // never above the locked profit floor
     slPrice  := trailSL
@@ -113,7 +133,7 @@ if activeTrade == "LONG"
     if not tp1Hit and high >= tp1Price
         tp1Hit  := true
         lockSL  := entryPrice + (atr * beBufferMult)        // lock breakeven (+buffer) — no more red
-        trailSL := math.max(close - (atr * trailMult), lockSL)
+        trailSL := math.max(close - (atr * effTrail), lockSL)
         slPrice := trailSL
         label.new(bar_index, high, "TP1 ✓\nBE LOCKED", color=color.new(color.green, 40), textcolor=color.white, style=label.style_label_down, size=size.tiny)
 
@@ -138,7 +158,7 @@ if activeTrade == "SHORT"
     if not tp1Hit and low <= tp1Price
         tp1Hit  := true
         lockSL  := entryPrice - (atr * beBufferMult)        // lock breakeven (+buffer) — no more red
-        trailSL := math.min(close + (atr * trailMult), lockSL)
+        trailSL := math.min(close + (atr * effTrail), lockSL)
         slPrice := trailSL
         label.new(bar_index, low, "TP1 ✓\nBE LOCKED", color=color.new(color.green, 40), textcolor=color.white, style=label.style_label_up, size=size.tiny)
 
@@ -210,19 +230,19 @@ bool doSell = sellSignal and (activeTrade != "SHORT")
 if doBuy
     activeTrade := "LONG"
     entryPrice  := close
-    // --- Realistic SL: protective swing low + ATR buffer, floored & capped by ATR ---
+    // --- Adaptive SL: protective swing low + auto ATR buffer, floored & capped by ATR ---
     float structSL  = swingLow - (atr * slBufferMult)
-    float atrSL     = close - (atr * atrMultSL)
+    float atrSL     = close - (atr * effSLmult)
     float rawSL     = useStructure ? math.min(structSL, atrSL) : atrSL
     // bound risk so R:R stays sane: never tighter than min, never wider than max
     rawSL := math.max(rawSL, close - (atr * maxSLMult))
     rawSL := math.min(rawSL, close - (atr * minSLMult))
     slPrice := rawSL
     float riskLong = entryPrice - slPrice
-    // --- Realistic TPs: scale to actual risk (R:R), snap runner to real structure ---
-    tp1Price := useRRtps ? entryPrice + (riskLong * rrTP1) : close + (atr * atrMultTP1)
-    tp2Price := useRRtps ? entryPrice + (riskLong * rrTP2) : close + (atr * atrMultTP2)
-    tp3Price := useRRtps ? entryPrice + (riskLong * rrTP3) : close + (atr * atrMultTP3)
+    // --- Adaptive TPs: scale to actual risk (auto R:R), snap runner to real structure ---
+    tp1Price := useRRtps ? entryPrice + (riskLong * effRR1) : close + (atr * effTP1m)
+    tp2Price := useRRtps ? entryPrice + (riskLong * effRR2) : close + (atr * effTP2m)
+    tp3Price := useRRtps ? entryPrice + (riskLong * effRR3) : close + (atr * effTP3m)
     if useStructure and dynResist > tp1Price
         tp3Price := math.max(tp3Price, dynResist)   // target true structural resistance
     // --- Pullback re-entry level (between entry and SL) ---
@@ -238,17 +258,17 @@ if doBuy
 if doSell
     activeTrade := "SHORT"
     entryPrice  := close
-    // --- Realistic SL: protective swing high + ATR buffer, floored & capped by ATR ---
+    // --- Adaptive SL: protective swing high + auto ATR buffer, floored & capped by ATR ---
     float structSL  = swingHigh + (atr * slBufferMult)
-    float atrSL     = close + (atr * atrMultSL)
+    float atrSL     = close + (atr * effSLmult)
     float rawSL     = useStructure ? math.max(structSL, atrSL) : atrSL
     rawSL := math.min(rawSL, close + (atr * maxSLMult))
     rawSL := math.max(rawSL, close + (atr * minSLMult))
     slPrice := rawSL
     float riskShort = slPrice - entryPrice
-    tp1Price := useRRtps ? entryPrice - (riskShort * rrTP1) : close - (atr * atrMultTP1)
-    tp2Price := useRRtps ? entryPrice - (riskShort * rrTP2) : close - (atr * atrMultTP2)
-    tp3Price := useRRtps ? entryPrice - (riskShort * rrTP3) : close - (atr * atrMultTP3)
+    tp1Price := useRRtps ? entryPrice - (riskShort * effRR1) : close - (atr * effTP1m)
+    tp2Price := useRRtps ? entryPrice - (riskShort * effRR2) : close - (atr * effTP2m)
+    tp3Price := useRRtps ? entryPrice - (riskShort * effRR3) : close - (atr * effTP3m)
     if useStructure and dynSupport < tp1Price
         tp3Price := math.min(tp3Price, dynSupport)   // target true structural support
     reEntryPrice := entryPrice + (riskShort * reEntryRatio)
@@ -370,7 +390,8 @@ if barstate.islast
     table.cell(hub, 2, 8, "SESSION", text_color=color.gray, text_size=size.small)
     table.cell(hub, 3, 8, sessLabel + (sessActive ? "" : " ⛔"), text_color=sessColor)
 
-    string adxInfo = "ADX: " + str.tostring(math.round(adxValue, 1)) + (adxFlat ? " ✗" : " ✓") + "  ATR: " + (atrCompressed ? "✗" : "✓") + "  EMA: " + (emaTooClose ? "✗" : "✓")
+    string autoInfo = autoAdaptive ? "  AUTO: vol×" + str.tostring(volFactor, "#.##") + " trend×" + str.tostring(trendStr, "#.##") : "  AUTO: OFF"
+    string adxInfo = "ADX: " + str.tostring(math.round(adxValue, 1)) + (adxFlat ? " ✗" : " ✓") + "  ATR: " + (atrCompressed ? "✗" : "✓") + "  EMA: " + (emaTooClose ? "✗" : "✓") + autoInfo
     table.cell(hub, 0, 9, adxInfo, text_color=color.new(color.gray, 30), text_size=size.small)
     table.merge_cells(hub, 0, 9, 3, 9)
 
