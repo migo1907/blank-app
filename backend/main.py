@@ -575,14 +575,14 @@ async def unified_webhook(payload: UnifiedPayload):
         async def _persist():
             try:
                 for _save_attempt in range(3):
-                try:
-                    await asyncio.to_thread(model.save, pool)
-                    break
-                except Exception as _se:
-                    if _save_attempt < 2:
-                        await asyncio.sleep(1 << _save_attempt)
-                    else:
-                        raise
+                    try:
+                        await asyncio.to_thread(model.save, pool)
+                        break
+                    except Exception as _se:
+                        if _save_attempt < 2:
+                            await asyncio.sleep(1 << _save_attempt)
+                        else:
+                            raise
                 await asyncio.to_thread(insert_outcome, outcome_row)
                 history = await asyncio.to_thread(recent_outcomes, pool, 500)
                 if len(history) >= 50:
