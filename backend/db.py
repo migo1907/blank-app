@@ -338,10 +338,13 @@ def repair_missing_trades() -> list[str]:
         for entry in log:
             p = entry.get("payload", {})
             outcome = p.get("outcome", "")
-            # Only process trade closes — skip heartbeats and signal entries
-            if not outcome or outcome.upper() in ("HEARTBEAT", ""):
+            # Only process trade closes — skip heartbeats, signal entries, and progress events
+            outcome_up = outcome.upper()
+            if not outcome or outcome_up in ("HEARTBEAT", ""):
                 continue
             if p.get("trade_id") == "heartbeat":
+                continue
+            if outcome_up in ("TP1_HIT", "TP2_HIT", "PROGRESS"):
                 continue
             # Skip if no exit price (signal entry, not a close)
             if not p.get("exit_price"):
@@ -373,7 +376,7 @@ def repair_missing_trades() -> list[str]:
             pnl_pct = raw_pct if direction == "LONG" else -raw_pct
 
             # Normalize outcome
-            norm = outcome.upper().strip()
+            norm = outcome_up.strip()
             if norm in ("WIN", "TP3", "TP2", "TP1"):           norm = "WIN"
             elif norm in ("LOSS", "SL"):                        norm = "LOSS"
             elif norm in ("PARTIAL", "SL_TP1", "SL_TP2",
