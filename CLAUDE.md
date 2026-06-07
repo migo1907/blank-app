@@ -20,7 +20,17 @@
 - Personal Telegram chat ID: `966897595` (critical alerts only)
 - No Telegram for errors — Railway console only
 
-## TODO
+## Pine Script
+- **Current version:** `f25 Migo VS Market Sniper Pro` (Pine Script v6)
+- **Sends to:** `/webhook` unified endpoint (single alert URL for all payload types)
+- **Payload types:** HEARTBEAT (every bar close), entry signal, TP1_HIT, TP2_HIT, WIN, PARTIAL, LOSS
+- **Timeframe format:** `timeframe.period` — always numeric strings: `"2"`,`"5"`,`"15"`,`"30"`,`"60"`,`"240"`
+- **Symbol format:** `syminfo.ticker` — bare ticker, no exchange prefix
+- **Features:** F1–F25 sent in outcome and heartbeat payloads; entry payload has no features (uses heartbeat cache)
+- **Outcome normalization:** TP1_HIT/TP2_HIT → PROGRESS (no DB write), WIN/LOSS/PARTIAL → closed trade
+- **Known gap:** No `isTF30` bucket — 30M chart uses 1H/4H ATR multipliers (too wide). See TODO.
+
+
 - [ ] Pine Script: add `isTF30` bucket — 30M chart currently falls through to 1H/4H ATR multipliers (too wide TP/SL for 30M). Add dedicated 30M values to all multiplier chains.
 - [ ] Check market open hours logic — verify `stocks_active` window in scheduler.py and `_session_multiplier` in signal_engine.py match actual exchange open hours for all pools.
 
