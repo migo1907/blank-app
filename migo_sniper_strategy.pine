@@ -1,0 +1,264 @@
+//@version=6
+// Strategy (backtest) version of "upgraded Migo vs market trail 1".
+// Same entry / SL / TP / trail / breakeven-lock logic, wired into strategy.* so it
+// runs in TradingView's Strategy Tester. Single-unit model (enter full, the stop
+// ratchets through TP1/TP2 to the breakeven lock & trail, exit at TP3 or stop) —
+// this matches the indicator's own expectancy accounting.
+strategy("Migo VS Market Sniper — Backtest", overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=10, pyramiding=0, commission_type=strategy.commission.percent, commission_value=0.0, slippage=0, process_orders_on_close=true, calc_on_every_tick=false, max_labels_count=500)
+
+// --- INPUTS ---
+int lookback        = input.int(50, "Structural Lookback")
+float atrMultTP1    = input.float(1.5, "TP1 ATR Multiplier (Partial)")
+float atrMultTP2    = input.float(2.5, "TP2 ATR Multiplier")
+float atrMultTP3    = input.float(4.0, "TP3 ATR Multiplier (Runner)")
+float atrMultSL     = input.float(1.5, "SL ATR Multiplier")
+float trailMult     = input.float(1.2, "Trail Stop ATR Multiplier")
+bool  useTrail      = input.bool(true, "Activate Trailing Stop (after TP1)")
+float tpProximity   = input.float(80.0, "Near-TP Reset Threshold %", minval=50, maxval=99) / 100.0
+int adxLen          = input.int(14, "ADX Length")
+float adxThreshold  = input.float(20.0, "ADX Sideways Threshold")
+float atrRangeRatio = input.float(0.75, "ATR Range Ratio (below = compressed)")
+float emaBandPct    = input.float(0.3, "EMA Band % (50/200 too close)")
+bool  useProxReset  = input.bool(true, "Use near-TP1 proximity reset (early exit)", group="Backtest")
+
+// --- REALISTIC SL/TP INPUTS ---
+bool  useStructure  = input.bool(true,  "Use Market Structure for SL/TP", group="Realistic Levels")
+int   swingLookback = input.int(10,     "Swing Lookback (protective SL)", minval=3, group="Realistic Levels")
+float slBufferMult  = input.float(0.7,  "SL Structure Buffer (ATR)", minval=0.0, group="Realistic Levels")
+float maxSLMult     = input.float(2.5,  "Max SL Distance (ATR cap)", minval=0.5, group="Realistic Levels")
+float minSLMult     = input.float(0.8,  "Min SL Distance (ATR floor)", minval=0.1, group="Realistic Levels")
+float beBufferMult  = input.float(0.1,  "Breakeven Lock Buffer (ATR) at TP1", minval=0.0, group="Realistic Levels")
+bool  autoAdaptive  = input.bool(true,  "Auto-adapt SL/TP/Trail to volatility & trend", group="Realistic Levels")
+float adaptStrength = input.float(1.0,  "Adaptation Strength (0 = off, 2 = aggressive)", minval=0.0, maxval=2.0, group="Realistic Levels")
+bool  useRRtps      = input.bool(true,  "TPs as Risk:Reward of actual SL", group="Realistic Levels")
+float rrTP1         = input.float(1.0,  "TP1 Risk:Reward", minval=0.25, group="Realistic Levels")
+float rrTP2         = input.float(2.0,  "TP2 Risk:Reward", minval=0.5, group="Realistic Levels")
+float rrTP3         = input.float(3.5,  "TP3 Risk:Reward", minval=1.0, group="Realistic Levels")
+
+// --- SIGNAL FILTERS (avoid sideways) ---
+bool requireHTFTrend = input.bool(true, "Only trade with HTF-1 trend (skip ranging)", group="Signal Filters")
+bool require4H       = input.bool(true, "Also require HTF-2 trend alignment", group="Signal Filters")
+bool autoHTF         = input.bool(true, "Auto higher timeframes (standard TF per chart)", group="Signal Filters")
+bool requireADXtrend = input.bool(true, "Require ADX above threshold on signal", group="Signal Filters")
+bool requireExpansion = input.bool(true, "Require ATR not compressed on signal", group="Signal Filters")
+bool pullbackMode    = input.bool(true, "Pullback entry (buy dips / sell rallies)", group="Signal Filters")
+int  pbEmaLen        = input.int(20,   "Pullback value EMA length", minval=5, group="Signal Filters")
+bool strongConfirm   = input.bool(true, "Strong confirmation (candle close + RSI rising)", group="Signal Filters")
+float closeFrac      = input.float(0.33, "Confirm candle close in top/bottom fraction", minval=0.1, maxval=0.5, group="Signal Filters")
+bool momoEntry       = input.bool(true, "Momentum breakout entry (catch strong moves)", group="Signal Filters")
+int  brkLen          = input.int(10,   "Breakout lookback (bars)", minval=3, group="Signal Filters")
+
+// --- SESSION FILTER (avoid noisy hours) ---
+bool   useSessions = input.bool(true,  "Restrict signals to selected sessions", group="Sessions")
+string sessTZ      = input.string("UTC", "Session Timezone", options=["UTC", "America/New_York", "Europe/London", "Asia/Tokyo", "Asia/Dubai"], group="Sessions")
+bool   tradeAsia   = input.bool(false, "Trade Asia session", group="Sessions")
+string asiaSess    = input.session("0000-0800", "Asia hours", group="Sessions")
+bool   tradeLondon = input.bool(true,  "Trade London session", group="Sessions")
+string londonSess  = input.session("0700-1600", "London hours", group="Sessions")
+bool   tradeNY     = input.bool(true,  "Trade New York session", group="Sessions")
+string nySess      = input.session("1200-2100", "New York hours", group="Sessions")
+
+// --- DATE RANGE (limit the backtest window) ---
+bool  useDateRange = input.bool(false, "Limit backtest to date range", group="Backtest")
+int   startTime    = input.time(timestamp("2024-01-01 00:00"), "Start", group="Backtest")
+int   endTime      = input.time(timestamp("2027-01-01 00:00"), "End", group="Backtest")
+bool  inWindow     = (not useDateRange) or (time >= startTime and time <= endTime)
+
+// --- CALCULATIONS ---
+float rsiValue = ta.rsi(close, 14)
+float maLong   = ta.ema(close, 200)
+float maShort  = ta.ema(close, 50)
+float atr      = ta.atr(14)
+float atrSma   = ta.sma(atr, 20)
+float ema20    = ta.ema(close, pbEmaLen)   // pullback "value" zone
+
+// --- ADX ---
+[diPlus, diMinus, adxValue] = ta.dmi(adxLen, adxLen)
+
+// --- SIDEWAYS DETECTION ---
+bool adxFlat       = adxValue < adxThreshold
+bool atrCompressed = atr < (atrSma * atrRangeRatio)
+bool emaTooClose   = math.abs(maShort - maLong) / maLong * 100 < emaBandPct
+int sidewaysCount  = (adxFlat ? 1 : 0) + (atrCompressed ? 1 : 0) + (emaTooClose ? 1 : 0)
+bool isSideways    = sidewaysCount >= 2
+
+// --- HTF TREND (auto higher timeframes, dual confluence) ---
+int    baseMin = timeframe.in_seconds() / 60
+string htf1 = not autoHTF ? "60"  : baseMin <= 1 ? "15"  : baseMin <= 3 ? "30"  : baseMin <= 15 ? "60"  : baseMin <= 60 ? "240" : "D"
+string htf2 = not autoHTF ? "240" : baseMin <= 1 ? "60"  : baseMin <= 3 ? "120" : baseMin <= 15 ? "240" : baseMin <= 60 ? "D"   : "W"
+float ma50_1h  = request.security(syminfo.tickerid, htf1, ta.ema(close, 50))
+float rsi_1h   = request.security(syminfo.tickerid, htf1, ta.rsi(close, 14))
+float ma50_4h  = request.security(syminfo.tickerid, htf2, ta.ema(close, 50))
+float rsi_4h   = request.security(syminfo.tickerid, htf2, ta.rsi(close, 14))
+string trend1h = (close > ma50_1h and rsi_1h > 50) ? "UPTREND" : (close < ma50_1h and rsi_1h < 50) ? "DOWNTREND" : "SIDEWAYS"
+string trend4h = (close > ma50_4h and rsi_4h > 50) ? "UPTREND" : (close < ma50_4h and rsi_4h < 50) ? "DOWNTREND" : "SIDEWAYS"
+
+// --- AUTO-LEVELS / SWINGS ---
+float dynResist  = ta.highest(high, lookback)
+float dynSupport = ta.lowest(low, lookback)
+float swingLow   = ta.lowest(low, swingLookback)
+float swingHigh  = ta.highest(high, swingLookback)
+
+// --- ADAPTIVE ENGINE ---
+float volFactor = math.max(0.7, math.min(1.6, atr / atrSma))
+float trendStr  = math.max(0.0, math.min(1.0, (adxValue - adxThreshold) / 20.0))
+float kAdapt    = autoAdaptive ? adaptStrength : 0.0
+float fVol      = autoAdaptive ? volFactor : 1.0
+float effSLmult = atrMultSL  * fVol
+float effTrail  = trailMult  * fVol * (1.0 + 0.50 * trendStr * kAdapt)
+float effRR1    = rrTP1
+float effRR2    = rrTP2 + (0.5 * trendStr * kAdapt)
+float effRR3    = rrTP3 + (1.5 * trendStr * kAdapt)
+float effTP1m   = atrMultTP1 * fVol
+float effTP2m   = atrMultTP2 * fVol * (1.0 + 0.30 * trendStr * kAdapt)
+float effTP3m   = atrMultTP3 * fVol * (1.0 + 0.60 * trendStr * kAdapt)
+
+// --- SESSION STATE ---
+bool inAsia    = tradeAsia   and not na(time(timeframe.period, asiaSess,   sessTZ))
+bool inLondon  = tradeLondon and not na(time(timeframe.period, londonSess, sessTZ))
+bool inNY      = tradeNY     and not na(time(timeframe.period, nySess,     sessTZ))
+bool sessionOK = (not useSessions) or inAsia or inLondon or inNY
+
+// --- TRADE LEVEL STATE ---
+var float entryPrice = 0.0
+var float tp1Price   = 0.0
+var float tp2Price   = 0.0
+var float tp3Price   = 0.0
+var float slPrice    = 0.0
+var float lockSL     = na
+var float trailSL    = 0.0
+var bool  tp1Hit     = false
+var bool  tp2Hit     = false
+
+bool inLong  = strategy.position_size > 0
+bool inShort = strategy.position_size < 0
+
+// --- TRAIL / LOCK UPDATE while in a position (after TP1) ---
+if inLong and tp1Hit
+    if useTrail
+        trailSL := math.max(trailSL, high - (atr * effTrail))
+    trailSL := math.max(trailSL, lockSL)
+    slPrice := useTrail ? trailSL : lockSL
+if inShort and tp1Hit
+    if useTrail
+        trailSL := math.min(trailSL, low + (atr * effTrail))
+    trailSL := math.min(trailSL, lockSL)
+    slPrice := useTrail ? trailSL : lockSL
+
+// --- TP MILESTONE DETECTION (ratchets the stop) ---
+if inLong
+    if not tp1Hit and high >= tp1Price
+        tp1Hit  := true
+        lockSL  := entryPrice + (atr * beBufferMult)
+        trailSL := math.max(close - (atr * effTrail), lockSL)
+        slPrice := useTrail ? trailSL : lockSL
+    if tp1Hit and not tp2Hit and high >= tp2Price
+        tp2Hit  := true
+        lockSL  := math.max(lockSL, tp1Price)
+        trailSL := math.max(trailSL, lockSL)
+        slPrice := useTrail ? trailSL : lockSL
+if inShort
+    if not tp1Hit and low <= tp1Price
+        tp1Hit  := true
+        lockSL  := entryPrice - (atr * beBufferMult)
+        trailSL := math.min(close + (atr * effTrail), lockSL)
+        slPrice := useTrail ? trailSL : lockSL
+    if tp1Hit and not tp2Hit and low <= tp2Price
+        tp2Hit  := true
+        lockSL  := math.min(lockSL, tp1Price)
+        trailSL := math.min(trailSL, lockSL)
+        slPrice := useTrail ? trailSL : lockSL
+
+// --- NEAR-TP1 PROXIMITY RESET (optional early exit before TP1) ---
+if useProxReset and inLong and not tp1Hit
+    float nearTPLevel  = entryPrice + ((tp1Price - entryPrice) * tpProximity)
+    if ta.highest(high, 3) >= nearTPLevel and close < nearTPLevel
+        strategy.close("L", comment="ProxReset")
+if useProxReset and inShort and not tp1Hit
+    float nearTPLevel  = entryPrice - ((entryPrice - tp1Price) * tpProximity)
+    if ta.lowest(low, 3) <= nearTPLevel and close > nearTPLevel
+        strategy.close("S", comment="ProxReset")
+
+// --- EXIT ORDERS (stop = dynamic SL/lock/trail, limit = TP3) ---
+if inLong
+    strategy.exit("X-L", from_entry="L", stop=slPrice, limit=tp3Price)
+if inShort
+    strategy.exit("X-S", from_entry="S", stop=slPrice, limit=tp3Price)
+
+// --- SIGNALS ---
+bool trendOKlong  = ((not requireHTFTrend) or trend1h == "UPTREND")   and ((not require4H) or trend4h == "UPTREND")
+bool trendOKshort = ((not requireHTFTrend) or trend1h == "DOWNTREND") and ((not require4H) or trend4h == "DOWNTREND")
+bool adxOK        = (not requireADXtrend) or (adxValue >= adxThreshold)
+bool expansionOK  = (not requireExpansion) or (not atrCompressed)
+bool filtersOK    = inWindow and not isSideways and adxOK and expansionOK and sessionOK
+
+bool pbLong   = low <= ema20  and close > ema20 and close > open and rsiValue > 50
+bool pbShort  = high >= ema20 and close < ema20 and close < open and rsiValue < 50
+bool momLong  = ta.crossover(rsiValue, 45)  and close > low[1]
+bool momShort = ta.crossunder(rsiValue, 55) and close < high[1]
+
+float barRange  = high - low
+bool  strongUp  = (not strongConfirm) or (close >= high - barRange * closeFrac and rsiValue > rsiValue[1])
+bool  strongDn  = (not strongConfirm) or (close <= low  + barRange * closeFrac and rsiValue < rsiValue[1])
+
+bool brkLong  = momoEntry and close > ta.highest(high, brkLen)[1] and not atrCompressed and trend1h == "UPTREND"
+bool brkShort = momoEntry and close < ta.lowest(low,  brkLen)[1]  and not atrCompressed and trend1h == "DOWNTREND"
+
+bool baseLong  = (pullbackMode ? pbLong  : momLong)  and trendOKlong  and strongUp
+bool baseShort = (pullbackMode ? pbShort : momShort) and trendOKshort and strongDn
+
+bool buySignal  = filtersOK and (baseLong  or brkLong)
+bool sellSignal = filtersOK and (baseShort or brkShort)
+
+bool doBuy  = buySignal  and strategy.position_size <= 0
+bool doSell = sellSignal and strategy.position_size >= 0
+
+// --- ENTRIES (with level setup; entry reverses any opposite position = flip) ---
+if doBuy
+    entryPrice := close
+    float structSL  = swingLow - (atr * slBufferMult)
+    float atrSL     = close - (atr * effSLmult)
+    float rawSL     = useStructure ? math.min(structSL, atrSL) : atrSL
+    rawSL := math.max(rawSL, close - (atr * maxSLMult))
+    rawSL := math.min(rawSL, close - (atr * minSLMult))
+    slPrice := rawSL
+    float riskLong = entryPrice - slPrice
+    tp1Price := useRRtps ? entryPrice + (riskLong * effRR1) : close + (atr * effTP1m)
+    tp2Price := useRRtps ? entryPrice + (riskLong * effRR2) : close + (atr * effTP2m)
+    tp3Price := useRRtps ? entryPrice + (riskLong * effRR3) : close + (atr * effTP3m)
+    if useStructure and dynResist > tp1Price
+        tp3Price := math.max(tp3Price, dynResist)
+    trailSL := slPrice
+    lockSL  := na
+    tp1Hit  := false
+    tp2Hit  := false
+    strategy.entry("L", strategy.long)
+
+if doSell
+    entryPrice := close
+    float structSL  = swingHigh + (atr * slBufferMult)
+    float atrSL     = close + (atr * effSLmult)
+    float rawSL     = useStructure ? math.max(structSL, atrSL) : atrSL
+    rawSL := math.min(rawSL, close + (atr * maxSLMult))
+    rawSL := math.max(rawSL, close + (atr * minSLMult))
+    slPrice := rawSL
+    float riskShort = slPrice - entryPrice
+    tp1Price := useRRtps ? entryPrice - (riskShort * effRR1) : close - (atr * effTP1m)
+    tp2Price := useRRtps ? entryPrice - (riskShort * effRR2) : close - (atr * effTP2m)
+    tp3Price := useRRtps ? entryPrice - (riskShort * effRR3) : close - (atr * effTP3m)
+    if useStructure and dynSupport < tp1Price
+        tp3Price := math.min(tp3Price, dynSupport)
+    trailSL := slPrice
+    lockSL  := na
+    tp1Hit  := false
+    tp2Hit  := false
+    strategy.entry("S", strategy.short)
+
+// --- VISUALS ---
+plot(maLong, color=color.new(color.green, 50), title="200 EMA")
+plot(maShort, color=color.new(#0d64ac, 50), title="50 EMA")
+plot(pullbackMode ? ema20 : na, color=color.new(color.yellow, 30), title="Pullback Value EMA")
+bgcolor(isSideways ? color.new(color.yellow, 92) : na, title="Ranging Zone")
+bgcolor((useSessions and not sessionOK) ? color.new(color.gray, 90) : na, title="Off-Session")
+plot(strategy.position_size != 0 ? slPrice   : na, color=color.red,   style=plot.style_linebr, title="Stop")
+plot(strategy.position_size != 0 ? tp3Price  : na, color=color.aqua,  style=plot.style_linebr, title="TP3")
