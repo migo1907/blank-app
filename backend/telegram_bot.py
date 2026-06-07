@@ -180,9 +180,9 @@ async def send_stocks_session_report() -> bool:
 
     today = date.today().isoformat()
     stock_pools = [
-        "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_4H",
-        "STOCKS_QUALITY_30M",  "STOCKS_QUALITY_4H",
-        "STOCKS_INDEX_30M",    "STOCKS_INDEX_4H",
+        "STOCKS_MOMENTUM_15M", "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_4H",
+        "STOCKS_QUALITY_15M",  "STOCKS_QUALITY_30M",  "STOCKS_QUALITY_4H",
+        "STOCKS_INDEX_15M",    "STOCKS_INDEX_30M",    "STOCKS_INDEX_4H",
     ]
 
     trades_today = []
