@@ -73,8 +73,7 @@ async def send_entry_signal(s: dict) -> bool:
         htf_tf      = tf_label(htf_bias.get("timeframe", ""))
         htf_trigger = htf_bias.get("trigger", "")
         remaining   = bias_remaining_label(htf_bias)
-        trigger_line = f" · {htf_trigger}" if htf_trigger else ""
-        confirmation = f"✅ HTF Bias: {htf_tf} {direction}{trigger_line}  (⏳ {remaining})\n"
+        confirmation = f"✅ HTF Bias: {htf_tf} {direction}  (⏳ {remaining})\n"
     else:
         confirmation = ""
 
