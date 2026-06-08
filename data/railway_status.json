@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-06-08T21:21:03.476824+00:00",
+  "checked_at": "2026-06-08T22:55:34.473784+00:00",
   "health": {
     "status_code": 200,
     "data": {
@@ -74,16 +74,16 @@
           }
         ]
       },
-      "news_sentiment": 0.1462,
+      "news_sentiment": 0.0809,
       "news_velocity": {
         "multiplier": 0.6,
-        "volume": 78,
-        "consistency": 0.266,
-        "acceleration": 0.12,
+        "volume": 56,
+        "consistency": 0.233,
+        "acceleration": 0.075,
         "direction": "BULLISH",
         "label": "CONFLICTED",
-        "high_count": 22,
-        "total_count": 108
+        "high_count": 7,
+        "total_count": 104
       },
       "high_impact_event": {
         "detected": true,
