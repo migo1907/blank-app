@@ -1,25 +1,5 @@
 [
   {
-    "symbol": "XAUUSD",
-    "pool": "XAUUSD_2M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.625,
-    "rf_score": 0.0,
-    "gbm_score": 0.0,
-    "news_score": 0.0,
-    "combined_score": -0.4417,
-    "session": "ASIAN",
-    "regime": "TRENDING_BEAR",
-    "regime_label": "TREND_FOLLOW",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BEAR(TREND_FOLLOW)\u00d71.15 | sess:ASIAN\u00d70.85 | confluence\u00d70.98 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:neutral(+0.000) | combined:-0.442 \u2192 conf:0.430 \u26a1 WAR/CONFLICT",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-08T00:41:36.324611+00:00",
-    "created_at": "2026-06-08T00:11:36.782064+00:00",
-    "id": 101
-  },
-  {
     "symbol": "SPY",
     "pool": "STOCKS_INDEX_30M",
     "direction": "NEUTRAL",
@@ -1997,6 +1977,26 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-08T07:53:26.507706+00:00",
     "created_at": "2026-06-08T07:23:27.925927+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "XAUUSD",
+    "pool": "XAUUSD_2M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.375,
+    "rf_score": 0.0,
+    "gbm_score": 0.0,
+    "news_score": 0.1704,
+    "combined_score": -0.2487,
+    "session": "LONDON_OPEN",
+    "regime": "TRENDING_BEAR",
+    "regime_label": "TREND_FOLLOW",
+    "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:TRENDING_BEAR(TREND_FOLLOW)\u00d71.15 | sess:LONDON_OPEN\u00d70.90 | confluence\u00d70.94 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-0.63) | news:neutral(+0.170) | combined:-0.249 \u2192 conf:0.205 \u26a1 WAR/CONFLICT",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-08T08:06:05.651373+00:00",
+    "created_at": "2026-06-08T07:36:05.982669+00:00",
     "id": 101
   }
 ]
