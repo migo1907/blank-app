@@ -578,6 +578,18 @@ async def signal_entry(payload: SignalEntryPayload):
         print(f"[signal-entry] Missing entry_price for {sym} {payload.direction} — skipping Telegram")
         return {"status": "ok", "routed_to": "suppressed", "reason": "no_entry_price"}
 
+    # Option B — backend ML gate (see /webhook). Suppress silently if below threshold.
+    from signal_engine import score_entry_gate
+    from db import symbol_to_pool
+    _gate = score_entry_gate(symbol_to_pool(sym, tf), payload.direction)
+    if not _gate["pass"]:
+        print(f"[signal-entry] ML GATE REJECT {payload.direction} {sym} TF={tf} "
+              f"score={_gate['score']} components={_gate['components']}")
+        return {"status": "ok", "routed_to": "ml-gate-rejected",
+                "ml_gate_score": _gate["score"], "reason": _gate["reason"]}
+    print(f"[signal-entry] ML GATE PASS {payload.direction} {sym} TF={tf} "
+          f"score={_gate['score']} ({_gate['reason']})")
+
     bias        = get_active_bias(sym, payload.direction)
     contra_bias = get_active_bias(sym, "SHORT" if payload.direction == "LONG" else "LONG")
     htf_context = "htf_direct" if is_htf(tf) else ("with_bias" if bias else ("counter_trend" if contra_bias else "scalp"))
@@ -650,6 +662,19 @@ async def unified_webhook(payload: UnifiedPayload):
         if entry <= 0:
             print(f"[webhook] Missing entry_price for {sym} {payload.direction} — skipping Telegram")
             return {"status": "ok", "routed_to": "suppressed", "reason": "no_entry_price"}
+
+        # Option B — backend ML gate. Re-score the Pine-fired entry with the
+        # trained, persistent KNN+RF+GBM. Suppress silently if below threshold.
+        from signal_engine import score_entry_gate
+        from db import symbol_to_pool
+        _gate = score_entry_gate(symbol_to_pool(sym, tf), payload.direction)
+        if not _gate["pass"]:
+            print(f"[webhook] ML GATE REJECT {payload.direction} {sym} TF={tf} "
+                  f"score={_gate['score']} components={_gate['components']}")
+            return {"status": "ok", "routed_to": "ml-gate-rejected",
+                    "ml_gate_score": _gate["score"], "reason": _gate["reason"]}
+        print(f"[webhook] ML GATE PASS {payload.direction} {sym} TF={tf} "
+              f"score={_gate['score']} ({_gate['reason']})")
 
         bias        = get_active_bias(sym, payload.direction)
         contra_bias = get_active_bias(sym, "SHORT" if payload.direction == "LONG" else "LONG")
