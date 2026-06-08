@@ -310,6 +310,7 @@ if activeTrade == "LONG" and not tp1Hit
         else
             tradeLosses += 1
             grossLossR += -rM
+        label.new(bar_index, high, "EXIT ⟲\nreset", color=color.new(color.gray, 20), textcolor=color.white, style=label.style_label_down, size=size.tiny)
         activeTrade := "NONE", tp1Hit := false, tp2Hit := false
 
 if activeTrade == "SHORT" and not tp1Hit
@@ -328,6 +329,7 @@ if activeTrade == "SHORT" and not tp1Hit
         else
             tradeLosses += 1
             grossLossR += -rM
+        label.new(bar_index, low, "EXIT ⟲\nreset", color=color.new(color.gray, 20), textcolor=color.white, style=label.style_label_up, size=size.tiny)
         activeTrade := "NONE", tp1Hit := false, tp2Hit := false
 
 // --- SESSION STATE ---
@@ -519,6 +521,14 @@ if showLevels and not na(lnEntry)
     label.set_x(lbEntry, bar_index), label.set_x(lbTP1, bar_index), label.set_x(lbTP2, bar_index), label.set_x(lbTP3, bar_index), label.set_x(lbSL, bar_index)
     if not na(lbTrail)
         label.set_x(lbTrail, bar_index)
+
+// Clear the level lines/tags once the trade is closed, so the chart matches the
+// dashboard (no "ghost" levels left over after an exit). Entry/exit labels stay as history.
+if showLevels and activeTrade == "NONE" and not na(lnEntry)
+    line.delete(lnEntry), line.delete(lnTP1), line.delete(lnTP2), line.delete(lnTP3), line.delete(lnSL), line.delete(lnTrail)
+    label.delete(lbEntry), label.delete(lbTP1), label.delete(lbTP2), label.delete(lbTP3), label.delete(lbSL), label.delete(lbTrail)
+    lnEntry := na, lnTP1 := na, lnTP2 := na, lnTP3 := na, lnSL := na, lnTrail := na
+    lbEntry := na, lbTP1 := na, lbTP2 := na, lbTP3 := na, lbSL := na, lbTrail := na
 
 // --- SIDEWAYS BACKGROUND ---
 bgcolor(isSideways ? color.new(color.yellow, 90) : na, title="Ranging Zone")
