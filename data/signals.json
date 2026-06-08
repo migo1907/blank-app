@@ -1834,7 +1834,7 @@
     "regime": "TRENDING_BEAR",
     "regime_label": "PULLBACK_LONG",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:TRENDING_BEAR(PULLBACK_LONG)\u00d70.95 | sess:LONDON\u00d71.15 | confluence\u00d71.10 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:neutral(+0.000) | combined:+0.019 \u2192 conf:0.020 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-08T13:26:50.359017+00:00",
     "created_at": "2026-06-08T12:56:50.680128+00:00",
     "id": 101
@@ -1854,7 +1854,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:PRE_MARKET\u00d70.90 | confluence\u00d71.48 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-0.92) | news:neutral(+0.000) | combined:+0.000 \u2192 conf:0.000 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-08T13:26:52.481494+00:00",
     "created_at": "2026-06-08T12:56:52.815835+00:00",
     "id": 101
@@ -1874,7 +1874,7 @@
     "regime": "UNKNOWN",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:UNKNOWN(NORMAL)\u00d71.00 | sess:PRE_MARKET\u00d70.90 | confluence\u00d71.00 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.00) | news:neutral(+0.000) | combined:+0.000 \u2192 conf:0.000 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-08T13:26:54.812334+00:00",
     "created_at": "2026-06-08T12:56:55.108652+00:00",
     "id": 101
