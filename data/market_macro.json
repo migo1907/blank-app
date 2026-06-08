@@ -1,14 +1,14 @@
 {
-  "bias": 0.1526,
-  "label": "BULLISH",
+  "bias": -0.6,
+  "label": "BEARISH",
   "components": {
-    "real_yield": -0.0,
-    "dollar": 0.2579,
+    "real_yield": -1.0,
+    "dollar": -1.0,
     "breakeven": 0.0,
     "cot": 0.5
   },
-  "real_yield": 2.11,
-  "dollar": 118.8783,
+  "real_yield": 2.19,
+  "dollar": 120.0831,
   "breakeven": 2.36,
   "cot": {
     "report_date": "2026-06-02",
@@ -19,7 +19,7 @@
     "net_change": 21760
   },
   "gld": null,
-  "updated_at": "2026-06-08T19:52:43.907093+00:00",
+  "updated_at": "2026-06-08T20:24:14.649857+00:00",
   "sources_live": {
     "fred": true,
     "cot": true,
