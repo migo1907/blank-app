@@ -1,15 +1,15 @@
 {
-  "bias": 0.1923,
-  "label": "BULLISH",
+  "bias": -0.9091,
+  "label": "BEARISH",
   "components": {
-    "real_yield": -0.0,
-    "nominal_yield": 0.4,
-    "dollar": 0.2579
+    "real_yield": -1.0,
+    "nominal_yield": -1.0,
+    "dollar": -0.5
   },
-  "real_yield": 2.11,
-  "nominal_yield": 4.47,
-  "dollar": 118.8783,
-  "updated_at": "2026-06-08T19:52:43.907069+00:00",
+  "real_yield": 2.19,
+  "nominal_yield": 4.55,
+  "dollar": 120.0831,
+  "updated_at": "2026-06-08T20:24:14.649825+00:00",
   "sources_live": {
     "fred": true
   }
