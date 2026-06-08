@@ -8,33 +8,6 @@
     "stored_at": "2026-06-08T15:30:01.354155+00:00",
     "expires_at": "2026-06-08T17:30:01.354174+00:00"
   },
-  "GOOG_30": {
-    "direction": "SHORT",
-    "timeframe": "30",
-    "symbol": "GOOG",
-    "trigger": "BOS",
-    "ml_score": 0.625,
-    "stored_at": "2026-06-08T14:00:05.593451+00:00",
-    "expires_at": "2026-06-08T16:00:05.593472+00:00"
-  },
-  "SMCI_30": {
-    "direction": "SHORT",
-    "timeframe": "30",
-    "symbol": "SMCI",
-    "trigger": "LIQ",
-    "ml_score": 0.5,
-    "stored_at": "2026-06-08T14:00:05.867245+00:00",
-    "expires_at": "2026-06-08T16:00:05.867262+00:00"
-  },
-  "GOOGL_30": {
-    "direction": "SHORT",
-    "timeframe": "30",
-    "symbol": "GOOGL",
-    "trigger": "BOS",
-    "ml_score": 0.375,
-    "stored_at": "2026-06-08T14:00:06.486934+00:00",
-    "expires_at": "2026-06-08T16:00:06.486942+00:00"
-  },
   "SOXL_30": {
     "direction": "LONG",
     "timeframe": "30",
@@ -142,5 +115,14 @@
     "ml_score": 0.75,
     "stored_at": "2026-06-08T16:00:14.115098+00:00",
     "expires_at": "2026-06-08T18:00:14.115114+00:00"
+  },
+  "HOOD_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "HOOD",
+    "trigger": "OB",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-08T16:30:02.326937+00:00",
+    "expires_at": "2026-06-08T18:30:02.326960+00:00"
   }
 }
