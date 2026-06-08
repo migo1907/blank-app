@@ -142,5 +142,23 @@
     "ml_score": 0.5,
     "stored_at": "2026-06-08T19:32:01.258659+00:00",
     "expires_at": "2026-06-08T21:32:01.258671+00:00"
+  },
+  "IBKR_240": {
+    "direction": "LONG",
+    "timeframe": "240",
+    "symbol": "IBKR",
+    "trigger": "FVG",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-08T20:00:10.792891+00:00",
+    "expires_at": "2026-06-09T04:00:10.792906+00:00"
+  },
+  "ADBE_240": {
+    "direction": "SHORT",
+    "timeframe": "240",
+    "symbol": "ADBE",
+    "trigger": "FVG",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-08T20:00:17.412257+00:00",
+    "expires_at": "2026-06-09T04:00:17.412270+00:00"
   }
 }
