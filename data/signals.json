@@ -1,25 +1,5 @@
 [
   {
-    "symbol": "QQQ",
-    "pool": "STOCKS_QQQ_30M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "news_score": 0.3144,
-    "combined_score": 0.0524,
-    "session": "CLOSED",
-    "regime": "UNKNOWN",
-    "regime_label": "NORMAL",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:UNKNOWN(NORMAL)\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d71.00 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.00) | news:bullish(+0.314) | combined:+0.052 \u2192 conf:0.032",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-08T09:27:19.548739+00:00",
-    "created_at": "2026-06-08T08:57:19.891175+00:00",
-    "id": 101
-  },
-  {
     "symbol": "XAUUSD",
     "pool": "XAUUSD_2M",
     "direction": "SHORT",
@@ -1997,6 +1977,26 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-08T16:19:47.748638+00:00",
     "created_at": "2026-06-08T15:49:49.003480+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "XAUUSD",
+    "pool": "XAUUSD_2M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.75,
+    "rf_score": 0.3176,
+    "gbm_score": 0.1879,
+    "news_score": 0.0748,
+    "combined_score": -0.3214,
+    "session": "OVERLAP",
+    "regime": "TRENDING_BEAR",
+    "regime_label": "TREND_FOLLOW",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BEAR(TREND_FOLLOW)\u00d71.15 | sess:OVERLAP\u00d71.30 | confluence\u00d70.90 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:neutral(+0.075) | combined:-0.321 \u2192 conf:0.442 \u26a1 CPI",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-08T16:28:26.506702+00:00",
+    "created_at": "2026-06-08T15:58:28.097863+00:00",
     "id": 101
   }
 ]
