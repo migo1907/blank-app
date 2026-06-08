@@ -109,6 +109,30 @@ import os as _os
 # Lenient default — only blocks entries the trained models actively distrust.
 ML_GATE_THRESHOLD = float(_os.environ.get("ML_GATE_THRESHOLD", "0.45"))
 
+# Short-TTL in-memory cache for pool trade history. recent_outcomes() hits GitHub
+# on every call (db._get_file has no caching), so without this a burst of entries
+# during an active session would each trigger a full history fetch — latency +
+# GitHub quota burn. A 60s TTL collapses same-minute bursts to one fetch while
+# keeping history fresh enough for gate scoring.
+import time as _time
+_HISTORY_TTL_SECONDS = 60.0
+_history_cache: dict[str, tuple[float, list[dict]]] = {}
+
+
+def _cached_history(pool: str, limit: int = 500) -> list[dict]:
+    now = _time.monotonic()
+    cached = _history_cache.get(pool)
+    if cached and (now - cached[0]) < _HISTORY_TTL_SECONDS:
+        return cached[1]
+    history = recent_outcomes(pool, limit)
+    _history_cache[pool] = (now, history)
+    return history
+
+
+def invalidate_history_cache(pool: str) -> None:
+    """Call after inserting a new outcome so the gate sees it on the next entry."""
+    _history_cache.pop(pool, None)
+
 
 def score_entry_gate(pool: str, direction: str) -> dict:
     """
@@ -131,7 +155,7 @@ def score_entry_gate(pool: str, direction: str) -> dict:
         # No heartbeat features cached yet — can't score, let it through.
         return {"pass": True, "score": 0.5, "reason": "no_features_cached", "components": {}}
 
-    history = recent_outcomes(pool, 500)
+    history = _cached_history(pool, 500)
     knn = get_model(pool)
     rf  = get_rf(pool)
     gbm = get_gbm(pool)

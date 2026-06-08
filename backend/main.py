@@ -528,6 +528,8 @@ async def trade_outcome(payload: TradeOutcomePayload):
                     else:
                         raise
             await asyncio.to_thread(insert_outcome, outcome_row)
+            from signal_engine import invalidate_history_cache
+            invalidate_history_cache(pool)
             history = await asyncio.to_thread(recent_outcomes, pool, 500)
             if len(history) >= 50:
                 await asyncio.to_thread(get_rf(pool).retrain, history)
@@ -806,6 +808,8 @@ async def unified_webhook(payload: UnifiedPayload):
                         else:
                             raise
                 await asyncio.to_thread(insert_outcome, outcome_row)
+                from signal_engine import invalidate_history_cache
+                invalidate_history_cache(pool)
                 history = await asyncio.to_thread(recent_outcomes, pool, 500)
                 if len(history) >= 50:
                     await asyncio.to_thread(get_rf(pool).retrain, history)
