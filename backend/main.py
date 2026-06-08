@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from typing import Literal, Optional
 from dotenv import load_dotenv
 
@@ -109,44 +109,42 @@ app = FastAPI(
 class TradeOutcomePayload(BaseModel):
     secret:      str
     trade_id:    Optional[str]   = None
-    direction:   str
-    outcome:     str
+    direction:   str             = ""
+    outcome:     str             = ""
     ml_outcome:  Optional[str]   = None
     mfe:         float           = 0.0
     timeframe:   Optional[str]   = None
-    tp_stage:    str = ""
-    entry_price: float = 0.0
-    exit_price:  float = 0.0
-    ml_score:    float = 0.5
+    tp_stage:    str             = ""
+    entry_price: float           = 0.0
+    exit_price:  float           = 0.0
+    ml_score:    float           = 0.5
     symbol:      Optional[str]   = None
-    f1:  float = 0.0
-    f2:  float = 0.0
-    f3:  float = 0.0
-    f4:  float = 0.0
-    f5:  float = 0.0
-    f6:  float = 0.0
-    f7:  float = 0.0
-    f8:  float = 0.0
-    f9:  float = 0.0
-    f10: float = 0.0
-    f11: float = 0.0
-    f12: float = 0.0
-    f13: float = 0.0
-    f14: float = 0.0
-    f15: float = 0.0
-    f16: float = 0.0
-    f17: float = 0.0
-    f18: float = 0.0
-    f19: float = 0.0
-    f20: float = 0.0
-    f21: float = 0.0
-    f22: float = 0.0
-    f23: float = 0.0
-    f24: float = 0.0
+    f1:  float = 0.0; f2:  float = 0.0; f3:  float = 0.0; f4:  float = 0.0
+    f5:  float = 0.0; f6:  float = 0.0; f7:  float = 0.0; f8:  float = 0.0
+    f9:  float = 0.0; f10: float = 0.0; f11: float = 0.0; f12: float = 0.0
+    f13: float = 0.0; f14: float = 0.0; f15: float = 0.0; f16: float = 0.0
+    f17: float = 0.0; f18: float = 0.0; f19: float = 0.0; f20: float = 0.0
+    f21: float = 0.0; f22: float = 0.0; f23: float = 0.0; f24: float = 0.0
     f25: float = 0.0
 
-    class Config:
-        extra = "ignore"
+    model_config = {"extra": "ignore"}
+
+    @model_validator(mode="before")
+    @classmethod
+    def _coerce_nulls(cls, values: dict) -> dict:
+        float_fields = {
+            "ml_score", "mfe", "entry_price", "exit_price",
+            "f1","f2","f3","f4","f5","f6","f7","f8","f9","f10",
+            "f11","f12","f13","f14","f15","f16","f17","f18","f19","f20",
+            "f21","f22","f23","f24","f25",
+        }
+        for k in float_fields:
+            if k in values and values[k] is None:
+                values[k] = 0.0
+        for k in ("tp_stage", "direction", "outcome"):
+            if k in values and values[k] is None:
+                values[k] = ""
+        return values
 
 
 class SignalEntryPayload(BaseModel):
@@ -169,7 +167,7 @@ class SignalEntryPayload(BaseModel):
 
 class UnifiedPayload(BaseModel):
     secret:      str
-    direction:   str            = ""
+    direction:   str             = ""
     timeframe:   Optional[str]   = None
     trigger:     Optional[str]   = None
     symbol:      Optional[str]   = None
@@ -194,8 +192,26 @@ class UnifiedPayload(BaseModel):
     f21: float = 0.0; f22: float = 0.0; f23: float = 0.0; f24: float = 0.0
     f25: float = 0.0
 
-    class Config:
-        extra = "ignore"
+    model_config = {"extra": "ignore"}
+
+    @model_validator(mode="before")
+    @classmethod
+    def _coerce_nulls(cls, values: dict) -> dict:
+        """TradingView sends JSON null for Pine Script na() values. Coerce to 0.0 for float fields."""
+        float_fields = {
+            "ml_score", "mfe",
+            "f1","f2","f3","f4","f5","f6","f7","f8","f9","f10",
+            "f11","f12","f13","f14","f15","f16","f17","f18","f19","f20",
+            "f21","f22","f23","f24","f25",
+        }
+        for k in float_fields:
+            if k in values and values[k] is None:
+                values[k] = 0.0
+        if "tp_stage" in values and values["tp_stage"] is None:
+            values["tp_stage"] = ""
+        if "direction" in values and values["direction"] is None:
+            values["direction"] = ""
+        return values
 
 
 def _validate_secret(secret: str) -> None:
