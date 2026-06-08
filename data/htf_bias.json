@@ -1,11 +1,20 @@
 {
-  "SPX500_30": {
-    "direction": "LONG",
+  "MU_30": {
+    "direction": "SHORT",
     "timeframe": "30",
-    "symbol": "SPX500",
-    "trigger": "FVG",
-    "ml_score": 0.5,
-    "stored_at": "2026-06-08T03:30:04.381628+00:00",
-    "expires_at": "2026-06-08T05:30:04.381643+00:00"
+    "symbol": "MU",
+    "trigger": "LIQ",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-08T14:00:04.275654+00:00",
+    "expires_at": "2026-06-08T16:00:04.275674+00:00"
+  },
+  "GOOG_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "GOOG",
+    "trigger": "BOS",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-08T14:00:05.593451+00:00",
+    "expires_at": "2026-06-08T16:00:05.593472+00:00"
   }
 }
