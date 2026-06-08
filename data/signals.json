@@ -1930,7 +1930,7 @@
     "regime": "TRENDING_BULL",
     "regime_label": "TREND_FOLLOW",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(TREND_FOLLOW)\u00d71.15 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d70.89 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.08) | news:neutral(+0.072) | macro:BULLISH(+0.192) | combined:+0.045 \u2192 conf:0.052 \u26a1 NFP",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-08T18:07:40.822285+00:00",
     "created_at": "2026-06-08T17:37:42.226003+00:00",
     "id": 101
