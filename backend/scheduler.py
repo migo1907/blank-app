@@ -21,6 +21,15 @@ _SEEN_HEADLINES_PATH = "data/seen_headlines.json"
 _SEEN_HEADLINES_MAX  = 500
 
 
+def _cached_macro_label() -> str:
+    try:
+        from market_macro import get_macro_bias
+        m = get_macro_bias()
+        return f"{m.get('label','?')} ({m.get('bias', 0):+.2f})"
+    except Exception:
+        return "n/a"
+
+
 def get_latest_news_sentiment() -> float:
     return _latest_news_agg
 
@@ -697,7 +706,11 @@ async def _hourly_system_check() -> None:
 
 
 async def _daily_trade_count_report() -> None:
-    """Send a daily trade-count summary to Telegram at 21:15 UTC (after US session close)."""
+    """
+    Daily performance summary at 21:15 UTC (after US session close).
+    Shows signals fired today, TP wins, SL hits, win ratio — consolidated across all pools,
+    with a per-symbol breakdown for XAUUSD vs each stock symbol.
+    """
     from datetime import datetime, timezone, date
     if datetime.now(timezone.utc).weekday() >= 5:
         return
@@ -706,60 +719,113 @@ async def _daily_trade_count_report() -> None:
         from telegram_bot import send_text
 
         today = date.today().isoformat()
-        pools = [
-            ("XAUUSD_2M",           "data/trade_history_XAUUSD_2M.json"),
-            ("XAUUSD_5M",           "data/trade_history_XAUUSD_5M.json"),
-            ("XAUUSD_30M",          "data/trade_history_XAUUSD_30M.json"),
-            ("XAUUSD_1H",           "data/trade_history_XAUUSD_1H.json"),
-            ("STOCKS_MOM_15M",      "data/trade_history_STOCKS_MOMENTUM_15M.json"),
-            ("STOCKS_QUAL_15M",     "data/trade_history_STOCKS_QUALITY_15M.json"),
-            ("STOCKS_IDX_15M",      "data/trade_history_STOCKS_INDEX_15M.json"),
-            ("STOCKS_QQQ_15M",      "data/trade_history_STOCKS_QQQ_15M.json"),
-            ("STOCKS_SPX500_15M",   "data/trade_history_STOCKS_SPX500_15M.json"),
-            ("STOCKS_MOM_30M",      "data/trade_history_STOCKS_MOMENTUM_30M.json"),
-            ("STOCKS_QUAL_30M",     "data/trade_history_STOCKS_QUALITY_30M.json"),
-            ("STOCKS_IDX_30M",      "data/trade_history_STOCKS_INDEX_30M.json"),
-            ("STOCKS_QQQ_30M",      "data/trade_history_STOCKS_QQQ_30M.json"),
-            ("STOCKS_SPX500_30M",   "data/trade_history_STOCKS_SPX500_30M.json"),
-            ("STOCKS_MOM_4H",       "data/trade_history_STOCKS_MOMENTUM_4H.json"),
-            ("STOCKS_QUAL_4H",      "data/trade_history_STOCKS_QUALITY_4H.json"),
-            ("STOCKS_IDX_4H",       "data/trade_history_STOCKS_INDEX_4H.json"),
-            ("STOCKS_QQQ_4H",       "data/trade_history_STOCKS_QQQ_4H.json"),
-            ("STOCKS_SPX500_4H",    "data/trade_history_STOCKS_SPX500_4H.json"),
+        all_paths = [
+            "data/trade_history_XAUUSD_2M.json",
+            "data/trade_history_XAUUSD_5M.json",
+            "data/trade_history_XAUUSD_30M.json",
+            "data/trade_history_XAUUSD_1H.json",
+            "data/trade_history_STOCKS_MOMENTUM_15M.json",
+            "data/trade_history_STOCKS_QUALITY_15M.json",
+            "data/trade_history_STOCKS_INDEX_15M.json",
+            "data/trade_history_STOCKS_QQQ_15M.json",
+            "data/trade_history_STOCKS_SPX500_15M.json",
+            "data/trade_history_STOCKS_MOMENTUM_30M.json",
+            "data/trade_history_STOCKS_QUALITY_30M.json",
+            "data/trade_history_STOCKS_INDEX_30M.json",
+            "data/trade_history_STOCKS_QQQ_30M.json",
+            "data/trade_history_STOCKS_SPX500_30M.json",
+            "data/trade_history_STOCKS_MOMENTUM_4H.json",
+            "data/trade_history_STOCKS_QUALITY_4H.json",
+            "data/trade_history_STOCKS_INDEX_4H.json",
+            "data/trade_history_STOCKS_QQQ_4H.json",
+            "data/trade_history_STOCKS_SPX500_4H.json",
         ]
 
-        lines = []
-        total_new = 0
-        for pool_name, path in pools:
+        # Collect all today's closed trades across every pool
+        today_all: list[dict] = []
+        for path in all_paths:
             hist, _ = await asyncio.to_thread(_get_file, path)
             if not isinstance(hist, list):
                 continue
-            today_trades = [t for t in hist if t.get("created_at", "").startswith(today)]
-            if not today_trades:
-                continue
-            total = len(hist)
-            n = len(today_trades)
-            total_new += n
-            w = sum(1 for t in today_trades if t.get("outcome") == "WIN")
-            l = sum(1 for t in today_trades if t.get("outcome") == "LOSS")
-            p = sum(1 for t in today_trades if t.get("outcome") == "PARTIAL")
-            rf_ready = "✅" if total >= 15 else f"⏳{total}/15"
-            lines.append(f"<b>{pool_name}</b>: +{n} today (W{w}/L{l}/P{p}) — total:{total} {rf_ready}")
+            for t in hist:
+                if t.get("created_at", "").startswith(today):
+                    today_all.append(t)
 
-        if not lines:
-            lines.append("No trades recorded today.")
+        now_utc = datetime.now(timezone.utc)
+        date_str = now_utc.strftime("%d %b %Y")
 
-        now = datetime.now(timezone.utc).strftime("%d %b %Y")
+        def _stats(trades: list[dict]) -> tuple[int, int, int, int]:
+            """Return (total, tp_wins, sl_hits, partials)."""
+            tp  = sum(1 for t in trades if t.get("outcome") == "WIN")
+            sl  = sum(1 for t in trades if t.get("outcome") == "LOSS")
+            par = sum(1 for t in trades if t.get("outcome") == "PARTIAL")
+            return len(trades), tp, sl, par
+
+        def _wr_line(total: int, tp: int, sl: int, par: int) -> str:
+            effective_wins = tp + par  # TP1/TP2 hit = counted as win
+            wr = effective_wins / total * 100 if total else 0.0
+            return (
+                f"Signals: <b>{total}</b>  |  "
+                f"✅ TP: {tp}  🔶 Partial: {par}  ❌ SL: {sl}\n"
+                f"Win ratio (TP+Partial): <b>{wr:.0f}%</b>"
+            )
+
+        # ── Overall ──────────────────────────────────────────────────────────
+        tot, tp, sl, par = _stats(today_all)
+
+        # ── Per instrument breakdown ──────────────────────────────────────────
+        gold_trades   = [t for t in today_all if t.get("symbol","").upper() in ("XAUUSD","GOLD","GC")]
+        spy_trades    = [t for t in today_all if t.get("symbol","").upper() == "SPY"]
+        qqq_trades    = [t for t in today_all if t.get("symbol","").upper() == "QQQ"]
+        other_trades  = [t for t in today_all if t.get("symbol","").upper() not in ("XAUUSD","GOLD","GC","SPY","QQQ")]
+
+        lines = []
+
+        if not today_all:
+            lines.append("No closed trades recorded today.")
+        else:
+            lines.append(_wr_line(tot, tp, sl, par))
+
+            if gold_trades:
+                g_tot, g_tp, g_sl, g_par = _stats(gold_trades)
+                lines.append(f"\n🥇 <b>XAUUSD</b> ({g_tot} trades)")
+                lines.append(_wr_line(g_tot, g_tp, g_sl, g_par))
+
+            if spy_trades:
+                s_tot, s_tp, s_sl, s_par = _stats(spy_trades)
+                lines.append(f"\n📊 <b>SPY</b> ({s_tot} trades)")
+                lines.append(_wr_line(s_tot, s_tp, s_sl, s_par))
+
+            if qqq_trades:
+                q_tot, q_tp, q_sl, q_par = _stats(qqq_trades)
+                lines.append(f"\n📊 <b>QQQ</b> ({q_tot} trades)")
+                lines.append(_wr_line(q_tot, q_tp, q_sl, q_par))
+
+            if other_trades:
+                o_tot, o_tp, o_sl, o_par = _stats(other_trades)
+                lines.append(f"\n📈 <b>Stocks</b> ({o_tot} trades)")
+                lines.append(_wr_line(o_tot, o_tp, o_sl, o_par))
+
+        # All-time totals for context
+        all_hist_total = 0
+        for path in all_paths:
+            hist, _ = await asyncio.to_thread(_get_file, path)
+            if isinstance(hist, list):
+                all_hist_total += len(hist)
+
         msg = (
-            f"📊 <b>DAILY TRADE REPORT — {now}</b>\n"
+            f"📊 <b>DAILY PERFORMANCE REPORT — {date_str}</b>\n"
             f"━━━━━━━━━━━━━━━━━━━━\n"
             + "\n".join(lines) +
             f"\n━━━━━━━━━━━━━━━━━━━━\n"
-            f"Total new trades today: <b>{total_new}</b>\n"
-            f"Webhook logger: ✅ active | Auto-repair: ✅ hourly"
+            f"All-time trades: <b>{all_hist_total}</b> | "
+            f"Macro: {_cached_macro_label()} | "
+            f"⏰ {now_utc.strftime('%H:%M UTC')}"
         )
         await send_text(msg)
-        print(f"[daily_report] Trade count report sent — {total_new} trades today.")
+        print(f"[daily_report] Performance report sent — {tot} trades today, TP={tp} SL={sl} P={par}.")
+    except Exception as e:
+        print(f"[daily_report] Error: {e}")
     except Exception as e:
         print(f"[daily_report] Error: {e}")
 
