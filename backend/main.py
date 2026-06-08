@@ -476,43 +476,15 @@ async def signal_entry(payload: SignalEntryPayload):
     sym = payload.symbol or "XAUUSD"
     tf  = payload.timeframe or "5"
 
+    # Only XAUUSD 2M is suppressed — all other timeframes send to Telegram
+    if str(tf).strip() == "2" and sym.upper() in ("XAUUSD", "GOLD", "GC"):
+        print(f"[signal-entry] XAUUSD 2M — ML only, not sent to Telegram")
+        return {"status": "ok", "routed_to": "ml-only", "reason": "2m_suppressed"}
+
+    # HTF signals: store bias AND send to Telegram
     if is_htf(tf):
         store_bias(sym, payload.direction, tf, payload.trigger or "", payload.ml_score)
         print(f"[signal-entry] HTF bias stored: {payload.direction} {sym} TF={tf}")
-        # 30M and 1H: also send directly to Telegram so user sees the signal
-        # 4H stays bias-only (too wide for direct entry execution)
-        from htf_bias import _normalize_tf as _ntf
-        if _ntf(tf) in ("30", "60"):
-            from telegram_bot import send_entry_signal
-            from scheduler import get_latest_news_sentiment, get_latest_velocity, get_latest_event
-            entry = payload.entry_price or 0.0
-            if entry > 0:
-                asyncio.create_task(send_entry_signal({
-                    "direction":   payload.direction,
-                    "timeframe":   tf,
-                    "trigger":     payload.trigger or "RSI",
-                    "symbol":      sym,
-                    "entry_price": entry,
-                    "tp1":         payload.tp1 or 0.0,
-                    "tp2":         payload.tp2 or 0.0,
-                    "tp3":         payload.tp3 or 0.0,
-                    "sl":          payload.sl or 0.0,
-                    "ml_score":    payload.ml_score,
-                    "tier":        payload.tier or "MED",
-                    "news_score":  get_latest_news_sentiment(),
-                    "velocity":    get_latest_velocity().get("label", "NORMAL"),
-                    "event":       get_latest_event().get("event_type", ""),
-                    "htf_bias":    None,
-                    "contra_bias": None,
-                    "htf_context": "htf_direct",
-                }))
-                print(f"[signal-entry] HTF {tf} signal also sent to Telegram: {payload.direction} {sym}")
-        return {"status": "ok", "routed_to": "htf-bias", "direction": payload.direction, "timeframe": tf}
-
-    # 2M signals feed ML only — too noisy for Telegram
-    if str(tf).strip() == "2":
-        print(f"[signal-entry] 2M signal — ML only, not sent to Telegram")
-        return {"status": "ok", "routed_to": "ml-only", "reason": "2m_suppressed"}
 
     from telegram_bot import send_entry_signal
     from scheduler import get_latest_news_sentiment, get_latest_velocity, get_latest_event
@@ -521,11 +493,10 @@ async def signal_entry(payload: SignalEntryPayload):
         print(f"[signal-entry] Missing entry_price for {sym} {payload.direction} — skipping Telegram")
         return {"status": "ok", "routed_to": "suppressed", "reason": "no_entry_price"}
 
-    # HTF bias is context only — signal always sends (5M+ can be scalp or counter-trend pullback)
     bias        = get_active_bias(sym, payload.direction)
     contra_bias = get_active_bias(sym, "SHORT" if payload.direction == "LONG" else "LONG")
-    htf_context = "with_bias" if bias else ("counter_trend" if contra_bias else "scalp")
-    print(f"[signal-entry] {payload.direction} {sym} TF={tf} htf={htf_context}")
+    htf_context = "htf_direct" if is_htf(tf) else ("with_bias" if bias else ("counter_trend" if contra_bias else "scalp"))
+    print(f"[signal-entry] {payload.direction} {sym} TF={tf} htf={htf_context} → sending to Telegram")
 
     asyncio.create_task(send_entry_signal({
         "direction":   payload.direction,
@@ -578,43 +549,15 @@ async def unified_webhook(payload: UnifiedPayload):
         sym = payload.symbol or "XAUUSD"
         tf  = payload.timeframe or "5"
 
+        # Only XAUUSD 2M is suppressed — all other timeframes send to Telegram
+        if str(tf).strip() == "2" and sym.upper() in ("XAUUSD", "GOLD", "GC"):
+            print(f"[webhook] XAUUSD 2M — ML only, not sent to Telegram")
+            return {"status": "ok", "routed_to": "ml-only", "reason": "2m_suppressed"}
+
+        # HTF signals: store bias AND send to Telegram
         if is_htf(tf):
             store_bias(sym, payload.direction, tf, payload.trigger or "", payload.ml_score)
             print(f"[webhook] HTF bias stored: {payload.direction} {sym} TF={tf}")
-            # 30M and 1H: also send directly to Telegram so user sees the signal
-            # 4H stays bias-only (too wide for direct entry execution)
-            from htf_bias import _normalize_tf as _ntf
-            if _ntf(tf) in ("30", "60"):
-                from telegram_bot import send_entry_signal
-                from scheduler import get_latest_news_sentiment, get_latest_velocity, get_latest_event
-                entry = payload.entry_price or 0.0
-                if entry > 0:
-                    asyncio.create_task(send_entry_signal({
-                        "direction":   payload.direction,
-                        "timeframe":   tf,
-                        "trigger":     payload.trigger or "RSI",
-                        "symbol":      sym,
-                        "entry_price": entry,
-                        "tp1":         payload.tp1 or 0.0,
-                        "tp2":         payload.tp2 or 0.0,
-                        "tp3":         payload.tp3 or 0.0,
-                        "sl":          payload.sl or 0.0,
-                        "ml_score":    payload.ml_score,
-                        "tier":        payload.tier or "MED",
-                        "news_score":  get_latest_news_sentiment(),
-                        "velocity":    get_latest_velocity().get("label", "NORMAL"),
-                        "event":       get_latest_event().get("event_type", ""),
-                        "htf_bias":    None,
-                        "contra_bias": None,
-                        "htf_context": "htf_direct",
-                    }))
-                    print(f"[webhook] HTF {tf} signal also sent to Telegram: {payload.direction} {sym}")
-            return {"status": "ok", "routed_to": "htf-bias", "direction": payload.direction, "timeframe": tf}
-
-        # 2M signals feed ML only — too noisy for Telegram
-        if str(tf).strip() == "2":
-            print(f"[webhook] 2M signal — ML only, not sent to Telegram")
-            return {"status": "ok", "routed_to": "ml-only", "reason": "2m_suppressed"}
 
         from telegram_bot import send_entry_signal
         from scheduler import get_latest_news_sentiment, get_latest_velocity, get_latest_event
@@ -623,10 +566,9 @@ async def unified_webhook(payload: UnifiedPayload):
             print(f"[webhook] Missing entry_price for {sym} {payload.direction} — skipping Telegram")
             return {"status": "ok", "routed_to": "suppressed", "reason": "no_entry_price"}
 
-        # HTF bias is context only — signal always sends (5M+ can be scalp or counter-trend pullback)
         bias        = get_active_bias(sym, payload.direction)
         contra_bias = get_active_bias(sym, "SHORT" if payload.direction == "LONG" else "LONG")
-        htf_context = "with_bias" if bias else ("counter_trend" if contra_bias else "scalp")
+        htf_context = "htf_direct" if is_htf(tf) else ("with_bias" if bias else ("counter_trend" if contra_bias else "scalp"))
         print(f"[webhook] {payload.direction} {sym} TF={tf} htf={htf_context} → sending to Telegram")
 
         asyncio.create_task(send_entry_signal({
