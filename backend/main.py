@@ -169,7 +169,7 @@ class SignalEntryPayload(BaseModel):
 
 class UnifiedPayload(BaseModel):
     secret:      str
-    direction:   str
+    direction:   str            = ""
     timeframe:   Optional[str]   = None
     trigger:     Optional[str]   = None
     symbol:      Optional[str]   = None
