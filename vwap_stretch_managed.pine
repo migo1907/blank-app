@@ -1,0 +1,700 @@
+//@version=6
+indicator("VWAP Stretch Fade + Managed Trade Engine", overlay=true, max_labels_count=500, max_lines_count=500)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+//  WHAT THIS IS
+//  Entries  : VWAP-stretch MEAN-REVERSION fades (from "VWAP Stretch + HV AVWAP").
+//  Engine   : structural adaptive SL, 3-tier TP, breakeven-lock + trailing runner,
+//             pullback re-entry, session filter, strong-confirmation gate, and live
+//             win-rate / R-expectancy tracking (ported from "Migo Trail").
+//  NOTE     : B's trend/ADX entry gates are intentionally NOT used to filter entries
+//             (they fight a fade). ADX/sideways are shown for context only.
+//             Indicator simulates outcomes bar-by-bar for the on-chart stats — it is
+//             NOT a backtested strategy().
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// INPUTS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+showBands       = input.bool(true,  "Show VWAP Bands",             group="Display")
+showLabels      = input.bool(true,  "Show Info Panel",             group="Display")
+showSignals     = input.bool(true,  "Show Entry Signals",          group="Display")
+showFillZones   = input.bool(true,  "Show Stretch Zones",          group="Display")
+showTradeLevels = input.bool(true,  "Show SL / TP Lines on Chart", group="Display")
+showHVLine      = input.bool(true,  "Show HV AVWAP Line",          group="HV AVWAP")
+showStats       = input.bool(true,  "Show Stats Panel (win-rate / expectancy)", group="Display")
+
+// --- Entry confirmation / filters (fade-friendly only) ---
+strongConfirm   = input.bool(true,  "Strong confirmation (close into reversal + RSI turning)", group="Entry Filters")
+closeFrac       = input.float(0.33, "Confirm candle close in top/bottom fraction", minval=0.1, maxval=0.5, group="Entry Filters")
+confirmOnClose  = input.bool(true,  "Confirm signals on bar close (no repaint)", group="Entry Filters")
+
+// --- Session filter ---
+useSessions     = input.bool(true,  "Restrict signals to selected sessions", group="Sessions")
+sessTZ          = input.string("UTC", "Session Timezone", options=["UTC","America/New_York","Europe/London","Asia/Tokyo","Asia/Dubai"], group="Sessions")
+tradeAsia       = input.bool(false, "Trade Asia session", group="Sessions")
+asiaSess        = input.session("0000-0800", "Asia hours", group="Sessions")
+tradeLondon     = input.bool(true,  "Trade London session", group="Sessions")
+londonSess      = input.session("0700-1600", "London hours", group="Sessions")
+tradeNY         = input.bool(true,  "Trade New York session", group="Sessions")
+nySess          = input.session("1200-2100", "New York hours", group="Sessions")
+
+// --- Structural / adaptive SL ---
+useStructure    = input.bool(true,  "Use market structure for SL", group="Risk & Targets")
+swingLookback   = input.int(10,     "Swing lookback (protective SL)", minval=3, group="Risk & Targets")
+slBufferMult    = input.float(0.7,  "SL structure buffer (ATR)", minval=0.0, group="Risk & Targets")
+atrMultSL       = input.float(1.5,  "SL ATR multiplier", minval=0.1, group="Risk & Targets")
+maxSLMult       = input.float(2.5,  "Max SL distance (ATR cap)", minval=0.5, group="Risk & Targets")
+minSLMult       = input.float(0.8,  "Min SL distance (ATR floor)", minval=0.1, group="Risk & Targets")
+beBufferMult    = input.float(0.1,  "Breakeven lock buffer (ATR) at TP1", minval=0.0, group="Risk & Targets")
+
+// --- 3-tier targets (R:R of the actual SL) ---
+useRRtps        = input.bool(true,  "TPs as Risk:Reward of actual SL", group="Risk & Targets")
+rrTP1           = input.float(1.0,  "TP1 Risk:Reward", minval=0.25, group="Risk & Targets")
+rrTP2           = input.float(2.0,  "TP2 Risk:Reward", minval=0.5,  group="Risk & Targets")
+rrTP3           = input.float(3.5,  "TP3 Risk:Reward", minval=1.0,  group="Risk & Targets")
+structLookback  = input.int(50,     "Structural runner lookback", minval=10, group="Risk & Targets")
+
+// --- Trailing / adaptive ---
+useTrail        = input.bool(true,  "Trailing stop after TP1", group="Trailing")
+trailMult       = input.float(1.2,  "Trail stop ATR multiplier", group="Trailing")
+autoAdaptive    = input.bool(true,  "Auto-adapt SL/TP/trail to volatility & trend", group="Trailing")
+adaptStrength   = input.float(1.0,  "Adaptation strength (0=off, 2=aggressive)", minval=0.0, maxval=2.0, group="Trailing")
+adxLen          = input.int(14,     "ADX length (context + adaptation)", group="Trailing")
+adxThreshold    = input.float(20.0, "ADX trend threshold", group="Trailing")
+
+// --- Re-entry ---
+useReEntry      = input.bool(true,  "Enable pullback re-entry level", group="Re-Entry")
+reEntryRatio    = input.float(0.4,  "Re-entry pullback (fraction of risk)", minval=0.1, maxval=0.9, group="Re-Entry")
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ASSET CLASSIFICATION  (syminfo.type first, ticker second — no substring over-match)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+symType = syminfo.type
+tkr     = syminfo.ticker
+
+isGold    = (symType == "forex" or symType == "cfd" or symType == "futures")
+             and (str.contains(tkr, "XAU") or str.contains(tkr, "GOLD")
+                  or str.startswith(tkr, "GC") or str.startswith(tkr, "MGC"))
+isSPYx    = (symType == "fund")  and tkr == "SPY"
+isQQQx    = (symType == "fund")  and tkr == "QQQ"
+isSPXCash = (symType == "index") and (str.contains(tkr, "SPX") or str.contains(tkr, "US500"))
+isIdxFut  = (symType == "futures")
+             and (str.startswith(tkr, "ES")  or str.startswith(tkr, "MES")
+                  or str.startswith(tkr, "NQ") or str.startswith(tkr, "MNQ"))
+             and not isGold
+isETF     = (symType == "fund")  and not isSPYx and not isQQQx
+isStock   = (symType == "stock")
+
+assetClass = isGold ? "GOLD" : isSPXCash ? "SPX*" : isIdxFut ? "IDX-FUT" : isSPYx ? "SPY" : isQQQx ? "QQQ" : isETF ? "ETF" : isStock ? "STOCK" : "OTHER"
+
+hasVolume = not isSPXCash
+volTrust  = hasVolume and not isGold
+is24h     = isGold or isIdxFut
+useVix    = isSPYx or isQQQx or isSPXCash or isIdxFut
+useStkVol = isStock or isETF
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// TIMEFRAME / HTF
+// ═══════════════════════════════════════════════════════════════════════════════
+
+tfMinutes = timeframe.in_seconds(timeframe.period) / 60.0
+htfPeriod = tfMinutes <= 5 ? "30" : tfMinutes <= 15 ? "60" : tfMinutes <= 60 ? "240" : "D"
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// VOLATILITY REGIME → ADAPTIVE THRESHOLDS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+baseThreshold_2sigma = isGold ? 1.0 : (isSPYx or isSPXCash or isIdxFut) ? 0.50 : isQQQx ? 0.70 : 0.60
+baseThreshold_3sigma = isGold ? 1.5 : (isSPYx or isSPXCash or isIdxFut) ? 0.75 : isQQQx ? 1.00 : 0.90
+
+vixValue      = useVix ? request.security("CBOE:VIX", timeframe.period, close, lookahead=barmerge.lookahead_off) : na
+vixOK         = useVix and not na(vixValue)
+vixMultiplier = vixOK ? (vixValue < 15 ? 0.8 : vixValue < 22 ? 1.0 : 1.3) : 1.0
+
+atr14    = ta.atr(14)
+atr      = atr14
+atrSma   = ta.sma(atr14, 20)
+atrRatio = ta.sma(atr14, 50) > 0 ? atr14 / ta.sma(atr14, 50) : 1.0
+stkMult  = atrRatio < 0.8 ? 0.8 : atrRatio < 1.3 ? 1.0 : 1.3
+
+volMultiplier = useVix ? vixMultiplier : useStkVol ? stkMult : 1.0
+
+volRegime = useVix ? (not vixOK ? "VIX N/A" : vixValue < 15 ? "LOW" : vixValue < 22 ? "NORMAL" : "HIGH")
+          : useStkVol ? (atrRatio < 0.8 ? "LOW" : atrRatio < 1.3 ? "NORMAL" : "HIGH") : "FIXED"
+
+threshold_2sigma = baseThreshold_2sigma * volMultiplier
+threshold_3sigma = baseThreshold_3sigma * volMultiplier
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SESSION-ANCHORED VWAP + σ BANDS  (manual daily reset)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+newSession = ta.change(time("D")) != 0
+
+var float _pv  = 0.0
+var float _vol = 0.0
+var float _var = 0.0
+if newSession
+    _pv  := 0.0
+    _vol := 0.0
+    _var := 0.0
+
+vwapSrc = close
+_pv  += vwapSrc * volume
+_vol += volume
+vwapValue  = _vol > 0 ? _pv / _vol : vwapSrc
+_var += volume * math.pow(vwapSrc - vwapValue, 2)
+vwapStdDev = _vol > 0 ? math.sqrt(_var / _vol) : 0.0
+
+vwap_plus1  = vwapValue + vwapStdDev
+vwap_minus1 = vwapValue - vwapStdDev
+vwap_plus2  = vwapValue + 2.0 * vwapStdDev
+vwap_minus2 = vwapValue - 2.0 * vwapStdDev
+vwap_plus3  = vwapValue + 3.0 * vwapStdDev
+vwap_minus3 = vwapValue - 3.0 * vwapStdDev
+
+pctFromVWAP = vwapValue != 0 ? (close - vwapValue) / vwapValue * 100.0 : 0.0
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// HV AVWAP — SESSION-LATCHED HIGHEST-VOLUME ANCHORED VWAP
+// ═══════════════════════════════════════════════════════════════════════════════
+
+var float hvCumPVs  = 0.0
+var float hvCumVs   = 0.0
+var float hvBasePV  = 0.0
+var float hvBaseV   = 0.0
+var float hvAnchVol = 0.0
+var int   hvAnchBar = na
+
+if newSession
+    hvCumPVs  := 0.0
+    hvCumVs   := 0.0
+    hvBasePV  := 0.0
+    hvBaseV   := 0.0
+    hvAnchVol := 0.0
+    hvAnchBar := na
+
+if volume > hvAnchVol
+    hvAnchVol := volume
+    hvAnchBar := bar_index
+    hvBasePV  := hvCumPVs
+    hvBaseV   := hvCumVs
+
+hvCumPVs += hlc3 * volume
+hvCumVs  += volume
+
+hvAVWAP   = (hvCumVs - hvBaseV) > 0 ? (hvCumPVs - hvBasePV) / (hvCumVs - hvBaseV) : na
+pctFromHV = not na(hvAVWAP) and hvAVWAP != 0 ? (close - hvAVWAP) / hvAVWAP * 100.0 : na
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// HV AVWAP CONFLUENCE
+// ═══════════════════════════════════════════════════════════════════════════════
+
+hvSessionDiff   = not na(hvAVWAP) and vwapValue != 0 ? math.abs(hvAVWAP - vwapValue) / vwapValue * 100.0 : 999.0
+hvConverging    = hvSessionDiff < 0.25
+hvMagnetShort   = not na(hvAVWAP) and close > hvAVWAP and hvAVWAP > vwapValue
+hvMagnetLong    = not na(hvAVWAP) and close < hvAVWAP and hvAVWAP < vwapValue
+hvExtendedShort = not na(hvAVWAP) and hvAVWAP < vwapValue
+hvExtendedLong  = not na(hvAVWAP) and hvAVWAP > vwapValue
+
+hvConfShort          = hvConverging ? 6 : hvMagnetShort ? 4 : 0
+hvConfLong           = hvConverging ? 6 : hvMagnetLong  ? 4 : 0
+hvStretchBoostShort  = (not na(pctFromHV) and pctFromHV >  threshold_2sigma) ? 3 : 0
+hvStretchBoostLong   = (not na(pctFromHV) and pctFromHV < -threshold_2sigma) ? 3 : 0
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// VWAP SLOPE / HTF / STRETCH / TRIGGERS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+slopeLookback = 10
+vwapSlope     = vwapValue[slopeLookback] != 0 ? (vwapValue - vwapValue[slopeLookback]) / vwapValue[slopeLookback] * 100.0 : 0.0
+vwapSlopeFlat = math.abs(vwapSlope) < 0.15
+vwapSlopeUp   = vwapSlope >  0.15
+vwapSlopeDown = vwapSlope < -0.15
+
+htfVWAP     = request.security(syminfo.tickerid, htfPeriod, ta.vwap(close),    lookahead=barmerge.lookahead_off)
+htfVolume   = request.security(syminfo.tickerid, htfPeriod, volume,            lookahead=barmerge.lookahead_off)
+htfVWAPPrev = request.security(syminfo.tickerid, htfPeriod, ta.vwap(close)[3], lookahead=barmerge.lookahead_off)
+htfVolAvg   = request.security(syminfo.tickerid, htfPeriod, ta.sma(volume, 4), lookahead=barmerge.lookahead_off)
+
+htfVWAPSlope = htfVWAPPrev != 0 ? (htfVWAP - htfVWAPPrev) / htfVWAPPrev * 100.0 : 0.0
+htfVWAPFlat  = math.abs(htfVWAPSlope) < 0.20
+htfVolDecel  = htfVolAvg != 0 and htfVolume < htfVolAvg * 0.85
+
+rsi        = ta.rsi(close, 14)
+bearishDiv = close > ta.highest(close[1], 10) and rsi < ta.highest(rsi[1], 10) and close > vwapValue
+bullishDiv = close < ta.lowest(close[1],  10) and rsi > ta.lowest(rsi[1],  10) and close < vwapValue
+bearishRej = high > high[1] and close < open and (high - close) > (close - open) * 2.0
+bullishRej = low  < low[1]  and close > open and (close - low)  > (open - close) * 2.0
+
+stretchedLong       = pctFromVWAP >  threshold_2sigma
+stretchedShort      = pctFromVWAP < -threshold_2sigma
+extremeStretchLong  = pctFromVWAP >  threshold_3sigma
+extremeStretchShort = pctFromVWAP < -threshold_3sigma
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// CONTEXT (NOT an entry gate): ADX / sideways
+// ═══════════════════════════════════════════════════════════════════════════════
+
+[diPlus, diMinus, adxValue] = ta.dmi(adxLen, adxLen)
+adxFlat       = adxValue < adxThreshold
+atrCompressed = atr < (atrSma * 0.75)
+ema50  = ta.ema(close, 50)
+ema200 = ta.ema(close, 200)
+emaTooClose   = math.abs(ema50 - ema200) / ema200 * 100 < 0.3
+isSideways    = (adxFlat ? 1 : 0) + (atrCompressed ? 1 : 0) + (emaTooClose ? 1 : 0) >= 2
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// TIME / SESSION FILTER
+// ═══════════════════════════════════════════════════════════════════════════════
+
+t             = time(timeframe.period)
+sessionStart  = ta.valuewhen(ta.change(time("D")) != 0, time, 0)
+sessionLength = 6.5 * 60 * 60 * 1000
+sessionEnd    = sessionStart + sessionLength
+minsFromStart = (t - sessionStart) / (60 * 1000)
+minsFromEnd   = (sessionEnd - t)   / (60 * 1000)
+validTime     = is24h ? true : (minsFromStart > 30 and minsFromEnd > 30)
+
+inAsia    = tradeAsia   and not na(time(timeframe.period, asiaSess,   sessTZ))
+inLondon  = tradeLondon and not na(time(timeframe.period, londonSess, sessTZ))
+inNY      = tradeNY     and not na(time(timeframe.period, nySess,     sessTZ))
+sessionOK = (not useSessions) or inAsia or inLondon or inNY
+sessLabel = not useSessions ? "ALL" : (inLondon and inNY) ? "LDN+NY" : inLondon ? "LONDON" : inNY ? "NEW YORK" : inAsia ? "ASIA" : "OFF-HRS"
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MEAN-REVERSION FADE SIGNALS  (from VWAP Stretch) + confirmation gate
+// ═══════════════════════════════════════════════════════════════════════════════
+
+vwapOkForShort    = vwapSlopeFlat or vwapSlopeDown
+htfVWAPOkForShort = htfVWAPFlat   or htfVWAPSlope < 0
+vwapOkForLong     = vwapSlopeFlat or vwapSlopeUp
+htfVWAPOkForLong  = htfVWAPFlat   or htfVWAPSlope > 0
+
+shortSetup = hasVolume and stretchedLong  and vwapOkForShort and htfVWAPOkForShort and htfVolDecel and validTime and sessionOK
+longSetup  = hasVolume and stretchedShort and vwapOkForLong  and htfVWAPOkForLong  and htfVolDecel and validTime and sessionOK
+
+shortSignal = shortSetup and (bearishDiv or bearishRej)
+longSignal  = longSetup  and (bullishDiv or bullishRej)
+
+// Strong confirmation: trigger candle closes into the reversal + RSI turning
+barRange = high - low
+strongUp = (not strongConfirm) or (close >= high - barRange * closeFrac and rsi > rsi[1])
+strongDn = (not strongConfirm) or (close <= low  + barRange * closeFrac and rsi < rsi[1])
+
+barOK = (not confirmOnClose) or barstate.isconfirmed
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// CONFIDENCE
+// ═══════════════════════════════════════════════════════════════════════════════
+
+confBase    = extremeStretchLong or extremeStretchShort ? 65 : 55
+confHTF     = htfVWAPFlat ? 5 : 3
+confConfirm = (bearishDiv or bullishDiv) ? 8 : (bearishRej or bullishRej) ? 5 : 0
+confVol     = htfVolDecel ? 4 : 0
+confShortTotal = math.min(confBase + confHTF + confConfirm + confVol + hvConfShort + hvStretchBoostShort, 94)
+confLongTotal  = math.min(confBase + confHTF + confConfirm + confVol + hvConfLong  + hvStretchBoostLong,  94)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ADAPTIVE ENGINE
+// ═══════════════════════════════════════════════════════════════════════════════
+
+volFactor = math.max(0.7, math.min(1.6, atrSma > 0 ? atr / atrSma : 1.0))
+trendStr  = math.max(0.0, math.min(1.0, (adxValue - adxThreshold) / 20.0))
+kAdapt    = autoAdaptive ? adaptStrength : 0.0
+fVol      = autoAdaptive ? volFactor : 1.0
+
+effSLmult = atrMultSL * fVol
+effTrail  = trailMult * fVol * (1.0 + 0.50 * trendStr * kAdapt)
+effRR1    = rrTP1
+effRR2    = rrTP2 + (0.5 * trendStr * kAdapt)
+effRR3    = rrTP3 + (1.5 * trendStr * kAdapt)
+
+// Structural levels
+dynResist  = ta.highest(high, structLookback)
+dynSupport = ta.lowest(low,  structLookback)
+swingLow   = ta.lowest(low,  swingLookback)
+swingHigh  = ta.highest(high, swingLookback)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// TRADE STATE + MANAGED ENGINE
+// ═══════════════════════════════════════════════════════════════════════════════
+
+var string activeTrade  = "NONE"
+var float  entryPrice   = na
+var float  tp1Price     = na
+var float  tp2Price     = na
+var float  tp3Price     = na
+var float  slPrice      = na
+var float  reEntryPrice = na
+var int    tradeConf    = 0
+
+var bool   tp1Hit        = false
+var bool   tp2Hit        = false
+var bool   reEntryTagged = false
+var float  trailSL       = na
+var float  lockSL        = na
+var float  initRisk      = na
+
+var int    tradeWins   = 0
+var int    tradeLosses = 0
+var int    reachedTP1  = 0
+var int    reachedTP2  = 0
+var int    reachedTP3  = 0
+var float  totalR      = 0.0
+var float  grossWinR   = 0.0
+var float  grossLossR  = 0.0
+var int    rTrades     = 0
+
+var int    lastSigBar  = na
+var int    lastSigTime = na
+var string lastSigDir  = "—"
+
+f_recordR(float exitPx, float entryPx, float risk, bool isLong) =>
+    (na(risk) or risk <= 0) ? 0.0 : (isLong ? (exitPx - entryPx) / risk : (entryPx - exitPx) / risk)
+
+// --- entry signals (fade) with confirmation, session, no-repaint ---
+doLong  = longSignal  and strongUp and barOK and activeTrade != "LONG"
+doShort = shortSignal and strongDn and barOK and activeTrade != "SHORT"
+
+// ── 1. Trail update (runs every bar while in trade) ──
+if activeTrade == "LONG" and tp1Hit
+    if useTrail
+        trailSL := math.max(trailSL, high - atr * effTrail)
+    trailSL := math.max(trailSL, lockSL)
+    slPrice := useTrail ? trailSL : lockSL
+if activeTrade == "SHORT" and tp1Hit
+    if useTrail
+        trailSL := math.min(trailSL, low + atr * effTrail)
+    trailSL := math.min(trailSL, lockSL)
+    slPrice := useTrail ? trailSL : lockSL
+
+// ── 2. Exit checks (use the existing trade state, before any new entry) ──
+if activeTrade == "LONG"
+    if not tp1Hit and high >= tp1Price
+        tp1Hit  := true
+        reachedTP1 += 1
+        lockSL  := entryPrice + atr * beBufferMult
+        trailSL := math.max(close - atr * effTrail, lockSL)
+        slPrice := useTrail ? trailSL : lockSL
+        label.new(bar_index, high, "TP1 ✓\nBE LOCKED", color=color.new(color.green, 40), textcolor=color.white, style=label.style_label_down, size=size.tiny)
+    if tp1Hit and not tp2Hit and high >= tp2Price
+        tp2Hit  := true
+        reachedTP2 += 1
+        lockSL  := math.max(lockSL, tp1Price)
+        trailSL := math.max(trailSL, lockSL)
+        slPrice := useTrail ? trailSL : lockSL
+        label.new(bar_index, high, "TP2 ✓\nTP1 LOCKED", color=color.new(color.green, 20), textcolor=color.white, style=label.style_label_down, size=size.tiny)
+    if tp1Hit and tp2Hit and high >= tp3Price
+        tradeWins += 1
+        reachedTP3 += 1
+        float rM = f_recordR(tp3Price, entryPrice, initRisk, true)
+        totalR += rM
+        rTrades += 1
+        grossWinR += rM >= 0 ? rM : 0.0
+        label.new(bar_index, high, "TP3 ✓\nFULL RUN!", color=color.green, textcolor=color.white, style=label.style_label_down, size=size.small)
+        activeTrade := "NONE", tp1Hit := false, tp2Hit := false
+    if activeTrade == "LONG" and low <= slPrice
+        if tp1Hit
+            tradeWins += 1
+        else
+            tradeLosses += 1
+        float rM = f_recordR(slPrice, entryPrice, initRisk, true)
+        totalR += rM
+        rTrades += 1
+        if rM >= 0
+            grossWinR += rM
+        else
+            grossLossR += -rM
+        label.new(bar_index, low, tp1Hit ? (tp2Hit ? "SL (aTP2)" : "SL (aTP1)") : "SL HIT", color=color.red, textcolor=color.white, style=label.style_label_up, size=size.tiny)
+        activeTrade := "NONE", tp1Hit := false, tp2Hit := false
+
+if activeTrade == "SHORT"
+    if not tp1Hit and low <= tp1Price
+        tp1Hit  := true
+        reachedTP1 += 1
+        lockSL  := entryPrice - atr * beBufferMult
+        trailSL := math.min(close + atr * effTrail, lockSL)
+        slPrice := useTrail ? trailSL : lockSL
+        label.new(bar_index, low, "TP1 ✓\nBE LOCKED", color=color.new(color.green, 40), textcolor=color.white, style=label.style_label_up, size=size.tiny)
+    if tp1Hit and not tp2Hit and low <= tp2Price
+        tp2Hit  := true
+        reachedTP2 += 1
+        lockSL  := math.min(lockSL, tp1Price)
+        trailSL := math.min(trailSL, lockSL)
+        slPrice := useTrail ? trailSL : lockSL
+        label.new(bar_index, low, "TP2 ✓\nTP1 LOCKED", color=color.new(color.green, 20), textcolor=color.white, style=label.style_label_up, size=size.tiny)
+    if tp1Hit and tp2Hit and low <= tp3Price
+        tradeWins += 1
+        reachedTP3 += 1
+        float rM = f_recordR(tp3Price, entryPrice, initRisk, false)
+        totalR += rM
+        rTrades += 1
+        grossWinR += rM >= 0 ? rM : 0.0
+        label.new(bar_index, low, "TP3 ✓\nFULL RUN!", color=color.green, textcolor=color.white, style=label.style_label_up, size=size.small)
+        activeTrade := "NONE", tp1Hit := false, tp2Hit := false
+    if activeTrade == "SHORT" and high >= slPrice
+        if tp1Hit
+            tradeWins += 1
+        else
+            tradeLosses += 1
+        float rM = f_recordR(slPrice, entryPrice, initRisk, false)
+        totalR += rM
+        rTrades += 1
+        if rM >= 0
+            grossWinR += rM
+        else
+            grossLossR += -rM
+        label.new(bar_index, high, tp1Hit ? (tp2Hit ? "SL (aTP2)" : "SL (aTP1)") : "SL HIT", color=color.red, textcolor=color.white, style=label.style_label_down, size=size.tiny)
+        activeTrade := "NONE", tp1Hit := false, tp2Hit := false
+
+// ── 3. Pullback re-entry flag (info only) ──
+if useReEntry and activeTrade == "LONG" and not tp1Hit and not reEntryTagged and low <= reEntryPrice and low > slPrice
+    reEntryTagged := true
+    label.new(bar_index, low, "RE-ENTRY ➕", color=color.new(color.blue, 20), textcolor=color.white, style=label.style_label_up, size=size.tiny)
+if useReEntry and activeTrade == "SHORT" and not tp1Hit and not reEntryTagged and high >= reEntryPrice and high < slPrice
+    reEntryTagged := true
+    label.new(bar_index, high, "RE-ENTRY ➕", color=color.new(color.blue, 20), textcolor=color.white, style=label.style_label_down, size=size.tiny)
+
+// ── 4. New entries (fade) — flip closes any opposite position first ──
+if doLong
+    if activeTrade == "SHORT"
+        if close <= entryPrice
+            tradeWins += 1
+        else
+            tradeLosses += 1
+        float rM = f_recordR(close, entryPrice, initRisk, false)
+        totalR += rM
+        rTrades += 1
+        if rM >= 0
+            grossWinR += rM
+        else
+            grossLossR += -rM
+        label.new(bar_index, high, "FLIP → LONG", color=color.new(color.orange, 20), textcolor=color.white, style=label.style_label_down, size=size.tiny)
+    activeTrade := "LONG"
+    entryPrice  := close
+    float structSL = swingLow - atr * slBufferMult
+    float atrSL    = close - atr * effSLmult
+    float rawSL    = useStructure ? math.min(structSL, atrSL) : atrSL
+    rawSL := math.max(rawSL, close - atr * maxSLMult)
+    rawSL := math.min(rawSL, close - atr * minSLMult)
+    slPrice := rawSL
+    float riskLong = entryPrice - slPrice
+    initRisk := riskLong
+    tp1Price := useRRtps ? entryPrice + riskLong * effRR1 : vwapValue
+    tp2Price := useRRtps ? entryPrice + riskLong * effRR2 : vwap_plus1
+    tp3Price := useRRtps ? entryPrice + riskLong * effRR3 : vwap_plus2
+    if useStructure and dynResist > tp1Price
+        tp3Price := math.max(tp3Price, dynResist)
+    reEntryPrice := entryPrice - riskLong * reEntryRatio
+    trailSL := slPrice
+    lockSL  := na
+    tp1Hit  := false
+    tp2Hit  := false
+    reEntryTagged := false
+    tradeConf := confLongTotal
+    label.new(bar_index, low, "LONG (fade)\nEnt " + str.tostring(entryPrice, "#.##") + "\nTP1 " + str.tostring(tp1Price, "#.##") + "  TP2 " + str.tostring(tp2Price, "#.##") + "  TP3 " + str.tostring(tp3Price, "#.##") + "\nSL " + str.tostring(slPrice, "#.##"), color=color.new(color.lime, 0), textcolor=color.black, style=label.style_label_up, size=size.small)
+
+if doShort
+    if activeTrade == "LONG"
+        if close >= entryPrice
+            tradeWins += 1
+        else
+            tradeLosses += 1
+        float rM = f_recordR(close, entryPrice, initRisk, true)
+        totalR += rM
+        rTrades += 1
+        if rM >= 0
+            grossWinR += rM
+        else
+            grossLossR += -rM
+        label.new(bar_index, low, "FLIP → SHORT", color=color.new(color.orange, 20), textcolor=color.white, style=label.style_label_up, size=size.tiny)
+    activeTrade := "SHORT"
+    entryPrice  := close
+    float structSL = swingHigh + atr * slBufferMult
+    float atrSL    = close + atr * effSLmult
+    float rawSL    = useStructure ? math.max(structSL, atrSL) : atrSL
+    rawSL := math.min(rawSL, close + atr * maxSLMult)
+    rawSL := math.max(rawSL, close + atr * minSLMult)
+    slPrice := rawSL
+    float riskShort = slPrice - entryPrice
+    initRisk := riskShort
+    tp1Price := useRRtps ? entryPrice - riskShort * effRR1 : vwapValue
+    tp2Price := useRRtps ? entryPrice - riskShort * effRR2 : vwap_minus1
+    tp3Price := useRRtps ? entryPrice - riskShort * effRR3 : vwap_minus2
+    if useStructure and dynSupport < tp1Price
+        tp3Price := math.min(tp3Price, dynSupport)
+    reEntryPrice := entryPrice + riskShort * reEntryRatio
+    trailSL := slPrice
+    lockSL  := na
+    tp1Hit  := false
+    tp2Hit  := false
+    reEntryTagged := false
+    tradeConf := confShortTotal
+    label.new(bar_index, high, "SHORT (fade)\nEnt " + str.tostring(entryPrice, "#.##") + "\nTP1 " + str.tostring(tp1Price, "#.##") + "  TP2 " + str.tostring(tp2Price, "#.##") + "  TP3 " + str.tostring(tp3Price, "#.##") + "\nSL " + str.tostring(slPrice, "#.##"), color=color.new(color.red, 0), textcolor=color.white, style=label.style_label_down, size=size.small)
+
+if doLong or doShort
+    lastSigBar  := bar_index
+    lastSigTime := time
+    lastSigDir  := doLong ? "LONG" : "SHORT"
+
+tradeActive = activeTrade != "NONE"
+
+// R:R to TP1 (display)
+tradeRR = not na(entryPrice) and not na(slPrice) and (entryPrice - slPrice) != 0 ? (activeTrade == "LONG" ? (tp1Price - entryPrice) / (entryPrice - slPrice) : activeTrade == "SHORT" ? (entryPrice - tp1Price) / (slPrice - entryPrice) : 0.0) : 0.0
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PLOTS — VWAP core
+// ═══════════════════════════════════════════════════════════════════════════════
+
+plot(vwapValue,                    "VWAP",     color=color.new(color.yellow, 0),  linewidth=2)
+plot(showBands ? vwap_plus1  : na, "VWAP +1σ", color=color.new(color.blue,   70), linewidth=1)
+plot(showBands ? vwap_minus1 : na, "VWAP -1σ", color=color.new(color.blue,   70), linewidth=1)
+plot(showBands ? vwap_plus2  : na, "VWAP +2σ", color=color.new(color.orange, 50), linewidth=1, style=plot.style_circles)
+plot(showBands ? vwap_minus2 : na, "VWAP -2σ", color=color.new(color.orange, 50), linewidth=1, style=plot.style_circles)
+plot(showBands ? vwap_plus3  : na, "VWAP +3σ", color=color.new(color.red,    30), linewidth=1, style=plot.style_cross)
+plot(showBands ? vwap_minus3 : na, "VWAP -3σ", color=color.new(color.red,    30), linewidth=1, style=plot.style_cross)
+plot(showHVLine ? hvAVWAP : na, "HV AVWAP", color=color.new(color.fuchsia, 0), linewidth=2)
+
+fill(plot(vwap_plus2,  display=display.none), plot(vwap_plus3,  display=display.none), color=showFillZones ? color.new(color.red,   90) : na, title="Fade Zone Short")
+fill(plot(vwap_minus2, display=display.none), plot(vwap_minus3, display=display.none), color=showFillZones ? color.new(color.green, 90) : na, title="Fade Zone Long")
+
+bgcolor(extremeStretchLong  ? color.new(color.red,   95) : na, title="Extreme Long Stretch")
+bgcolor(extremeStretchShort ? color.new(color.green, 95) : na, title="Extreme Short Stretch")
+bgcolor((useSessions and not sessionOK) ? color.new(color.gray, 90) : na, title="Off-Session")
+
+plotshape(showSignals and doLong,  "Long Fade",  shape.triangleup,   location.belowbar, color=color.new(color.lime, 0), size=size.normal)
+plotshape(showSignals and doShort, "Short Fade", shape.triangledown, location.abovebar, color=color.new(color.red,  0), size=size.normal)
+
+// Trailing stop while active
+plot(tradeActive and tp1Hit ? slPrice : na, "Trail Stop", color=color.orange, style=plot.style_stepline, linewidth=2)
+plot((useReEntry and tradeActive and not tp1Hit) ? reEntryPrice : na, "Re-Entry", color=color.new(color.blue, 0), style=plot.style_stepline, linewidth=1)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SL / TP LINES (persistent while trade open)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+var line  lnEntry = na
+var line  lnTP1   = na
+var line  lnTP2   = na
+var line  lnTP3   = na
+var line  lnSL    = na
+
+if showTradeLevels and (doLong or doShort)
+    line.delete(lnEntry), line.delete(lnTP1), line.delete(lnTP2), line.delete(lnTP3), line.delete(lnSL)
+    lnEntry := line.new(bar_index, entryPrice, bar_index + 1, entryPrice, extend=extend.right, color=color.new(color.white, 0),  width=1)
+    lnTP1   := line.new(bar_index, tp1Price,   bar_index + 1, tp1Price,   extend=extend.right, color=color.new(color.green, 0),  width=1, style=line.style_dashed)
+    lnTP2   := line.new(bar_index, tp2Price,   bar_index + 1, tp2Price,   extend=extend.right, color=color.new(color.green, 30), width=1, style=line.style_dashed)
+    lnTP3   := line.new(bar_index, tp3Price,   bar_index + 1, tp3Price,   extend=extend.right, color=color.new(color.aqua, 0),   width=1, style=line.style_dashed)
+    lnSL    := line.new(bar_index, slPrice,    bar_index + 1, slPrice,    extend=extend.right, color=color.new(color.red, 0),    width=1, style=line.style_dashed)
+
+if showTradeLevels and not tradeActive and tradeActive[1]
+    line.delete(lnEntry), line.delete(lnTP1), line.delete(lnTP2), line.delete(lnTP3), line.delete(lnSL)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// DASHBOARD — VWAP / HV (top-right)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+if showLabels and barstate.islast
+    var table dash = table.new(position.top_right, 2, 18, border_width=1, border_color=color.new(color.gray, 50), frame_width=1, frame_color=color.gray)
+    table.cell(dash, 0, 0, "VWAP STRETCH + HV (MANAGED)", text_color=color.white, bgcolor=color.rgb(65, 14, 58), text_size=size.small)
+    table.merge_cells(dash, 0, 0, 1, 0)
+
+    table.cell(dash, 0, 1, "Asset", text_color=color.white, bgcolor=color.new(color.gray, 50), text_size=size.small)
+    table.cell(dash, 1, 1, assetClass + (hasVolume ? "" : "  ⚠ no vol"), text_color=hasVolume ? color.yellow : color.red, bgcolor=color.new(color.gray, 70), text_size=size.small)
+    table.cell(dash, 0, 2, "TF / HTF", text_color=color.white, bgcolor=color.new(color.gray, 50), text_size=size.small)
+    table.cell(dash, 1, 2, timeframe.period + "  /  " + htfPeriod, text_color=color.aqua, bgcolor=color.new(color.gray, 70), text_size=size.small)
+
+    table.cell(dash, 0, 3, "Vol Regime", text_color=color.white, bgcolor=color.new(color.gray, 50), text_size=size.small)
+    vixCol  = volRegime == "LOW" ? color.lime : volRegime == "NORMAL" ? color.yellow : volRegime == "HIGH" ? color.red : color.gray
+    vixDisp = useVix ? (vixOK ? volRegime + " (VIX " + str.tostring(vixValue, "#.#") + ")" : "VIX N/A") : useStkVol ? volRegime + " (ATRx" + str.tostring(atrRatio, "#.##") + ")" : "FIXED"
+    table.cell(dash, 1, 3, vixDisp, text_color=vixCol, bgcolor=color.new(color.gray, 70), text_size=size.small)
+
+    table.cell(dash, 0, 4, "% from VWAP", text_color=color.white, bgcolor=color.new(color.gray, 50), text_size=size.small)
+    pctCol = math.abs(pctFromVWAP) > threshold_3sigma ? color.red : math.abs(pctFromVWAP) > threshold_2sigma ? color.orange : color.gray
+    table.cell(dash, 1, 4, str.tostring(pctFromVWAP, "#.###") + "%", text_color=pctCol, bgcolor=color.new(color.gray, 70), text_size=size.small)
+    table.cell(dash, 0, 5, "Threshold 2σ", text_color=color.white, bgcolor=color.new(color.gray, 50), text_size=size.small)
+    table.cell(dash, 1, 5, "±" + str.tostring(threshold_2sigma, "#.##") + "%", text_color=color.orange, bgcolor=color.new(color.gray, 70), text_size=size.small)
+
+    table.cell(dash, 0, 6, "VWAP Slope", text_color=color.white, bgcolor=color.new(color.gray, 50), text_size=size.small)
+    slopeTxt = vwapSlopeFlat ? "FLAT" : vwapSlopeUp ? "↑ UP" : "↓ DOWN"
+    table.cell(dash, 1, 6, slopeTxt + " (" + str.tostring(vwapSlope, "#.##") + "%)", text_color=vwapSlopeFlat ? color.yellow : vwapSlopeUp ? color.lime : color.red, bgcolor=color.new(color.gray, 70), text_size=size.small)
+    table.cell(dash, 0, 7, "HV AVWAP", text_color=color.white, bgcolor=color.new(color.gray, 50), text_size=size.small)
+    table.cell(dash, 1, 7, not na(hvAVWAP) ? str.tostring(hvAVWAP, "#.##") : "N/A", text_color=color.fuchsia, bgcolor=color.new(color.gray, 70), text_size=size.small)
+    table.cell(dash, 0, 8, "Confluence", text_color=color.white, bgcolor=color.new(color.gray, 50), text_size=size.small)
+    confTxt = hvConverging ? "CONVERGING ⚡" : hvMagnetShort ? "MAGNET ↓" : hvMagnetLong ? "MAGNET ↑" : "SEPARATE"
+    table.cell(dash, 1, 8, confTxt, text_color=hvConverging ? color.yellow : (hvMagnetShort or hvMagnetLong) ? color.fuchsia : color.gray, bgcolor=color.new(color.gray, 70), text_size=size.small)
+
+    table.cell(dash, 0, 9, "── ACTIVE TRADE ──", text_color=color.yellow, bgcolor=color.rgb(20, 20, 35), text_size=size.small)
+    table.merge_cells(dash, 0, 9, 1, 9)
+    statusTxt = tradeActive ? (activeTrade == "SHORT" ? "▼ SHORT OPEN" : "▲ LONG OPEN") : "— NO TRADE"
+    table.cell(dash, 0, 10, "Status", text_color=color.white, bgcolor=color.new(color.gray, 50), text_size=size.small)
+    table.cell(dash, 1, 10, statusTxt, text_color=activeTrade == "SHORT" ? color.red : activeTrade == "LONG" ? color.lime : color.gray, bgcolor=color.new(color.gray, 70), text_size=size.small)
+    table.cell(dash, 0, 11, "Entry", text_color=color.white, bgcolor=color.new(color.gray, 50), text_size=size.small)
+    table.cell(dash, 1, 11, tradeActive ? str.tostring(entryPrice, "#.##") : "—", text_color=color.white, bgcolor=color.new(color.gray, 70), text_size=size.small)
+    table.cell(dash, 0, 12, "TP1" + (tp1Hit ? " ✓" : ""), text_color=color.white, bgcolor=color.new(color.gray, 50), text_size=size.small)
+    table.cell(dash, 1, 12, tradeActive ? str.tostring(tp1Price, "#.##") : "—", text_color=tp1Hit ? color.new(color.lime, 30) : color.lime, bgcolor=color.new(color.gray, 70), text_size=size.small)
+    table.cell(dash, 0, 13, "TP2" + (tp2Hit ? " ✓" : ""), text_color=color.white, bgcolor=color.new(color.gray, 50), text_size=size.small)
+    table.cell(dash, 1, 13, tradeActive ? str.tostring(tp2Price, "#.##") : "—", text_color=tp2Hit ? color.new(color.lime, 30) : color.green, bgcolor=color.new(color.gray, 70), text_size=size.small)
+    table.cell(dash, 0, 14, "TP3 🚀", text_color=color.white, bgcolor=color.new(color.gray, 50), text_size=size.small)
+    table.cell(dash, 1, 14, tradeActive ? str.tostring(tp3Price, "#.##") : "—", text_color=color.aqua, bgcolor=color.new(color.gray, 70), text_size=size.small)
+    table.cell(dash, 0, 15, tradeActive and tp1Hit ? "TRAIL SL" : "SL", text_color=color.white, bgcolor=color.new(color.gray, 50), text_size=size.small)
+    table.cell(dash, 1, 15, tradeActive ? str.tostring(slPrice, "#.##") : "—", text_color=tradeActive and tp1Hit ? color.orange : color.red, bgcolor=color.new(color.gray, 70), text_size=size.small)
+    table.cell(dash, 0, 16, "Confidence", text_color=color.white, bgcolor=color.new(color.gray, 50), text_size=size.small)
+    table.cell(dash, 1, 16, tradeActive ? str.tostring(tradeConf) + "%" : "—", text_color=tradeConf >= 75 ? color.lime : tradeConf >= 65 ? color.yellow : color.gray, bgcolor=color.new(color.gray, 70), text_size=size.small)
+    rrCol = tradeRR >= 2.0 ? color.lime : tradeRR >= 1.0 ? color.yellow : color.orange
+    table.cell(dash, 0, 17, "R:R (→TP1)", text_color=color.white, bgcolor=color.new(color.gray, 50), text_size=size.small)
+    table.cell(dash, 1, 17, tradeActive ? str.tostring(tradeRR, "#.##") + " : 1" : "—", text_color=rrCol, bgcolor=color.new(color.gray, 70), text_size=size.small)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// STATS PANEL (bottom-left)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+if showStats and barstate.islast
+    var table st = table.new(position.bottom_left, 4, 6, bgcolor=color.rgb(15, 15, 15), border_color=color.gray, border_width=1)
+    table.cell(st, 0, 0, "MANAGED FADE — STATS", text_color=color.white, bgcolor=color.rgb(65, 14, 58), text_size=size.tiny)
+    table.merge_cells(st, 0, 0, 3, 0)
+
+    int totalRes  = tradeWins + tradeLosses
+    float winRate = totalRes > 0 ? 100.0 * tradeWins / totalRes : na
+    table.cell(st, 0, 1, "WIN RATE", text_color=color.gray, text_size=size.tiny)
+    table.cell(st, 1, 1, totalRes > 0 ? str.tostring(math.round(winRate)) + "% (" + str.tostring(tradeWins) + "/" + str.tostring(totalRes) + ")" : "-", text_color=na(winRate) ? color.gray : winRate >= 50 ? color.green : color.red, text_size=size.tiny)
+    table.cell(st, 2, 1, "SESSION", text_color=color.gray, text_size=size.tiny)
+    table.cell(st, 3, 1, sessLabel + (sessionOK ? "" : " ⛔"), text_color=sessionOK ? color.green : color.red, text_size=size.tiny)
+
+    float avgR = rTrades > 0 ? totalR / rTrades : na
+    float pf   = grossLossR > 0 ? grossWinR / grossLossR : na
+    table.cell(st, 0, 2, "EXPECTANCY", text_color=color.gray, text_size=size.tiny)
+    table.cell(st, 1, 2, rTrades > 0 ? "avgR " + str.tostring(avgR, "#.##") : "-", text_color=na(avgR) ? color.gray : avgR > 0 ? color.green : color.red, text_size=size.tiny)
+    table.cell(st, 2, 2, "PROFIT FACTOR", text_color=color.gray, text_size=size.tiny)
+    table.cell(st, 3, 2, rTrades > 0 ? (na(pf) ? "∞" : str.tostring(pf, "#.##")) : "-", text_color=color.aqua, text_size=size.tiny)
+
+    table.cell(st, 0, 3, "TOTAL R", text_color=color.gray, text_size=size.tiny)
+    table.cell(st, 1, 3, str.tostring(totalR, "#.#") + "R (" + str.tostring(rTrades) + ")", text_color=totalR >= 0 ? color.green : color.red, text_size=size.tiny)
+    table.cell(st, 2, 3, "REACHED", text_color=color.gray, text_size=size.tiny)
+    table.cell(st, 3, 3, "T1:" + str.tostring(reachedTP1) + " T2:" + str.tostring(reachedTP2) + " T3:" + str.tostring(reachedTP3), text_color=color.aqua, text_size=size.tiny)
+
+    table.cell(st, 0, 4, "ADX", text_color=color.gray, text_size=size.tiny)
+    table.cell(st, 1, 4, str.tostring(adxValue, "#.#") + (adxFlat ? " (flat)" : " (trend)"), text_color=adxFlat ? color.gray : color.lime, text_size=size.tiny)
+    table.cell(st, 2, 4, "CONTEXT", text_color=color.gray, text_size=size.tiny)
+    table.cell(st, 3, 4, isSideways ? "RANGING" : "DIRECTIONAL", text_color=isSideways ? color.yellow : color.aqua, text_size=size.tiny)
+
+    float msSince = na(lastSigTime) ? na : timenow - lastSigTime
+    int   barsAgo = na(lastSigBar) ? na : bar_index - lastSigBar
+    string ago = na(msSince) ? "none" : msSince >= 3600000 ? str.tostring(math.floor(msSince / 3600000)) + "h " + str.tostring(math.floor((msSince % 3600000) / 60000)) + "m" : str.tostring(math.floor(msSince / 60000)) + "m"
+    table.cell(st, 0, 5, "LAST SIGNAL", text_color=color.gray, text_size=size.tiny)
+    table.cell(st, 1, 5, na(lastSigTime) ? "—" : lastSigDir + " " + ago + " ago", text_color=na(lastSigTime) ? color.gray : lastSigDir == "LONG" ? color.lime : color.orange, text_size=size.tiny)
+    table.cell(st, 2, 5, "ADAPT", text_color=color.gray, text_size=size.tiny)
+    table.cell(st, 3, 5, autoAdaptive ? "vol×" + str.tostring(volFactor, "#.##") + " tr×" + str.tostring(trendStr, "#.##") : "OFF", text_color=color.new(color.gray, 10), text_size=size.tiny)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ALERTS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+alertcondition(doLong  and hvConverging, "LONG + HV Convergence",  "STRONG LONG fade: VWAP & HV converging — {{ticker}}")
+alertcondition(doShort and hvConverging, "SHORT + HV Convergence", "STRONG SHORT fade: VWAP & HV converging — {{ticker}}")
+alertcondition(doLong,  "Long Fade",  "VWAP Long fade entry — {{ticker}}")
+alertcondition(doShort, "Short Fade", "VWAP Short fade entry — {{ticker}}")
