@@ -122,6 +122,23 @@ Return ONLY valid JSON array — one object per headline, same order:
 
 # ── RSS parser ────────────────────────────────────────────────────────────────
 
+def _parse_pub_date(raw: str | None) -> datetime | None:
+    """Parse RSS pubDate string to UTC datetime. Returns None on failure."""
+    if not raw:
+        return None
+    from email.utils import parsedate_to_datetime
+    try:
+        dt = parsedate_to_datetime(raw.strip())
+        return dt.astimezone(timezone.utc)
+    except Exception:
+        pass
+    # ISO 8601 fallback
+    try:
+        return datetime.fromisoformat(raw.strip().replace("Z", "+00:00")).astimezone(timezone.utc)
+    except Exception:
+        return None
+
+
 def _parse_rss(xml_text: str, source_name: str) -> list[dict]:
     articles = []
     try:
@@ -129,24 +146,28 @@ def _parse_rss(xml_text: str, source_name: str) -> list[dict]:
         ns = {"atom": "http://www.w3.org/2005/Atom"}
         # RSS 2.0
         for item in root.findall(".//item"):
-            title_el = item.find("title")
-            link_el  = item.find("link")
+            title_el   = item.find("title")
+            link_el    = item.find("link")
+            pubdate_el = item.find("pubDate")
             if title_el is not None and title_el.text:
                 articles.append({
-                    "title":  title_el.text.strip(),
-                    "source": source_name,
-                    "url":    link_el.text.strip() if link_el is not None and link_el.text else "",
+                    "title":      title_el.text.strip(),
+                    "source":     source_name,
+                    "url":        link_el.text.strip() if link_el is not None and link_el.text else "",
+                    "published_at": _parse_pub_date(pubdate_el.text if pubdate_el is not None else None),
                 })
         # Atom fallback
         if not articles:
             for entry in root.findall(".//atom:entry", ns):
-                title_el = entry.find("atom:title", ns)
-                link_el  = entry.find("atom:link",  ns)
+                title_el   = entry.find("atom:title", ns)
+                link_el    = entry.find("atom:link",  ns)
+                updated_el = entry.find("atom:updated", ns)
                 if title_el is not None and title_el.text:
                     articles.append({
-                        "title":  title_el.text.strip(),
-                        "source": source_name,
-                        "url":    link_el.get("href", "") if link_el is not None else "",
+                        "title":      title_el.text.strip(),
+                        "source":     source_name,
+                        "url":        link_el.get("href", "") if link_el is not None else "",
+                        "published_at": _parse_pub_date(updated_el.text if updated_el is not None else None),
                     })
     except Exception:
         pass
@@ -575,15 +596,23 @@ def fetch_newsapi_headlines(max_articles: int = 20) -> list[dict]:
 def detect_high_impact_event(articles: list[dict]) -> dict:
     """
     Scan headlines for high-impact economic/geopolitical events.
+    Only considers articles published within the last 24 hours to avoid
+    stale post-event commentary (e.g. NFP analysis lingering into Monday).
     Returns {"detected": bool, "event_type": str, "urgency": float, "headlines": []}
     """
-    all_text  = " ".join(a["title"] for a in articles).upper()
+    now = datetime.now(timezone.utc)
+    fresh = [
+        a for a in articles
+        if a.get("published_at") is None  # no timestamp → assume fresh (FJ items)
+        or (now - a["published_at"]).total_seconds() < 86400  # < 24 hours
+    ]
+    all_text  = " ".join(a["title"] for a in fresh).upper()
     triggered = []
 
     for event_type, (keywords, urgency) in HIGH_IMPACT_EVENTS.items():
         if any(kw in all_text for kw in keywords):
             matched_headlines = [
-                a["title"] for a in articles
+                a["title"] for a in fresh
                 if any(kw in a["title"].upper() for kw in keywords)
             ]
             triggered.append((event_type, urgency, matched_headlines))
