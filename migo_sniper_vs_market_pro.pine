@@ -1,5 +1,5 @@
 //@version=6
-indicator("XAU/USD Migo VS Market Sniper Pro", overlay=true)
+indicator("XAU/USD Migo VS Market Sniper Pro", overlay=true, max_labels_count=500, max_lines_count=500)
 
 // --- INPUTS ---
 int lookback        = input.int(50, "Structural Lookback")
@@ -46,6 +46,7 @@ float closeFrac      = input.float(0.33, "Confirm candle close in top/bottom fra
 bool momoEntry       = input.bool(true, "Momentum breakout entry (catch strong moves)", group="Signal Filters")
 int  brkLen          = input.int(10,   "Breakout lookback (bars)", minval=3, group="Signal Filters")
 bool noCtFilterLowTF = input.bool(true, "No counter-trend filter on 5m & lower (scalp both ways)", group="Signal Filters")
+bool confirmOnClose  = input.bool(true, "Confirm signals on bar close (no repaint)", group="Signal Filters")
 
 // --- SESSION FILTER (avoid noisy hours) ---
 bool   useSessions = input.bool(true,  "Restrict signals to selected sessions", group="Sessions")
@@ -85,10 +86,10 @@ string htf1 = not autoHTF ? "60"  : baseMin <= 1 ? "15"  : baseMin <= 3 ? "30"  
 string htf2 = not autoHTF ? "240" : baseMin <= 1 ? "60"  : baseMin <= 3 ? "120" : baseMin <= 15 ? "240" : baseMin <= 60 ? "D"   : "W"
 string lbl1 = not autoHTF ? "1h"  : baseMin <= 1 ? "15m" : baseMin <= 3 ? "30m" : baseMin <= 15 ? "1h"  : baseMin <= 60 ? "4h"  : "D"
 string lbl2 = not autoHTF ? "4h"  : baseMin <= 1 ? "1h"  : baseMin <= 3 ? "2h"  : baseMin <= 15 ? "4h"  : baseMin <= 60 ? "D"   : "W"
-float ma50_1h  = request.security(syminfo.tickerid, htf1, ta.ema(close, 50))
-float rsi_1h   = request.security(syminfo.tickerid, htf1, ta.rsi(close, 14))
-float ma50_4h  = request.security(syminfo.tickerid, htf2, ta.ema(close, 50))
-float rsi_4h   = request.security(syminfo.tickerid, htf2, ta.rsi(close, 14))
+float ma50_1h  = request.security(syminfo.tickerid, htf1, ta.ema(close, 50), lookahead=barmerge.lookahead_off)
+float rsi_1h   = request.security(syminfo.tickerid, htf1, ta.rsi(close, 14), lookahead=barmerge.lookahead_off)
+float ma50_4h  = request.security(syminfo.tickerid, htf2, ta.ema(close, 50), lookahead=barmerge.lookahead_off)
+float rsi_4h   = request.security(syminfo.tickerid, htf2, ta.rsi(close, 14), lookahead=barmerge.lookahead_off)
 string trend1h = (close > ma50_1h and rsi_1h > 50) ? "UPTREND" : (close < ma50_1h and rsi_1h < 50) ? "DOWNTREND" : "SIDEWAYS"
 string trend4h = (close > ma50_4h and rsi_4h > 50) ? "UPTREND" : (close < ma50_4h and rsi_4h < 50) ? "DOWNTREND" : "SIDEWAYS"
 string mainTrend = trend1h   // HTF-1 remains the primary trend for confidence/dashboard
@@ -159,7 +160,7 @@ var int    rTrades      = 0
 
 // Helper applied inline at every exit: record realized R for one closed trade
 f_recordR(float exitPx, float entryPx, float risk, bool isLong) =>
-    float rMult = isLong ? (exitPx - entryPx) / risk : (entryPx - exitPx) / risk
+    float rMult = (na(risk) or risk <= 0) ? 0.0 : (isLong ? (exitPx - entryPx) / risk : (entryPx - exitPx) / risk)
     rMult
 
 // TP stage tracking
@@ -168,6 +169,13 @@ var bool   tp2Hit       = false
 var bool   reEntryTagged = false
 var float  trailSL      = 0.0   // dynamic trailing stop after TP1
 var float  lockSL       = na    // hard profit floor — SL can never cross back below/above this
+
+// --- ALERT EVENT FLAGS (reset each bar, set true when an event fires) ---
+bool evtTP1 = false
+bool evtTP2 = false
+bool evtTP3 = false
+bool evtSL  = false
+bool evtReentry = false
 
 // --- TRAIL STOP UPDATE (runs every bar while in trade) ---
 // lockSL guarantees a green position never flips red: once TP1 hits it sits at
@@ -192,6 +200,7 @@ if activeTrade == "LONG"
     if not tp1Hit and high >= tp1Price
         tp1Hit  := true
         reachedTP1 += 1
+        evtTP1 := true
         lockSL  := entryPrice + (atr * beBufferMult)        // lock breakeven (+buffer) — no more red
         trailSL := math.max(close - (atr * effTrail), lockSL)
         slPrice := useTrail ? trailSL : lockSL
@@ -200,6 +209,7 @@ if activeTrade == "LONG"
     if tp1Hit and not tp2Hit and high >= tp2Price
         tp2Hit  := true
         reachedTP2 += 1
+        evtTP2 := true
         lockSL  := math.max(lockSL, tp1Price)               // ratchet floor up to TP1 profit
         trailSL := math.max(trailSL, lockSL)
         slPrice := useTrail ? trailSL : lockSL
@@ -208,6 +218,7 @@ if activeTrade == "LONG"
     if tp1Hit and tp2Hit and high >= tp3Price
         tradeWins += 1
         reachedTP3 += 1
+        evtTP3 := true
         float rM = f_recordR(tp3Price, entryPrice, initRisk, true)
         totalR += rM
         rTrades += 1
@@ -223,6 +234,7 @@ if activeTrade == "LONG"
             tradeWins += 1       // trail/locked SL after TP1 -> WIN (>= breakeven)
         else
             tradeLosses += 1     // hit hard SL before TP1 -> LOSS
+        evtSL := true
         float rM = f_recordR(slPrice, entryPrice, initRisk, true)
         totalR += rM
         rTrades += 1
@@ -239,6 +251,7 @@ if activeTrade == "SHORT"
     if not tp1Hit and low <= tp1Price
         tp1Hit  := true
         reachedTP1 += 1
+        evtTP1 := true
         lockSL  := entryPrice - (atr * beBufferMult)        // lock breakeven (+buffer) — no more red
         trailSL := math.min(close + (atr * effTrail), lockSL)
         slPrice := useTrail ? trailSL : lockSL
@@ -247,6 +260,7 @@ if activeTrade == "SHORT"
     if tp1Hit and not tp2Hit and low <= tp2Price
         tp2Hit  := true
         reachedTP2 += 1
+        evtTP2 := true
         lockSL  := math.min(lockSL, tp1Price)               // ratchet floor down to TP1 profit
         trailSL := math.min(trailSL, lockSL)
         slPrice := useTrail ? trailSL : lockSL
@@ -255,6 +269,7 @@ if activeTrade == "SHORT"
     if tp1Hit and tp2Hit and low <= tp3Price
         tradeWins += 1
         reachedTP3 += 1
+        evtTP3 := true
         float rM = f_recordR(tp3Price, entryPrice, initRisk, false)
         totalR += rM
         rTrades += 1
@@ -270,6 +285,7 @@ if activeTrade == "SHORT"
             tradeWins += 1       // trail/locked SL after TP1 -> WIN (>= breakeven)
         else
             tradeLosses += 1     // hit hard SL before TP1 -> LOSS
+        evtSL := true
         float rM = f_recordR(slPrice, entryPrice, initRisk, false)
         totalR += rM
         rTrades += 1
@@ -286,10 +302,12 @@ if activeTrade == "SHORT"
 // before TP1 is reached, so a position can be added on the dip.
 if useReEntry and activeTrade == "LONG" and not tp1Hit and not reEntryTagged and low <= reEntryPrice and low > slPrice
     reEntryTagged := true
+    evtReentry := true
     label.new(bar_index, low, "RE-ENTRY ➕\nAdd @ " + str.tostring(reEntryPrice, "#.##"), color=color.new(color.blue, 20), textcolor=color.white, style=label.style_label_up, size=size.tiny)
 
 if useReEntry and activeTrade == "SHORT" and not tp1Hit and not reEntryTagged and high >= reEntryPrice and high < slPrice
     reEntryTagged := true
+    evtReentry := true
     label.new(bar_index, high, "RE-ENTRY ➕\nAdd @ " + str.tostring(reEntryPrice, "#.##"), color=color.new(color.blue, 20), textcolor=color.white, style=label.style_label_down, size=size.tiny)
 
 // --- NEAR-TP1 PROXIMITY RESET (only before TP1 hit) ---
@@ -299,6 +317,16 @@ if activeTrade == "LONG" and not tp1Hit
     bool touchedNearTP = ta.highest(high, 3) >= nearTPLevel
     bool reversedAway  = close < nearTPLevel
     if touchedNearTP and reversedAway
+        // record this discretionary exit so the stats are complete
+        float rM = f_recordR(close, entryPrice, initRisk, true)
+        totalR += rM
+        rTrades += 1
+        if rM >= 0
+            tradeWins += 1
+            grossWinR += rM
+        else
+            tradeLosses += 1
+            grossLossR += -rM
         activeTrade := "NONE", tp1Hit := false, tp2Hit := false
 
 if activeTrade == "SHORT" and not tp1Hit
@@ -307,6 +335,16 @@ if activeTrade == "SHORT" and not tp1Hit
     bool touchedNearTP = ta.lowest(low, 3) <= nearTPLevel
     bool reversedAway  = close > nearTPLevel
     if touchedNearTP and reversedAway
+        // record this discretionary exit so the stats are complete
+        float rM = f_recordR(close, entryPrice, initRisk, false)
+        totalR += rM
+        rTrades += 1
+        if rM >= 0
+            tradeWins += 1
+            grossWinR += rM
+        else
+            tradeLosses += 1
+            grossLossR += -rM
         activeTrade := "NONE", tp1Hit := false, tp2Hit := false
 
 // --- SESSION STATE ---
@@ -356,8 +394,10 @@ bool baseShort = (pullbackMode ? pbShort : momShort) and trendOKshort and strong
 bool buySignal  = filtersOK and (baseLong  or brkLong)
 bool sellSignal = filtersOK and (baseShort or brkShort)
 
-bool doBuy  = buySignal  and (activeTrade != "LONG")
-bool doSell = sellSignal and (activeTrade != "SHORT")
+// Optional no-repaint gate: only act once the bar has closed (live = chart)
+bool barOK  = (not confirmOnClose) or barstate.isconfirmed
+bool doBuy  = buySignal  and (activeTrade != "LONG")  and barOK
+bool doSell = sellSignal and (activeTrade != "SHORT") and barOK
 
 if doBuy
     // opposite-signal flip: the new buy closes any open short first, acting as a stop
@@ -601,3 +641,13 @@ plot(activeTrade != "NONE" and tp1Hit ? slPrice : na, color=color.orange, style=
 
 // Pullback re-entry level while active (before TP1)
 plot((useReEntry and activeTrade != "NONE" and not tp1Hit) ? reEntryPrice : na, color=color.new(color.blue, 0), style=plot.style_stepline, linewidth=1, title="Re-Entry Level")
+
+// --- ALERTS (create one alert per event in TradingView's Add Alert dialog) ---
+alertcondition(doBuy,      title="BUY signal",      message="MIGO {{ticker}} {{interval}}: BUY @ {{close}}")
+alertcondition(doSell,     title="SELL signal",     message="MIGO {{ticker}} {{interval}}: SELL @ {{close}}")
+alertcondition(doBuy or doSell, title="Any entry (BUY or SELL)", message="MIGO {{ticker}} {{interval}}: new entry @ {{close}}")
+alertcondition(evtTP1,     title="TP1 hit",         message="MIGO {{ticker}} {{interval}}: TP1 hit — breakeven locked")
+alertcondition(evtTP2,     title="TP2 hit",         message="MIGO {{ticker}} {{interval}}: TP2 hit — TP1 profit locked")
+alertcondition(evtTP3,     title="TP3 hit",         message="MIGO {{ticker}} {{interval}}: TP3 hit — full run")
+alertcondition(evtSL,      title="Stop hit",        message="MIGO {{ticker}} {{interval}}: stop hit")
+alertcondition(evtReentry, title="Re-entry zone",   message="MIGO {{ticker}} {{interval}}: price at re-entry add level")
