@@ -421,23 +421,18 @@ async def signal_entry(payload: SignalEntryPayload):
         print(f"[signal-entry] HTF bias stored: {payload.direction} {sym} TF={tf}")
         return {"status": "ok", "routed_to": "htf-bias", "direction": payload.direction, "timeframe": tf}
 
-    # 2M XAUUSD signals are used only for ML data collection — not sent to Telegram
-    is_xauusd = sym.upper().split(":")[-1] in ("XAUUSD", "GOLD", "GC")
-    if is_xauusd and str(tf).strip() == "2":
-        print(f"[signal-entry] 2M XAUUSD signal received — ML only, not sent to Telegram")
-        return {"status": "ok", "routed_to": "ml-only", "reason": "2m_xauusd_suppressed"}
-
-    bias = get_active_bias(sym, payload.direction)
-    if bias is None:
-        print(f"[signal-entry] Suppressed {payload.direction} {sym} TF={tf} — no active HTF bias")
-        return {"status": "ok", "routed_to": "suppressed", "reason": "no_htf_bias"}
-
     from telegram_bot import send_entry_signal
     from scheduler import get_latest_news_sentiment, get_latest_velocity, get_latest_event
     entry = payload.entry_price or 0.0
     if entry <= 0:
         print(f"[signal-entry] Missing entry_price for {sym} {payload.direction} — skipping Telegram")
         return {"status": "ok", "routed_to": "suppressed", "reason": "no_entry_price"}
+
+    # HTF bias is context only — signal always sends (2M/5M can be scalp or counter-trend pullback)
+    bias        = get_active_bias(sym, payload.direction)
+    contra_bias = get_active_bias(sym, "SHORT" if payload.direction == "LONG" else "LONG")
+    htf_context = "with_bias" if bias else ("counter_trend" if contra_bias else "scalp")
+    print(f"[signal-entry] {payload.direction} {sym} TF={tf} htf={htf_context}")
 
     asyncio.create_task(send_entry_signal({
         "direction":   payload.direction,
@@ -455,8 +450,10 @@ async def signal_entry(payload: SignalEntryPayload):
         "velocity":    get_latest_velocity().get("label", "NORMAL"),
         "event":       get_latest_event().get("event_type", ""),
         "htf_bias":    bias,
+        "contra_bias": contra_bias,
+        "htf_context": htf_context,
     }))
-    return {"status": "ok", "routed_to": "signal-entry", "direction": payload.direction, "htf_confirmed": True}
+    return {"status": "ok", "routed_to": "signal-entry", "direction": payload.direction, "htf_context": htf_context}
 
 
 @app.post("/webhook")
@@ -493,23 +490,19 @@ async def unified_webhook(payload: UnifiedPayload):
             print(f"[webhook] HTF bias stored: {payload.direction} {sym} TF={tf}")
             return {"status": "ok", "routed_to": "htf-bias", "direction": payload.direction, "timeframe": tf}
 
-        # 2M XAUUSD signals are used only for ML data collection — not sent to Telegram
-        is_xauusd = sym.upper().split(":")[-1] in ("XAUUSD", "GOLD", "GC")
-        if is_xauusd and str(tf).strip() == "2":
-            print(f"[webhook] 2M XAUUSD signal received — ML only, not sent to Telegram")
-            return {"status": "ok", "routed_to": "ml-only", "reason": "2m_xauusd_suppressed"}
-
-        bias = get_active_bias(sym, payload.direction)
-        if bias is None:
-            print(f"[webhook] Suppressed {payload.direction} {sym} TF={tf} — no active HTF bias")
-            return {"status": "ok", "routed_to": "suppressed", "reason": "no_htf_bias"}
-
         from telegram_bot import send_entry_signal
         from scheduler import get_latest_news_sentiment, get_latest_velocity, get_latest_event
         entry = payload.entry_price or 0.0
         if entry <= 0:
             print(f"[webhook] Missing entry_price for {sym} {payload.direction} — skipping Telegram")
             return {"status": "ok", "routed_to": "suppressed", "reason": "no_entry_price"}
+
+        # HTF bias is context only — signal always sends (2M/5M can be scalp or counter-trend pullback)
+        bias        = get_active_bias(sym, payload.direction)
+        contra_bias = get_active_bias(sym, "SHORT" if payload.direction == "LONG" else "LONG")
+        htf_context = "with_bias" if bias else ("counter_trend" if contra_bias else "scalp")
+        print(f"[webhook] {payload.direction} {sym} TF={tf} htf={htf_context} → sending to Telegram")
+
         asyncio.create_task(send_entry_signal({
             "direction":   payload.direction,
             "timeframe":   tf,
@@ -526,8 +519,10 @@ async def unified_webhook(payload: UnifiedPayload):
             "velocity":    get_latest_velocity().get("label", "NORMAL"),
             "event":       get_latest_event().get("event_type", ""),
             "htf_bias":    bias,
+            "contra_bias": contra_bias,
+            "htf_context": htf_context,
         }))
-        return {"status": "ok", "routed_to": "signal-entry", "direction": payload.direction, "htf_confirmed": True}
+        return {"status": "ok", "routed_to": "signal-entry", "direction": payload.direction, "htf_context": htf_context}
 
     if payload.outcome == "HEARTBEAT":
         from ml_model import Features

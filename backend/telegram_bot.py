@@ -69,13 +69,21 @@ async def send_entry_signal(s: dict) -> bool:
     asset_emoji  = "🥇" if is_gold else "📊"
     now          = datetime.now(timezone.utc).strftime("%H:%M UTC — %d %b %Y")
 
+    htf_context  = s.get("htf_context", "")
+    contra_bias  = s.get("contra_bias")
+
     if htf_bias and isinstance(htf_bias, dict) and htf_bias.get("timeframe") and htf_bias.get("expires_at"):
         from htf_bias import bias_remaining_label, tf_label
         htf_tf      = tf_label(htf_bias["timeframe"])
         remaining   = bias_remaining_label(htf_bias)
         confirmation = f"✅ HTF Bias: {htf_tf} {direction}  (⏳ {remaining})\n"
+    elif contra_bias and isinstance(contra_bias, dict) and contra_bias.get("timeframe"):
+        from htf_bias import tf_label
+        contra_dir = "SHORT" if direction == "LONG" else "LONG"
+        htf_tf     = tf_label(contra_bias["timeframe"])
+        confirmation = f"⚠️ Counter-trend: {htf_tf} is {contra_dir}  — scalp / pullback entry\n"
     else:
-        confirmation = ""
+        confirmation = "📈 Scalp — no HTF bias active\n"
 
     msg = (
         f"{dir_emoji} <b>{direction} SIGNAL</b> — {asset_emoji} {symbol_clean}\n"
