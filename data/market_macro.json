@@ -1,0 +1,25 @@
+{
+  "bias": 0.5,
+  "label": "BULLISH",
+  "components": {
+    "cot": 0.5
+  },
+  "real_yield": null,
+  "dollar": null,
+  "breakeven": null,
+  "cot": {
+    "report_date": "2026-06-02",
+    "spec_long": 206096,
+    "spec_short": 30076,
+    "spec_net": 176020,
+    "spec_net_prev": 154260,
+    "net_change": 21760
+  },
+  "gld": null,
+  "updated_at": "2026-06-08T16:24:22.064627+00:00",
+  "sources_live": {
+    "fred": false,
+    "cot": true,
+    "gld": false
+  }
+}
