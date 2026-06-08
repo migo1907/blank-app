@@ -588,7 +588,7 @@
   {
     "symbol": "HTZ",
     "direction": "LONG",
-    "trigger": "FVG",
+    "trigger": "",
     "entry_price": 5.295,
     "exit_price": 5.11,
     "outcome": "LOSS",
@@ -625,8 +625,8 @@
     "f23_rsiacc": 0.5359,
     "f24_fvgq": 0.0,
     "f25_tod": -0.3827,
-    "id": "e30fb20a",
+    "id": "97a07faf",
     "pool": "STOCKS_MOMENTUM_30M",
-    "created_at": "2026-06-08T16:00:34.362315+00:00"
+    "created_at": "2026-06-08T16:00:36.924422+00:00"
   }
 ]
