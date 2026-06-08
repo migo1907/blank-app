@@ -530,7 +530,7 @@
   {
     "symbol": "PLUG",
     "direction": "LONG",
-    "trigger": "",
+    "trigger": "RSI",
     "entry_price": 3.28,
     "exit_price": 3.185,
     "outcome": "LOSS",
@@ -567,8 +567,8 @@
     "f23_rsiacc": 0.2618,
     "f24_fvgq": 0.0,
     "f25_tod": -0.3827,
-    "id": "fc56cd98",
+    "id": "71ab969a",
     "pool": "STOCKS_MOMENTUM_15M",
-    "created_at": "2026-06-08T18:46:02.438875+00:00"
+    "created_at": "2026-06-08T18:46:02.599135+00:00"
   }
 ]
