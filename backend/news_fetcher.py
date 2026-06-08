@@ -720,33 +720,43 @@ _SCORE_MAX_TOKENS = 4096
 def _score_chunk_with_claude(client, chunk: list[dict]) -> list[dict]:
     """Score one bounded chunk of headlines. Returns a list aligned to `chunk`."""
     numbered = "\n".join(f"{i+1}. {a['title']}" for i, a in enumerate(chunk))
-    try:
-        response = client.messages.create(
-            model="claude-haiku-4-5-20251001",
-            max_tokens=_SCORE_MAX_TOKENS,
-            messages=[{"role": "user", "content": XAU_SENTIMENT_PROMPT.format(headlines=numbered)}],
-        )
-        if not response.content or not response.content[0].text:
-            raise ValueError("Claude returned empty response content")
-        if response.stop_reason == "max_tokens":
-            raise ValueError(f"response truncated at max_tokens for {len(chunk)} headlines")
-        raw = response.content[0].text.strip()
-        if raw.startswith("```"):
-            parts = raw.split("```")
-            raw = parts[1] if len(parts) >= 2 else raw
-            if raw.startswith("json"):
-                raw = raw[4:]
-        import re as _re
-        # Model sometimes wraps the array in prose ("Here are the scores: [...]").
-        # Extract the outermost JSON array so leading/trailing text can't break parsing.
-        first, last = raw.find("["), raw.rfind("]")
-        if first != -1 and last != -1 and last > first:
-            raw = raw[first:last + 1]
-        raw = _re.sub(r",\s*([}\]])", r"\1", raw)  # strip trailing commas
-        return json.loads(raw)
-    except Exception as e:
-        print(f"[news] Claude chunk scoring failed ({len(chunk)} headlines): {e}")
-        return [{"score": 0.0, "impact": "LOW", "keywords": []}] * len(chunk)
+    import re as _re
+    _zero = [{"score": 0.0, "impact": "LOW", "keywords": []}] * len(chunk)
+
+    for attempt in range(3):
+        try:
+            response = client.messages.create(
+                model="claude-haiku-4-5-20251001",
+                max_tokens=_SCORE_MAX_TOKENS,
+                messages=[{"role": "user", "content": XAU_SENTIMENT_PROMPT.format(headlines=numbered)}],
+            )
+            if not response.content or not response.content[0].text:
+                raise ValueError("Claude returned empty response content")
+            if response.stop_reason == "max_tokens":
+                raise ValueError(f"response truncated at max_tokens for {len(chunk)} headlines")
+            raw = response.content[0].text.strip()
+            if raw.startswith("```"):
+                parts = raw.split("```")
+                raw = parts[1] if len(parts) >= 2 else raw
+                if raw.startswith("json"):
+                    raw = raw[4:]
+            first, last = raw.find("["), raw.rfind("]")
+            if first != -1 and last != -1 and last > first:
+                raw = raw[first:last + 1]
+            raw = _re.sub(r",\s*([}\]])", r"\1", raw)
+            return json.loads(raw)
+        except Exception as e:
+            err_str = str(e)
+            # Transient: rate limit (429) or overload (529) — retry with backoff
+            is_transient = any(code in err_str for code in ("429", "529", "529", "overloaded", "rate_limit", "RateLimitError", "OverloadedError"))
+            if is_transient and attempt < 2:
+                wait = 2 ** (attempt + 1)  # 2s, 4s
+                print(f"[news] Claude transient error (attempt {attempt+1}/3), retrying in {wait}s: {e}")
+                time.sleep(wait)
+                continue
+            print(f"[news] Claude chunk scoring failed after {attempt+1} attempt(s) ({len(chunk)} headlines): {e}")
+            return _zero
+    return _zero
 
 
 def score_headlines_with_claude(articles: list[dict]) -> list[dict]:
