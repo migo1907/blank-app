@@ -120,6 +120,32 @@ app = FastAPI(
 )
 
 
+# Pine Script str.tostring(na, "#.##") emits unquoted NaN — invalid JSON.
+# This middleware replaces :NaN and ,NaN with :0 and ,0 before the JSON parser runs.
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request as StarletteRequest
+import re as _re
+
+_NAN_RE = _re.compile(rb':\s*NaN\b')
+_NAN_RE2 = _re.compile(rb',\s*NaN\b')
+
+class _SanitizeNaNMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: StarletteRequest, call_next):
+        ct = request.headers.get("content-type", "")
+        if "json" in ct:
+            body = await request.body()
+            if b'NaN' in body:
+                body = _NAN_RE.sub(b':0', body)
+                body = _NAN_RE2.sub(b',0', body)
+                # Rebuild the receive channel with sanitized body
+                async def _receive():
+                    return {"type": "http.request", "body": body, "more_body": False}
+                request = StarletteRequest(request.scope, _receive)
+        return await call_next(request)
+
+app.add_middleware(_SanitizeNaNMiddleware)
+
+
 class TradeOutcomePayload(BaseModel):
     secret:      str
     trade_id:    Optional[str]   = None
