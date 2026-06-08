@@ -1,0 +1,525 @@
+//@version=6
+indicator("VWAP Stretch Mean Reversion + HV AVWAP", overlay=true, max_labels_count=500, max_lines_count=500)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// INPUTS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+showBands       = input.bool(true,  "Show VWAP Bands",            group="Display")
+showLabels      = input.bool(true,  "Show Info Panel",             group="Display")
+showSignals     = input.bool(true,  "Show Entry Signals",          group="Display")
+showFillZones   = input.bool(true,  "Show Stretch Zones",          group="Display")
+showTradeLevels = input.bool(true,  "Show SL / TP Lines on Chart", group="Display")
+showHVLine      = input.bool(true,  "Show HV AVWAP Line",          group="HV AVWAP")
+hvAutoLookback  = input.bool(true,  "Auto Lookback by Timeframe",  group="HV AVWAP")
+hvManualLength  = input.int(100,    "Manual Lookback (bars)",      group="HV AVWAP", minval=20, maxval=500)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ASSET CLASSIFICATION  (syminfo.type first, ticker second — no substring over-match)
+// ═══════════════════════════════════════════════════════════════════════════════
+//
+// syminfo.type ∈ {forex, cfd, futures, index, fund, stock, crypto, ...}
+// We classify by TYPE, then refine by exact ticker so a stock like "ESTC" or
+// "RES" can never be misrouted into the SPX/ES branch.
+
+symType = syminfo.type
+tkr     = syminfo.ticker          // bare ticker, no exchange prefix
+
+isGold    = (symType == "forex" or symType == "cfd" or symType == "futures")
+             and (str.contains(tkr, "XAU") or str.contains(tkr, "GOLD")
+                  or str.startswith(tkr, "GC") or str.startswith(tkr, "MGC"))
+isSPYx    = (symType == "fund")  and tkr == "SPY"
+isQQQx    = (symType == "fund")  and tkr == "QQQ"
+isSPXCash = (symType == "index") and (str.contains(tkr, "SPX") or str.contains(tkr, "US500"))
+isIdxFut  = (symType == "futures")
+             and (str.startswith(tkr, "ES")  or str.startswith(tkr, "MES")
+                  or str.startswith(tkr, "NQ") or str.startswith(tkr, "MNQ"))
+             and not isGold
+isETF     = (symType == "fund")  and not isSPYx and not isQQQx
+isStock   = (symType == "stock")
+
+assetClass = isGold     ? "GOLD"
+           : isSPXCash  ? "SPX*"
+           : isIdxFut   ? "IDX-FUT"
+           : isSPYx     ? "SPY"
+           : isQQQx     ? "QQQ"
+           : isETF      ? "ETF"
+           : isStock    ? "STOCK"
+           :              "OTHER"
+
+// ── Per-class capability flags ────────────────────────────────────────────────
+// hasVolume : is there ANY volume to build VWAP from?  (SPX cash index = none)
+// volTrust  : is that volume REAL exchange volume?      (gold/forex = tick only)
+// is24h     : near-continuous session (no RTH open/close window filtering)
+// useVix    : VIX is the correct vol proxy (index-linked products)
+// useStkVol : single name → scale by its OWN realized vol, not VIX
+hasVolume = not isSPXCash
+volTrust  = hasVolume and not isGold
+is24h     = isGold or isIdxFut
+useVix    = isSPYx or isQQQx or isSPXCash or isIdxFut
+useStkVol = isStock or isETF
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// TIMEFRAME / HTF
+// ═══════════════════════════════════════════════════════════════════════════════
+
+tfMinutes = timeframe.in_seconds(timeframe.period) / 60.0
+htfPeriod = tfMinutes <= 5 ? "30" : tfMinutes <= 15 ? "60" : tfMinutes <= 60 ? "240" : "D"
+
+// Auto lookback: 2M=150bars(5h) | 5M=100bars(8h) | 15M=50bars(12h) | 30M=30bars(15h)
+hvLookback = hvAutoLookback ? (tfMinutes <= 2 ? 150 : tfMinutes <= 5 ? 100 : tfMinutes <= 15 ? 50 : 30) : hvManualLength
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// VOLATILITY REGIME  →  ADAPTIVE THRESHOLDS
+// Index products scale by VIX; single names scale by their own ATR% regime;
+// gold uses a fixed multiplier (VIX is the wrong proxy for it).
+// ═══════════════════════════════════════════════════════════════════════════════
+
+baseThreshold_2sigma = isGold ? 1.0 : (isSPYx or isSPXCash or isIdxFut) ? 0.50 : isQQQx ? 0.70 : 0.60
+baseThreshold_3sigma = isGold ? 1.5 : (isSPYx or isSPXCash or isIdxFut) ? 0.75 : isQQQx ? 1.00 : 0.90
+
+// VIX path (index-linked)
+vixValue      = useVix ? request.security("CBOE:VIX", timeframe.period, close, lookahead=barmerge.lookahead_off) : na
+vixOK         = useVix and not na(vixValue)
+vixMultiplier = vixOK ? (vixValue < 15 ? 0.8 : vixValue < 22 ? 1.0 : 1.3) : 1.0
+
+// Single-name path: current ATR vs its own 50-bar average → own vol regime
+atr14    = ta.atr(14)
+atrRatio = ta.sma(atr14, 50) > 0 ? atr14 / ta.sma(atr14, 50) : 1.0
+stkMult  = atrRatio < 0.8 ? 0.8 : atrRatio < 1.3 ? 1.0 : 1.3
+
+volMultiplier = useVix ? vixMultiplier : useStkVol ? stkMult : 1.0
+
+// Regime label for the dashboard
+volRegime = useVix   ? (not vixOK ? "VIX N/A" : vixValue < 15 ? "LOW"  : vixValue < 22 ? "NORMAL" : "HIGH")
+          : useStkVol ? (atrRatio < 0.8 ? "LOW" : atrRatio < 1.3 ? "NORMAL" : "HIGH")
+          :             "FIXED"
+
+threshold_2sigma = baseThreshold_2sigma * volMultiplier
+threshold_3sigma = baseThreshold_3sigma * volMultiplier
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SESSION-ANCHORED VWAP + σ BANDS
+// Manual daily-reset cumulation. The old version mixed session-resetting
+// ta.vwap() with chart-wide ta.cum() for the variance, so the σ bands drifted
+// and grew with chart age. Resetting both on the session boundary fixes it.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+newSession = ta.change(time("D")) != 0
+
+var float _pv  = 0.0     // Σ price·volume
+var float _vol = 0.0     // Σ volume
+var float _var = 0.0     // Σ volume·(price − vwap)²
+if newSession
+    _pv  := 0.0
+    _vol := 0.0
+    _var := 0.0
+
+vwapSrc = close
+_pv  += vwapSrc * volume
+_vol += volume
+vwapValue  = _vol > 0 ? _pv / _vol : vwapSrc
+_var += volume * math.pow(vwapSrc - vwapValue, 2)
+vwapStdDev = _vol > 0 ? math.sqrt(_var / _vol) : 0.0
+
+vwap_plus1   = vwapValue + vwapStdDev
+vwap_minus1  = vwapValue - vwapStdDev
+vwap_plus2   = vwapValue + 2.0 * vwapStdDev
+vwap_minus2  = vwapValue - 2.0 * vwapStdDev
+vwap_plus3   = vwapValue + 3.0 * vwapStdDev
+vwap_minus3  = vwapValue - 3.0 * vwapStdDev
+
+pctFromVWAP  = vwapValue != 0 ? (close - vwapValue) / vwapValue * 100.0 : 0.0
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// HV AVWAP — HIGHEST VOLUME ANCHORED VWAP (INTRADAY, NATIVE PINE CALCULATION)
+// NOTE: anchor is the max-volume bar in a ROLLING window, so it can relocate when
+// that bar slides out of the lookback. Acceptable, but a session-latched anchor
+// would be steadier — left as a follow-up.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+var int   hvOffset = 0
+var float hvMaxVol = 0.0
+hvOffset := 0
+hvMaxVol := 0.0
+for i = 0 to hvLookback - 1
+    if volume[i] > hvMaxVol
+        hvMaxVol := volume[i]
+        hvOffset := i
+
+float hvCumPV = 0.0
+float hvCumV  = 0.0
+for i = 0 to hvOffset
+    hvCumPV += hlc3[i] * volume[i]
+    hvCumV  += volume[i]
+
+hvAVWAP    = hvCumV > 0 ? hvCumPV / hvCumV : na
+pctFromHV  = not na(hvAVWAP) and hvAVWAP != 0 ? (close - hvAVWAP) / hvAVWAP * 100.0 : na
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// HV AVWAP CONFLUENCE
+// ═══════════════════════════════════════════════════════════════════════════════
+
+hvSessionDiff   = not na(hvAVWAP) and vwapValue != 0 ? math.abs(hvAVWAP - vwapValue) / vwapValue * 100.0 : 999.0
+hvConverging    = hvSessionDiff < 0.25
+hvMagnetShort   = not na(hvAVWAP) and close > hvAVWAP and hvAVWAP > vwapValue
+hvMagnetLong    = not na(hvAVWAP) and close < hvAVWAP and hvAVWAP < vwapValue
+hvExtendedShort = not na(hvAVWAP) and hvAVWAP < vwapValue
+hvExtendedLong  = not na(hvAVWAP) and hvAVWAP > vwapValue
+
+hvConfShort          = hvConverging ? 6 : hvMagnetShort ? 4 : 0
+hvConfLong           = hvConverging ? 6 : hvMagnetLong  ? 4 : 0
+hvAlsoStretchedShort = not na(pctFromHV) and pctFromHV >  threshold_2sigma
+hvAlsoStretchedLong  = not na(pctFromHV) and pctFromHV < -threshold_2sigma
+hvStretchBoostShort  = hvAlsoStretchedShort ? 3 : 0
+hvStretchBoostLong   = hvAlsoStretchedLong  ? 3 : 0
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ATR STOP + SMART TP TARGETS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+atr          = atr14
+stopDistance = atr * 1.5
+
+// SHORT targets
+shortT1   = hvMagnetShort and not hvConverging ? hvAVWAP : vwapValue
+shortT2   = hvMagnetShort and not hvConverging ? vwapValue : hvExtendedShort and not na(hvAVWAP) ? hvAVWAP : vwap_minus1
+shortSL   = high + stopDistance
+shortT1lbl = hvMagnetShort and not hvConverging ? "[HV]" : "[VWAP]"
+
+// LONG targets
+longT1    = hvMagnetLong  and not hvConverging ? hvAVWAP : vwapValue
+longT2    = hvMagnetLong  and not hvConverging ? vwapValue : hvExtendedLong   and not na(hvAVWAP) ? hvAVWAP : vwap_plus1
+longSL    = low  - stopDistance
+longT1lbl = hvMagnetLong  and not hvConverging ? "[HV]" : "[VWAP]"
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// VWAP SLOPE
+// ═══════════════════════════════════════════════════════════════════════════════
+
+slopeLookback = 10
+vwapSlope     = vwapValue[slopeLookback] != 0 ? (vwapValue - vwapValue[slopeLookback]) / vwapValue[slopeLookback] * 100.0 : 0.0
+vwapSlopeFlat = math.abs(vwapSlope) < 0.15
+vwapSlopeUp   = vwapSlope >  0.15
+vwapSlopeDown = vwapSlope < -0.15
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// HTF ANALYSIS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+htfClose    = request.security(syminfo.tickerid, htfPeriod, close,             lookahead=barmerge.lookahead_off)
+htfVWAP     = request.security(syminfo.tickerid, htfPeriod, ta.vwap(close),    lookahead=barmerge.lookahead_off)
+htfVolume   = request.security(syminfo.tickerid, htfPeriod, volume,            lookahead=barmerge.lookahead_off)
+htfVWAPPrev = request.security(syminfo.tickerid, htfPeriod, ta.vwap(close)[3], lookahead=barmerge.lookahead_off)
+htfVolAvg   = request.security(syminfo.tickerid, htfPeriod, ta.sma(volume, 4), lookahead=barmerge.lookahead_off)
+
+htfVWAPSlope = htfVWAPPrev != 0 ? (htfVWAP - htfVWAPPrev) / htfVWAPPrev * 100.0 : 0.0
+htfVWAPFlat  = math.abs(htfVWAPSlope) < 0.20
+htfVolDecel  = htfVolAvg != 0 and htfVolume < htfVolAvg * 0.85
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// TIME FILTER  (RTH products skip first/last 30 min; 24h products always valid)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+t             = time(timeframe.period)
+sessionStart  = ta.valuewhen(ta.change(time("D")) != 0, time, 0)
+sessionLength = 6.5 * 60 * 60 * 1000          // RTH window (only used when not 24h)
+sessionEnd    = sessionStart + sessionLength
+minsFromStart = (t - sessionStart) / (60 * 1000)
+minsFromEnd   = (sessionEnd - t)   / (60 * 1000)
+validTime     = is24h ? true : (minsFromStart > 30 and minsFromEnd > 30)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// RSI DIVERGENCE + REJECTION CANDLES
+// ═══════════════════════════════════════════════════════════════════════════════
+
+rsi        = ta.rsi(close, 14)
+bearishDiv = close > ta.highest(close[1], 10) and rsi < ta.highest(rsi[1], 10) and close > vwapValue
+bullishDiv = close < ta.lowest(close[1],  10) and rsi > ta.lowest(rsi[1],  10) and close < vwapValue
+bearishRej = high > high[1] and close < open and (high - close) > (close - open) * 2.0
+bullishRej = low  < low[1]  and close > open and (close - low)  > (open - close) * 2.0
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// STRETCH FLAGS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+stretchedLong       = pctFromVWAP >  threshold_2sigma
+stretchedShort      = pctFromVWAP < -threshold_2sigma
+extremeStretchLong  = pctFromVWAP >  threshold_3sigma
+extremeStretchShort = pctFromVWAP < -threshold_3sigma
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SIGNAL CONDITIONS  (gated by hasVolume — VWAP/bands are invalid without it)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+vwapOkForShort    = vwapSlopeFlat or vwapSlopeDown
+htfVWAPOkForShort = htfVWAPFlat   or htfVWAPSlope < 0
+vwapOkForLong     = vwapSlopeFlat or vwapSlopeUp
+htfVWAPOkForLong  = htfVWAPFlat   or htfVWAPSlope > 0
+
+shortSetup  = hasVolume and stretchedLong  and vwapOkForShort and htfVWAPOkForShort and htfVolDecel and validTime
+longSetup   = hasVolume and stretchedShort and vwapOkForLong  and htfVWAPOkForLong  and htfVolDecel and validTime
+
+shortSignal = shortSetup and (bearishDiv or bearishRej)
+longSignal  = longSetup  and (bullishDiv or bullishRej)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// CONFIDENCE SCORING
+// ═══════════════════════════════════════════════════════════════════════════════
+
+confBase       = extremeStretchLong or extremeStretchShort ? 65 : 55
+confHTF        = htfVWAPFlat ? 5 : 3
+confConfirm    = (bearishDiv or bullishDiv) ? 8 : (bearishRej or bullishRej) ? 5 : 0
+confVol        = htfVolDecel ? 4 : 0
+confHVShort    = hvConfShort + hvStretchBoostShort
+confHVLong     = hvConfLong  + hvStretchBoostLong
+
+confShortTotal = math.min(confBase + confHTF + confConfirm + confVol + confHVShort, 94)
+confLongTotal  = math.min(confBase + confHTF + confConfirm + confVol + confHVLong,  94)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// TRADE STATE — NO REPRINT
+// Signals fire once, lock in entry/TP/SL, reset only when T2 or SL is hit.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+var string tradeDir    = "NONE"
+var float  tradeEntry  = na
+var float  tradeT1     = na
+var float  tradeT2     = na
+var float  tradeSL     = na
+var int    tradeConf   = 0
+var string tradeT1lbl  = ""
+var bool   t1Hit       = false
+
+bool tradeActive = tradeDir != "NONE"
+
+bool newShort = shortSignal and not tradeActive
+bool newLong  = longSignal  and not tradeActive
+
+if newShort
+    tradeDir   := "SHORT"
+    tradeEntry := close
+    tradeT1    := shortT1
+    tradeT2    := shortT2
+    tradeSL    := shortSL
+    tradeConf  := confShortTotal
+    tradeT1lbl := shortT1lbl
+    t1Hit      := false
+
+if newLong
+    tradeDir   := "LONG"
+    tradeEntry := close
+    tradeT1    := longT1
+    tradeT2    := longT2
+    tradeSL    := longSL
+    tradeConf  := confLongTotal
+    tradeT1lbl := longT1lbl
+    t1Hit      := false
+
+// T1 partial — mark hit but keep trade open for T2
+if tradeActive and tradeDir == "SHORT" and not t1Hit and low <= tradeT1
+    t1Hit := true
+if tradeActive and tradeDir == "LONG"  and not t1Hit and high >= tradeT1
+    t1Hit := true
+
+// Full close: SL or T2 hit
+if tradeActive and tradeDir == "SHORT" and (high >= tradeSL or (t1Hit and low <= tradeT2))
+    tradeDir := "NONE"
+if tradeActive and tradeDir == "LONG"  and (low  <= tradeSL or (t1Hit and high >= tradeT2))
+    tradeDir := "NONE"
+
+tradeActive := tradeDir != "NONE"
+
+// R:R
+rrShort = not na(tradeEntry) and not na(tradeSL) and (tradeSL - tradeEntry) != 0 ? (tradeEntry - tradeT1) / (tradeSL - tradeEntry) : 0.0
+rrLong  = not na(tradeEntry) and not na(tradeSL) and (tradeEntry - tradeSL) != 0 ? (tradeT1 - tradeEntry) / (tradeEntry - tradeSL) : 0.0
+tradeRR = tradeDir == "SHORT" ? rrShort : tradeDir == "LONG" ? rrLong : 0.0
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PLOTS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+plot(vwapValue,                    "VWAP",     color=color.new(color.yellow, 0),  linewidth=2)
+plot(showBands ? vwap_plus1  : na, "VWAP +1σ", color=color.new(color.blue,   70), linewidth=1)
+plot(showBands ? vwap_minus1 : na, "VWAP -1σ", color=color.new(color.blue,   70), linewidth=1)
+plot(showBands ? vwap_plus2  : na, "VWAP +2σ", color=color.new(color.orange, 50), linewidth=1, style=plot.style_circles)
+plot(showBands ? vwap_minus2 : na, "VWAP -2σ", color=color.new(color.orange, 50), linewidth=1, style=plot.style_circles)
+plot(showBands ? vwap_plus3  : na, "VWAP +3σ", color=color.new(color.red,    30), linewidth=1, style=plot.style_cross)
+plot(showBands ? vwap_minus3 : na, "VWAP -3σ", color=color.new(color.red,    30), linewidth=1, style=plot.style_cross)
+
+plot(showHVLine ? hvAVWAP : na, "HV AVWAP", color=color.new(color.fuchsia, 0), linewidth=2)
+
+fill(plot(vwap_plus2,  display=display.none), plot(vwap_plus3,  display=display.none), color=showFillZones ? color.new(color.red,   90) : na, title="Fade Zone Short")
+fill(plot(vwap_minus2, display=display.none), plot(vwap_minus3, display=display.none), color=showFillZones ? color.new(color.green, 90) : na, title="Fade Zone Long")
+
+bgcolor(extremeStretchLong  ? color.new(color.red,   95) : na, title="Extreme Long Stretch")
+bgcolor(extremeStretchShort ? color.new(color.green, 95) : na, title="Extreme Short Stretch")
+
+plotshape(showSignals and newShort, "Short Entry", shape.triangledown, location.abovebar, color=color.new(color.red,  0), size=size.normal)
+plotshape(showSignals and newLong,  "Long Entry",  shape.triangleup,   location.belowbar, color=color.new(color.lime, 0), size=size.normal)
+
+plotshape(t1Hit and not t1Hit[1] and tradeDir == "SHORT", "T1 Short Hit", shape.circle, location.belowbar, color=color.new(color.lime,    20), size=size.small)
+plotshape(t1Hit and not t1Hit[1] and tradeDir == "LONG",  "T1 Long Hit",  shape.circle, location.abovebar, color=color.new(color.lime,    20), size=size.small)
+
+plotshape(showSignals and shortSetup and hvMagnetShort, "HV Magnet ↓", shape.diamond, location.abovebar, color=color.new(color.fuchsia, 30), size=size.tiny)
+plotshape(showSignals and longSetup  and hvMagnetLong,  "HV Magnet ↑", shape.diamond, location.belowbar, color=color.new(color.fuchsia, 30), size=size.tiny)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SL / TP LINES ON CHART (persistent while trade is open)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+var line  slLine  = na
+var line  t1Line  = na
+var line  t2Line  = na
+var label slLabel = na
+var label t1Label = na
+var label t2Label = na
+var label enLabel = na
+
+if newShort or newLong
+    line.delete(slLine)
+    line.delete(t1Line)
+    line.delete(t2Line)
+    label.delete(slLabel)
+    label.delete(t1Label)
+    label.delete(t2Label)
+    label.delete(enLabel)
+
+    float en  = close
+    float sl  = newShort ? shortSL  : longSL
+    float t1  = newShort ? shortT1  : longT1
+    float t2  = newShort ? shortT2  : longT2
+    string t1l = newShort ? shortT1lbl : longT1lbl
+
+    if showTradeLevels
+        slLine  := line.new(bar_index, sl, bar_index + 40, sl, color=color.red,            width=2, style=line.style_dashed, extend=extend.right)
+        t1Line  := line.new(bar_index, t1, bar_index + 40, t1, color=color.lime,           width=2, style=line.style_solid,  extend=extend.right)
+        t2Line  := line.new(bar_index, t2, bar_index + 40, t2, color=color.new(color.green, 30), width=1, style=line.style_dashed, extend=extend.right)
+        enLabel := label.new(bar_index, en, "ENTRY " + str.tostring(en, "#.##"), style=newShort ? label.style_label_down : label.style_label_up, color=color.gray, textcolor=color.white, size=size.small)
+        slLabel := label.new(bar_index, sl, "SL " + str.tostring(sl, "#.##"), style=newShort ? label.style_label_up : label.style_label_down, color=color.red, textcolor=color.white, size=size.small)
+        t1Label := label.new(bar_index, t1, "T1 " + str.tostring(t1, "#.##") + " " + t1l, style=newShort ? label.style_label_up : label.style_label_down, color=color.lime, textcolor=color.black, size=size.small)
+        t2Label := label.new(bar_index, t2, "T2 " + str.tostring(t2, "#.##"), style=newShort ? label.style_label_up : label.style_label_down, color=color.green, textcolor=color.white, size=size.small)
+
+if not tradeActive and tradeActive[1]
+    line.delete(slLine)
+    line.delete(t1Line)
+    line.delete(t2Line)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════════════════════════════════
+
+if showLabels and barstate.islast
+    var table dash = table.new(position.top_right, 2, 24, border_width=1, border_color=color.new(color.gray, 50), frame_width=1, frame_color=color.gray)
+
+    // ── Header ──
+    table.cell(dash, 0, 0, "VWAP STRETCH + HV AVWAP", text_color=color.white, bgcolor=color.rgb(65, 14, 58), text_size=size.small)
+    table.merge_cells(dash, 0, 0, 1, 0)
+
+    // ── Asset / TF ──
+    table.cell(dash, 0, 1, "Asset", text_color=color.white, bgcolor=color.new(color.gray, 50), text_size=size.small)
+    table.cell(dash, 1, 1, assetClass + (hasVolume ? "" : "  ⚠ no vol"), text_color=hasVolume ? color.yellow : color.red, bgcolor=color.new(color.gray, 70), text_size=size.small)
+
+    table.cell(dash, 0, 2, "TF / HTF", text_color=color.white, bgcolor=color.new(color.gray, 50), text_size=size.small)
+    table.cell(dash, 1, 2, timeframe.period + "  /  " + htfPeriod, text_color=color.aqua, bgcolor=color.new(color.gray, 70), text_size=size.small)
+
+    // ── Vol regime ──
+    table.cell(dash, 0, 3, "Vol Regime", text_color=color.white, bgcolor=color.new(color.gray, 50), text_size=size.small)
+    vixCol  = volRegime == "LOW" ? color.lime : volRegime == "NORMAL" ? color.yellow : volRegime == "HIGH" ? color.red : color.gray
+    vixDisp = useVix ? (vixOK ? volRegime + "  (VIX " + str.tostring(vixValue, "#.#") + ")" : "VIX N/A")
+              : useStkVol ? volRegime + "  (ATRx" + str.tostring(atrRatio, "#.##") + ")"
+              : "FIXED"
+    table.cell(dash, 1, 3, vixDisp, text_color=vixCol, bgcolor=color.new(color.gray, 70), text_size=size.small)
+
+    // ── SESSION VWAP ──
+    table.cell(dash, 0, 4, "── SESSION VWAP ──", text_color=color.yellow, bgcolor=color.rgb(20, 20, 35), text_size=size.small)
+    table.merge_cells(dash, 0, 4, 1, 4)
+
+    table.cell(dash, 0, 5, "% from VWAP", text_color=color.white, bgcolor=color.new(color.gray, 50), text_size=size.small)
+    pctCol = math.abs(pctFromVWAP) > threshold_3sigma ? color.red : math.abs(pctFromVWAP) > threshold_2sigma ? color.orange : color.gray
+    table.cell(dash, 1, 5, str.tostring(pctFromVWAP, "#.###") + "%", text_color=pctCol, bgcolor=color.new(color.gray, 70), text_size=size.small)
+
+    table.cell(dash, 0, 6, "Threshold 2σ", text_color=color.white, bgcolor=color.new(color.gray, 50), text_size=size.small)
+    table.cell(dash, 1, 6, "±" + str.tostring(threshold_2sigma, "#.##") + "%", text_color=color.orange, bgcolor=color.new(color.gray, 70), text_size=size.small)
+
+    table.cell(dash, 0, 7, "VWAP Slope", text_color=color.white, bgcolor=color.new(color.gray, 50), text_size=size.small)
+    slopeTxt = vwapSlopeFlat ? "FLAT" : vwapSlopeUp ? "↑ UP" : "↓ DOWN"
+    slopeCol = vwapSlopeFlat ? color.yellow : vwapSlopeUp ? color.lime : color.red
+    table.cell(dash, 1, 7, slopeTxt + "  (" + str.tostring(vwapSlope, "#.##") + "%)", text_color=slopeCol, bgcolor=color.new(color.gray, 70), text_size=size.small)
+
+    table.cell(dash, 0, 8, "HTF Vol Decel", text_color=color.white, bgcolor=color.new(color.gray, 50), text_size=size.small)
+    table.cell(dash, 1, 8, htfVolDecel ? "YES ✓" : "NO ✗", text_color=htfVolDecel ? color.lime : color.red, bgcolor=color.new(color.gray, 70), text_size=size.small)
+
+    // ── HV AVWAP ──
+    table.cell(dash, 0, 9, "── HV AVWAP ──", text_color=color.fuchsia, bgcolor=color.rgb(20, 20, 35), text_size=size.small)
+    table.merge_cells(dash, 0, 9, 1, 9)
+
+    table.cell(dash, 0, 10, "HV AVWAP", text_color=color.white, bgcolor=color.new(color.gray, 50), text_size=size.small)
+    table.cell(dash, 1, 10, not na(hvAVWAP) ? str.tostring(hvAVWAP, "#.##") : "N/A", text_color=color.fuchsia, bgcolor=color.new(color.gray, 70), text_size=size.small)
+
+    table.cell(dash, 0, 11, "% from HV", text_color=color.white, bgcolor=color.new(color.gray, 50), text_size=size.small)
+    hvPctDisp = not na(pctFromHV) ? str.tostring(pctFromHV, "#.###") + "%" : "N/A"
+    hvPctCol  = not na(pctFromHV) ? (math.abs(pctFromHV) > threshold_2sigma ? color.orange : color.gray) : color.gray
+    table.cell(dash, 1, 11, hvPctDisp, text_color=hvPctCol, bgcolor=color.new(color.gray, 70), text_size=size.small)
+
+    table.cell(dash, 0, 12, "HV Lookback", text_color=color.white, bgcolor=color.new(color.gray, 50), text_size=size.small)
+    table.cell(dash, 1, 12, str.tostring(hvLookback) + " bars", text_color=color.aqua, bgcolor=color.new(color.gray, 70), text_size=size.small)
+
+    table.cell(dash, 0, 13, "Confluence", text_color=color.white, bgcolor=color.new(color.gray, 50), text_size=size.small)
+    confTxt = hvConverging ? "CONVERGING ⚡" : hvMagnetShort ? "MAGNET ↓" : hvMagnetLong ? "MAGNET ↑" : "SEPARATE"
+    confCol = hvConverging ? color.yellow : (hvMagnetShort or hvMagnetLong) ? color.fuchsia : color.gray
+    table.cell(dash, 1, 13, confTxt, text_color=confCol, bgcolor=color.new(color.gray, 70), text_size=size.small)
+
+    // ── SIGNAL ──
+    table.cell(dash, 0, 14, "── SIGNAL ──", text_color=color.yellow, bgcolor=color.rgb(20, 20, 35), text_size=size.small)
+    table.merge_cells(dash, 0, 14, 1, 14)
+
+    sigTxt = not hasVolume ? "DISABLED (no vol)" : newShort ? "SHORT 🔻" : newLong ? "LONG 🔺" : shortSetup ? "SETUP SHORT" : longSetup ? "SETUP LONG" : "WAITING"
+    sigCol = not hasVolume ? color.red : newShort ? color.red : newLong ? color.lime : (shortSetup or longSetup) ? color.yellow : color.gray
+    table.cell(dash, 0, 15, "Signal", text_color=color.white, bgcolor=color.new(color.gray, 50), text_size=size.small)
+    table.cell(dash, 1, 15, sigTxt, text_color=sigCol, bgcolor=color.new(color.gray, 70), text_size=size.small)
+
+    liveConf    = newShort ? confShortTotal : newLong ? confLongTotal : 0
+    liveConfCol = liveConf >= 75 ? color.lime : liveConf >= 65 ? color.yellow : color.gray
+    table.cell(dash, 0, 16, "Confidence", text_color=color.white, bgcolor=color.new(color.gray, 50), text_size=size.small)
+    table.cell(dash, 1, 16, liveConf > 0 ? str.tostring(liveConf) + "%" : "—", text_color=liveConfCol, bgcolor=color.new(color.gray, 70), text_size=size.small)
+
+    // ── ACTIVE TRADE ──
+    table.cell(dash, 0, 17, "── ACTIVE TRADE ──", text_color=color.yellow, bgcolor=color.rgb(20, 20, 35), text_size=size.small)
+    table.merge_cells(dash, 0, 17, 1, 17)
+
+    statusTxt = tradeActive ? (tradeDir == "SHORT" ? "▼ SHORT  OPEN" : "▲ LONG   OPEN") : "— NO TRADE"
+    statusCol = tradeDir == "SHORT" ? color.red : tradeDir == "LONG" ? color.lime : color.gray
+    table.cell(dash, 0, 18, "Status", text_color=color.white, bgcolor=color.new(color.gray, 50), text_size=size.small)
+    table.cell(dash, 1, 18, statusTxt, text_color=statusCol, bgcolor=color.new(color.gray, 70), text_size=size.small)
+
+    table.cell(dash, 0, 19, "Entry", text_color=color.white, bgcolor=color.new(color.gray, 50), text_size=size.small)
+    table.cell(dash, 1, 19, tradeActive and not na(tradeEntry) ? str.tostring(tradeEntry, "#.##") : "—", text_color=color.white, bgcolor=color.new(color.gray, 70), text_size=size.small)
+
+    t1StatusTxt = t1Hit ? " ✓ HIT" : ""
+    t1DisplayCol = t1Hit ? color.new(color.lime, 40) : color.lime
+    table.cell(dash, 0, 20, "T1  " + (tradeActive ? tradeT1lbl : ""), text_color=color.white, bgcolor=color.new(color.gray, 50), text_size=size.small)
+    table.cell(dash, 1, 20, tradeActive and not na(tradeT1) ? str.tostring(tradeT1, "#.##") + t1StatusTxt : "—", text_color=t1DisplayCol, bgcolor=color.new(color.gray, 70), text_size=size.small)
+
+    table.cell(dash, 0, 21, "T2", text_color=color.white, bgcolor=color.new(color.gray, 50), text_size=size.small)
+    table.cell(dash, 1, 21, tradeActive and not na(tradeT2) ? str.tostring(tradeT2, "#.##") : "—", text_color=color.new(color.green, 20), bgcolor=color.new(color.gray, 70), text_size=size.small)
+
+    table.cell(dash, 0, 22, "SL", text_color=color.white, bgcolor=color.new(color.gray, 50), text_size=size.small)
+    table.cell(dash, 1, 22, tradeActive and not na(tradeSL) ? str.tostring(tradeSL, "#.##") : "—", text_color=color.red, bgcolor=color.new(color.gray, 70), text_size=size.small)
+
+    rrCol = tradeRR >= 2.0 ? color.lime : tradeRR >= 1.0 ? color.yellow : color.orange
+    table.cell(dash, 0, 23, "R : R (→T1)", text_color=color.white, bgcolor=color.new(color.gray, 50), text_size=size.small)
+    table.cell(dash, 1, 23, tradeActive ? str.tostring(tradeRR, "#.##") + " : 1" : "—", text_color=rrCol, bgcolor=color.new(color.gray, 70), text_size=size.small)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ALERTS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+alertcondition(newShort and hvConverging,  "SHORT + HV Convergence", "STRONG SHORT: VWAP & HV AVWAP converging — {{ticker}}")
+alertcondition(newLong  and hvConverging,  "LONG + HV Convergence",  "STRONG LONG: VWAP & HV AVWAP converging — {{ticker}}")
+alertcondition(newShort and hvMagnetShort, "SHORT + HV Magnet",      "SHORT + HV AVWAP intermediate target — {{ticker}}")
+alertcondition(newLong  and hvMagnetLong,  "LONG + HV Magnet",       "LONG + HV AVWAP intermediate target — {{ticker}}")
+alertcondition(newShort, "Short Signal", "VWAP Short Signal — {{ticker}}")
+alertcondition(newLong,  "Long Signal",  "VWAP Long Signal — {{ticker}}")
+alertcondition(shortSetup and not tradeActive, "Short Setup (Waiting)", "VWAP Short Setup — waiting for confirmation — {{ticker}}")
+alertcondition(longSetup  and not tradeActive, "Long Setup (Waiting)",  "VWAP Long Setup — waiting for confirmation — {{ticker}}")
