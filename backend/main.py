@@ -421,6 +421,11 @@ async def signal_entry(payload: SignalEntryPayload):
         print(f"[signal-entry] HTF bias stored: {payload.direction} {sym} TF={tf}")
         return {"status": "ok", "routed_to": "htf-bias", "direction": payload.direction, "timeframe": tf}
 
+    # 2M signals feed ML only — too noisy for Telegram
+    if str(tf).strip() == "2":
+        print(f"[signal-entry] 2M signal — ML only, not sent to Telegram")
+        return {"status": "ok", "routed_to": "ml-only", "reason": "2m_suppressed"}
+
     from telegram_bot import send_entry_signal
     from scheduler import get_latest_news_sentiment, get_latest_velocity, get_latest_event
     entry = payload.entry_price or 0.0
@@ -428,7 +433,7 @@ async def signal_entry(payload: SignalEntryPayload):
         print(f"[signal-entry] Missing entry_price for {sym} {payload.direction} — skipping Telegram")
         return {"status": "ok", "routed_to": "suppressed", "reason": "no_entry_price"}
 
-    # HTF bias is context only — signal always sends (2M/5M can be scalp or counter-trend pullback)
+    # HTF bias is context only — signal always sends (5M+ can be scalp or counter-trend pullback)
     bias        = get_active_bias(sym, payload.direction)
     contra_bias = get_active_bias(sym, "SHORT" if payload.direction == "LONG" else "LONG")
     htf_context = "with_bias" if bias else ("counter_trend" if contra_bias else "scalp")
@@ -490,6 +495,11 @@ async def unified_webhook(payload: UnifiedPayload):
             print(f"[webhook] HTF bias stored: {payload.direction} {sym} TF={tf}")
             return {"status": "ok", "routed_to": "htf-bias", "direction": payload.direction, "timeframe": tf}
 
+        # 2M signals feed ML only — too noisy for Telegram
+        if str(tf).strip() == "2":
+            print(f"[webhook] 2M signal — ML only, not sent to Telegram")
+            return {"status": "ok", "routed_to": "ml-only", "reason": "2m_suppressed"}
+
         from telegram_bot import send_entry_signal
         from scheduler import get_latest_news_sentiment, get_latest_velocity, get_latest_event
         entry = payload.entry_price or 0.0
@@ -497,7 +507,7 @@ async def unified_webhook(payload: UnifiedPayload):
             print(f"[webhook] Missing entry_price for {sym} {payload.direction} — skipping Telegram")
             return {"status": "ok", "routed_to": "suppressed", "reason": "no_entry_price"}
 
-        # HTF bias is context only — signal always sends (2M/5M can be scalp or counter-trend pullback)
+        # HTF bias is context only — signal always sends (5M+ can be scalp or counter-trend pullback)
         bias        = get_active_bias(sym, payload.direction)
         contra_bias = get_active_bias(sym, "SHORT" if payload.direction == "LONG" else "LONG")
         htf_context = "with_bias" if bias else ("counter_trend" if contra_bias else "scalp")
