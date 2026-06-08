@@ -212,7 +212,14 @@ async def _validation_error_handler(request, exc):
     for e in errors[:5]:
         print(f"  field={e.get('loc')} type={e.get('type')} msg={e.get('msg')}")
     print(f"  body_preview: {body_preview}")
-    return JSONResponse(status_code=422, content={"detail": errors})
+    # Pydantic includes raw bytes in 'input' field — JSONResponse can't serialize bytes
+    safe_errors = []
+    for e in errors:
+        se = dict(e)
+        if isinstance(se.get("input"), (bytes, bytearray)):
+            se["input"] = se["input"].decode("utf-8", errors="replace")
+        safe_errors.append(se)
+    return JSONResponse(status_code=422, content={"detail": safe_errors})
 
 
 class TradeOutcomePayload(BaseModel):
@@ -240,7 +247,10 @@ class TradeOutcomePayload(BaseModel):
 
     @model_validator(mode="before")
     @classmethod
-    def _coerce_nulls(cls, values: dict) -> dict:
+    def _coerce_nulls(cls, values):
+        import json as _json
+        if isinstance(values, (bytes, bytearray)):
+            values = _json.loads(values.decode("utf-8", errors="replace"))
         if not isinstance(values, dict):
             return values
         float_fields = {
@@ -276,7 +286,10 @@ class SignalEntryPayload(BaseModel):
 
     @model_validator(mode="before")
     @classmethod
-    def _coerce_nulls(cls, values: dict) -> dict:
+    def _coerce_nulls(cls, values):
+        import json as _json
+        if isinstance(values, (bytes, bytearray)):
+            values = _json.loads(values.decode("utf-8", errors="replace"))
         if not isinstance(values, dict):
             return values
         for k in ("entry_price", "tp1", "tp2", "tp3", "sl", "ml_score"):
@@ -319,8 +332,11 @@ class UnifiedPayload(BaseModel):
 
     @model_validator(mode="before")
     @classmethod
-    def _coerce_nulls(cls, values: dict) -> dict:
+    def _coerce_nulls(cls, values):
         """TradingView sends JSON null for Pine Script na() values. Coerce to 0.0 for float fields."""
+        import json as _json
+        if isinstance(values, (bytes, bytearray)):
+            values = _json.loads(values.decode("utf-8", errors="replace"))
         if not isinstance(values, dict):
             return values
         float_fields = {
