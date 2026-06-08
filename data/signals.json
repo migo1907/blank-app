@@ -1834,7 +1834,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:LONG RF:LONG GBM:LONG | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:LONDON\u00d71.15 | confluence\u00d70.74 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-1.00) | news:neutral(+0.000) | combined:+0.229 \u2192 conf:0.200 \u26a1 SANCTIONS",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-08T10:33:57.724530+00:00",
     "created_at": "2026-06-08T10:03:59.358376+00:00",
     "id": 101
@@ -1854,7 +1854,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d71.48 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-0.92) | news:neutral(+0.000) | combined:+0.000 \u2192 conf:0.000 \u26a1 SANCTIONS",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-08T10:34:01.365645+00:00",
     "created_at": "2026-06-08T10:04:01.901060+00:00",
     "id": 101
@@ -1874,7 +1874,7 @@
     "regime": "UNKNOWN",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:UNKNOWN(NORMAL)\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d71.00 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.00) | news:neutral(+0.000) | combined:+0.000 \u2192 conf:0.000 \u26a1 SANCTIONS",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-08T10:34:03.782932+00:00",
     "created_at": "2026-06-08T10:04:04.308592+00:00",
     "id": 101
