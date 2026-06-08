@@ -45,7 +45,7 @@ bool strongConfirm   = input.bool(true, "Strong confirmation (candle close + RSI
 float closeFrac      = input.float(0.33, "Confirm candle close in top/bottom fraction", minval=0.1, maxval=0.5, group="Signal Filters")
 bool momoEntry       = input.bool(true, "Momentum breakout entry (catch strong moves)", group="Signal Filters")
 int  brkLen          = input.int(10,   "Breakout lookback (bars)", minval=3, group="Signal Filters")
-bool noCtFilterLowTF = input.bool(true, "No counter-trend filter on 2m & lower (scalp both ways)", group="Signal Filters")
+bool noCtFilterLowTF = input.bool(true, "No counter-trend filter on 5m & lower (scalp both ways)", group="Signal Filters")
 
 // --- SESSION FILTER (avoid noisy hours) ---
 bool   useSessions = input.bool(true,  "Restrict signals to selected sessions", group="Sessions")
@@ -318,8 +318,10 @@ string sessLabel = not useSessions ? "ALL" : (inLondon and inNY) ? "LDN+NY" : in
 
 // --- SIGNALS ---
 // Sideways guards: HTF trend alignment, real ADX trend, volatility expansion, active session
-// On 2m & lower (scalp), drop the counter-trend filter so both directions can trigger.
-bool lowTF        = noCtFilterLowTF and baseMin <= 2
+// On 5m & lower (scalp), drop the counter-trend filter so both directions can trigger.
+// The sideways guard (not isSideways) in filtersOK still applies — so only ranging
+// signals are blocked, not direction.
+bool lowTF        = noCtFilterLowTF and baseMin <= 5
 bool trendOKlong  = lowTF or (((not requireHTFTrend) or trend1h == "UPTREND")   and ((not require4H) or trend4h == "UPTREND"))
 bool trendOKshort = lowTF or (((not requireHTFTrend) or trend1h == "DOWNTREND") and ((not require4H) or trend4h == "DOWNTREND"))
 bool adxOK        = (not requireADXtrend) or (adxValue >= adxThreshold)
