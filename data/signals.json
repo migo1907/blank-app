@@ -1674,7 +1674,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d71.48 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-0.92) | news:neutral(-0.027) | combined:-0.004 \u2192 conf:0.004 \u26a1 GDP",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-08T08:36:06.560960+00:00",
     "created_at": "2026-06-08T08:06:07.966371+00:00",
     "id": 101
@@ -1694,7 +1694,7 @@
     "regime": "UNKNOWN",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:UNKNOWN(NORMAL)\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d71.00 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.00) | news:neutral(-0.027) | combined:-0.004 \u2192 conf:0.003 \u26a1 GDP",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-08T08:36:10.042635+00:00",
     "created_at": "2026-06-08T08:06:11.330269+00:00",
     "id": 101
@@ -1714,7 +1714,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:LONDON\u00d71.15 | confluence\u00d71.48 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-1.00) | news:neutral(+0.096) | combined:-0.448 \u2192 conf:0.778 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-08T08:43:08.132478+00:00",
     "created_at": "2026-06-08T08:13:09.556058+00:00",
     "id": 101
@@ -1734,7 +1734,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.71 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-0.92) | news:neutral(+0.096) | combined:+0.022 \u2192 conf:0.010 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-08T08:43:11.525444+00:00",
     "created_at": "2026-06-08T08:13:11.883727+00:00",
     "id": 101
@@ -1754,7 +1754,7 @@
     "regime": "UNKNOWN",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:UNKNOWN(NORMAL)\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d71.00 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.00) | news:neutral(+0.096) | combined:+0.022 \u2192 conf:0.014 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-08T08:43:14.360085+00:00",
     "created_at": "2026-06-08T08:13:14.747637+00:00",
     "id": 101
