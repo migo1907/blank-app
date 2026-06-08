@@ -124,10 +124,14 @@ app = FastAPI(
 # Pure ASGI middleware patches the receive() callable directly so the sanitized
 # body reaches FastAPI's JSON parser. BaseHTTPMiddleware cannot do this because
 # call_next() ignores the request object and uses the original ASGI receive channel.
+# Also handles Infinity/-Infinity which Pine Script produces on division-by-zero
+# (e.g. ATR-based ratios on high-priced assets like SPX500).
 import re as _re
 
 _NAN_RE  = _re.compile(rb':\s*NaN\b')
 _NAN_RE2 = _re.compile(rb',\s*NaN\b')
+_INF_RE  = _re.compile(rb':\s*-?Infinity\b')
+_INF_RE2 = _re.compile(rb',\s*-?Infinity\b')
 
 
 class _SanitizeNaNMiddleware:
@@ -139,14 +143,8 @@ class _SanitizeNaNMiddleware:
             await self.app(scope, receive, send)
             return
 
-        # Check Content-Type header
-        ct = ""
-        for name, value in scope.get("headers", []):
-            if name.lower() == b"content-type":
-                ct = value.decode("utf-8", errors="ignore")
-                break
-
-        if "json" not in ct:
+        # Only intercept POST/PUT/PATCH — GET/HEAD have no body
+        if scope.get("method", "GET") not in ("POST", "PUT", "PATCH"):
             await self.app(scope, receive, send)
             return
 
@@ -160,10 +158,19 @@ class _SanitizeNaNMiddleware:
 
         body = b"".join(body_parts)
 
+        # Sanitize regardless of Content-Type — TradingView sometimes omits it.
+        # Replace unquoted NaN / Infinity / -Infinity with 0 so JSON parses cleanly.
+        patched = False
         if b"NaN" in body:
             body = _NAN_RE.sub(b":0", body)
             body = _NAN_RE2.sub(b",0", body)
-            print(f"[nan_middleware] Sanitized NaN in {scope.get('path','?')} body ({len(body)} bytes)")
+            patched = True
+        if b"Infinity" in body:
+            body = _INF_RE.sub(b":0", body)
+            body = _INF_RE2.sub(b",0", body)
+            patched = True
+        if patched:
+            print(f"[nan_middleware] Sanitized invalid JSON literals in {scope.get('path','?')} ({len(body)} bytes)")
 
         # Replace receive with one that yields the (possibly patched) body
         _sent = False
@@ -178,6 +185,24 @@ class _SanitizeNaNMiddleware:
 
 
 app.add_middleware(_SanitizeNaNMiddleware)
+
+
+from fastapi.exceptions import RequestValidationError
+
+@app.exception_handler(RequestValidationError)
+async def _validation_error_handler(request, exc):
+    import json as _json
+    try:
+        body = await request.body()
+        body_preview = body[:300].decode("utf-8", errors="replace")
+    except Exception:
+        body_preview = "<unreadable>"
+    errors = exc.errors()
+    print(f"[422] {request.method} {request.url.path} — {len(errors)} validation error(s)")
+    for e in errors[:5]:
+        print(f"  field={e.get('loc')} type={e.get('type')} msg={e.get('msg')}")
+    print(f"  body_preview: {body_preview}")
+    return JSONResponse(status_code=422, content={"detail": errors})
 
 
 class TradeOutcomePayload(BaseModel):
