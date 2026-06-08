@@ -13,10 +13,7 @@ _fj_seen_headlines:  set   = set()
 _last_sent_direction: str     = "NEUTRAL"
 _last_sent_direction_spy: str = "NEUTRAL"
 _last_sent_direction_qqq: str = "NEUTRAL"
-_last_ml_direction: str       = "NEUTRAL"
-_last_ml_direction_spy: str   = "NEUTRAL"
-_last_ml_direction_qqq: str   = "NEUTRAL"
-_startup_cycle: bool = True  # suppress intelligence alert on first cycle after restart
+_startup_cycle: bool = True  # suppress alert on first cycle after restart
 _webhook_errors:  int = 0   # count of failed trade webhooks since last hourly check
 _webhook_ok:      int = 0   # count of successful trade webhooks since last hourly check
 
@@ -43,7 +40,7 @@ def record_webhook_error() -> None:
 
 
 def _load_seen_headlines() -> set:
-    global _fj_seen_headlines, _last_sent_direction, _last_sent_direction_spy, _last_sent_direction_qqq, _last_ml_direction, _last_ml_direction_spy, _last_ml_direction_qqq
+    global _fj_seen_headlines, _last_sent_direction, _last_sent_direction_spy, _last_sent_direction_qqq
     try:
         from db import _get_file
         data, _ = _get_file(_SEEN_HEADLINES_PATH)
@@ -59,10 +56,8 @@ def _load_seen_headlines() -> set:
         signals, _ = _get_file("data/signals.json")
         if isinstance(signals, list) and signals:
             for sig in reversed(signals):
-                sym   = sig.get("symbol", "XAUUSD")
-                d     = sig.get("direction")
-                score = sig.get("combined_score", 0.0)
-                ml_d  = "LONG" if score > 0 else "SHORT" if score < 0 else "NEUTRAL"
+                sym = sig.get("symbol", "XAUUSD")
+                d   = sig.get("direction")
 
                 if d not in ("NEUTRAL", None, ""):
                     if sym == "SPY" and _last_sent_direction_spy == "NEUTRAL":
@@ -73,24 +68,12 @@ def _load_seen_headlines() -> set:
                         print(f"[scheduler] QQQ last sent direction restored: {d}")
                     elif sym not in ("SPY", "QQQ") and _last_sent_direction == "NEUTRAL":
                         _last_sent_direction = d
-                        print(f"[scheduler] Last sent direction restored: {d}")
-
-                if ml_d != "NEUTRAL":
-                    if sym == "SPY" and _last_ml_direction_spy == "NEUTRAL":
-                        _last_ml_direction_spy = ml_d
-                        print(f"[scheduler] SPY last ML direction restored: {ml_d}")
-                    elif sym == "QQQ" and _last_ml_direction_qqq == "NEUTRAL":
-                        _last_ml_direction_qqq = ml_d
-                        print(f"[scheduler] QQQ last ML direction restored: {ml_d}")
-                    elif sym not in ("SPY", "QQQ") and _last_ml_direction == "NEUTRAL":
-                        _last_ml_direction = ml_d
-                        print(f"[scheduler] Last ML direction restored: {ml_d}")
+                        print(f"[scheduler] XAUUSD last sent direction restored: {d}")
 
                 all_restored = (
-                    _last_sent_direction     != "NEUTRAL" and _last_sent_direction_spy != "NEUTRAL" and
-                    _last_sent_direction_qqq != "NEUTRAL" and
-                    _last_ml_direction       != "NEUTRAL" and _last_ml_direction_spy   != "NEUTRAL" and
-                    _last_ml_direction_qqq   != "NEUTRAL"
+                    _last_sent_direction     != "NEUTRAL" and
+                    _last_sent_direction_spy != "NEUTRAL" and
+                    _last_sent_direction_qqq != "NEUTRAL"
                 )
                 if all_restored:
                     break
@@ -174,7 +157,7 @@ async def _breaking_news_cycle() -> None:
 
 
 async def _news_signal_cycle() -> None:
-    global _latest_news_agg, _latest_velocity, _latest_event, _fj_seen_headlines, _last_sent_direction, _last_sent_direction_spy, _last_sent_direction_qqq, _last_ml_direction, _last_ml_direction_spy, _last_ml_direction_qqq, _startup_cycle
+    global _latest_news_agg, _latest_velocity, _latest_event, _fj_seen_headlines, _last_sent_direction, _last_sent_direction_spy, _last_sent_direction_qqq, _startup_cycle
     print("[scheduler] Starting news + velocity + signal cycle…")
 
     try:
@@ -212,31 +195,25 @@ async def _news_signal_cycle() -> None:
             f"velocity={signal['news_velocity']} ×{signal['velocity_mult']}"
         )
 
-        # ── Send ONE direction change alert — fires only when direction flips ──
-        new_dir = signal["direction"]
-        ml_dir  = "LONG" if signal.get("combined_score", 0) > 0 else "SHORT" if signal.get("combined_score", 0) < 0 else "NEUTRAL"
-        direction_changed = new_dir != "NEUTRAL" and new_dir != _last_sent_direction
-        ml_flipped        = ml_dir  != "NEUTRAL" and ml_dir  != _last_ml_direction
+        # ── Send direction alert — only on explicit LONG/SHORT flip with confidence > 0 ──
+        new_dir  = signal["direction"]
+        new_conf = signal.get("confidence", 0.0)
+        direction_changed = (
+            new_dir not in ("NEUTRAL", "") and
+            new_conf > 0 and
+            new_dir != _last_sent_direction and
+            not _startup_cycle
+        )
 
-        if direction_changed or (ml_flipped and not _startup_cycle):
-            effective_dir = new_dir if new_dir != "NEUTRAL" else ml_dir
-            if effective_dir != "NEUTRAL":
-                sent = await send_signal(signal)
-                if sent:
-                    if direction_changed: _last_sent_direction = new_dir
-                    if ml_flipped:       _last_ml_direction   = ml_dir
-                    print(f"[scheduler] Direction → {effective_dir} — signal sent.")
-                else:
-                    print("[scheduler] Telegram send failed (check TOKEN/CHAT_ID).")
-        else:
-            if _startup_cycle:
-                print(f"[scheduler] Startup — suppressing direction alert ({new_dir}/{ml_dir}).")
+        if direction_changed:
+            sent = await send_signal(signal)
+            if sent:
+                _last_sent_direction = new_dir
+                print(f"[scheduler] XAUUSD direction → {new_dir} conf={new_conf:.2f} — signal sent.")
             else:
-                print(f"[scheduler] Direction unchanged ({new_dir}) — not sending.")
-
-        # Always track ML direction even if not sent
-        if ml_dir != "NEUTRAL":
-            _last_ml_direction = ml_dir
+                print("[scheduler] Telegram send failed (check TOKEN/CHAT_ID).")
+        else:
+            print(f"[scheduler] XAUUSD: {new_dir} conf={new_conf:.2f} — no flip, not sending.")
 
         try:
             spy_signal = generate_signal(
@@ -247,26 +224,24 @@ async def _news_signal_cycle() -> None:
                 symbol="SPY",
                 pool="STOCKS_INDEX_30M",
             )
-            spy_dir    = spy_signal["direction"]
-            spy_ml_dir = "LONG" if spy_signal.get("combined_score", 0) > 0 else "SHORT" if spy_signal.get("combined_score", 0) < 0 else "NEUTRAL"
-            print(f"[scheduler] SPY: {spy_dir} conf={spy_signal['confidence']:.2f} sess={spy_signal['session']}")
+            spy_dir  = spy_signal["direction"]
+            spy_conf = spy_signal.get("confidence", 0.0)
+            print(f"[scheduler] SPY: {spy_dir} conf={spy_conf:.2f} sess={spy_signal['session']}")
 
-            spy_changed  = spy_dir    != "NEUTRAL" and spy_dir    != _last_sent_direction_spy
-            spy_ml_flip  = spy_ml_dir != "NEUTRAL" and spy_ml_dir != _last_ml_direction_spy
+            spy_changed = (
+                spy_dir not in ("NEUTRAL", "") and
+                spy_conf > 0 and
+                spy_dir != _last_sent_direction_spy and
+                not _startup_cycle
+            )
 
-            if spy_changed or (spy_ml_flip and not _startup_cycle):
-                eff_spy = spy_dir if spy_dir != "NEUTRAL" else spy_ml_dir
-                if eff_spy != "NEUTRAL":
-                    sent_spy = await send_signal(spy_signal)
-                    if sent_spy:
-                        if spy_changed: _last_sent_direction_spy = spy_dir
-                        if spy_ml_flip: _last_ml_direction_spy   = spy_ml_dir
-                        print(f"[scheduler] SPY direction → {eff_spy} — signal sent.")
+            if spy_changed:
+                sent_spy = await send_signal(spy_signal)
+                if sent_spy:
+                    _last_sent_direction_spy = spy_dir
+                    print(f"[scheduler] SPY direction → {spy_dir} conf={spy_conf:.2f} — signal sent.")
             else:
-                print(f"[scheduler] SPY direction unchanged ({spy_dir}) — not sending.")
-
-            if spy_ml_dir != "NEUTRAL":
-                _last_ml_direction_spy = spy_ml_dir
+                print(f"[scheduler] SPY: {spy_dir} conf={spy_conf:.2f} — no flip, not sending.")
         except Exception as e:
             print(f"[scheduler] SPY signal error: {e}")
 
@@ -279,26 +254,24 @@ async def _news_signal_cycle() -> None:
                 symbol="QQQ",
                 pool="STOCKS_QQQ_30M",
             )
-            qqq_dir    = qqq_signal["direction"]
-            qqq_ml_dir = "LONG" if qqq_signal.get("combined_score", 0) > 0 else "SHORT" if qqq_signal.get("combined_score", 0) < 0 else "NEUTRAL"
-            print(f"[scheduler] QQQ: {qqq_dir} conf={qqq_signal['confidence']:.2f} sess={qqq_signal['session']}")
+            qqq_dir  = qqq_signal["direction"]
+            qqq_conf = qqq_signal.get("confidence", 0.0)
+            print(f"[scheduler] QQQ: {qqq_dir} conf={qqq_conf:.2f} sess={qqq_signal['session']}")
 
-            qqq_changed = qqq_dir    != "NEUTRAL" and qqq_dir    != _last_sent_direction_qqq
-            qqq_ml_flip = qqq_ml_dir != "NEUTRAL" and qqq_ml_dir != _last_ml_direction_qqq
+            qqq_changed = (
+                qqq_dir not in ("NEUTRAL", "") and
+                qqq_conf > 0 and
+                qqq_dir != _last_sent_direction_qqq and
+                not _startup_cycle
+            )
 
-            if qqq_changed or (qqq_ml_flip and not _startup_cycle):
-                eff_qqq = qqq_dir if qqq_dir != "NEUTRAL" else qqq_ml_dir
-                if eff_qqq != "NEUTRAL":
-                    sent_qqq = await send_signal(qqq_signal)
-                    if sent_qqq:
-                        if qqq_changed: _last_sent_direction_qqq = qqq_dir
-                        if qqq_ml_flip: _last_ml_direction_qqq   = qqq_ml_dir
-                        print(f"[scheduler] QQQ direction → {eff_qqq} — signal sent.")
+            if qqq_changed:
+                sent_qqq = await send_signal(qqq_signal)
+                if sent_qqq:
+                    _last_sent_direction_qqq = qqq_dir
+                    print(f"[scheduler] QQQ direction → {qqq_dir} conf={qqq_conf:.2f} — signal sent.")
             else:
-                print(f"[scheduler] QQQ direction unchanged ({qqq_dir}) — not sending.")
-
-            if qqq_ml_dir != "NEUTRAL":
-                _last_ml_direction_qqq = qqq_ml_dir
+                print(f"[scheduler] QQQ: {qqq_dir} conf={qqq_conf:.2f} — no flip, not sending.")
         except Exception as e:
             print(f"[scheduler] QQQ signal error: {e}")
 
