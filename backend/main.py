@@ -158,6 +158,16 @@ class _SanitizeNaNMiddleware:
 
         body = b"".join(body_parts)
 
+        # TradingView sometimes sends webhooks without Content-Type header.
+        # FastAPI won't parse the body as JSON without it → Pydantic gets raw bytes → 500.
+        # Ensure Content-Type: application/json is always present for POST bodies.
+        headers = list(scope.get("headers", []))
+        has_ct = any(name.lower() == b"content-type" for name, _ in headers)
+        if not has_ct and body.lstrip()[:1] == b"{":
+            headers.append((b"content-type", b"application/json"))
+            scope = dict(scope)
+            scope["headers"] = headers
+
         # Sanitize regardless of Content-Type — TradingView sometimes omits it.
         # Replace unquoted NaN / Infinity / -Infinity with 0 so JSON parses cleanly.
         patched = False
