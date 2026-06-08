@@ -1,15 +1,15 @@
 {
-  "timestamp": "2026-06-08T16:24:21.915158+00:00",
+  "timestamp": "2026-06-08T16:39:22.490582+00:00",
   "signal": "NEUTRAL",
   "confidence": 0.0,
-  "news_score": -0.0232,
-  "velocity": "CONFLICTED",
+  "news_score": -0.055,
+  "velocity": "LOW",
   "breaking_count": 10,
-  "trades_total": 132,
+  "trades_total": 134,
   "rf_trained": true,
-  "win_rate": 35.6,
-  "knn_bearish_pct": 50.0,
-  "macro_bias": 0.0,
-  "macro_label": "n/a",
+  "win_rate": 35.1,
+  "knn_bearish_pct": 62.5,
+  "macro_bias": 0.5,
+  "macro_label": "BULLISH",
   "scheduler": "running"
 }
