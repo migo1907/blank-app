@@ -481,14 +481,13 @@ def generate_signal(
     w_gbm  = w_gbm_base           / total_w
     w_news = effective_news_weight / total_w
 
-    # ── Macro bias (gold only) — real yields, dollar, breakeven, COT, GLD flows ──────
-    # Folds gold's actual macro drivers into the directional score. Stocks ignore it.
+    # ── Macro bias — real yields, dollar, breakeven; equities also use nominal yield ──
     macro_val   = 0.0
     macro_label = "n/a"
-    if not is_stock and isinstance(macro_bias, dict):
+    if isinstance(macro_bias, dict):
         macro_val   = float(macro_bias.get("bias", 0.0) or 0.0)
         macro_label = macro_bias.get("label", "NEUTRAL")
-    w_macro = 0.20 if (not is_stock and macro_val != 0.0) else 0.0
+    w_macro = (0.15 if is_stock else 0.20) if macro_val != 0.0 else 0.0
 
     # ── Raw combined score ─────────────────────────────────────────────────────────────
     combined_score = (

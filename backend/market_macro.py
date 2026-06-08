@@ -28,7 +28,8 @@ _FRED_BASE   = "https://api.stlouisfed.org/fred/series/observations"
 _CFTC_GOLD   = "https://publicreporting.cftc.gov/resource/6dca-aqww.json"  # Legacy futures-only (Socrata)
 _GOLD_CODE   = "088691"  # Gold, COMEX
 _SPDR_CSV    = "https://www.spdrgoldshares.com/assets/dynamic/GLD/GLD_US_archive_EN.csv"
-_MACRO_PATH  = "data/market_macro.json"
+_MACRO_PATH        = "data/market_macro.json"
+_EQUITY_MACRO_PATH = "data/equity_macro.json"
 
 _BROWSER_UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -160,18 +161,73 @@ def _gld_holdings() -> dict | None:
 
 # ── Macro bias computation ────────────────────────────────────────────────────
 
+def _compute_equity_macro_bias(
+    real_yield: float | None, real_yield_prev: float | None,
+    nominal_yield: float | None, nominal_yield_prev: float | None,
+    dollar: float | None, dollar_prev: float | None,
+) -> dict:
+    """
+    Compute US equity (SPY/QQQ) macro bias from already-fetched FRED values.
+    Rising real yields / nominal yields / dollar = bearish equities.
+    Returns bias ∈ [-1, +1]: positive ⇒ bullish equities.
+    """
+    components: dict[str, float] = {}
+
+    # Real yield: rising = higher discount rate = bearish growth/equities
+    if real_yield is not None and real_yield_prev is not None:
+        chg = real_yield - real_yield_prev
+        components["real_yield"] = max(-1.0, min(1.0, -chg / 0.05))
+
+    # Nominal 10yr yield: rising risk-free rate competes with equities
+    if nominal_yield is not None and nominal_yield_prev is not None:
+        chg = nominal_yield - nominal_yield_prev
+        components["nominal_yield"] = max(-1.0, min(1.0, -chg / 0.05))
+
+    # Dollar: strong USD = earnings headwind for multinational S&P500
+    if dollar is not None and dollar_prev is not None and dollar_prev:
+        pct = (dollar - dollar_prev) / dollar_prev * 100.0
+        components["dollar"] = max(-0.5, min(0.5, -pct / 0.5))
+
+    weights = {"real_yield": 1.0, "nominal_yield": 0.8, "dollar": 0.4}
+    num = sum(components[k] * weights[k] for k in components)
+    den = sum(weights[k] for k in components)
+    bias = round(num / den, 4) if den else 0.0
+    label = "BULLISH" if bias > 0.15 else "BEARISH" if bias < -0.15 else "NEUTRAL"
+
+    return {
+        "bias":          bias,
+        "label":         label,
+        "components":    {k: round(v, 4) for k, v in components.items()},
+        "real_yield":    real_yield,
+        "nominal_yield": nominal_yield,
+        "dollar":        dollar,
+        "updated_at":    datetime.now(timezone.utc).isoformat(),
+        "sources_live":  {"fred": real_yield is not None or nominal_yield is not None},
+    }
+
+
 def compute_macro_bias() -> dict:
     """
     Fetch all macro drivers and compute a single gold bias score in [-1, +1].
       positive ⇒ bullish gold,  negative ⇒ bearish gold.
     Daily drivers (real yield + dollar) carry the directional signal; COT/GLD
     provide confirmation context. Gracefully degrades if sources are unavailable.
+    Also computes and caches equity macro bias in the same FRED pass.
     """
-    real_yield, real_yield_prev = _fred_latest_two("DFII10")   # 10y TIPS real yield
-    dollar, dollar_prev         = _fred_latest_two("DTWEXBGS")  # broad USD index
-    breakeven, breakeven_prev   = _fred_latest_two("T10YIE")    # 10y inflation expectations
+    real_yield, real_yield_prev   = _fred_latest_two("DFII10")   # 10y TIPS real yield
+    dollar, dollar_prev           = _fred_latest_two("DTWEXBGS")  # broad USD index
+    breakeven, breakeven_prev     = _fred_latest_two("T10YIE")    # 10y inflation expectations
+    nominal_yield, nominal_yield_prev = _fred_latest_two("DGS10") # 10y nominal yield (for equities)
     cot = _cftc_gold_cot()
     gld = _gld_holdings()
+
+    # Cache equity macro bias as a side-effect of this fetch
+    global _cached_equity_macro
+    _cached_equity_macro = _compute_equity_macro_bias(
+        real_yield, real_yield_prev,
+        nominal_yield, nominal_yield_prev,
+        dollar, dollar_prev,
+    )
 
     components: dict[str, float] = {}
 
@@ -229,40 +285,61 @@ def compute_macro_bias() -> dict:
 
 # ── Persistence + in-memory cache ─────────────────────────────────────────────
 
-_cached_macro: dict = {"bias": 0.0, "label": "NEUTRAL", "components": {}, "updated_at": None}
+_cached_macro: dict        = {"bias": 0.0, "label": "NEUTRAL", "components": {}, "updated_at": None}
+_cached_equity_macro: dict = {"bias": 0.0, "label": "NEUTRAL", "components": {}, "updated_at": None}
 
 
 def get_macro_bias() -> dict:
-    """Return the most recently computed macro bias (in-memory)."""
+    """Return the most recently computed gold macro bias (in-memory)."""
     return _cached_macro
 
 
+def get_equity_macro_bias() -> dict:
+    """Return the most recently computed equity (SPY/QQQ) macro bias (in-memory)."""
+    return _cached_equity_macro
+
+
 def refresh_macro_bias() -> dict:
-    """Compute fresh macro bias, cache in memory, and persist to the data branch."""
+    """Compute fresh macro bias for gold + equity, cache both in memory, persist both to data branch."""
     global _cached_macro
-    macro = compute_macro_bias()
+    macro = compute_macro_bias()  # also updates _cached_equity_macro as side-effect
     _cached_macro = macro
     try:
         from db import _get_file, _put_file
         _, sha = _get_file(_MACRO_PATH)
         _put_file(_MACRO_PATH, macro, sha, "data: update market macro bias")
     except Exception as e:
-        print(f"[macro] persist failed: {e}")
+        print(f"[macro] gold persist failed: {e}")
+    try:
+        from db import _get_file, _put_file
+        _, sha = _get_file(_EQUITY_MACRO_PATH)
+        _put_file(_EQUITY_MACRO_PATH, _cached_equity_macro, sha, "data: update equity macro bias")
+    except Exception as e:
+        print(f"[macro] equity persist failed: {e}")
     print(
-        f"[macro] bias={macro['bias']:+.3f} ({macro['label']}) "
+        f"[macro] gold bias={macro['bias']:+.3f} ({macro['label']}) "
+        f"equity bias={_cached_equity_macro['bias']:+.3f} ({_cached_equity_macro['label']}) "
         f"components={macro['components']} live={macro['sources_live']}"
     )
     return macro
 
 
 def load_macro_bias() -> None:
-    """Load persisted macro bias from the data branch on startup."""
-    global _cached_macro
+    """Load persisted macro biases (gold + equity) from the data branch on startup."""
+    global _cached_macro, _cached_equity_macro
     try:
         from db import _get_file
         data, _ = _get_file(_MACRO_PATH)
         if isinstance(data, dict) and "bias" in data:
             _cached_macro = data
-            print(f"[macro] Loaded persisted bias={data.get('bias')} ({data.get('label')})")
+            print(f"[macro] Loaded gold bias={data.get('bias')} ({data.get('label')})")
     except Exception as e:
-        print(f"[macro] load failed (first run?): {e}")
+        print(f"[macro] gold load failed (first run?): {e}")
+    try:
+        from db import _get_file
+        data, _ = _get_file(_EQUITY_MACRO_PATH)
+        if isinstance(data, dict) and "bias" in data:
+            _cached_equity_macro = data
+            print(f"[macro] Loaded equity bias={data.get('bias')} ({data.get('label')})")
+    except Exception as e:
+        print(f"[macro] equity load failed (first run?): {e}")

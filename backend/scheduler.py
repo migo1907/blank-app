@@ -181,7 +181,9 @@ async def _news_signal_cycle() -> None:
             _latest_velocity = velocity
             _latest_event    = event
 
-        from market_macro import get_macro_bias
+        from market_macro import get_macro_bias, get_equity_macro_bias
+        _gold_macro   = get_macro_bias()
+        _equity_macro = get_equity_macro_bias()
         signal = generate_signal(
             current_features=get_latest_features("XAUUSD_2M"),
             news_agg=_latest_news_agg,
@@ -189,7 +191,7 @@ async def _news_signal_cycle() -> None:
             high_impact_event=_latest_event,
             symbol="XAUUSD",
             pool="XAUUSD_2M",
-            macro_bias=get_macro_bias(),
+            macro_bias=_gold_macro,
         )
         print(
             f"[scheduler] Signal: {signal['direction']} "
@@ -225,6 +227,7 @@ async def _news_signal_cycle() -> None:
                 high_impact_event=_latest_event,
                 symbol="SPY",
                 pool="STOCKS_INDEX_30M",
+                macro_bias=_equity_macro,
             )
             spy_dir  = spy_signal["direction"]
             spy_conf = spy_signal.get("confidence", 0.0)
@@ -255,6 +258,7 @@ async def _news_signal_cycle() -> None:
                 high_impact_event=_latest_event,
                 symbol="QQQ",
                 pool="STOCKS_QQQ_30M",
+                macro_bias=_equity_macro,
             )
             qqq_dir  = qqq_signal["direction"]
             qqq_conf = qqq_signal.get("confidence", 0.0)
@@ -278,13 +282,13 @@ async def _news_signal_cycle() -> None:
             print(f"[scheduler] QQQ signal error: {e}")
 
         _startup_cycle = False  # first cycle complete — normal firing from here on
-        asyncio.create_task(_write_health_status(signal, _latest_news_agg, _latest_velocity, len(fj_breaking)))
+        asyncio.create_task(_write_health_status(signal, _latest_news_agg, _latest_velocity, len(fj_breaking), _equity_macro))
 
     except Exception as e:
         print(f"[scheduler] Cycle error: {e}")
 
 
-async def _write_health_status(signal: dict, news_agg: float, velocity: dict, breaking_count: int) -> None:
+async def _write_health_status(signal: dict, news_agg: float, velocity: dict, breaking_count: int, equity_macro: dict | None = None) -> None:
     try:
         from db import _get_file, _put_file
         from datetime import datetime, timezone
@@ -305,8 +309,10 @@ async def _write_health_status(signal: dict, news_agg: float, velocity: dict, br
             "rf_trained":     rf.is_trained,
             "win_rate":       round(model.win_rate * 100, 1),
             "knn_bearish_pct": round(signal.get("ml_score", 0) * 100, 1),
-            "macro_bias":     signal.get("macro_bias", 0.0),
-            "macro_label":    signal.get("macro_label", "n/a"),
+            "macro_bias":         signal.get("macro_bias", 0.0),
+            "macro_label":        signal.get("macro_label", "n/a"),
+            "equity_macro_bias":  (equity_macro or {}).get("bias", 0.0),
+            "equity_macro_label": (equity_macro or {}).get("label", "n/a"),
             "scheduler":      "running",
         }
         _, sha = await asyncio.to_thread(_get_file, "data/health.json")
