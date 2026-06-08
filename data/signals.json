@@ -1,25 +1,5 @@
 [
   {
-    "symbol": "XAUUSD",
-    "pool": "XAUUSD_2M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "news_score": 0.0487,
-    "combined_score": 0.0,
-    "session": "LONDON",
-    "regime": "TRENDING_BEAR",
-    "regime_label": "TRENDING_BEAR",
-    "reasoning": "News velocity CONFLICTED",
-    "status": "NEUTRAL",
-    "expires_at": "2026-06-08T08:48:30.704040+00:00",
-    "created_at": "2026-06-08T08:18:30.730066+00:00",
-    "id": 101
-  },
-  {
     "symbol": "SPY",
     "pool": "STOCKS_INDEX_30M",
     "direction": "NEUTRAL",
@@ -1997,6 +1977,26 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-08T14:26:44.889200+00:00",
     "created_at": "2026-06-08T13:56:45.235392+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "SPY",
+    "pool": "STOCKS_INDEX_30M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "news_score": 0.0,
+    "combined_score": 0.0,
+    "session": "NYSE_OPEN",
+    "regime": "NORMAL",
+    "regime_label": "NORMAL",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:NYSE_OPEN\u00d71.25 | confluence\u00d71.48 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-0.92) | news:neutral(+0.000) | combined:+0.000 \u2192 conf:0.000 \u26a1 NFP",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-08T14:26:46.859309+00:00",
+    "created_at": "2026-06-08T13:56:48.332070+00:00",
     "id": 101
   }
 ]
