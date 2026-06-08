@@ -134,7 +134,7 @@
   {
     "symbol": "AAPL",
     "direction": "LONG",
-    "trigger": "",
+    "trigger": "BOS",
     "entry_price": 315.26,
     "exit_price": 308.72,
     "outcome": "LOSS",
@@ -171,8 +171,8 @@
     "f23_rsiacc": 0.3613,
     "f24_fvgq": 0.0,
     "f25_tod": -0.6593,
-    "id": "275c7e73",
+    "id": "72dcc7f4",
     "pool": "STOCKS_QUALITY_15M",
-    "created_at": "2026-06-08T17:45:04.267970+00:00"
+    "created_at": "2026-06-08T17:45:05.536459+00:00"
   }
 ]
