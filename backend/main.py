@@ -134,6 +134,8 @@ class TradeOutcomePayload(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def _coerce_nulls(cls, values: dict) -> dict:
+        if not isinstance(values, dict):
+            return values
         float_fields = {
             "ml_score", "mfe", "entry_price", "exit_price",
             "f1","f2","f3","f4","f5","f6","f7","f8","f9","f10",
@@ -200,6 +202,8 @@ class UnifiedPayload(BaseModel):
     @classmethod
     def _coerce_nulls(cls, values: dict) -> dict:
         """TradingView sends JSON null for Pine Script na() values. Coerce to 0.0 for float fields."""
+        if not isinstance(values, dict):
+            return values
         float_fields = {
             "ml_score", "mfe",
             "f1","f2","f3","f4","f5","f6","f7","f8","f9","f10",
