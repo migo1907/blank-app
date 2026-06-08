@@ -17,15 +17,6 @@
     "stored_at": "2026-06-08T15:00:05.297177+00:00",
     "expires_at": "2026-06-08T17:00:05.297195+00:00"
   },
-  "AAPL_30": {
-    "direction": "LONG",
-    "timeframe": "30",
-    "symbol": "AAPL",
-    "trigger": "BOS",
-    "ml_score": 0.5,
-    "stored_at": "2026-06-08T15:00:18.375957+00:00",
-    "expires_at": "2026-06-08T17:00:18.375978+00:00"
-  },
   "TNA_30": {
     "direction": "LONG",
     "timeframe": "30",
@@ -142,5 +133,14 @@
     "ml_score": 0.5,
     "stored_at": "2026-06-08T16:30:39.018239+00:00",
     "expires_at": "2026-06-08T18:30:39.018251+00:00"
+  },
+  "SPX500_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "SPX500",
+    "trigger": "LIQ",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-08T17:30:12.277607+00:00",
+    "expires_at": "2026-06-08T19:30:12.277619+00:00"
   }
 }
