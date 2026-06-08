@@ -136,7 +136,8 @@ STOCKS_MOMENTUM = {
 STOCKS_QUALITY = {
     "META","GOOGL","GOOG","MSFT","AAPL","ADBE","IBKR","PATH","NOW","CRM",
 }
-STOCKS_INDEX = {"QQQ","SPY","SPX500"}
+STOCKS_INDEX = {"SPY","SPX500"}
+STOCKS_QQQ   = {"QQQ"}
 
 
 def symbol_to_pool(symbol: str, timeframe: str = "") -> str:
@@ -164,7 +165,9 @@ def symbol_to_pool(symbol: str, timeframe: str = "") -> str:
 
     if ticker in ("XAUUSD", "GOLD", "GC"):
         return f"XAUUSD_{suffix}" if suffix else "XAUUSD"
-    if ticker in STOCKS_INDEX:
+    if ticker in STOCKS_QQQ:
+        base = "STOCKS_QQQ"
+    elif ticker in STOCKS_INDEX:
         base = "STOCKS_INDEX"
     elif ticker in STOCKS_QUALITY:
         base = "STOCKS_QUALITY"
