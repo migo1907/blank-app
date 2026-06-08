@@ -179,7 +179,8 @@ def symbol_to_pool(symbol: str, timeframe: str = "") -> str:
     else:
         print(f"[db] symbol_to_pool: unknown ticker '{ticker}' — defaulting to STOCKS_MOMENTUM")
         base = "STOCKS_MOMENTUM"
-    return f"{base}_{suffix}" if suffix else base
+    suffix = suffix or "30M"  # never return a bare pool name without suffix
+    return f"{base}_{suffix}"
 
 
 def _pool_weights_file(pool: str) -> str:
@@ -228,6 +229,34 @@ def save_weights(pool: str, weights: dict) -> None:
             if attempt < 2 and "409" in str(e):
                 continue
             raise
+
+
+def resync_pool_counters(pool: str) -> tuple[int, int]:
+    """
+    Recount wins/losses from actual trade history and patch weights file to match.
+    Fixes the mismatch where KNN weights show more trades than history records.
+    Returns (wins, losses) from history.
+    """
+    hist, _ = _get_file(_pool_history_file(pool))
+    if not isinstance(hist, list):
+        return 0, 0
+    wins   = sum(1 for t in hist if t.get("outcome") in ("WIN", "PARTIAL"))
+    losses = sum(1 for t in hist if t.get("outcome") == "LOSS")
+    weights, sha = _get_file(_pool_weights_file(pool))
+    if isinstance(weights, dict):
+        old_w = weights.get("total_wins", 0)
+        old_l = weights.get("total_losses", 0)
+        if old_w != wins or old_l != losses:
+            weights["total_wins"]   = wins
+            weights["total_losses"] = losses
+            weights["updated_at"]   = datetime.now(timezone.utc).isoformat()
+            try:
+                _put_file(_pool_weights_file(pool), weights, sha,
+                          f"fix: resync {pool} counters W{wins}/L{losses} (was W{old_w}/L{old_l})")
+                print(f"[resync] {pool}: counters fixed W{old_w}→{wins} L{old_l}→{losses}")
+            except Exception as e:
+                print(f"[resync] {pool}: failed to write — {e}")
+    return wins, losses
 
 
 # ── Trade outcomes ─────────────────────────────────────────────────────────────
@@ -378,8 +407,13 @@ def log_raw_webhook(payload: dict) -> None:
     if not payload.get("exit_price"):
         return
     try:
+        pool = symbol_to_pool(
+            str(payload.get("symbol") or ""),
+            str(payload.get("timeframe") or ""),
+        )
         entry = {
             "received_at": datetime.now(timezone.utc).isoformat(),
+            "pool":        pool,
             "payload":     payload,
         }
         for attempt in range(3):
@@ -463,7 +497,7 @@ def repair_missing_trades() -> list[str]:
             if not direction or entry_px == 0:
                 continue
 
-            pool    = symbol_to_pool(symbol, timeframe)
+            pool    = entry.get("pool") or symbol_to_pool(symbol, timeframe)
             key     = f"{symbol}|{direction}|{entry_px}|{timeframe}"
             keys    = _get_pool_keys(pool)
 

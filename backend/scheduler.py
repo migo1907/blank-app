@@ -664,6 +664,19 @@ async def _hourly_system_check() -> None:
     except Exception as e:
         print(f"[system_check] Ensemble retrain failed: {e}")
 
+    try:
+        from db import resync_pool_counters
+        sync_pools = ["XAUUSD_2M", "XAUUSD_5M", "XAUUSD_30M", "XAUUSD_1H",
+                      "STOCKS_MOMENTUM_15M", "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_4H",
+                      "STOCKS_QUALITY_15M",  "STOCKS_QUALITY_30M",  "STOCKS_QUALITY_4H",
+                      "STOCKS_INDEX_15M",    "STOCKS_INDEX_30M",    "STOCKS_INDEX_4H",
+                      "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",      "STOCKS_QQQ_4H",
+                      "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",   "STOCKS_SPX500_4H"]
+        for _pool in sync_pools:
+            await asyncio.to_thread(resync_pool_counters, _pool)
+    except Exception as e:
+        print(f"[system_check] Counter resync failed: {e}")
+
     n_issue = len(issues)
     print(f"[system_check] {len(ok)}/{len(ok)+n_issue} checks passed.")
     for iss in issues:

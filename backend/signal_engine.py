@@ -109,9 +109,9 @@ MIN_CONFIDENCE_STOCKS = 0.60 # Stocks — lowered from 0.65
 def _session_multiplier(now_utc: datetime, is_stock: bool = False) -> tuple[float, str]:
     h = now_utc.hour
     if is_stock:
-        if 13 <= h < 16:  return 1.25, "NYSE_OPEN"
-        if 16 <= h < 20:  return 1.10, "NYSE_AFTERNOON"
-        if 12 <= h < 13:  return 0.90, "PRE_MARKET"
+        if 13 <= h < 16:  return 1.25, "NYSE_OPEN"       # 09:00–12:00 ET (incl. open half-hour)
+        if 16 <= h < 21:  return 1.10, "NYSE_AFTERNOON"  # 12:00–17:00 ET (extended hours)
+        if 11 <= h < 13:  return 0.90, "PRE_MARKET"      # 07:00–09:00 ET
         return 0.60, "CLOSED"
     if 13 <= h < 17:  return 1.30, "OVERLAP"      # London/NY overlap — highest gold volatility
     if 8  <= h < 13:  return 1.15, "LONDON"       # London session

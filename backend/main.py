@@ -79,6 +79,16 @@ async def lifespan(app: FastAPI):
         else:
             print(f"[startup] {_pool}: {len(_hist)} trades — RF/GBM will train when data grows.")
 
+    print("[startup] Resyncing pool win/loss counters…")
+    from db import resync_pool_counters
+    for _pool in ["XAUUSD_2M", "XAUUSD_5M", "XAUUSD_30M", "XAUUSD_1H",
+                  "STOCKS_MOMENTUM_15M", "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_4H",
+                  "STOCKS_QUALITY_15M",  "STOCKS_QUALITY_30M",  "STOCKS_QUALITY_4H",
+                  "STOCKS_INDEX_15M",    "STOCKS_INDEX_30M",    "STOCKS_INDEX_4H",
+                  "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",      "STOCKS_QQQ_4H",
+                  "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",   "STOCKS_SPX500_4H"]:
+        resync_pool_counters(_pool)
+
     print("[startup] Loading feature cache from GitHub…")
     from signal_engine import load_feature_cache
     load_feature_cache()
