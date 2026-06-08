@@ -550,10 +550,13 @@ async def _hourly_system_check() -> None:
             ("data/trade_history_STOCKS_INDEX_30M.json",     "STOCKS_INDEX_30M",     stocks_active,  4),
             ("data/trade_history_STOCKS_QQQ_15M.json",       "STOCKS_QQQ_15M",       stocks_active,  3),
             ("data/trade_history_STOCKS_QQQ_30M.json",       "STOCKS_QQQ_30M",       stocks_active,  4),
+            ("data/trade_history_STOCKS_SPX500_15M.json",    "STOCKS_SPX500_15M",    True,           6),
+            ("data/trade_history_STOCKS_SPX500_30M.json",    "STOCKS_SPX500_30M",    True,           8),
             ("data/trade_history_STOCKS_MOMENTUM_4H.json",   "STOCKS_MOMENTUM_4H",   stocks_active,  8),
             ("data/trade_history_STOCKS_QUALITY_4H.json",    "STOCKS_QUALITY_4H",    stocks_active,  8),
             ("data/trade_history_STOCKS_INDEX_4H.json",      "STOCKS_INDEX_4H",      stocks_active,  8),
             ("data/trade_history_STOCKS_QQQ_4H.json",        "STOCKS_QQQ_4H",        stocks_active,  8),
+            ("data/trade_history_STOCKS_SPX500_4H.json",     "STOCKS_SPX500_4H",     True,          12),
         ]
 
         silent_pools = []
@@ -623,7 +626,8 @@ async def _hourly_system_check() -> None:
                              "STOCKS_MOMENTUM_15M", "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_4H",
                              "STOCKS_QUALITY_15M",  "STOCKS_QUALITY_30M",  "STOCKS_QUALITY_4H",
                              "STOCKS_INDEX_15M",    "STOCKS_INDEX_30M",    "STOCKS_INDEX_4H",
-                             "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",      "STOCKS_QQQ_4H"]:
+                             "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",      "STOCKS_QQQ_4H",
+                             "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",   "STOCKS_SPX500_4H"]:
             _path = f"data/trade_history_{_dedup_pool}.json"
             _hist, _sha = await asyncio.to_thread(_get_file, _path)
             if not isinstance(_hist, list) or len(_hist) == 0:
@@ -649,7 +653,8 @@ async def _hourly_system_check() -> None:
                          "STOCKS_MOMENTUM_15M", "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_4H",
                          "STOCKS_QUALITY_15M",  "STOCKS_QUALITY_30M",  "STOCKS_QUALITY_4H",
                          "STOCKS_INDEX_15M",    "STOCKS_INDEX_30M",    "STOCKS_INDEX_4H",
-                         "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",      "STOCKS_QQQ_4H"]
+                         "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",      "STOCKS_QQQ_4H",
+                         "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",   "STOCKS_SPX500_4H"]
         for _pool in retrain_pools:
             _trades = await asyncio.to_thread(recent_outcomes, _pool, 500)
             if len(_trades) >= 50:
@@ -687,14 +692,17 @@ async def _daily_trade_count_report() -> None:
             ("STOCKS_QUAL_15M",     "data/trade_history_STOCKS_QUALITY_15M.json"),
             ("STOCKS_IDX_15M",      "data/trade_history_STOCKS_INDEX_15M.json"),
             ("STOCKS_QQQ_15M",      "data/trade_history_STOCKS_QQQ_15M.json"),
+            ("STOCKS_SPX500_15M",   "data/trade_history_STOCKS_SPX500_15M.json"),
             ("STOCKS_MOM_30M",      "data/trade_history_STOCKS_MOMENTUM_30M.json"),
             ("STOCKS_QUAL_30M",     "data/trade_history_STOCKS_QUALITY_30M.json"),
             ("STOCKS_IDX_30M",      "data/trade_history_STOCKS_INDEX_30M.json"),
             ("STOCKS_QQQ_30M",      "data/trade_history_STOCKS_QQQ_30M.json"),
+            ("STOCKS_SPX500_30M",   "data/trade_history_STOCKS_SPX500_30M.json"),
             ("STOCKS_MOM_4H",       "data/trade_history_STOCKS_MOMENTUM_4H.json"),
             ("STOCKS_QUAL_4H",      "data/trade_history_STOCKS_QUALITY_4H.json"),
             ("STOCKS_IDX_4H",       "data/trade_history_STOCKS_INDEX_4H.json"),
             ("STOCKS_QQQ_4H",       "data/trade_history_STOCKS_QQQ_4H.json"),
+            ("STOCKS_SPX500_4H",    "data/trade_history_STOCKS_SPX500_4H.json"),
         ]
 
         lines = []
