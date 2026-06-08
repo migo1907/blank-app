@@ -325,32 +325,38 @@ async def trade_outcome(payload: TradeOutcomePayload):
         print(f"[trade-outcome] Missing entry/exit price for {sym} {payload.direction} — skipping")
         return {"status": "ok", "skipped": "missing_prices"}
 
-    pool = symbol_to_pool(sym, payload.timeframe or "")
-    model = get_model(pool)
-    features = Features(
-        f1=payload.f1,   f2=payload.f2,   f3=payload.f3,   f4=payload.f4,
-        f5=payload.f5,   f6=payload.f6,   f7=payload.f7,   f8=payload.f8,
-        f9=payload.f9,   f10=payload.f10, f11=payload.f11, f12=payload.f12,
-        f13=payload.f13, f14=payload.f14, f15=payload.f15, f16=payload.f16,
-        f17=payload.f17, f18=payload.f18, f19=payload.f19, f20=payload.f20,
-        f21=payload.f21, f22=payload.f22, f23=payload.f23, f24=payload.f24,
-        f25=payload.f25,
-    )
+    try:
+        pool = symbol_to_pool(sym, payload.timeframe or "")
+        model = get_model(pool)
+        features = Features(
+            f1=payload.f1,   f2=payload.f2,   f3=payload.f3,   f4=payload.f4,
+            f5=payload.f5,   f6=payload.f6,   f7=payload.f7,   f8=payload.f8,
+            f9=payload.f9,   f10=payload.f10, f11=payload.f11, f12=payload.f12,
+            f13=payload.f13, f14=payload.f14, f15=payload.f15, f16=payload.f16,
+            f17=payload.f17, f18=payload.f18, f19=payload.f19, f20=payload.f20,
+            f21=payload.f21, f22=payload.f22, f23=payload.f23, f24=payload.f24,
+            f25=payload.f25,
+        )
 
-    ml_label = payload.ml_outcome or payload.outcome
-    _is_dup = _outcome_is_duplicate(sym, payload.direction, payload.entry_price, payload.exit_price, payload.timeframe or "")
-    if not _is_dup:
-        model.update_on_outcome(features, payload.direction, ml_label, tp_stage=payload.tp_stage or "")
-    else:
-        print(f"[trade-outcome] Duplicate within {_OUTCOME_DEDUP_TTL}s — skipping weight update for {sym} {payload.direction} entry={payload.entry_price}")
+        ml_label = payload.ml_outcome or payload.outcome
+        _is_dup = _outcome_is_duplicate(sym, payload.direction, payload.entry_price, payload.exit_price, payload.timeframe or "")
+        if not _is_dup:
+            model.update_on_outcome(features, payload.direction, ml_label, tp_stage=payload.tp_stage or "")
+        else:
+            print(f"[trade-outcome] Duplicate within {_OUTCOME_DEDUP_TTL}s — skipping weight update for {sym} {payload.direction} entry={payload.entry_price}")
 
-    raw_pct = (payload.exit_price - payload.entry_price) / max(payload.entry_price, 0.0001) * 100
-    pnl_pct = raw_pct if payload.direction == "LONG" else -raw_pct
+        raw_pct = (payload.exit_price - payload.entry_price) / max(payload.entry_price, 0.0001) * 100
+        pnl_pct = raw_pct if payload.direction == "LONG" else -raw_pct
 
-    from signal_engine import _detect_regime, _session_multiplier
-    _is_stock_pool = not pool.startswith("XAUUSD")
-    _, _session = _session_multiplier(datetime.now(timezone.utc), is_stock=_is_stock_pool)
-    _regime     = _detect_regime(features)
+        from signal_engine import _detect_regime, _session_multiplier
+        _is_stock_pool = not pool.startswith("XAUUSD")
+        _, _session = _session_multiplier(datetime.now(timezone.utc), is_stock=_is_stock_pool)
+        _regime     = _detect_regime(features)
+    except Exception as _exc:
+        print(f"[trade-outcome] ERROR processing {sym} {payload.direction} outcome={payload.outcome}: {_exc}")
+        import traceback; traceback.print_exc()
+        return {"status": "error", "detail": str(_exc)}
+
     outcome_row = {
         "symbol":        sym,
         "direction":     payload.direction,
@@ -561,37 +567,42 @@ async def unified_webhook(payload: UnifiedPayload):
         from ml_model import get_model, Features
         from ml_ensemble import get_rf, get_gbm
         from db import insert_outcome, recent_outcomes, symbol_to_pool
-        sym2     = payload.symbol or "XAUUSD"
-        pool     = symbol_to_pool(sym2, payload.timeframe or "")
-        model    = get_model(pool)
-        features = Features(
-            f1=payload.f1, f2=payload.f2, f3=payload.f3, f4=payload.f4,
-            f5=payload.f5, f6=payload.f6, f7=payload.f7, f8=payload.f8,
-            f9=payload.f9, f10=payload.f10, f11=payload.f11, f12=payload.f12,
-            f13=payload.f13, f14=payload.f14, f15=payload.f15, f16=payload.f16,
-            f17=payload.f17, f18=payload.f18, f19=payload.f19, f20=payload.f20,
-            f21=payload.f21, f22=payload.f22, f23=payload.f23, f24=payload.f24,
-            f25=payload.f25,
-        )
-        ml_label = payload.ml_outcome or payload.outcome
-        _is_dup2 = _outcome_is_duplicate(sym2, payload.direction, payload.entry_price or 0.0, payload.exit_price or 0.0, payload.timeframe or "")
-        if not _is_dup2:
-            model.update_on_outcome(features, payload.direction, ml_label, tp_stage=payload.tp_stage or "")
-        else:
-            print(f"[webhook] Duplicate within {_OUTCOME_DEDUP_TTL}s — skipping weight update for {sym2} {payload.direction} entry={payload.entry_price}")
+        sym2 = payload.symbol or "XAUUSD"
+        try:
+            pool     = symbol_to_pool(sym2, payload.timeframe or "")
+            model    = get_model(pool)
+            features = Features(
+                f1=payload.f1, f2=payload.f2, f3=payload.f3, f4=payload.f4,
+                f5=payload.f5, f6=payload.f6, f7=payload.f7, f8=payload.f8,
+                f9=payload.f9, f10=payload.f10, f11=payload.f11, f12=payload.f12,
+                f13=payload.f13, f14=payload.f14, f15=payload.f15, f16=payload.f16,
+                f17=payload.f17, f18=payload.f18, f19=payload.f19, f20=payload.f20,
+                f21=payload.f21, f22=payload.f22, f23=payload.f23, f24=payload.f24,
+                f25=payload.f25,
+            )
+            ml_label = payload.ml_outcome or payload.outcome
+            _is_dup2 = _outcome_is_duplicate(sym2, payload.direction, payload.entry_price or 0.0, payload.exit_price or 0.0, payload.timeframe or "")
+            if not _is_dup2:
+                model.update_on_outcome(features, payload.direction, ml_label, tp_stage=payload.tp_stage or "")
+            else:
+                print(f"[webhook] Duplicate within {_OUTCOME_DEDUP_TTL}s — skipping weight update for {sym2} {payload.direction} entry={payload.entry_price}")
 
-        entry = payload.entry_price or 0.0
-        exit_ = payload.exit_price or 0.0
-        if entry and exit_:
-            raw_pct = (exit_ - entry) / max(entry, 0.0001) * 100
-            pnl_pct = raw_pct if payload.direction == "LONG" else -raw_pct
-        else:
-            pnl_pct = 0.0
+            entry = payload.entry_price or 0.0
+            exit_ = payload.exit_price or 0.0
+            if entry and exit_:
+                raw_pct = (exit_ - entry) / max(entry, 0.0001) * 100
+                pnl_pct = raw_pct if payload.direction == "LONG" else -raw_pct
+            else:
+                pnl_pct = 0.0
 
-        from signal_engine import _detect_regime, _session_multiplier
-        _is_stock_pool2 = not pool.startswith("XAUUSD")
-        _, _session = _session_multiplier(datetime.now(timezone.utc), is_stock=_is_stock_pool2)
-        _regime     = _detect_regime(features)
+            from signal_engine import _detect_regime, _session_multiplier
+            _is_stock_pool2 = not pool.startswith("XAUUSD")
+            _, _session = _session_multiplier(datetime.now(timezone.utc), is_stock=_is_stock_pool2)
+            _regime     = _detect_regime(features)
+        except Exception as _exc:
+            print(f"[webhook] ERROR processing outcome {sym2} {payload.direction} outcome={payload.outcome}: {_exc}")
+            import traceback; traceback.print_exc()
+            return {"status": "error", "detail": str(_exc)}
         outcome_row = {
             "symbol":        sym2,
             "direction":     payload.direction,
