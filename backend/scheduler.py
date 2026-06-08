@@ -41,7 +41,7 @@ def record_webhook_error() -> None:
 
 
 def _load_seen_headlines() -> set:
-    global _fj_seen_headlines, _last_sent_direction, _last_sent_direction_spy
+    global _fj_seen_headlines, _last_sent_direction, _last_sent_direction_spy, _last_ml_direction, _last_ml_direction_spy
     try:
         from db import _get_file
         data, _ = _get_file(_SEEN_HEADLINES_PATH)
