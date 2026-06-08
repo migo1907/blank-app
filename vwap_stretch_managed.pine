@@ -29,7 +29,8 @@ showStats       = input.bool(true,  "Show Stats Panel (win-rate / expectancy)", 
 strongConfirm   = input.bool(true,  "Strong confirmation (close into reversal + RSI turning)", group="Entry Filters")
 closeFrac       = input.float(0.33, "Confirm candle close in top/bottom fraction", minval=0.1, maxval=0.5, group="Entry Filters")
 confirmOnClose  = input.bool(true,  "Confirm signals on bar close (no repaint)", group="Entry Filters")
-stretchSens     = input.float(1.0,  "Stretch sensitivity (lower = more/earlier signals)", minval=0.2, maxval=2.0, step=0.05, group="Entry Filters")
+autoStretch     = input.bool(true,  "Auto stretch sensitivity by timeframe (≤2m .35 / ≤5m .45 / ≤15m .6 / ≤1h .8 / HTF 1.0)", group="Entry Filters")
+stretchSens     = input.float(1.0,  "Manual stretch sensitivity (used when auto is off)", minval=0.2, maxval=2.0, step=0.05, group="Entry Filters")
 requireVolDecel = input.bool(true,  "Require HTF volume deceleration", group="Entry Filters")
 requireTrigger  = input.bool(true,  "Require RSI-divergence / rejection candle", group="Entry Filters")
 
@@ -128,8 +129,10 @@ volMultiplier = useVix ? vixMultiplier : useStkVol ? stkMult : 1.0
 volRegime = useVix ? (not vixOK ? "VIX N/A" : vixValue < 15 ? "LOW" : vixValue < 22 ? "NORMAL" : "HIGH")
           : useStkVol ? (atrRatio < 0.8 ? "LOW" : atrRatio < 1.3 ? "NORMAL" : "HIGH") : "FIXED"
 
-threshold_2sigma = baseThreshold_2sigma * volMultiplier * stretchSens
-threshold_3sigma = baseThreshold_3sigma * volMultiplier * stretchSens
+// Auto-scale the fade threshold to the chart: lower TF → looser stretch → more signals
+stretchSensEff   = autoStretch ? (tfMinutes <= 2 ? 0.35 : tfMinutes <= 5 ? 0.45 : tfMinutes <= 15 ? 0.6 : tfMinutes <= 60 ? 0.8 : 1.0) : stretchSens
+threshold_2sigma = baseThreshold_2sigma * volMultiplier * stretchSensEff
+threshold_3sigma = baseThreshold_3sigma * volMultiplier * stretchSensEff
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SESSION-ANCHORED VWAP + σ BANDS  (manual daily reset)
