@@ -28,10 +28,8 @@
 - **Symbol format:** `syminfo.ticker` — bare ticker, no exchange prefix
 - **Features:** F1–F25 sent in outcome and heartbeat payloads; entry payload has no features (uses heartbeat cache)
 - **Outcome normalization:** TP1_HIT/TP2_HIT → PROGRESS (no DB write), WIN/LOSS/PARTIAL → closed trade
-- **Known gap:** No `isTF30` bucket — 30M chart uses 1H/4H ATR multipliers (too wide). See TODO.
-
-
-- [ ] Pine Script: add `isTF30` bucket — 30M chart currently falls through to 1H/4H ATR multipliers (too wide TP/SL for 30M). Add dedicated 30M values to all multiplier chains. Backend ready — Pine Script only change.
+- **Pine Script backup (raw):** `https://raw.githubusercontent.com/migo1907/blank-app/data/pine_script_backup/migo_sniper_ml_v3.pine`
+- **isTF30 bucket:** ✅ implemented 2026-06-08 — 30M now has dedicated ATR multipliers (TP1×2.2, TP2×3.8, TP3×6.0, SL×2.2, trail×1.0)
 
 
 - FastAPI backend on Railway (Python 3.13)
