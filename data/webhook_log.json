@@ -6706,7 +6706,7 @@
     }
   },
   {
-    "received_at": "2026-06-08T13:46:48.087270+00:00",
+    "received_at": "2026-06-08T13:46:48.685258+00:00",
     "pool": "STOCKS_QUALITY_15M",
     "payload": {
       "secret": "gold2026",
@@ -6722,11 +6722,11 @@
       "ml_score": 0.75,
       "tier": null,
       "trade_id": "META_1780926303774",
-      "outcome": "PROGRESS",
-      "ml_outcome": "TP1_HIT",
+      "outcome": "PARTIAL",
+      "ml_outcome": "WIN",
       "mfe": 0.0,
-      "tp_stage": "TP1",
-      "exit_price": 581.4348,
+      "tp_stage": "SL_TP1",
+      "exit_price": 592.0,
       "f1": -0.4718,
       "f2": -1.0,
       "f3": 0.8477,
