@@ -899,7 +899,7 @@ def start_scheduler() -> AsyncIOScheduler:
                        start_date=_dt.now(_tz.utc) + _td(seconds=20))
     _scheduler.add_job(_daily_market_brief, trigger="cron", hour=8, minute=0, id="daily_market_brief", replace_existing=True, misfire_grace_time=3600)
     _scheduler.add_job(_stocks_session_report, trigger="cron", hour=21, minute=5, id="stocks_session_report", replace_existing=True, misfire_grace_time=3600)
-    _scheduler.add_job(_daily_trade_count_report, trigger="cron", hour=21, minute=15, id="daily_trade_count_report", replace_existing=True, misfire_grace_time=3600)
+    _scheduler.add_job(_daily_trade_count_report, trigger="cron", hour=21, minute=1, id="daily_trade_count_report", replace_existing=True, misfire_grace_time=3600)
     _scheduler.start()
 
     # Startup catch-up: fire daily brief if it should have run today but was missed (e.g. redeploy after 08:00)
