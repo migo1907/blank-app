@@ -902,12 +902,20 @@ def start_scheduler() -> AsyncIOScheduler:
     _scheduler.add_job(_daily_trade_count_report, trigger="cron", hour=21, minute=1, id="daily_trade_count_report", replace_existing=True, misfire_grace_time=3600)
     _scheduler.start()
 
-    # Startup catch-up: fire daily brief if it should have run today but was missed (e.g. redeploy after 08:00)
     _now = _dt.now(_tz.utc)
+
+    # Startup catch-up: fire daily brief if missed today (redeploy between 08:00–11:00)
     if _now.weekday() < 5 and 8 <= _now.hour < 11:
         print("[scheduler] Startup catch-up: firing missed daily brief.")
-        _scheduler.add_job(_daily_market_brief, trigger="date", run_date=_dt.now(_tz.utc) + _td(seconds=30),
+        _scheduler.add_job(_daily_market_brief, trigger="date", run_date=_now + _td(seconds=30),
                            id="daily_brief_catchup", replace_existing=True)
+
+    # Startup catch-up: fire daily performance report if we boot during/after US session (14:00+ UTC)
+    # Covers: missed 21:01 after redeploy, and "send now" on any US-hours restart
+    if _now.weekday() < 5 and _now.hour >= 14:
+        print("[scheduler] Startup catch-up: firing daily performance report on boot.")
+        _scheduler.add_job(_daily_trade_count_report, trigger="date", run_date=_now + _td(seconds=45),
+                           id="daily_report_catchup", replace_existing=True)
 
     print(f"[scheduler] Started — signal every {interval} min, breaking news every 2 min (Telegram paused), system check every 60 min, daily brief at 08:00 UTC.")
     return _scheduler
