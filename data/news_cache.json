@@ -1,629 +1,5 @@
 [
   {
-    "source": "ForexLive",
-    "headline": "Iran says that US is directly responsible for recent breaches in ceasefire",
-    "url": "https://investinglive.com/news/iran-says-that-us-is-directly-responsible-for-recent-breaches-in-ceasefire-20260608/",
-    "sentiment_score": -0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "escalation rhetoric",
-      "US involvement",
-      "tension spike"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "ForexLive",
-    "headline": "Iran says that Israeli strikes have damaged its Karoon Petrochemical complex",
-    "url": "https://investinglive.com/news/iran-says-that-israeli-strikes-have-damaged-its-karoon-petrochemical-complex-20260608/",
-    "sentiment_score": -0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "infrastructure damage",
-      "conflict intensity",
-      "escalation"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "ForexLive",
-    "headline": "Israeli military says it has identified missiles launched from Iran towards its territory",
-    "url": "https://investinglive.com/news/israeli-military-says-it-has-identified-missiles-launched-from-iran-towards-its-territory-20260608/",
-    "sentiment_score": -0.7,
-    "impact": "HIGH",
-    "keywords": [
-      "missile launch",
-      "direct threat",
-      "escalation"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "ForexLive",
-    "headline": "investingLive Asia-Pacific market news wrap: Oil jumps as Iran and Israel trade strikes",
-    "url": "https://investinglive.com/news/investinglive-asia-pacific-market-news-wrap-oil-jumps-as-iran-and-israel-trade-strikes-20260608/",
-    "sentiment_score": -0.6,
-    "impact": "MEDIUM",
-    "keywords": [
-      "strikes trading",
-      "geopolitical tension",
-      "oil volatility"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Deutsche Bank's View on US Eco Data - FJElite",
-    "url": "https://www.financialjuice.com/News/9624501/Deutsche-Banks-View-on-US-Eco-Data---FJElite.aspx?xy=rss",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "Fed policy",
-      "economic data",
-      "rates"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Goldman Sachs: No Fed Rate Cuts This Year - FJElite",
-    "url": "https://www.financialjuice.com/News/9624500/Goldman-Sachs-No-Fed-Rate-Cuts-This-Year---FJElite.aspx?xy=rss",
-    "sentiment_score": -0.8,
-    "impact": "HIGH",
-    "keywords": [
-      "no rate cuts",
-      "hawkish Fed",
-      "strong dollar"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "JPMorgan Rates Scorecard - FJElite",
-    "url": "https://www.financialjuice.com/News/9624499/JPMorgan-Rates-Scorecard---FJElite.aspx?xy=rss",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "rates",
-      "Fed policy",
-      "scorecard"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Amazon reports pact with Corning on US fiber optics manufacture. $AMZN",
-    "url": "https://www.financialjuice.com/News/9624498/Amazon-reports-pact-with-Corning-on-US-fiber-optics-manufacture-AMZN.aspx?xy=rss",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "earnings",
-      "corporate news",
-      "tech sector"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "US Sentiment: Iran-Israel Conflict Flared Up, Trump Calms the Market - FJElite",
-    "url": "https://www.financialjuice.com/News/9624497/US-Sentiment-Iran-Israel-Conflict-Flared-Up-Trump-Calms-the-Market---FJElite.aspx?xy=rss",
-    "sentiment_score": 0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "market calming",
-      "Trump de-escalation",
-      "sentiment shift"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "IDF: Projectiles were intercepted prior to crossing into Israel",
-    "url": "https://www.financialjuice.com/News/9624483/IDF-Projectiles-were-intercepted-prior-to-crossing-into-Israel.aspx?xy=rss",
-    "sentiment_score": 0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "air defense",
-      "conflict contained",
-      "de-escalation"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "IDF: Projectiles launched from Lebanon toward IDF after sirens",
-    "url": "https://www.financialjuice.com/News/9624482/IDF-Projectiles-launched-from-Lebanon-toward-IDF-after-sirens.aspx?xy=rss",
-    "sentiment_score": -0.6,
-    "impact": "MEDIUM",
-    "keywords": [
-      "fresh attacks",
-      "escalation",
-      "Lebanon involvement"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Israel's Channel 12, citing a senior Israeli Official: If Hezbollah attacks on Israeli towns continue, Israel will attack Beirut's southern suburbs.",
-    "url": "https://www.financialjuice.com/News/9624481/Israels-Channel-12-citing-a-senior-Israeli-Official-If-Hezbollah-attacks-on-Israeli-towns-continue-Israel-will-attack-Beiruts-southern-suburbs.aspx?xy=rss",
-    "sentiment_score": -0.7,
-    "impact": "HIGH",
-    "keywords": [
-      "military threat",
-      "Beirut strike warning",
-      "escalation risk"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Israel halts strikes on Iran at Trump\u2019s request - Israel's Channel 12, citing a senior Israeli official",
-    "url": "https://www.financialjuice.com/News/9624480/Israel-halts-strikes-on-Iran-at-Trumps-request---Israels-Channel-12-citing-a-senior-Israeli-official.aspx?xy=rss",
-    "sentiment_score": 0.8,
-    "impact": "HIGH",
-    "keywords": [
-      "halt strikes",
-      "Trump intervention",
-      "de-escalation"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "IDF, following sirens in northern Israel: The incident has ended",
-    "url": "https://www.financialjuice.com/News/9624479/IDF-following-sirens-in-northern-Israel-The-incident-has-ended.aspx?xy=rss",
-    "sentiment_score": 0.6,
-    "impact": "MEDIUM",
-    "keywords": [
-      "incident resolved",
-      "tension easing",
-      "ceasefire holding"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Sirens sound in northern Israel",
-    "url": "https://www.financialjuice.com/News/9624456/Sirens-sound-in-northern-Israel.aspx?xy=rss",
-    "sentiment_score": 0.7,
-    "impact": "HIGH",
-    "keywords": [
-      "Israel",
-      "security threat",
-      "geopolitical risk"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Secured overnight financing rate: 3.63% June 5th vs 3.62% June 4th",
-    "url": "https://www.financialjuice.com/News/9624412/Secured-overnight-financing-rate-363-June-5th-vs-362-June-4th.aspx?xy=rss",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "SOFR",
-      "overnight rate",
-      "minimal change"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Iraq reopens its airspace - State-run INA",
-    "url": "https://www.financialjuice.com/News/9624409/Iraq-reopens-its-airspace---State-run-INA.aspx?xy=rss",
-    "sentiment_score": -0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "Iraq",
-      "airspace reopened",
-      "regional stability"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Trump and Netanyahu spoke a short time ago - N12 reports",
-    "url": "https://www.financialjuice.com/News/9624408/Trump-and-Netanyahu-spoke-a-short-time-ago---N12-reports.aspx?xy=rss",
-    "sentiment_score": 0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "Trump",
-      "Netanyahu",
-      "diplomatic engagement"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Israeli Source: Netanyahu and Trump spoke on Monday",
-    "url": "https://www.financialjuice.com/News/9624407/Israeli-Source-Netanyahu-and-Trump-spoke-on-Monday.aspx?xy=rss",
-    "sentiment_score": 0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "Trump",
-      "Netanyahu",
-      "diplomatic talks"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Poll: UK home prices to rise 1.8% in 2026, 3.0% in 2027 and 2028 (2.5%, 3.0%, 3.0% in Q1 poll)",
-    "url": "https://www.financialjuice.com/News/9624366/Poll-UK-home-prices-to-rise-18-in-2026-30-in-2027-and-2028-25-30-30-in-Q1-poll.aspx?xy=rss",
-    "sentiment_score": -0.2,
-    "impact": "LOW",
-    "keywords": [
-      "UK housing",
-      "price forecast",
-      "economic data"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Trump: Final negotiations on \"peace\" are proceeding, subject to ignorance or stupidity getting in its way.",
-    "url": "https://www.financialjuice.com/News/9624305/Trump-Final-negotiations-on-peace-are-proceeding-subject-to-ignorance-or-stupidity-getting-in-its-way.aspx?xy=rss",
-    "sentiment_score": 0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "Trump",
-      "peace negotiations",
-      "deal progress"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Trump: Blockade will remain in place, and in full force and effect, until a \"final deal\" is reached.",
-    "url": "https://www.financialjuice.com/News/9624304/Trump-Blockade-will-remain-in-place-and-in-full-force-and-effect-until-a-final-deal-is-reached.aspx?xy=rss",
-    "sentiment_score": 0.6,
-    "impact": "HIGH",
-    "keywords": [
-      "blockade",
-      "sanctions",
-      "economic pressure"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "IDF: Struck infrastructure used for Iran's missile program",
-    "url": "https://www.financialjuice.com/News/9624290/IDF-Struck-infrastructure-used-for-Irans-missile-program.aspx?xy=rss",
-    "sentiment_score": 0.8,
-    "impact": "HIGH",
-    "keywords": [
-      "Iran",
-      "military strikes",
-      "regional escalation"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "German Government spokesperson: There is no physical shortage of jet fuel or of other fuels",
-    "url": "https://www.financialjuice.com/News/9624289/German-Government-spokesperson-There-is-no-physical-shortage-of-jet-fuel-or-of-other-fuels.aspx?xy=rss",
-    "sentiment_score": -0.2,
-    "impact": "LOW",
-    "keywords": [
-      "Germany",
-      "fuel supply",
-      "energy stability"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Iran's Tasnim, citing a military source: Tehran is prepared for a prolonged conflict with Israel and for strikes against US interests",
-    "url": "https://www.financialjuice.com/News/9624227/Irans-Tasnim-citing-a-military-source-Tehran-is-prepared-for-a-prolonged-conflict-with-Israel-and-for-strikes-against-US-interests.aspx?xy=rss",
-    "sentiment_score": 0.8,
-    "impact": "HIGH",
-    "keywords": [
-      "Iran",
-      "conflict escalation",
-      "US interests"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Iran is prepared for a long-term war with Israel - Tasnim",
-    "url": "https://www.financialjuice.com/News/9624226/Iran-is-prepared-for-a-long-term-war-with-Israel---Tasnim.aspx?xy=rss",
-    "sentiment_score": 0.8,
-    "impact": "HIGH",
-    "keywords": [
-      "Iran",
-      "prolonged war",
-      "geopolitical risk"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "EU's Kallas: \"We are not there yet\" in terms of starting talks with Russia",
-    "url": "https://www.financialjuice.com/News/9624225/EUs-Kallas-We-are-not-there-yet-in-terms-of-starting-talks-with-Russia.aspx?xy=rss",
-    "sentiment_score": 0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "EU",
-      "Russia talks",
-      "diplomatic stalemate"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "EU's Foreign Minister Kallas: The EU is preparing an economic support package for Armenia",
-    "url": "https://www.financialjuice.com/News/9624205/EUs-Foreign-Minister-Kallas-The-EU-is-preparing-an-economic-support-package-for-Armenia.aspx?xy=rss",
-    "sentiment_score": 0.1,
-    "impact": "LOW",
-    "keywords": [
-      "EU",
-      "Armenia",
-      "support package"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "EU's Kallas: EU member states have approved sanctions against Iranians and Iranian entities for threats to maritime traffic",
-    "url": "https://www.financialjuice.com/News/9624204/EUs-Kallas-EU-member-states-have-approved-sanctions-against-Iranians-and-Iranian-entities-for-threats-to-maritime-traffic.aspx?xy=rss",
-    "sentiment_score": 0.6,
-    "impact": "HIGH",
-    "keywords": [
-      "Iran sanctions",
-      "maritime security",
-      "Hormuz"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "EU's Kallas: Approved sanctions against Iran on Hormuz blockage",
-    "url": "https://www.financialjuice.com/News/9624203/EUs-Kallas-Approved-sanctions-against-Iran-on-Hormuz-blockage.aspx?xy=rss",
-    "sentiment_score": 0.6,
-    "impact": "HIGH",
-    "keywords": [
-      "Iran sanctions",
-      "Hormuz blockade",
-      "trade risk"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Trump: Israel and Iran must immediately stop \u201cshooting.\u201d",
-    "url": "https://www.financialjuice.com/News/9624202/Trump-Israel-and-Iran-must-immediately-stop-shooting.aspx?xy=rss",
-    "sentiment_score": 0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "ceasefire",
-      "diplomatic pressure",
-      "de-escalation"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Israel Military Official: IDF is prepared for a range of options in Iran, from several days to \"as long as it takes.\"",
-    "url": "https://www.financialjuice.com/News/9624201/Israel-Military-Official-IDF-is-prepared-for-a-range-of-options-in-Iran-from-several-days-to-as-long-as-it-takes.aspx?xy=rss",
-    "sentiment_score": 0.7,
-    "impact": "HIGH",
-    "keywords": [
-      "IDF prepared",
-      "military readiness",
-      "conflict duration"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Israel Military Official: Air Force struck Iranian air defence systems that were being rebuilt after the previous conflict",
-    "url": "https://www.financialjuice.com/News/9624180/Israel-Military-Official-Air-Force-struck-Iranian-air-defence-systems-that-were-being-rebuilt-after-the-previous-conflict.aspx?xy=rss",
-    "sentiment_score": 0.7,
-    "impact": "HIGH",
-    "keywords": [
-      "Iranian air defence",
-      "military strikes",
-      "escalation"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "The US is assisting in intercepting missiles, not in attacks - Kan News",
-    "url": "https://www.financialjuice.com/News/9624179/The-US-is-assisting-in-intercepting-missiles-not-in-attacks---Kan-News.aspx?xy=rss",
-    "sentiment_score": 0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "US missile interception",
-      "defensive posture",
-      "limited involvement"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "ING: The EUR - FJElite",
-    "url": "https://www.financialjuice.com/News/9624103/ING-The-EUR---FJElite.aspx?xy=rss",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "EUR",
-      "currency",
-      "technical"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "ING: The GBP - FJElite",
-    "url": "https://www.financialjuice.com/News/9624102/ING-The-GBP---FJElite.aspx?xy=rss",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "GBP",
-      "currency",
-      "technical"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Credit \u00c1gricole: US May Jobs Data - FJElite",
-    "url": "https://www.financialjuice.com/News/9624101/Credit-%c3%81gricole-US-May-Jobs-Data---FJElite.aspx?xy=rss",
-    "sentiment_score": -0.6,
-    "impact": "MEDIUM",
-    "keywords": [
-      "US jobs",
-      "strong employment",
-      "USD strength"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Credit \u00c1gricole: G10 FX Positions - FJElite",
-    "url": "https://www.financialjuice.com/News/9624100/Credit-%c3%81gricole-G10-FX-Positions---FJElite.aspx?xy=rss",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "FX positioning",
-      "technical",
-      "flows"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "AMD: \u00a32b investment over 5 yrs to support AI innovation in UK.",
-    "url": "https://www.financialjuice.com/News/9624097/AMD-2b-investment-over-5-yrs-to-support-AI-innovation-in-UK.aspx?xy=rss",
-    "sentiment_score": -0.3,
-    "impact": "LOW",
-    "keywords": [
-      "UK investment",
-      "risk appetite",
-      "tech spending"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Explosion heard in Iran's Isfahan - Nour News.",
-    "url": "https://www.financialjuice.com/News/9624078/Explosion-heard-in-Irans-Isfahan---Nour-News.aspx?xy=rss",
-    "sentiment_score": 0.7,
-    "impact": "HIGH",
-    "keywords": [
-      "Iran conflict",
-      "geopolitical risk",
-      "safe haven"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "AMD commits up to \u00a32b to accelerate AI innovation in UK.",
-    "url": "https://www.financialjuice.com/News/9624077/AMD-commits-up-to-2b-to-accelerate-AI-innovation-in-UK.aspx?xy=rss",
-    "sentiment_score": -0.3,
-    "impact": "LOW",
-    "keywords": [
-      "UK investment",
-      "risk appetite",
-      "tech spending"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Eurozone Sentix Investor Confidence Index Actual -13.4 (Forecast -14, Previous -16.4)",
-    "url": "https://www.financialjuice.com/News/9624070/Eurozone-Sentix-Investor-Confidence-Index-Actual--134-Forecast--14-Previous--164.aspx?xy=rss",
-    "sentiment_score": 0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "eurozone sentiment",
-      "economic weakness",
-      "risk off"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "South Korea pension fund conducting FX hedging operations to support Won - Sources.",
-    "url": "https://www.financialjuice.com/News/9624069/South-Korea-pension-fund-conducting-FX-hedging-operations-to-support-Won---Sources.aspx?xy=rss",
-    "sentiment_score": -0.2,
-    "impact": "LOW",
-    "keywords": [
-      "currency intervention",
-      "USD support",
-      "won weakness"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Iranian air defences shoot down drone over Tehran - Mehr News.",
-    "url": "https://www.financialjuice.com/News/9624068/Iranian-air-defences-shoot-down-drone-over-Tehran---Mehr-News.aspx?xy=rss",
-    "sentiment_score": 0.8,
-    "impact": "HIGH",
-    "keywords": [
-      "Iran conflict",
-      "military escalation",
-      "safe haven"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "UK's PM Starmer: UK to buy \u00a3400m of AI chips.",
-    "url": "https://www.financialjuice.com/News/9624067/UKs-PM-Starmer-UK-to-buy-400m-of-AI-chips.aspx?xy=rss",
-    "sentiment_score": -0.2,
-    "impact": "LOW",
-    "keywords": [
-      "UK tech spending",
-      "investment",
-      "risk appetite"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Europe Sentiment: Israel Tests The Fragility of The Truce - FJElite",
-    "url": "https://www.financialjuice.com/News/9624066/Europe-Sentiment-Israel-Tests-The-Fragility-of-The-Truce---FJElite.aspx?xy=rss",
-    "sentiment_score": 0.6,
-    "impact": "MEDIUM",
-    "keywords": [
-      "Middle East tension",
-      "geopolitical risk",
-      "fragile truce"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Iran: If hits on energy assets continue, regional ones are a target - Fars News",
-    "url": "https://www.financialjuice.com/News/9624048/Iran-If-hits-on-energy-assets-continue-regional-ones-are-a-target---Fars-News.aspx?xy=rss",
-    "sentiment_score": 0.9,
-    "impact": "HIGH",
-    "keywords": [
-      "Iran threat",
-      "energy assets",
-      "escalation risk"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "EU council adopts regulation creating new framework to shield EU steel market from trade impact of global overcapacity.",
-    "url": "https://www.financialjuice.com/News/9624047/EU-council-adopts-regulation-creating-new-framework-to-shield-EU-steel-market-from-trade-impact-of-global-overcapacity.aspx?xy=rss",
-    "sentiment_score": -0.1,
-    "impact": "LOW",
-    "keywords": [
-      "trade protectionism",
-      "steel market",
-      "structural"
-    ],
-    "fetched_at": "2026-06-08T12:47:56.659609+00:00"
-  },
-  {
     "source": "FinancialJuice",
     "headline": "Iranian media report blasts heard in Tehran.",
     "url": "https://www.financialjuice.com/News/9624046/Iranian-media-report-blasts-heard-in-Tehran.aspx?xy=rss",
@@ -2202,5 +1578,437 @@
     "impact": "LOW",
     "keywords": [],
     "fetched_at": "2026-06-08T13:11:44.008102+00:00"
+  },
+  {
+    "source": "ForexLive",
+    "headline": "More headlines from the Middle East: Isreal halts preparations for new round of strikes",
+    "url": "https://investinglive.com/news/more-headlines-from-the-middle-east-isreal-halts-preparations-for-new-round-of-strikes-20260608/",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "ForexLive",
+    "headline": "Iran's armed forces announce end of military operations against Israel",
+    "url": "https://investinglive.com/news/irans-armed-forces-announce-end-of-military-operations-against-israel-20260608/",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "ForexLive",
+    "headline": "Trump: Both sides, Israel and Iran, are looking to do an immediate CEASEFIRE!",
+    "url": "https://investinglive.com/news/trump-both-sides-israel-and-iran-are-looking-to-do-an-immediate-ceasefire-20260608/",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "ForexLive",
+    "headline": "Iran is prepared for a prolonged conflict with Israel and for strikes against US interests",
+    "url": "https://investinglive.com/news/iran-is-prepared-for-a-prolonged-conflict-with-israel-and-for-strikes-against-us-interests-20260608/",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "ForexLive",
+    "headline": "Gold tumbles to fresh monthly lows as strong NFP delivers hawkish Fed reality check",
+    "url": "https://investinglive.com/commodities/gold-tumbles-to-fresh-monthly-lows-as-strong-nfp-delivers-hawkish-fed-reality-check-20260608/",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "ForexLive",
+    "headline": "Trump says Israel and Iran must immediately stop shooting",
+    "url": "https://investinglive.com/news/trump-says-israel-and-iran-must-immediately-stop-shooting-20260608/",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "ForexLive",
+    "headline": "Oil prices move back up to start the week as Middle East tensions flare up",
+    "url": "https://investinglive.com/commodities/oil-prices-move-back-up-to-start-the-week-as-middle-east-tensions-flare-up-20260608/",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "ForexLive",
+    "headline": "Iran says that US is directly responsible for recent breaches in ceasefire",
+    "url": "https://investinglive.com/news/iran-says-that-us-is-directly-responsible-for-recent-breaches-in-ceasefire-20260608/",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "ForexLive",
+    "headline": "Iran says that Israeli strikes have damaged its Karoon Petrochemical complex",
+    "url": "https://investinglive.com/news/iran-says-that-israeli-strikes-have-damaged-its-karoon-petrochemical-complex-20260608/",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "ForexLive",
+    "headline": "Israeli military says it has identified missiles launched from Iran towards its territory",
+    "url": "https://investinglive.com/news/israeli-military-says-it-has-identified-missiles-launched-from-iran-towards-its-territory-20260608/",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "MarketWatch Top",
+    "headline": "This Big Tech investor\u2019s warning for traders: Watch out for the SpaceX IPO",
+    "url": "https://www.marketwatch.com/story/this-big-tech-investors-warning-for-traders-watch-out-for-the-spacex-ipo-cd651485?mod=mw_rss_topstories",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "MarketWatch Top",
+    "headline": "Global oil prices erase most gains after topping $98 a barrel as Iran announces end of current attacks after exchanging fire with Israel",
+    "url": "https://www.marketwatch.com/story/u-s-stock-futures-slide-oil-prices-surge-as-new-attacks-threaten-the-cease-fire-with-iran-6e433c90?mod=mw_rss_topstories",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "MarketWatch Top",
+    "headline": "Gold has tumbled during the Iran war \u2014 exposing a massive myth about geopolitical risk",
+    "url": "https://www.marketwatch.com/story/gold-has-tumbled-during-the-iran-war-exposing-a-massive-myth-about-geopolitical-risk-15bd2c94?mod=mw_rss_topstories",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "MarketWatch Top",
+    "headline": "Gold just had its worst selloff since March. A floor may be $4,000, says one veteran strategist",
+    "url": "https://www.marketwatch.com/story/gold-just-had-its-worst-selloff-since-march-a-floor-may-be-4-000-says-one-veteran-strategist-c80c3253?mod=mw_rss_topstories",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "Investing.com Comm",
+    "headline": "USDA confirms two more screwworm cases in Texas livestock",
+    "url": "https://www.investing.com/news/stock-market-news/usda-confirms-two-more-screwworm-cases-in-texas-livestock-93CH-4730870",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Dollar eases after Iran reportedly ends attacks on Israel",
+    "url": "https://www.investing.com/news/forex-news/asia-fx-steadies-after-sliding-on-strong-us-jobs-data-dollar-firm-at-2mth-high-4729761",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Sterling today: Pound steady as Fed tightening bets and tech sell-off grip markets",
+    "url": "https://www.investing.com/news/forex-news/sterling-today-pound-steady-as-fed-tightening-bets-and-tech-selloff-grip-markets-4730715",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Why low FX volatility may open the door to dollar hedging",
+    "url": "https://www.investing.com/news/forex-news/why-low-fx-volatility-may-open-the-door-to-dollar-hedging-4729652",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Goldman Sachs sees resilient U.S. economy, warns of slower consumer spending ahead",
+    "url": "https://www.investing.com/news/forex-news/goldman-on-the-dollar-4729627",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Dollar surges to two-month high after May jobs report boosts rate hike bets",
+    "url": "https://www.investing.com/news/forex-news/dollar-steadies-with-usiran-tensions-nonfarm-payrolls-in-focus-4727838",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Sterling today: Pound slips as strong U.S. payrolls boost dollar",
+    "url": "https://www.investing.com/news/forex-news/sterling-today-pound-under-pressure-as-strong-us-labour-market-lifts-greenback-4728596",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "U.S. dollar slips marginally as risk sentiment outweighs safe haven demand",
+    "url": "https://www.investing.com/news/forex-news/asia-fx-steadies-after-tumbling-on-stronger-dollar-gulf-tensions-4725667",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Ex-CIA agent created fake spy program to amass $40M gold stash: reports",
+    "url": "https://www.mining.com/ex-cia-agent-created-fake-spy-program-to-amass-40m-gold-stash-reports/",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Litus, Uwin Nanotech\u00a0to collaborate on critical minerals recovery tech",
+    "url": "https://www.mining.com/litus-uwin-nanotech-to-collaborate-on-critical-minerals-recovery-tech/",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Gold price erases year\u2019s gains as rate hike chances surge",
+    "url": "https://www.mining.com/gold-price-nearly-flat-on-the-year-as-rate-hike-chances-surge/",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Poland, China lead renewed central bank gold buying",
+    "url": "https://www.mining.com/poland-china-lead-renewed-central-bank-gold-buying/",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Solar silver thrifting not enough to curb demand",
+    "url": "https://www.mining.com/solar-thrifting-not-enough-to-curb-demand/",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Fortune advances Nico cobalt-gold project as cash hurdle looms",
+    "url": "https://www.mining.com/fortune-advances-nico-cobalt-gold-project-as-cash-hurdle-looms/",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "Crypto Briefing",
+    "headline": "Orderly Network expands RWA offerings with launch of $QQQ perpetual futures market",
+    "url": "https://cryptobriefing.com/orderly-network-qqq-rwa-perpetual-futures/",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "BeInCrypto",
+    "headline": "Gold Shrugged Off the Iran Deal Collapse While Smart Money Quietly Bought",
+    "url": "https://beincrypto.com/gold-price-analysis-funds-exit-hedgers-enter/",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "CoinDesk",
+    "headline": "Crypto Long & Short: How the GENIUS Act repriced bitcoin's monetary premium",
+    "url": "https://www.coindesk.com/coindesk-indices/2026/05/27/crypto-long-and-short-how-the-genius-act-repriced-bitcoin-s-monetary-premium",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "Cointelegraph",
+    "headline": "Bitcoin analysis eyes sharp rebound after BTC collapses below M2 supply 'fair value'",
+    "url": "https://cointelegraph.com/markets/bitcoin-analysis-eyes-sharp-rebound-after-btc-collapses-below-m2-supply-fair-value",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "GlobeNewswire",
+    "headline": "Toobit Features New XAU in $150K Event Contracts Campaign",
+    "url": "https://www.globenewswire.com/news-release/2026/05/22/3300147/0/en/Toobit-Features-New-XAU-in-150K-Event-Contracts-Campaign.html",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "BusinessLine",
+    "headline": "Price volatility keeps India gold demand subdued, China premiums ease",
+    "url": "https://www.thehindubusinessline.com/markets/gold/price-volatility-keeps-india-gold-demand-subdued-china-premiums-ease/article71009466.ece",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "Al Jazeera English",
+    "headline": "100 days into Iran war, Americans face higher prices",
+    "url": "https://www.aljazeera.com/economy/2026/6/7/100-days-into-iran-war-americans-face-higher-prices",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "Crypto Briefing",
+    "headline": "Micron, Marvell shares tumble as chip sector faces worst day in six years",
+    "url": "https://cryptobriefing.com/chip-sector-worst-day-six-years/",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "The Times of India",
+    "headline": "Ahead of Market: 10 things that will decide D-Street action on Monday",
+    "url": "https://economictimes.indiatimes.com/markets/stocks/news/ahead-of-market-10-things-that-will-decide-d-street-action-on-monday/articleshow/131564578.cms",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "Business Insider",
+    "headline": "'The Big Short' investor Danny Moses unpacks how he's using prediction markets to navigate the market",
+    "url": "https://www.businessinsider.com/prediction-markets-danny-moses-big-short-kalshi-tsla-betting-2026-6",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "Crypto Briefing",
+    "headline": "US stocks plunge as strong jobs data fuels rate hike fears, dragging Bitcoin below $62K",
+    "url": "https://cryptobriefing.com/us-stocks-plunge-jobs-data-rate-hike-fears/",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "newsBTC",
+    "headline": "Bitcoin\u2019s June Bloodbath Explained: Causes, Market Impact, And Outlook",
+    "url": "http://www.newsbtc.com/news/bitcoin/bitcoins-june-bloodbath-explained-causes-market-impact-and-outlook/",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "BusinessLine",
+    "headline": "West Asia tensions, oil prices, inflation data key drivers for gold this week: Analysts",
+    "url": "https://www.thehindubusinessline.com/markets/west-asia-tensions-oil-prices-inflation-data-key-drivers-for-gold-this-week-analysts/article71072802.ece",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "BusinessLine",
+    "headline": "Rupee rises 81 paise to close at 94.93 against US dollar post RBI policy decision",
+    "url": "https://www.thehindubusinessline.com/markets/forex/rupee-rises-81-paise-to-close-at-9493-against-us-dollar-post-rbi-policy-decision/article71065132.ece",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "BusinessLine",
+    "headline": "Rupee rises 50 paise to 95.24 against US dollar post RBI policy decision",
+    "url": "https://www.thehindubusinessline.com/markets/forex/rupee-rises-50-paise-to-9524-against-us-dollar-post-rbi-policy-decision/article71064220.ece",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "The Times of India",
+    "headline": "RBI MPC June meet 2026: What's cheaper and what's costlier",
+    "url": "https://economictimes.indiatimes.com/news/economy/policy/rbi-mpc-june-2026-whats-cheaper-and-whats-costlier/articleshow/131522394.cms",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "Financial Post",
+    "headline": "EM Long Bonds Seen Missing Out on Any Iran Peace Dividend",
+    "url": "https://financialpost.com/pmn/business-pmn/em-long-bonds-seen-missing-out-on-any-iran-peace-dividend",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "Fair Observer",
+    "headline": "FO Talks: Prime Minister Abiy Ahmed Looks to Secure a Landslide Win in Ethiopia\u2019s Election",
+    "url": "https://www.fairobserver.com/politics/fo-talks-prime-minister-abiy-ahmed-looks-to-secure-a-landslide-win-in-ethiopias-election/",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "Al Jazeera English",
+    "headline": "How have countries around the world responded to the US-Israel war on Iran?",
+    "url": "https://www.aljazeera.com/news/2026/6/7/how-have-countries-around-the-world-responded-to-the-us-israel-war-on-iran",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
+  },
+  {
+    "source": "OilPrice.com",
+    "headline": "Oil Market Flying Blind as Dark Tanker Traffic Surges in Hormuz",
+    "url": "https://oilprice.com/Energy/Energy-General/Oil-Market-Flying-Blind-as-Dark-Tanker-Traffic-Surges-in-Hormuz.html",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [],
+    "fetched_at": "2026-06-08T13:26:43.873350+00:00"
   }
 ]
