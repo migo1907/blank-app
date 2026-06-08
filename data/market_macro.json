@@ -1,15 +1,15 @@
 {
-  "bias": -0.6,
+  "bias": -0.64,
   "label": "BEARISH",
   "components": {
     "real_yield": -1.0,
     "dollar": -1.0,
-    "breakeven": 0.0,
+    "breakeven": -0.2,
     "cot": 0.5
   },
   "real_yield": 2.19,
   "dollar": 120.0831,
-  "breakeven": 2.36,
+  "breakeven": 2.35,
   "cot": {
     "report_date": "2026-06-02",
     "spec_long": 206096,
@@ -19,7 +19,7 @@
     "net_change": 21760
   },
   "gld": null,
-  "updated_at": "2026-06-08T20:42:27.962974+00:00",
+  "updated_at": "2026-06-08T21:42:27.175418+00:00",
   "sources_live": {
     "fred": true,
     "cot": true,
