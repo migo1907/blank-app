@@ -153,20 +153,32 @@ class TradeOutcomePayload(BaseModel):
 
 class SignalEntryPayload(BaseModel):
     secret:      str
-    direction:   Literal["LONG", "SHORT"]
-    timeframe:   str = "5"
-    trigger:     str = "RSI"
-    symbol:      str = "XAUUSD"
-    entry_price: float
-    tp1:         float
-    tp2:         float
-    tp3:         float
-    sl:          float
+    direction:   str   = ""
+    timeframe:   str   = "5"
+    trigger:     str   = "RSI"
+    symbol:      str   = "XAUUSD"
+    entry_price: float = 0.0
+    tp1:         float = 0.0
+    tp2:         float = 0.0
+    tp3:         float = 0.0
+    sl:          float = 0.0
     ml_score:    float = 0.5
-    tier:        str = "MED"
+    tier:        str   = "MED"
 
-    class Config:
-        extra = "ignore"
+    model_config = {"extra": "ignore"}
+
+    @model_validator(mode="before")
+    @classmethod
+    def _coerce_nulls(cls, values: dict) -> dict:
+        if not isinstance(values, dict):
+            return values
+        for k in ("entry_price", "tp1", "tp2", "tp3", "sl", "ml_score"):
+            if k in values and values[k] is None:
+                values[k] = 0.0
+        for k in ("direction", "trigger", "symbol", "tier", "timeframe"):
+            if k in values and values[k] is None:
+                values[k] = ""
+        return values
 
 
 class UnifiedPayload(BaseModel):
@@ -418,6 +430,10 @@ async def trade_outcome(payload: TradeOutcomePayload):
 @app.post("/webhook/signal-entry")
 async def signal_entry(payload: SignalEntryPayload):
     _validate_secret(payload.secret)
+    if payload.direction not in ("LONG", "SHORT"):
+        print(f"[signal-entry] Ignoring entry with direction={payload.direction!r} — not LONG/SHORT")
+        return {"status": "ignored", "reason": "invalid_direction"}
+
     from htf_bias import is_htf, store_bias, get_active_bias
     sym = payload.symbol or "XAUUSD"
     tf  = payload.timeframe or "5"
