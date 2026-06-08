@@ -266,7 +266,7 @@
   {
     "symbol": "UPST",
     "direction": "LONG",
-    "trigger": "",
+    "trigger": "RSI",
     "entry_price": 30.225,
     "exit_price": 30.355,
     "outcome": "PARTIAL",
@@ -303,8 +303,8 @@
     "f23_rsiacc": 0.3085,
     "f24_fvgq": 0.0,
     "f25_tod": -0.4423,
-    "id": "05a288bf",
+    "id": "a571e457",
     "pool": "STOCKS_MOMENTUM_15M",
-    "created_at": "2026-06-08T14:45:33.703417+00:00"
+    "created_at": "2026-06-08T14:45:23.718267+00:00"
   }
 ]
