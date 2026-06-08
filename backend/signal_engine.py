@@ -98,6 +98,71 @@ def get_latest_features(pool: str) -> Features | None:
     """Returns the most recent feature vector for a pool, or None if no data yet."""
     return _latest_features.get(pool)
 
+
+# ── Option B: Backend ML entry gate ───────────────────────────────────────────
+# Pine Script fires entries from its own (non-persistent) on-chart KNN. The backend
+# re-scores each entry with its PERSISTENT, trained KNN + RF + GBM models before
+# forwarding to Telegram. This is the only place the accumulated ML learning
+# actually influences what signals reach the user.
+import os as _os
+
+# Lenient default — only blocks entries the trained models actively distrust.
+ML_GATE_THRESHOLD = float(_os.environ.get("ML_GATE_THRESHOLD", "0.45"))
+
+
+def score_entry_gate(pool: str, direction: str) -> dict:
+    """
+    Re-score a Pine-fired entry using the backend's trained models.
+
+    Returns a dict:
+      {
+        "pass":      bool,    # True → forward to Telegram
+        "score":     float,   # combined win-probability in [0,1]
+        "reason":    str,     # human-readable gate decision
+        "components": {...},  # per-model scores for logging
+      }
+
+    Cold-start rule: if NONE of the pool's models are trained yet, the gate
+    bypasses (always passes) so new pools can accumulate trades. Gating only
+    kicks in once a pool has enough history to train.
+    """
+    features = get_latest_features(pool)
+    if features is None:
+        # No heartbeat features cached yet — can't score, let it through.
+        return {"pass": True, "score": 0.5, "reason": "no_features_cached", "components": {}}
+
+    history = recent_outcomes(pool, 500)
+    knn = get_model(pool)
+    rf  = get_rf(pool)
+    gbm = get_gbm(pool)
+
+    feat_list   = features.as_list()
+    is_long     = direction == "LONG"
+    components: dict[str, float] = {}
+
+    # KNN — bull/bear probability, aligned to the trade direction.
+    if len(history) >= knn.k:
+        bull, bear = knn.predict(features, history)
+        components["knn"] = bull if is_long else bear
+
+    # RF — P(win) for this setup (direction-agnostic; trained on win/loss labels).
+    if rf.is_trained:
+        components["rf"] = rf.predict(feat_list)
+
+    # GBM — P(win) for this setup.
+    if gbm.is_trained:
+        components["gbm"] = gbm.predict(feat_list)
+
+    if not components:
+        # Nothing trained yet → bypass so the pool can mature.
+        return {"pass": True, "score": 0.5, "reason": "cold_start_bypass", "components": {}}
+
+    score   = sum(components.values()) / len(components)
+    passed  = score >= ML_GATE_THRESHOLD
+    reason  = "approved" if passed else "rejected_low_confidence"
+    return {"pass": passed, "score": round(score, 4), "reason": reason, "components": components}
+
+
 # ── Base weights ────────────────────────────────────────────────────────────────
 KNN_WEIGHT     = 0.35
 RF_WEIGHT      = 0.25
