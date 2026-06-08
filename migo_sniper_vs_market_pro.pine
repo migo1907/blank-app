@@ -473,6 +473,7 @@ if doBuy or doSell
 
 // --- LAST-SIGNAL LEVEL LINES (only the most recent signal is shown) ---
 bool showLevels = input.bool(true, "Show last-signal level lines", group="Visuals")
+bool showStats  = input.bool(false, "Show stats rows (ADX / reached / expectancy / last signal)", group="Visuals")
 
 var line  lnEntry = na
 var line  lnTP1   = na
@@ -529,10 +530,10 @@ bgcolor((useSessions and not sessionOK) ? color.new(color.gray, 88) : na, title=
 string tpStage = not tp1Hit ? "Targeting TP1" : not tp2Hit ? "TP1 ✓ → TP2" : "TP2 ✓ → TP3 🚀"
 color stageColor = not tp1Hit ? color.white : not tp2Hit ? color.lime : color.aqua
 
-var table hub = table.new(position.bottom_left, 4, 13, bgcolor=color.rgb(15, 15, 15), border_color=color.gray, border_width=1)
+var table hub = table.new(position.bottom_left, 4, showStats ? 13 : 9, bgcolor=color.rgb(15, 15, 15), border_color=color.gray, border_width=1)
 
 if barstate.islast
-    table.cell(hub, 0, 0, "MIGO SNIPER V6", text_color=color.white, bgcolor=color.rgb(65, 14, 58))
+    table.cell(hub, 0, 0, "MIGO SNIPER V6", text_color=color.white, bgcolor=color.rgb(65, 14, 58), text_size=size.tiny)
     table.merge_cells(hub, 0, 0, 3, 0)
 
     string arrow1h      = trend1h == "UPTREND" ? "▲" : trend1h == "DOWNTREND" ? "▼" : "–"
@@ -540,79 +541,80 @@ if barstate.islast
     bool   htfAligned   = trend1h == trend4h and trend1h != "SIDEWAYS"
     string mktState     = isSideways ? "⚠ RANGING — WAIT" : lbl1 + " " + arrow1h + "   " + lbl2 + " " + arrow4h + (htfAligned ? "  ✓" : "  ✗")
     color mktStateColor = isSideways ? color.yellow : not htfAligned ? color.orange : trend1h == "UPTREND" ? color.green : color.red
-    table.cell(hub, 0, 1, "MKT STATE", text_color=color.gray, text_size=size.small)
-    table.cell(hub, 1, 1, mktState, text_color=mktStateColor)
+    table.cell(hub, 0, 1, "MKT STATE", text_color=color.gray, text_size=size.tiny)
+    table.cell(hub, 1, 1, mktState, text_color=mktStateColor, text_size=size.tiny)
     table.merge_cells(hub, 1, 1, 3, 1)
 
     int   totalRes = tradeWins + tradeLosses
     float winRate  = totalRes > 0 ? 100.0 * tradeWins / totalRes : na
     string wrText  = totalRes > 0 ? str.tostring(math.round(winRate)) + "% (" + str.tostring(tradeWins) + "/" + str.tostring(totalRes) + ")" : "-"
     color  wrColor = na(winRate) ? color.gray : winRate >= 50 ? color.green : color.red
-    table.cell(hub, 0, 2, "CONFIDENCE", text_color=color.gray, text_size=size.small)
-    table.cell(hub, 1, 2, isSideways ? "-" : str.tostring(tradeConf) + "%", text_color=color.yellow)
-    table.cell(hub, 2, 2, "WIN RATE",   text_color=color.gray, text_size=size.small)
-    table.cell(hub, 3, 2, wrText, text_color=wrColor)
+    table.cell(hub, 0, 2, "CONFIDENCE", text_color=color.gray, text_size=size.tiny)
+    table.cell(hub, 1, 2, isSideways ? "-" : str.tostring(tradeConf) + "%", text_color=color.yellow, text_size=size.tiny)
+    table.cell(hub, 2, 2, "WIN RATE",   text_color=color.gray, text_size=size.tiny)
+    table.cell(hub, 3, 2, wrText, text_color=wrColor, text_size=size.tiny)
 
-    table.cell(hub, 0, 3, "SIGNAL", text_color=color.gray, text_size=size.small)
-    table.cell(hub, 1, 3, isSideways ? "BLOCKED" : activeTrade, text_color=isSideways ? color.yellow : activeTrade == "LONG" ? color.green : activeTrade == "SHORT" ? color.red : color.yellow)
-    table.cell(hub, 2, 3, "STAGE",   text_color=color.gray, text_size=size.small)
-    table.cell(hub, 3, 3, activeTrade != "NONE" ? tpStage : "-", text_color=stageColor)
+    table.cell(hub, 0, 3, "SIGNAL", text_color=color.gray, text_size=size.tiny)
+    table.cell(hub, 1, 3, isSideways ? "BLOCKED" : activeTrade, text_color=isSideways ? color.yellow : activeTrade == "LONG" ? color.green : activeTrade == "SHORT" ? color.red : color.yellow, text_size=size.tiny)
+    table.cell(hub, 2, 3, "STAGE",   text_color=color.gray, text_size=size.tiny)
+    table.cell(hub, 3, 3, activeTrade != "NONE" ? tpStage : "-", text_color=stageColor, text_size=size.tiny)
 
-    table.cell(hub, 0, 4, "ENTRY",   text_color=color.gray, text_size=size.small)
-    table.cell(hub, 1, 4, activeTrade != "NONE" ? str.tostring(entryPrice, "#.##") : "WAIT", text_color=color.white)
-    table.cell(hub, 2, 4, "TRAIL SL", text_color=color.gray, text_size=size.small)
-    table.cell(hub, 3, 4, (activeTrade != "NONE" and tp1Hit) ? str.tostring(slPrice, "#.##") : "-", text_color=color.orange)
+    table.cell(hub, 0, 4, "ENTRY",   text_color=color.gray, text_size=size.tiny)
+    table.cell(hub, 1, 4, activeTrade != "NONE" ? str.tostring(entryPrice, "#.##") : "WAIT", text_color=color.white, text_size=size.tiny)
+    table.cell(hub, 2, 4, "TRAIL SL", text_color=color.gray, text_size=size.tiny)
+    table.cell(hub, 3, 4, (activeTrade != "NONE" and tp1Hit) ? str.tostring(slPrice, "#.##") : "-", text_color=color.orange, text_size=size.tiny)
 
-    table.cell(hub, 0, 5, "TP1", text_color=color.gray, text_size=size.small)
-    table.cell(hub, 1, 5, activeTrade != "NONE" ? str.tostring(tp1Price, "#.##") : "-", text_color=tp1Hit ? color.lime : color.green)
-    table.cell(hub, 2, 5, "SL",  text_color=color.gray, text_size=size.small)
-    table.cell(hub, 3, 5, activeTrade != "NONE" ? str.tostring(slPrice, "#.##") : "-", text_color=color.red)
+    table.cell(hub, 0, 5, "TP1", text_color=color.gray, text_size=size.tiny)
+    table.cell(hub, 1, 5, activeTrade != "NONE" ? str.tostring(tp1Price, "#.##") : "-", text_color=tp1Hit ? color.lime : color.green, text_size=size.tiny)
+    table.cell(hub, 2, 5, "SL",  text_color=color.gray, text_size=size.tiny)
+    table.cell(hub, 3, 5, activeTrade != "NONE" ? str.tostring(slPrice, "#.##") : "-", text_color=color.red, text_size=size.tiny)
 
-    table.cell(hub, 0, 6, "TP2", text_color=color.gray, text_size=size.small)
-    table.cell(hub, 1, 6, activeTrade != "NONE" ? str.tostring(tp2Price, "#.##") : "-", text_color=tp2Hit ? color.lime : color.green)
-    table.cell(hub, 2, 6, "TP3 🚀", text_color=color.gray, text_size=size.small)
-    table.cell(hub, 3, 6, activeTrade != "NONE" ? str.tostring(tp3Price, "#.##") : "-", text_color=color.aqua)
+    table.cell(hub, 0, 6, "TP2", text_color=color.gray, text_size=size.tiny)
+    table.cell(hub, 1, 6, activeTrade != "NONE" ? str.tostring(tp2Price, "#.##") : "-", text_color=tp2Hit ? color.lime : color.green, text_size=size.tiny)
+    table.cell(hub, 2, 6, "TP3 🚀", text_color=color.gray, text_size=size.tiny)
+    table.cell(hub, 3, 6, activeTrade != "NONE" ? str.tostring(tp3Price, "#.##") : "-", text_color=color.aqua, text_size=size.tiny)
 
-    table.cell(hub, 0, 7, "RE-ENTRY ➕", text_color=color.gray, text_size=size.small)
-    table.cell(hub, 1, 7, (activeTrade != "NONE" and useReEntry) ? str.tostring(reEntryPrice, "#.##") + (reEntryTagged ? " ✓" : "") : "-", text_color=reEntryTagged ? color.aqua : color.new(color.blue, 0))
-    table.cell(hub, 2, 7, "RISK (R)", text_color=color.gray, text_size=size.small)
-    table.cell(hub, 3, 7, activeTrade != "NONE" ? str.tostring(math.abs(entryPrice - slPrice), "#.##") : "-", text_color=color.orange)
+    table.cell(hub, 0, 7, "RE-ENTRY ➕", text_color=color.gray, text_size=size.tiny)
+    table.cell(hub, 1, 7, (activeTrade != "NONE" and useReEntry) ? str.tostring(reEntryPrice, "#.##") + (reEntryTagged ? " ✓" : "") : "-", text_color=reEntryTagged ? color.aqua : color.new(color.blue, 0), text_size=size.tiny)
+    table.cell(hub, 2, 7, "RISK (R)", text_color=color.gray, text_size=size.tiny)
+    table.cell(hub, 3, 7, activeTrade != "NONE" ? str.tostring(math.abs(entryPrice - slPrice), "#.##") : "-", text_color=color.orange, text_size=size.tiny)
 
     float volRatio   = atr / atrSma
     string volStatus = volRatio > 1.5 ? "HIGH VOL" : volRatio < 0.7 ? "LOW VOL" : "STABLE"
     color volColor   = volStatus == "HIGH VOL" ? color.red : volStatus == "LOW VOL" ? color.aqua : color.green
     bool sessActive = (not useSessions) or sessionOK
     color sessColor = not useSessions ? color.gray : sessionOK ? color.green : color.red
-    table.cell(hub, 0, 8, "MKT IMPACT", text_color=color.gray, text_size=size.small)
-    table.cell(hub, 1, 8, volStatus, text_color=volColor)
-    table.cell(hub, 2, 8, "SESSION", text_color=color.gray, text_size=size.small)
-    table.cell(hub, 3, 8, sessLabel + (sessActive ? "" : " ⛔"), text_color=sessColor)
+    table.cell(hub, 0, 8, "MKT IMPACT", text_color=color.gray, text_size=size.tiny)
+    table.cell(hub, 1, 8, volStatus, text_color=volColor, text_size=size.tiny)
+    table.cell(hub, 2, 8, "SESSION", text_color=color.gray, text_size=size.tiny)
+    table.cell(hub, 3, 8, sessLabel + (sessActive ? "" : " ⛔"), text_color=sessColor, text_size=size.tiny)
 
-    string autoInfo = autoAdaptive ? "  AUTO: vol×" + str.tostring(volFactor, "#.##") + " trend×" + str.tostring(trendStr, "#.##") : "  AUTO: OFF"
-    string adxInfo = "ADX: " + str.tostring(math.round(adxValue, 1)) + (adxFlat ? " ✗" : " ✓") + "  ATR: " + (atrCompressed ? "✗" : "✓") + "  EMA: " + (emaTooClose ? "✗" : "✓") + autoInfo
-    table.cell(hub, 0, 9, adxInfo, text_color=color.new(color.gray, 30), text_size=size.small)
-    table.merge_cells(hub, 0, 9, 3, 9)
+    if showStats
+        string autoInfo = autoAdaptive ? "  AUTO: vol×" + str.tostring(volFactor, "#.##") + " trend×" + str.tostring(trendStr, "#.##") : "  AUTO: OFF"
+        string adxInfo = "ADX: " + str.tostring(math.round(adxValue, 1)) + (adxFlat ? " ✗" : " ✓") + "  ATR: " + (atrCompressed ? "✗" : "✓") + "  EMA: " + (emaTooClose ? "✗" : "✓") + autoInfo
+        table.cell(hub, 0, 9, adxInfo, text_color=color.new(color.gray, 30), text_size=size.tiny)
+        table.merge_cells(hub, 0, 9, 3, 9)
 
-    int    trailAfterTP1 = reachedTP1 - reachedTP2   // tagged TP1 but trailed out before TP2
-    int    trailAfterTP2 = reachedTP2 - reachedTP3   // tagged TP2 but trailed out before TP3
-    string tpReach = "REACHED  TP1:" + str.tostring(reachedTP1) + "  →TP2:" + str.tostring(reachedTP2) + "  →TP3:" + str.tostring(reachedTP3) + "   | trail-out aTP1:" + str.tostring(trailAfterTP1) + "  aTP2:" + str.tostring(trailAfterTP2)
-    table.cell(hub, 0, 10, tpReach, text_color=color.new(color.aqua, 10), text_size=size.small)
-    table.merge_cells(hub, 0, 10, 3, 10)
+        int    trailAfterTP1 = reachedTP1 - reachedTP2   // tagged TP1 but trailed out before TP2
+        int    trailAfterTP2 = reachedTP2 - reachedTP3   // tagged TP2 but trailed out before TP3
+        string tpReach = "REACHED  TP1:" + str.tostring(reachedTP1) + "  →TP2:" + str.tostring(reachedTP2) + "  →TP3:" + str.tostring(reachedTP3) + "   | trail-out aTP1:" + str.tostring(trailAfterTP1) + "  aTP2:" + str.tostring(trailAfterTP2)
+        table.cell(hub, 0, 10, tpReach, text_color=color.new(color.aqua, 10), text_size=size.tiny)
+        table.merge_cells(hub, 0, 10, 3, 10)
 
-    float  avgR  = rTrades > 0 ? totalR / rTrades : na
-    float  pf    = grossLossR > 0 ? grossWinR / grossLossR : na
-    color  expCol = na(avgR) ? color.gray : avgR > 0 ? color.green : color.red
-    string expTxt = rTrades > 0 ? "EXPECTANCY  avgR:" + str.tostring(avgR, "#.##") + "R   totalR:" + str.tostring(totalR, "#.#") + "R   PF:" + (na(pf) ? "∞" : str.tostring(pf, "#.##")) + "   (" + str.tostring(rTrades) + " trades)" : "EXPECTANCY  — no closed trades yet"
-    table.cell(hub, 0, 11, expTxt, text_color=expCol, text_size=size.small)
-    table.merge_cells(hub, 0, 11, 3, 11)
+        float  avgR  = rTrades > 0 ? totalR / rTrades : na
+        float  pf    = grossLossR > 0 ? grossWinR / grossLossR : na
+        color  expCol = na(avgR) ? color.gray : avgR > 0 ? color.green : color.red
+        string expTxt = rTrades > 0 ? "EXPECTANCY  avgR:" + str.tostring(avgR, "#.##") + "R   totalR:" + str.tostring(totalR, "#.#") + "R   PF:" + (na(pf) ? "∞" : str.tostring(pf, "#.##")) + "   (" + str.tostring(rTrades) + " trades)" : "EXPECTANCY  — no closed trades yet"
+        table.cell(hub, 0, 11, expTxt, text_color=expCol, text_size=size.tiny)
+        table.merge_cells(hub, 0, 11, 3, 11)
 
-    float  msSince  = na(lastSigTime) ? na : timenow - lastSigTime
-    int    barsAgo  = na(lastSigBar) ? na : bar_index - lastSigBar
-    string ago = na(msSince) ? "no signals in view" : msSince >= 86400000 ? str.tostring(math.floor(msSince / 86400000)) + "d " + str.tostring(math.floor((msSince % 86400000) / 3600000)) + "h ago" : msSince >= 3600000 ? str.tostring(math.floor(msSince / 3600000)) + "h " + str.tostring(math.floor((msSince % 3600000) / 60000)) + "m ago" : str.tostring(math.floor(msSince / 60000)) + "m ago"
-    string lastTxt = na(lastSigTime) ? "LAST SIGNAL  — none in loaded history" : "LAST SIGNAL  " + lastSigDir + "  " + ago + "  (" + str.tostring(barsAgo) + " bars)"
-    color  lastCol = na(lastSigTime) ? color.gray : lastSigDir == "BUY" ? color.lime : color.orange
-    table.cell(hub, 0, 12, lastTxt, text_color=lastCol, text_size=size.small)
-    table.merge_cells(hub, 0, 12, 3, 12)
+        float  msSince  = na(lastSigTime) ? na : timenow - lastSigTime
+        int    barsAgo  = na(lastSigBar) ? na : bar_index - lastSigBar
+        string ago = na(msSince) ? "no signals in view" : msSince >= 86400000 ? str.tostring(math.floor(msSince / 86400000)) + "d " + str.tostring(math.floor((msSince % 86400000) / 3600000)) + "h ago" : msSince >= 3600000 ? str.tostring(math.floor(msSince / 3600000)) + "h " + str.tostring(math.floor((msSince % 3600000) / 60000)) + "m ago" : str.tostring(math.floor(msSince / 60000)) + "m ago"
+        string lastTxt = na(lastSigTime) ? "LAST SIGNAL  — none in loaded history" : "LAST SIGNAL  " + lastSigDir + "  " + ago + "  (" + str.tostring(barsAgo) + " bars)"
+        color  lastCol = na(lastSigTime) ? color.gray : lastSigDir == "BUY" ? color.lime : color.orange
+        table.cell(hub, 0, 12, lastTxt, text_color=lastCol, text_size=size.tiny)
+        table.merge_cells(hub, 0, 12, 3, 12)
 
 // --- VISUALS ---
 plot(maLong, color=color.new(color.green, 50), title="200 EMA")
