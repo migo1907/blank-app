@@ -1,8 +1,8 @@
 {
-  "timestamp": "2026-06-08T16:44:21.051798+00:00",
+  "timestamp": "2026-06-08T16:52:45.733288+00:00",
   "signal": "NEUTRAL",
   "confidence": 0.0,
-  "news_score": -0.1571,
+  "news_score": -0.1291,
   "velocity": "CONFLICTED",
   "breaking_count": 10,
   "trades_total": 134,
@@ -11,5 +11,7 @@
   "knn_bearish_pct": 50.0,
   "macro_bias": 0.0,
   "macro_label": "n/a",
+  "equity_macro_bias": 0.0,
+  "equity_macro_label": "NEUTRAL",
   "scheduler": "running"
 }
