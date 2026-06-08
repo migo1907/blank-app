@@ -193,9 +193,17 @@ def fetch_rss_headlines() -> list[dict]:
                     seen.add(key)
                     articles.append(item)
 
+        # Realistic browser headers — some feeds (e.g. FXStreet) sit behind
+        # Cloudflare and 403 a bare bot User-Agent.
+        _rss_headers = {
+            "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                           "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"),
+            "Accept": "application/rss+xml,application/xml;q=0.9,text/html;q=0.8,*/*;q=0.7",
+            "Accept-Language": "en-US,en;q=0.9",
+        }
         for source_name, url in RSS_FEEDS:
             try:
-                resp = client.get(url, headers={"User-Agent": "Mozilla/5.0 (compatible; MigoSniperBot/1.0)"})
+                resp = client.get(url, headers=_rss_headers)
                 if resp.status_code == 200:
                     items = _parse_rss(resp.text, source_name)
                     for item in items[:15]:
@@ -553,26 +561,78 @@ def fetch_breaking_news() -> list[dict]:
     return breaking[:10]
 
 
+FINNHUB_KEY = os.environ.get("FINNHUB_KEY", "") or os.environ.get("FINNHUB_API_KEY", "")
+
+# Finnhub forex/market news categories relevant to gold
+_FINNHUB_NEWS_URL     = "https://finnhub.io/api/v1/news"
+_FINNHUB_CALENDAR_URL = "https://finnhub.io/api/v1/calendar/economic"
+
+
 def fetch_newsapi_headlines(max_articles: int = 20) -> list[dict]:
-    """Fetch gold-relevant headlines from NewsAPI."""
-    if not NEWSAPI_KEY:
-        return []
+    """
+    Fetch gold-relevant market headlines from Finnhub (free tier, cloud-friendly).
+
+    Replaces NewsAPI.org, whose free tier blocks requests from cloud servers
+    (HTTP 426) and delays articles 24h — making it useless from Railway. Finnhub's
+    free tier allows 60 req/min and works server-side.
+    Falls back to NewsAPI only if FINNHUB_KEY is unset and NEWSAPI_KEY is present.
+    """
+    if not FINNHUB_KEY:
+        return _fetch_newsapi_legacy(max_articles)
 
     articles = []
     seen     = set()
+    try:
+        with httpx.Client(timeout=15) as client:
+            for category in ("forex", "general"):
+                try:
+                    resp = client.get(_FINNHUB_NEWS_URL, params={
+                        "category": category, "token": FINNHUB_KEY,
+                    })
+                    resp.raise_for_status()
+                    for art in resp.json():
+                        title = (art.get("headline", "") or "").strip()
+                        key   = title[:60].lower()
+                        if not title or key in seen or len(title) <= 20:
+                            continue
+                        # Keep only gold/macro-relevant headlines
+                        if not _is_relevant(title):
+                            continue
+                        seen.add(key)
+                        articles.append({
+                            "title":  title,
+                            "source": art.get("source", "Finnhub"),
+                            "url":    art.get("url", ""),
+                        })
+                except Exception as e:
+                    print(f"[finnhub] news category '{category}' failed: {e}")
+    except Exception as e:
+        print(f"[finnhub] news fetch failed: {e}")
 
+    return articles[:max_articles]
+
+
+def _is_relevant(title: str) -> bool:
+    """Lightweight gold/macro relevance filter for general-category headlines."""
+    t = title.lower()
+    kw = ("gold", "xau", "fed", "powell", "inflation", "cpi", "rate", "yield",
+          "dollar", "treasury", "fomc", "payroll", "nfp", "geopolit", "war",
+          "tariff", "recession", "safe haven", "bullion", "precious metal")
+    return any(k in t for k in kw)
+
+
+def _fetch_newsapi_legacy(max_articles: int = 20) -> list[dict]:
+    """Legacy NewsAPI fallback — only used if FINNHUB_KEY is unset. Likely no-op on cloud."""
+    if not NEWSAPI_KEY:
+        return []
+    articles, seen = [], set()
     with httpx.Client(timeout=15) as client:
         for query in NEWSAPI_QUERIES[:4]:
             try:
                 resp = client.get(
                     "https://newsapi.org/v2/everything",
-                    params={
-                        "q":        query,
-                        "language": "en",
-                        "sortBy":   "publishedAt",
-                        "pageSize": 6,
-                        "apiKey":   NEWSAPI_KEY,
-                    },
+                    params={"q": query, "language": "en", "sortBy": "publishedAt",
+                            "pageSize": 6, "apiKey": NEWSAPI_KEY},
                 )
                 resp.raise_for_status()
                 for art in resp.json().get("articles", []):
@@ -587,8 +647,86 @@ def fetch_newsapi_headlines(max_articles: int = 20) -> list[dict]:
                         })
             except Exception:
                 pass
-
     return articles[:max_articles]
+
+
+def fetch_upcoming_events(hours_ahead: int = 24) -> dict:
+    """
+    Fetch SCHEDULED high-impact US economic events from Finnhub's economic calendar.
+    Unlike headline keyword-matching (which only fires AFTER an event), this gives
+    forward awareness so the system can de-risk BEFORE NFP/CPI/FOMC releases.
+
+    Returns {"detected": bool, "event_type": str, "urgency": float,
+             "minutes_until": int, "scheduled": [...]}.
+    """
+    if not FINNHUB_KEY:
+        return {"detected": False, "scheduled": []}
+
+    now   = datetime.now(timezone.utc)
+    today = now.date().isoformat()
+    until = (now + timedelta(days=2)).date().isoformat()
+
+    # High-impact event keywords → (canonical type, urgency)
+    sched_map = {
+        "non-farm": ("NFP", 1.0), "nonfarm": ("NFP", 1.0), "payroll": ("NFP", 1.0),
+        "cpi": ("CPI", 0.9), "consumer price": ("CPI", 0.9),
+        "fomc": ("FOMC", 1.0), "fed interest rate": ("FOMC", 1.0),
+        "interest rate decision": ("FOMC", 1.0), "federal funds": ("FOMC", 1.0),
+        "gdp": ("GDP", 0.7), "ppi": ("PPI", 0.7), "pce": ("PCE", 0.8),
+        "unemployment": ("JOBS", 0.7), "powell": ("FED_SPEAK", 0.8),
+    }
+    try:
+        with httpx.Client(timeout=15) as client:
+            resp = client.get(_FINNHUB_CALENDAR_URL, params={
+                "from": today, "to": until, "token": FINNHUB_KEY,
+            })
+            resp.raise_for_status()
+            events = resp.json().get("economicCalendar", []) or []
+    except Exception as e:
+        print(f"[finnhub] calendar fetch failed: {e}")
+        return {"detected": False, "scheduled": []}
+
+    upcoming = []
+    for ev in events:
+        if (ev.get("country") or "").upper() not in ("US", "USA"):
+            continue
+        impact = (ev.get("impact") or "").lower()
+        name   = (ev.get("event") or "").lower()
+        matched = next((v for k, v in sched_map.items() if k in name), None)
+        if matched is None and impact != "high":
+            continue
+        # Parse "YYYY-MM-DD HH:MM:SS" (UTC)
+        try:
+            ts = datetime.fromisoformat(ev.get("time", "").replace(" ", "T"))
+            if ts.tzinfo is None:
+                ts = ts.replace(tzinfo=timezone.utc)
+        except Exception:
+            continue
+        mins = (ts - now).total_seconds() / 60.0
+        if mins < -120 or mins > hours_ahead * 60:  # past >2h or beyond window
+            continue
+        etype, urg = matched if matched else (ev.get("event", "EVENT"), 0.85)
+        upcoming.append({
+            "event_type":    etype,
+            "name":          ev.get("event", ""),
+            "minutes_until": int(mins),
+            "urgency":       urg,
+            "actual":        ev.get("actual"),
+            "estimate":      ev.get("estimate"),
+            "time":          ev.get("time", ""),
+        })
+
+    upcoming.sort(key=lambda e: abs(e["minutes_until"]))
+    # "Imminent" = a high-urgency event within the next 90 minutes (not yet released)
+    imminent = next((e for e in upcoming
+                     if 0 <= e["minutes_until"] <= 90 and e["urgency"] >= 0.85), None)
+    return {
+        "detected":      imminent is not None,
+        "event_type":    imminent["event_type"] if imminent else "",
+        "urgency":       imminent["urgency"] if imminent else 0.0,
+        "minutes_until": imminent["minutes_until"] if imminent else None,
+        "scheduled":     upcoming[:8],
+    }
 
 
 # ── Breaking news & event detection ──────────────────────────────────────────
@@ -853,10 +991,28 @@ def run_news_cycle(previous_agg: float = 0.0) -> tuple[list[dict], float, dict, 
     velocity = calculate_velocity(scored, previous_agg)
     event    = detect_high_impact_event(unique)
 
+    # Forward-looking scheduled-event awareness (Finnhub calendar). An imminent
+    # high-impact release (NFP/CPI/FOMC within 90min) overrides reactive keyword
+    # detection so the system can de-risk BEFORE the print, not after.
+    try:
+        sched = fetch_upcoming_events()
+        event["scheduled"] = sched.get("scheduled", [])
+        if sched.get("detected"):
+            event["detected"]      = True
+            event["event_type"]    = sched["event_type"]
+            event["urgency"]       = max(event.get("urgency", 0.0), sched["urgency"])
+            event["minutes_until"] = sched.get("minutes_until")
+            event["upcoming"]      = True
+    except Exception as e:
+        print(f"[news] scheduled-event check failed (non-fatal): {e}")
+
+    sched_note = ""
+    if event.get("upcoming"):
+        sched_note = f" | ⏰ {event['event_type']} in {event.get('minutes_until')}min"
     print(
         f"[news] Sentiment: {agg:+.3f} | "
         f"Velocity: {velocity['label']} x{velocity['multiplier']} | "
         f"Event: {event.get('event_type') or 'none'} | "
-        f"FJ Breaking: {len(fj_breaking)}"
+        f"FJ Breaking: {len(fj_breaking)}{sched_note}"
     )
     return scored, agg, velocity, event, fj_breaking

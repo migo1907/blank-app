@@ -33,9 +33,22 @@
 
 
 - FastAPI backend on Railway (Python 3.13)
-- Scheduler: 4 jobs — signal every 15min, breaking news every 2min, system check every 60min, daily brief at 08:00 UTC
+- Scheduler: 5 jobs — signal every 15min, breaking news every 2min, system check every 60min, macro refresh every 60min, daily brief at 08:00 UTC
 - ML: AdaptiveKNN + RandomForest + GradientBoosting, pool-aware (9 pools)
 - `get_rf(pool)` and `get_gbm(pool)` always take a pool argument
 - Features: 25 features (F1-F25), all computed in Pine Script and sent via webhook
 - XAUUSD data: TVC:GOLD scanner (spot, ~$1-3 from ICMARKETS) + GC=F prev day H/L/C → pivot levels
 - Daily levels written to `data/daily_levels.json` by GitHub Actions (07:50 UTC Mon-Fri), fetched at runtime from GitHub raw URL
+
+## Market Macro Intelligence (`market_macro.py`)
+- Fills gold's real macro-driver blind spots beyond headline sentiment. Refreshed hourly, persisted to `data/market_macro.json`, loaded on startup.
+- **Sources (all free):** FRED API (real yield `DFII10`, dollar `DTWEXBGS`, breakeven `T10YIE`, nominal `DGS10`) + CFTC COT (gold `088691`, no auth) + SPDR GLD CSV (tonnes/AUM, no auth)
+- **`macro_bias`** ∈ [-1,+1]: positive = bullish gold. Rising real yields/dollar = bearish; rising breakeven/GLD tonnes = bullish. Real yield + dollar lead; COT + GLD confirm.
+- Folded into `generate_signal` combined_score at weight 0.20 (gold only, stocks ignore). Surfaced in `health.json` (`macro_bias`, `macro_label`).
+- **Required env keys (set in Railway):** `FRED_API_KEY` (free, fred.stlouisfed.org), `FINNHUB_KEY` (free, finnhub.io). Graceful no-op if absent.
+
+## News sources
+- **Replaced NewsAPI** (free tier returns HTTP 426 from cloud servers + 24h delay — unusable on Railway) with **Finnhub** news (forex+general, 60 req/min, cloud-friendly). NewsAPI kept as legacy fallback only if `FINNHUB_KEY` unset.
+- **Scheduled-event awareness:** Finnhub economic calendar gives forward NFP/CPI/FOMC warning (imminent = high-impact within 90min) — de-risk BEFORE the print, not after keyword detection.
+- **FXStreet RSS:** now uses realistic browser User-Agent + Accept headers to bypass Cloudflare 403.
+- RSS feeds: FinancialJuice (primary), Kitco, MarketWatch, Investing.com, BullionVault, Mining.com, FXStreet, ForexLive

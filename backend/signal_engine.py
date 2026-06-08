@@ -419,6 +419,7 @@ def generate_signal(
     symbol: str = "XAUUSD",
     trigger: str = "",
     pool: str | None = None,
+    macro_bias: dict | None = None,
 ) -> dict:
     from db import symbol_to_pool
     pool     = pool or symbol_to_pool(symbol)
@@ -480,12 +481,22 @@ def generate_signal(
     w_gbm  = w_gbm_base           / total_w
     w_news = effective_news_weight / total_w
 
+    # ── Macro bias (gold only) — real yields, dollar, breakeven, COT, GLD flows ──────
+    # Folds gold's actual macro drivers into the directional score. Stocks ignore it.
+    macro_val   = 0.0
+    macro_label = "n/a"
+    if not is_stock and isinstance(macro_bias, dict):
+        macro_val   = float(macro_bias.get("bias", 0.0) or 0.0)
+        macro_label = macro_bias.get("label", "NEUTRAL")
+    w_macro = 0.20 if (not is_stock and macro_val != 0.0) else 0.0
+
     # ── Raw combined score ─────────────────────────────────────────────────────────────
     combined_score = (
         w_knn  * knn_directional +
         w_rf   * rf_directional  +
         w_gbm  * gbm_directional +
-        w_news * news_agg
+        w_news * news_agg        +
+        w_macro * macro_val
     )
     direction_raw = "LONG" if combined_score > 0 else "SHORT"
     ml_score_out  = bull_score if direction_raw == "LONG" else bear_score
@@ -534,7 +545,8 @@ def generate_signal(
         f"rapid×{rapid_mult:.2f} | "
         f"vwap:{vwap_ctx}({vwap_dist:+.2f}) | "
         f"news:{news_desc}({news_agg:+.3f}) | "
-        f"combined:{combined_score:+.3f} → conf:{conf_str}"
+        + (f"macro:{macro_label}({macro_val:+.3f}) | " if w_macro > 0 else "")
+        + f"combined:{combined_score:+.3f} → conf:{conf_str}"
     )
     if event.get("detected"):
         reasoning += f" ⚡ {event['event_type']}"
@@ -550,6 +562,8 @@ def generate_signal(
         "rf_score":       round(rf_win_prob, 4),
         "gbm_score":      round(gbm_win_prob, 4),
         "news_score":     round(news_agg, 4),
+        "macro_bias":     round(macro_val, 4),
+        "macro_label":    macro_label,
         "combined_score": round(combined_score, 4),
         "session":        session_name,
         "regime":         regime,

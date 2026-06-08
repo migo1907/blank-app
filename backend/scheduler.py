@@ -181,6 +181,7 @@ async def _news_signal_cycle() -> None:
             _latest_velocity = velocity
             _latest_event    = event
 
+        from market_macro import get_macro_bias
         signal = generate_signal(
             current_features=get_latest_features("XAUUSD_2M"),
             news_agg=_latest_news_agg,
@@ -188,6 +189,7 @@ async def _news_signal_cycle() -> None:
             high_impact_event=_latest_event,
             symbol="XAUUSD",
             pool="XAUUSD_2M",
+            macro_bias=get_macro_bias(),
         )
         print(
             f"[scheduler] Signal: {signal['direction']} "
@@ -303,6 +305,8 @@ async def _write_health_status(signal: dict, news_agg: float, velocity: dict, br
             "rf_trained":     rf.is_trained,
             "win_rate":       round(model.win_rate * 100, 1),
             "knn_bearish_pct": round(signal.get("ml_score", 0) * 100, 1),
+            "macro_bias":     signal.get("macro_bias", 0.0),
+            "macro_label":    signal.get("macro_label", "n/a"),
             "scheduler":      "running",
         }
         _, sha = await asyncio.to_thread(_get_file, "data/health.json")
@@ -794,6 +798,15 @@ async def _test_personal_alert() -> None:
     )
 
 
+async def _macro_refresh_cycle() -> None:
+    """Refresh gold macro drivers (FRED real yields/dollar, CFTC COT, GLD flows) hourly."""
+    try:
+        from market_macro import refresh_macro_bias
+        await asyncio.to_thread(refresh_macro_bias)
+    except Exception as e:
+        print(f"[scheduler] macro refresh failed: {e}")
+
+
 def start_scheduler() -> AsyncIOScheduler:
     global _scheduler
     _load_seen_headlines()
@@ -810,6 +823,8 @@ def start_scheduler() -> AsyncIOScheduler:
     _scheduler.add_job(_breaking_news_cycle, trigger="interval", minutes=2, id="breaking_news_cycle", replace_existing=True,
                        start_date=_dt.now(_tz.utc) + _td(seconds=90))
     _scheduler.add_job(_hourly_system_check, trigger="interval", hours=1, id="hourly_system_check", replace_existing=True)
+    _scheduler.add_job(_macro_refresh_cycle, trigger="interval", hours=1, id="macro_refresh_cycle", replace_existing=True,
+                       start_date=_dt.now(_tz.utc) + _td(seconds=20))
     _scheduler.add_job(_daily_market_brief, trigger="cron", hour=8, minute=0, id="daily_market_brief", replace_existing=True, misfire_grace_time=600)
     _scheduler.add_job(_stocks_session_report, trigger="cron", hour=21, minute=5, id="stocks_session_report", replace_existing=True, misfire_grace_time=600)
     _scheduler.add_job(_daily_trade_count_report, trigger="cron", hour=21, minute=15, id="daily_trade_count_report", replace_existing=True, misfire_grace_time=600)

@@ -97,6 +97,10 @@ async def lifespan(app: FastAPI):
     from htf_bias import load_bias_store
     load_bias_store()
 
+    print("[startup] Loading market macro bias from GitHub…")
+    from market_macro import load_macro_bias
+    load_macro_bias()
+
     if not WEBHOOK_SECRET:
         print("[startup] ⚠ WARNING: WEBHOOK_SECRET is not set — all webhook endpoints are open to unauthenticated requests.")
 
