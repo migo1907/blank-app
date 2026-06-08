@@ -82,8 +82,9 @@ class RandomForestEnsemble:
         y_rows = []
         for row in history:
             feat_vec = [float(row.get(col, 0.0)) for col in FEATURE_NAMES]
-            # Label: WIN=1, anything else=0
-            label = 1 if row.get("outcome") == "WIN" else 0
+            # PARTIAL is a profitable close (hit TP1+) — treat as win, not loss
+            outcome_val = row.get("ml_outcome") or row.get("outcome", "LOSS")
+            label = 1 if outcome_val in ("WIN", "PARTIAL") else 0
             X_rows.append(feat_vec)
             y_rows.append(label)
 
@@ -154,7 +155,7 @@ class RandomForestEnsemble:
 
     @property
     def feature_importances(self) -> list[float]:
-        """RF feature importances (20 values, sum to 1.0). Uniform if not trained."""
+        """RF feature importances (25 values, sum to 1.0). Uniform if not trained."""
         return list(self._feature_importances)
 
     @property
@@ -216,7 +217,9 @@ class GradientBoostEnsemble:
         X_rows, y_rows, w_rows = [], [], []
         for row in history:
             X_rows.append([float(row.get(col, 0.0)) for col in FEATURE_NAMES])
-            y_rows.append(1 if row.get("outcome") == "WIN" else 0)
+            # PARTIAL is a profitable close (hit TP1+) — treat as win, not loss
+            outcome_val = row.get("ml_outcome") or row.get("outcome", "LOSS")
+            y_rows.append(1 if outcome_val in ("WIN", "PARTIAL") else 0)
             w_rows.append(_session_weight(row.get("created_at", "")))
 
         X = np.array(X_rows, dtype=np.float32)

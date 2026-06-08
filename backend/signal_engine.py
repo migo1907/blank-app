@@ -76,6 +76,8 @@ def load_feature_cache() -> None:
         for pool, fv in data.items():
             if not isinstance(fv, dict) or "f1" not in fv:
                 continue
+            if "f25" not in fv:
+                print(f"[features] WARNING: pool {pool} cache missing f25 — will use 0.0 until next heartbeat")
             _latest_features[pool] = Features(
                 f1=fv.get("f1",0.0),  f2=fv.get("f2",0.0),  f3=fv.get("f3",0.0),
                 f4=fv.get("f4",0.0),  f5=fv.get("f5",0.0),  f6=fv.get("f6",0.0),
