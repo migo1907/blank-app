@@ -1,25 +1,5 @@
 [
   {
-    "symbol": "QQQ",
-    "pool": "STOCKS_QQQ_30M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "news_score": 0.0287,
-    "combined_score": 0.0066,
-    "session": "NYSE_OPEN",
-    "regime": "UNKNOWN",
-    "regime_label": "NORMAL",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:UNKNOWN(NORMAL)\u00d71.00 | sess:NYSE_OPEN\u00d71.25 | confluence\u00d71.00 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.00) | news:neutral(+0.029) | combined:+0.007 \u2192 conf:0.008 \u26a1 CPI",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-08T15:19:36.327114+00:00",
-    "created_at": "2026-06-08T14:49:36.691039+00:00",
-    "id": 101
-  },
-  {
     "symbol": "XAUUSD",
     "pool": "XAUUSD_2M",
     "direction": "NEUTRAL",
@@ -2131,6 +2111,28 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-08T22:12:46.311846+00:00",
     "created_at": "2026-06-08T21:42:47.997659+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "XAUUSD",
+    "pool": "XAUUSD_2M",
+    "direction": "SHORT",
+    "confidence": 0.6097,
+    "tier": "MED",
+    "ml_score": 0.875,
+    "rf_score": 0.2612,
+    "gbm_score": 0.0589,
+    "news_score": -0.0409,
+    "macro_bias": -0.64,
+    "macro_label": "BEARISH",
+    "combined_score": -0.6804,
+    "session": "NY_LATE",
+    "regime": "NORMAL",
+    "regime_label": "NORMAL",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:NY_LATE\u00d70.90 | confluence\u00d70.98 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:neutral(-0.041) | macro:BEARISH(-0.640) | combined:-0.680 \u2192 conf:0.610",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-08T22:27:23.234547+00:00",
+    "created_at": "2026-06-08T21:57:24.950692+00:00",
     "id": 101
   }
 ]
