@@ -31,8 +31,7 @@
 - **Known gap:** No `isTF30` bucket — 30M chart uses 1H/4H ATR multipliers (too wide). See TODO.
 
 
-- [ ] Pine Script: add `isTF30` bucket — 30M chart currently falls through to 1H/4H ATR multipliers (too wide TP/SL for 30M). Add dedicated 30M values to all multiplier chains.
-- [ ] Check market open hours logic — verify `stocks_active` window in scheduler.py and `_session_multiplier` in signal_engine.py match actual exchange open hours for all pools.
+- [ ] Pine Script: add `isTF30` bucket — 30M chart currently falls through to 1H/4H ATR multipliers (too wide TP/SL for 30M). Add dedicated 30M values to all multiplier chains. Backend ready — Pine Script only change.
 
 
 - FastAPI backend on Railway (Python 3.13)
