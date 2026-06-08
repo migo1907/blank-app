@@ -10,10 +10,12 @@ _latest_news_agg:    float = 0.0
 _latest_velocity:    dict  = {"multiplier": 1.0, "label": "NORMAL"}
 _latest_event:       dict  = {"detected": False, "event_type": "", "urgency": 0.0}
 _fj_seen_headlines:  set   = set()
-_last_sent_direction: str  = "NEUTRAL"
+_last_sent_direction: str     = "NEUTRAL"
 _last_sent_direction_spy: str = "NEUTRAL"
-_last_ml_direction: str   = "NEUTRAL"
-_last_ml_direction_spy: str = "NEUTRAL"
+_last_sent_direction_qqq: str = "NEUTRAL"
+_last_ml_direction: str       = "NEUTRAL"
+_last_ml_direction_spy: str   = "NEUTRAL"
+_last_ml_direction_qqq: str   = "NEUTRAL"
 _startup_cycle: bool = True  # suppress intelligence alert on first cycle after restart
 _webhook_errors:  int = 0   # count of failed trade webhooks since last hourly check
 _webhook_ok:      int = 0   # count of successful trade webhooks since last hourly check
@@ -41,7 +43,7 @@ def record_webhook_error() -> None:
 
 
 def _load_seen_headlines() -> set:
-    global _fj_seen_headlines, _last_sent_direction, _last_sent_direction_spy, _last_ml_direction, _last_ml_direction_spy
+    global _fj_seen_headlines, _last_sent_direction, _last_sent_direction_spy, _last_sent_direction_qqq, _last_ml_direction, _last_ml_direction_spy, _last_ml_direction_qqq
     try:
         from db import _get_file
         data, _ = _get_file(_SEEN_HEADLINES_PATH)
@@ -66,7 +68,10 @@ def _load_seen_headlines() -> set:
                     if sym == "SPY" and _last_sent_direction_spy == "NEUTRAL":
                         _last_sent_direction_spy = d
                         print(f"[scheduler] SPY last sent direction restored: {d}")
-                    elif sym != "SPY" and _last_sent_direction == "NEUTRAL":
+                    elif sym == "QQQ" and _last_sent_direction_qqq == "NEUTRAL":
+                        _last_sent_direction_qqq = d
+                        print(f"[scheduler] QQQ last sent direction restored: {d}")
+                    elif sym not in ("SPY", "QQQ") and _last_sent_direction == "NEUTRAL":
                         _last_sent_direction = d
                         print(f"[scheduler] Last sent direction restored: {d}")
 
@@ -74,13 +79,18 @@ def _load_seen_headlines() -> set:
                     if sym == "SPY" and _last_ml_direction_spy == "NEUTRAL":
                         _last_ml_direction_spy = ml_d
                         print(f"[scheduler] SPY last ML direction restored: {ml_d}")
-                    elif sym != "SPY" and _last_ml_direction == "NEUTRAL":
+                    elif sym == "QQQ" and _last_ml_direction_qqq == "NEUTRAL":
+                        _last_ml_direction_qqq = ml_d
+                        print(f"[scheduler] QQQ last ML direction restored: {ml_d}")
+                    elif sym not in ("SPY", "QQQ") and _last_ml_direction == "NEUTRAL":
                         _last_ml_direction = ml_d
                         print(f"[scheduler] Last ML direction restored: {ml_d}")
 
                 all_restored = (
-                    _last_sent_direction != "NEUTRAL" and _last_sent_direction_spy != "NEUTRAL" and
-                    _last_ml_direction   != "NEUTRAL" and _last_ml_direction_spy   != "NEUTRAL"
+                    _last_sent_direction     != "NEUTRAL" and _last_sent_direction_spy != "NEUTRAL" and
+                    _last_sent_direction_qqq != "NEUTRAL" and
+                    _last_ml_direction       != "NEUTRAL" and _last_ml_direction_spy   != "NEUTRAL" and
+                    _last_ml_direction_qqq   != "NEUTRAL"
                 )
                 if all_restored:
                     break
@@ -164,7 +174,7 @@ async def _breaking_news_cycle() -> None:
 
 
 async def _news_signal_cycle() -> None:
-    global _latest_news_agg, _latest_velocity, _latest_event, _fj_seen_headlines, _last_sent_direction, _last_sent_direction_spy, _last_ml_direction, _last_ml_direction_spy, _startup_cycle
+    global _latest_news_agg, _latest_velocity, _latest_event, _fj_seen_headlines, _last_sent_direction, _last_sent_direction_spy, _last_sent_direction_qqq, _last_ml_direction, _last_ml_direction_spy, _last_ml_direction_qqq, _startup_cycle
     print("[scheduler] Starting news + velocity + signal cycle…")
 
     try:
@@ -259,6 +269,38 @@ async def _news_signal_cycle() -> None:
                 _last_ml_direction_spy = spy_ml_dir
         except Exception as e:
             print(f"[scheduler] SPY signal error: {e}")
+
+        try:
+            qqq_signal = generate_signal(
+                current_features=get_latest_features("STOCKS_INDEX_30M"),
+                news_agg=_latest_news_agg,
+                news_velocity=_latest_velocity,
+                high_impact_event=_latest_event,
+                symbol="QQQ",
+                pool="STOCKS_INDEX_30M",
+            )
+            qqq_dir    = qqq_signal["direction"]
+            qqq_ml_dir = "LONG" if qqq_signal.get("combined_score", 0) > 0 else "SHORT" if qqq_signal.get("combined_score", 0) < 0 else "NEUTRAL"
+            print(f"[scheduler] QQQ: {qqq_dir} conf={qqq_signal['confidence']:.2f} sess={qqq_signal['session']}")
+
+            qqq_changed = qqq_dir    != "NEUTRAL" and qqq_dir    != _last_sent_direction_qqq
+            qqq_ml_flip = qqq_ml_dir != "NEUTRAL" and qqq_ml_dir != _last_ml_direction_qqq
+
+            if qqq_changed or (qqq_ml_flip and not _startup_cycle):
+                eff_qqq = qqq_dir if qqq_dir != "NEUTRAL" else qqq_ml_dir
+                if eff_qqq != "NEUTRAL":
+                    sent_qqq = await send_signal(qqq_signal)
+                    if sent_qqq:
+                        if qqq_changed: _last_sent_direction_qqq = qqq_dir
+                        if qqq_ml_flip: _last_ml_direction_qqq   = qqq_ml_dir
+                        print(f"[scheduler] QQQ direction → {eff_qqq} — signal sent.")
+            else:
+                print(f"[scheduler] QQQ direction unchanged ({qqq_dir}) — not sending.")
+
+            if qqq_ml_dir != "NEUTRAL":
+                _last_ml_direction_qqq = qqq_ml_dir
+        except Exception as e:
+            print(f"[scheduler] QQQ signal error: {e}")
 
         _startup_cycle = False  # first cycle complete — normal firing from here on
         asyncio.create_task(_write_health_status(signal, _latest_news_agg, _latest_velocity, len(fj_breaking)))
