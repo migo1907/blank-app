@@ -11,8 +11,6 @@ showSignals     = input.bool(true,  "Show Entry Signals",          group="Displa
 showFillZones   = input.bool(true,  "Show Stretch Zones",          group="Display")
 showTradeLevels = input.bool(true,  "Show SL / TP Lines on Chart", group="Display")
 showHVLine      = input.bool(true,  "Show HV AVWAP Line",          group="HV AVWAP")
-hvAutoLookback  = input.bool(true,  "Auto Lookback by Timeframe",  group="HV AVWAP")
-hvManualLength  = input.int(100,    "Manual Lookback (bars)",      group="HV AVWAP", minval=20, maxval=500)
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ASSET CLASSIFICATION  (syminfo.type first, ticker second — no substring over-match)
@@ -65,9 +63,6 @@ useStkVol = isStock or isETF
 
 tfMinutes = timeframe.in_seconds(timeframe.period) / 60.0
 htfPeriod = tfMinutes <= 5 ? "30" : tfMinutes <= 15 ? "60" : tfMinutes <= 60 ? "240" : "D"
-
-// Auto lookback: 2M=150bars(5h) | 5M=100bars(8h) | 15M=50bars(12h) | 30M=30bars(15h)
-hvLookback = hvAutoLookback ? (tfMinutes <= 2 ? 150 : tfMinutes <= 5 ? 100 : tfMinutes <= 15 ? 50 : 30) : hvManualLength
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // VOLATILITY REGIME  →  ADAPTIVE THRESHOLDS
@@ -132,29 +127,44 @@ vwap_minus3  = vwapValue - 3.0 * vwapStdDev
 pctFromVWAP  = vwapValue != 0 ? (close - vwapValue) / vwapValue * 100.0 : 0.0
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// HV AVWAP — HIGHEST VOLUME ANCHORED VWAP (INTRADAY, NATIVE PINE CALCULATION)
-// NOTE: anchor is the max-volume bar in a ROLLING window, so it can relocate when
-// that bar slides out of the lookback. Acceptable, but a session-latched anchor
-// would be steadier — left as a follow-up.
+// HV AVWAP — SESSION-LATCHED HIGHEST-VOLUME ANCHORED VWAP
+// Anchor = the highest-volume bar SINCE session start (resets on the same daily
+// boundary as the σ-bands). Computed incrementally: we keep cumulative Σpv / Σv
+// since session start, and snapshot those totals at the anchor bar. The anchored
+// VWAP is then (cum − base) over (cum − base).
+// The anchor only moves forward when a strictly larger-volume bar prints (a real
+// volume climax) — it never jumps from a bar ageing out of a rolling window.
 // ═══════════════════════════════════════════════════════════════════════════════
 
-var int   hvOffset = 0
-var float hvMaxVol = 0.0
-hvOffset := 0
-hvMaxVol := 0.0
-for i = 0 to hvLookback - 1
-    if volume[i] > hvMaxVol
-        hvMaxVol := volume[i]
-        hvOffset := i
+var float hvCumPVs  = 0.0   // Σ price·vol since session start
+var float hvCumVs   = 0.0   // Σ vol since session start
+var float hvBasePV  = 0.0   // cumulative Σpv captured just BEFORE the anchor bar
+var float hvBaseV   = 0.0   // cumulative Σv  captured just BEFORE the anchor bar
+var float hvAnchVol = 0.0   // volume of the current anchor bar
+var int   hvAnchBar = na    // bar_index of the current anchor bar
 
-float hvCumPV = 0.0
-float hvCumV  = 0.0
-for i = 0 to hvOffset
-    hvCumPV += hlc3[i] * volume[i]
-    hvCumV  += volume[i]
+if newSession
+    hvCumPVs  := 0.0
+    hvCumVs   := 0.0
+    hvBasePV  := 0.0
+    hvBaseV   := 0.0
+    hvAnchVol := 0.0
+    hvAnchBar := na
 
-hvAVWAP    = hvCumV > 0 ? hvCumPV / hvCumV : na
-pctFromHV  = not na(hvAVWAP) and hvAVWAP != 0 ? (close - hvAVWAP) / hvAVWAP * 100.0 : na
+// Re-anchor on a new session-volume high (snapshot totals before adding this bar,
+// so the anchor bar itself is the first bar included in the AVWAP).
+if volume > hvAnchVol
+    hvAnchVol := volume
+    hvAnchBar := bar_index
+    hvBasePV  := hvCumPVs
+    hvBaseV   := hvCumVs
+
+hvCumPVs += hlc3 * volume
+hvCumVs  += volume
+
+hvAVWAP   = (hvCumVs - hvBaseV) > 0 ? (hvCumPVs - hvBasePV) / (hvCumVs - hvBaseV) : na
+pctFromHV = not na(hvAVWAP) and hvAVWAP != 0 ? (close - hvAVWAP) / hvAVWAP * 100.0 : na
+barsSinceHVAnchor = not na(hvAnchBar) ? bar_index - hvAnchBar : na
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // HV AVWAP CONFLUENCE
@@ -462,8 +472,8 @@ if showLabels and barstate.islast
     hvPctCol  = not na(pctFromHV) ? (math.abs(pctFromHV) > threshold_2sigma ? color.orange : color.gray) : color.gray
     table.cell(dash, 1, 11, hvPctDisp, text_color=hvPctCol, bgcolor=color.new(color.gray, 70), text_size=size.small)
 
-    table.cell(dash, 0, 12, "HV Lookback", text_color=color.white, bgcolor=color.new(color.gray, 50), text_size=size.small)
-    table.cell(dash, 1, 12, str.tostring(hvLookback) + " bars", text_color=color.aqua, bgcolor=color.new(color.gray, 70), text_size=size.small)
+    table.cell(dash, 0, 12, "HV Anchor", text_color=color.white, bgcolor=color.new(color.gray, 50), text_size=size.small)
+    table.cell(dash, 1, 12, not na(barsSinceHVAnchor) ? str.tostring(barsSinceHVAnchor) + " bars ago" : "N/A", text_color=color.aqua, bgcolor=color.new(color.gray, 70), text_size=size.small)
 
     table.cell(dash, 0, 13, "Confluence", text_color=color.white, bgcolor=color.new(color.gray, 50), text_size=size.small)
     confTxt = hvConverging ? "CONVERGING ⚡" : hvMagnetShort ? "MAGNET ↓" : hvMagnetLong ? "MAGNET ↑" : "SEPARATE"
