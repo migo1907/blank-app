@@ -1,25 +1,5 @@
 [
   {
-    "symbol": "XAUUSD",
-    "pool": "XAUUSD_2M",
-    "direction": "SHORT",
-    "confidence": 0.7647,
-    "tier": "HIGH",
-    "ml_score": 0.625,
-    "rf_score": 0.0,
-    "gbm_score": 0.0,
-    "news_score": 0.2586,
-    "combined_score": -0.4821,
-    "session": "LONDON",
-    "regime": "TRENDING_BEAR",
-    "regime_label": "TREND_FOLLOW",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BEAR(TREND_FOLLOW)\u00d71.15 | sess:LONDON\u00d71.15 | confluence\u00d71.18 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-1.00) | news:bullish(+0.259) | combined:-0.482 \u2192 conf:0.765",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-08T09:23:10.471897+00:00",
-    "created_at": "2026-06-08T08:53:11.778233+00:00",
-    "id": 101
-  },
-  {
     "symbol": "SPY",
     "pool": "STOCKS_INDEX_30M",
     "direction": "NEUTRAL",
@@ -1997,6 +1977,26 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-08T16:04:29.912538+00:00",
     "created_at": "2026-06-08T15:34:31.474068+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "SPY",
+    "pool": "STOCKS_INDEX_30M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "news_score": 0.0421,
+    "combined_score": 0.0097,
+    "session": "NYSE_OPEN",
+    "regime": "TRENDING_BULL",
+    "regime_label": "TREND_FOLLOW",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(TREND_FOLLOW)\u00d71.15 | sess:NYSE_OPEN\u00d71.25 | confluence\u00d71.02 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.06) | news:neutral(+0.042) | combined:+0.010 \u2192 conf:0.015 \u26a1 CPI",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-08T16:04:33.103143+00:00",
+    "created_at": "2026-06-08T15:34:34.516583+00:00",
     "id": 101
   }
 ]
