@@ -1,0 +1,33 @@
+name: Daily Brief Backup Trigger
+
+on:
+  schedule:
+    # 08:01 UTC Mon–Fri — fires 1 minute after Railway's cron (08:00)
+    # If Railway is up the endpoint returns quickly; if Railway was down
+    # and just restarted, this call triggers the brief that APScheduler
+    # would have misfired.
+    - cron: "1 8 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      secret:
+        description: "Webhook secret"
+        required: false
+        default: "gold2026"
+
+jobs:
+  trigger-brief:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger /daily-brief endpoint
+        run: |
+          SECRET="${{ github.event.inputs.secret || 'gold2026' }}"
+          STATUS=$(curl -s -o /tmp/brief_response.txt -w "%{http_code}" \
+            --max-time 30 \
+            "https://blank-app-production-a8bd.up.railway.app/daily-brief?secret=${SECRET}")
+          echo "Response status: $STATUS"
+          cat /tmp/brief_response.txt
+          if [ "$STATUS" != "200" ]; then
+            echo "ERROR: /daily-brief returned $STATUS — Railway may be down or secret incorrect."
+            exit 1
+          fi
+          echo "Daily brief triggered successfully."

@@ -82,8 +82,9 @@ class RandomForestEnsemble:
         y_rows = []
         for row in history:
             feat_vec = [float(row.get(col, 0.0)) for col in FEATURE_NAMES]
-            # Label: WIN=1, anything else=0
-            label = 1 if row.get("outcome") == "WIN" else 0
+            # PARTIAL is a profitable close (hit TP1+) — treat as win, not loss
+            outcome_val = row.get("ml_outcome") or row.get("outcome", "LOSS")
+            label = 1 if outcome_val in ("WIN", "PARTIAL") else 0
             X_rows.append(feat_vec)
             y_rows.append(label)
 
@@ -124,7 +125,7 @@ class RandomForestEnsemble:
 
     def predict(self, features: list[float]) -> float:
         """
-        Predict WIN probability for a given 20-feature vector.
+        Predict WIN probability for a given 25-feature vector.
 
         Returns:
             float in [0.0, 1.0]. Returns 0.5 if model not yet trained.
@@ -132,7 +133,8 @@ class RandomForestEnsemble:
         if not _SKLEARN_AVAILABLE or not self._trained or self._model is None:
             return 0.5
 
-        if not _SKLEARN_AVAILABLE:
+        if len(features) != len(FEATURE_NAMES):
+            print(f"[ensemble] Feature vector length {len(features)} != expected {len(FEATURE_NAMES)} — returning 0.5")
             return 0.5
 
         import numpy as np  # already imported at module level but kept for clarity
@@ -153,7 +155,7 @@ class RandomForestEnsemble:
 
     @property
     def feature_importances(self) -> list[float]:
-        """RF feature importances (20 values, sum to 1.0). Uniform if not trained."""
+        """RF feature importances (25 values, sum to 1.0). Uniform if not trained."""
         return list(self._feature_importances)
 
     @property
@@ -175,12 +177,15 @@ class RandomForestEnsemble:
 # ── Pool-aware singletons — one RF per pool ──────────────────────────────────
 
 _rf_pool: dict[str, RandomForestEnsemble] = {}
+_rf_pool_lock = threading.Lock()
 
 
 def get_rf(pool: str = "XAUUSD") -> RandomForestEnsemble:
     """Get or create a RandomForestEnsemble for the given pool."""
     if pool not in _rf_pool:
-        _rf_pool[pool] = RandomForestEnsemble()
+        with _rf_pool_lock:
+            if pool not in _rf_pool:  # double-checked locking
+                _rf_pool[pool] = RandomForestEnsemble()
     return _rf_pool[pool]
 
 
@@ -212,7 +217,9 @@ class GradientBoostEnsemble:
         X_rows, y_rows, w_rows = [], [], []
         for row in history:
             X_rows.append([float(row.get(col, 0.0)) for col in FEATURE_NAMES])
-            y_rows.append(1 if row.get("outcome") == "WIN" else 0)
+            # PARTIAL is a profitable close (hit TP1+) — treat as win, not loss
+            outcome_val = row.get("ml_outcome") or row.get("outcome", "LOSS")
+            y_rows.append(1 if outcome_val in ("WIN", "PARTIAL") else 0)
             w_rows.append(_session_weight(row.get("created_at", "")))
 
         X = np.array(X_rows, dtype=np.float32)
@@ -244,6 +251,9 @@ class GradientBoostEnsemble:
     def predict(self, features: list[float]) -> float:
         if not _SKLEARN_AVAILABLE or not self._trained or self._model is None:
             return 0.5
+        if len(features) != len(FEATURE_NAMES):
+            print(f"[gbm] Feature vector length {len(features)} != expected {len(FEATURE_NAMES)} — returning 0.5")
+            return 0.5
         X = np.array([features], dtype=np.float32)
         try:
             with self._lock:
@@ -268,10 +278,13 @@ class GradientBoostEnsemble:
 # ── Pool-aware singletons — one GBM per pool ─────────────────────────────────
 
 _gbm_pool: dict[str, GradientBoostEnsemble] = {}
+_gbm_pool_lock = threading.Lock()
 
 
 def get_gbm(pool: str = "XAUUSD") -> GradientBoostEnsemble:
     """Get or create a GradientBoostEnsemble for the given pool."""
     if pool not in _gbm_pool:
-        _gbm_pool[pool] = GradientBoostEnsemble()
+        with _gbm_pool_lock:
+            if pool not in _gbm_pool:  # double-checked locking
+                _gbm_pool[pool] = GradientBoostEnsemble()
     return _gbm_pool[pool]

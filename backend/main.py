@@ -4,17 +4,53 @@ FastAPI app that receives TradingView webhooks, updates adaptive weights
 in GitHub storage, runs RF ensemble, fetches news sentiment, sends signals to Telegram.
 """
 import os
+import math
 import asyncio
+from datetime import datetime, timezone
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from typing import Literal, Optional
 from dotenv import load_dotenv
 
 load_dotenv()
 
+# In-memory TTL dedup: prevents double KNN weight updates when TradingView fires the
+# same trade outcome to both /webhook/trade-outcome and /webhook within 1-2 seconds.
+_outcome_dedup_seen: dict[str, float] = {}   # dedup_key → monotonic seconds
+_OUTCOME_DEDUP_TTL = 30.0  # seconds
+
+
+def _outcome_is_duplicate(symbol: str, direction: str, entry_price: float, exit_price: float, timeframe: str) -> bool:
+    """Returns True if this exact outcome was already processed within TTL window."""
+    import time
+    now = time.monotonic()
+    key = f"{symbol}|{direction}|{entry_price}|{exit_price}|{timeframe}"
+    # Evict stale entries
+    stale = [k for k, ts in _outcome_dedup_seen.items() if now - ts > _OUTCOME_DEDUP_TTL]
+    for k in stale:
+        del _outcome_dedup_seen[k]
+    if key in _outcome_dedup_seen:
+        return True
+    _outcome_dedup_seen[key] = now
+    return False
+
+
+def _tod_sine() -> float:
+    """Time-of-Day sine: 0→2π over 24 h, peaks ~06:00 UTC (London open)."""
+    _now = datetime.now(timezone.utc); h = _now.hour + _now.minute / 60
+    return math.sin(2 * math.pi * h / 24)
+
 WEBHOOK_SECRET    = os.environ.get("WEBHOOK_SECRET", "")
+VALID_POOLS = {
+    "XAUUSD_2M", "XAUUSD_5M", "XAUUSD_30M", "XAUUSD_1H",
+    "STOCKS_MOMENTUM_15M", "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_4H",
+    "STOCKS_QUALITY_15M",  "STOCKS_QUALITY_30M",  "STOCKS_QUALITY_4H",
+    "STOCKS_INDEX_15M",    "STOCKS_INDEX_30M",    "STOCKS_INDEX_4H",
+    "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",      "STOCKS_QQQ_4H",
+    "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",   "STOCKS_SPX500_4H",
+}
 RAILWAY_API_TOKEN  = os.environ.get("RAILWAY_API_TOKEN", "")
 RAILWAY_PROJECT_ID = os.environ.get("RAILWAY_PROJECT_ID", "bcc5442d-2f19-4dfa-ad25-219a5c70868a")
 RAILWAY_SERVICE_ID = os.environ.get("RAILWAY_SERVICE_ID", "e4310b2b-3a37-440e-a3b7-a14ea476f8a1")
@@ -24,26 +60,45 @@ RAILWAY_SERVICE_ID = os.environ.get("RAILWAY_SERVICE_ID", "e4310b2b-3a37-440e-a3
 async def lifespan(app: FastAPI):
     print("[startup] Loading ML model (25F) from storage…")
     from ml_model import get_model
-    get_model()
+    get_model("XAUUSD_2M")
 
     print("[startup] Priming RF + GBM ensembles for all pools…")
     from ml_ensemble import get_rf, get_gbm
     from db import recent_outcomes
-    for _pool in ["XAUUSD", "XAUUSD_2M", "XAUUSD_5M",
-                  "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_4H",
-                  "STOCKS_QUALITY_30M", "STOCKS_QUALITY_4H",
-                  "STOCKS_INDEX_30M", "STOCKS_INDEX_4H"]:
+    for _pool in ["XAUUSD_2M", "XAUUSD_5M", "XAUUSD_30M", "XAUUSD_1H",
+                  "STOCKS_MOMENTUM_15M", "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_4H",
+                  "STOCKS_QUALITY_15M",  "STOCKS_QUALITY_30M",  "STOCKS_QUALITY_4H",
+                  "STOCKS_INDEX_15M",    "STOCKS_INDEX_30M",    "STOCKS_INDEX_4H",
+                  "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",      "STOCKS_QQQ_4H",
+                  "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",   "STOCKS_SPX500_4H"]:
         _hist = recent_outcomes(_pool, limit=500)
-        if len(_hist) >= 15:
-            get_rf().retrain(_hist)
-            get_gbm().train(_hist)
+        if len(_hist) >= 50:
+            get_rf(_pool).retrain(_hist)
+            get_gbm(_pool).train(_hist)
             print(f"[startup] RF+GBM trained for {_pool} on {len(_hist)} trades.")
         else:
             print(f"[startup] {_pool}: {len(_hist)} trades — RF/GBM will train when data grows.")
 
+    print("[startup] Resyncing pool win/loss counters…")
+    from db import resync_pool_counters
+    for _pool in ["XAUUSD_2M", "XAUUSD_5M", "XAUUSD_30M", "XAUUSD_1H",
+                  "STOCKS_MOMENTUM_15M", "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_4H",
+                  "STOCKS_QUALITY_15M",  "STOCKS_QUALITY_30M",  "STOCKS_QUALITY_4H",
+                  "STOCKS_INDEX_15M",    "STOCKS_INDEX_30M",    "STOCKS_INDEX_4H",
+                  "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",      "STOCKS_QQQ_4H",
+                  "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",   "STOCKS_SPX500_4H"]:
+        resync_pool_counters(_pool)
+
     print("[startup] Loading feature cache from GitHub…")
     from signal_engine import load_feature_cache
     load_feature_cache()
+
+    print("[startup] Loading HTF bias store from GitHub…")
+    from htf_bias import load_bias_store
+    load_bias_store()
+
+    if not WEBHOOK_SECRET:
+        print("[startup] ⚠ WARNING: WEBHOOK_SECRET is not set — all webhook endpoints are open to unauthenticated requests.")
 
     print("[startup] Starting scheduler…")
     from scheduler import start_scheduler, _news_signal_cycle
@@ -65,69 +120,108 @@ app = FastAPI(
 )
 
 
+# Pine Script str.tostring(na, "#.##") emits unquoted NaN — invalid JSON.
+# This middleware replaces :NaN and ,NaN with :0 and ,0 before the JSON parser runs.
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request as StarletteRequest
+import re as _re
+
+_NAN_RE = _re.compile(rb':\s*NaN\b')
+_NAN_RE2 = _re.compile(rb',\s*NaN\b')
+
+class _SanitizeNaNMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: StarletteRequest, call_next):
+        ct = request.headers.get("content-type", "")
+        if "json" in ct:
+            body = await request.body()
+            if b'NaN' in body:
+                body = _NAN_RE.sub(b':0', body)
+                body = _NAN_RE2.sub(b',0', body)
+                # Rebuild the receive channel with sanitized body
+                async def _receive():
+                    return {"type": "http.request", "body": body, "more_body": False}
+                request = StarletteRequest(request.scope, _receive)
+        return await call_next(request)
+
+app.add_middleware(_SanitizeNaNMiddleware)
+
+
 class TradeOutcomePayload(BaseModel):
     secret:      str
-    trade_id:    str
-    direction:   Literal["LONG", "SHORT"]
-    outcome:     Literal["WIN", "LOSS", "PARTIAL"]
+    trade_id:    Optional[str]   = None
+    direction:   str             = ""
+    outcome:     str             = ""
     ml_outcome:  Optional[str]   = None
     mfe:         float           = 0.0
     timeframe:   Optional[str]   = None
-    tp_stage:    str = ""
-    entry_price: float
-    exit_price:  float
-    ml_score:    float = 0.5
-    f1:  float = 0.0
-    f2:  float = 0.0
-    f3:  float = 0.0
-    f4:  float = 0.0
-    f5:  float = 0.0
-    f6:  float = 0.0
-    f7:  float = 0.0
-    f8:  float = 0.0
-    f9:  float = 0.0
-    f10: float = 0.0
-    f11: float = 0.0
-    f12: float = 0.0
-    f13: float = 0.0
-    f14: float = 0.0
-    f15: float = 0.0
-    f16: float = 0.0
-    f17: float = 0.0
-    f18: float = 0.0
-    f19: float = 0.0
-    f20: float = 0.0
-    f21: float = 0.0
-    f22: float = 0.0
-    f23: float = 0.0
-    f24: float = 0.0
+    tp_stage:    str             = ""
+    entry_price: float           = 0.0
+    exit_price:  float           = 0.0
+    ml_score:    float           = 0.5
+    symbol:      Optional[str]   = None
+    f1:  float = 0.0; f2:  float = 0.0; f3:  float = 0.0; f4:  float = 0.0
+    f5:  float = 0.0; f6:  float = 0.0; f7:  float = 0.0; f8:  float = 0.0
+    f9:  float = 0.0; f10: float = 0.0; f11: float = 0.0; f12: float = 0.0
+    f13: float = 0.0; f14: float = 0.0; f15: float = 0.0; f16: float = 0.0
+    f17: float = 0.0; f18: float = 0.0; f19: float = 0.0; f20: float = 0.0
+    f21: float = 0.0; f22: float = 0.0; f23: float = 0.0; f24: float = 0.0
     f25: float = 0.0
 
-    class Config:
-        extra = "ignore"
+    model_config = {"extra": "ignore"}
+
+    @model_validator(mode="before")
+    @classmethod
+    def _coerce_nulls(cls, values: dict) -> dict:
+        if not isinstance(values, dict):
+            return values
+        float_fields = {
+            "ml_score", "mfe", "entry_price", "exit_price",
+            "f1","f2","f3","f4","f5","f6","f7","f8","f9","f10",
+            "f11","f12","f13","f14","f15","f16","f17","f18","f19","f20",
+            "f21","f22","f23","f24","f25",
+        }
+        for k in float_fields:
+            if k in values and values[k] is None:
+                values[k] = 0.0
+        for k in ("tp_stage", "direction", "outcome"):
+            if k in values and values[k] is None:
+                values[k] = ""
+        return values
 
 
 class SignalEntryPayload(BaseModel):
     secret:      str
-    direction:   Literal["LONG", "SHORT"]
-    timeframe:   str = "5m"
-    trigger:     str = "RSI"
-    symbol:      str = "XAUUSD"
-    entry_price: float
-    tp1:         float
-    tp2:         float
-    tp3:         float
-    sl:          float
+    direction:   str   = ""
+    timeframe:   str   = "5"
+    trigger:     str   = "RSI"
+    symbol:      str   = "XAUUSD"
+    entry_price: float = 0.0
+    tp1:         float = 0.0
+    tp2:         float = 0.0
+    tp3:         float = 0.0
+    sl:          float = 0.0
     ml_score:    float = 0.5
-    tier:        str = "MED"
+    tier:        str   = "MED"
 
-    class Config:
-        extra = "ignore"
+    model_config = {"extra": "ignore"}
+
+    @model_validator(mode="before")
+    @classmethod
+    def _coerce_nulls(cls, values: dict) -> dict:
+        if not isinstance(values, dict):
+            return values
+        for k in ("entry_price", "tp1", "tp2", "tp3", "sl", "ml_score"):
+            if k in values and values[k] is None:
+                values[k] = 0.0
+        for k in ("direction", "trigger", "symbol", "tier", "timeframe"):
+            if k in values and values[k] is None:
+                values[k] = ""
+        return values
 
 
 class UnifiedPayload(BaseModel):
     secret:      str
-    direction:   Literal["LONG", "SHORT"]
+    direction:   str             = ""
     timeframe:   Optional[str]   = None
     trigger:     Optional[str]   = None
     symbol:      Optional[str]   = None
@@ -152,13 +246,39 @@ class UnifiedPayload(BaseModel):
     f21: float = 0.0; f22: float = 0.0; f23: float = 0.0; f24: float = 0.0
     f25: float = 0.0
 
-    class Config:
-        extra = "ignore"
+    model_config = {"extra": "ignore"}
+
+    @model_validator(mode="before")
+    @classmethod
+    def _coerce_nulls(cls, values: dict) -> dict:
+        """TradingView sends JSON null for Pine Script na() values. Coerce to 0.0 for float fields."""
+        if not isinstance(values, dict):
+            return values
+        float_fields = {
+            "ml_score", "mfe",
+            "f1","f2","f3","f4","f5","f6","f7","f8","f9","f10",
+            "f11","f12","f13","f14","f15","f16","f17","f18","f19","f20",
+            "f21","f22","f23","f24","f25",
+        }
+        for k in float_fields:
+            if k in values and values[k] is None:
+                values[k] = 0.0
+        if "tp_stage" in values and values["tp_stage"] is None:
+            values["tp_stage"] = ""
+        if "direction" in values and values["direction"] is None:
+            values["direction"] = ""
+        return values
 
 
 def _validate_secret(secret: str) -> None:
     if WEBHOOK_SECRET and secret != WEBHOOK_SECRET:
         raise HTTPException(status_code=403, detail="Invalid webhook secret.")
+
+
+@app.get("/market-hours")
+async def market_hours():
+    from market_calendar import get_market_status
+    return get_market_status()
 
 
 @app.api_route("/health", methods=["GET", "POST", "HEAD"])
@@ -195,35 +315,103 @@ async def test_telegram(secret: str = ""):
     return {"status": "sent", "chat_id": chat_id, "token_prefix": token[:10] + "..."}
 
 
+def _normalize_outcome(raw: str) -> str:
+    """Map Pine Script outcome strings to internal WIN/LOSS/PARTIAL/HEARTBEAT/PROGRESS."""
+    v = raw.upper().strip()
+    if v == "HEARTBEAT":                          return "HEARTBEAT"
+    if v in ("TP1_HIT", "TP2_HIT"):              return "PROGRESS"
+    if v in ("WIN", "TP3", "TP2", "TP1"):         return "WIN"
+    if v in ("LOSS", "SL"):                        return "LOSS"
+    if v in ("PARTIAL", "SL_TP1", "SL_TP2",
+             "SL_TP3", "TP1_SL", "TP2_SL"):       return "PARTIAL"
+    return "LOSS"  # unknown → treat as loss
+
+
 @app.post("/webhook/trade-outcome")
 async def trade_outcome(payload: TradeOutcomePayload):
     _validate_secret(payload.secret)
+    payload.outcome = _normalize_outcome(payload.outcome)
+
+    # Log raw payload before any processing (skip heartbeats to save space)
+    if payload.outcome != "HEARTBEAT":
+        asyncio.create_task(asyncio.to_thread(
+            __import__("db").log_raw_webhook, payload.model_dump()
+        ))
+
+    # HEARTBEAT — update feature cache only, no trade record
+    if payload.outcome == "HEARTBEAT":
+        from ml_model import Features
+        from db import symbol_to_pool
+        from signal_engine import update_latest_features
+        sym  = getattr(payload, "symbol", "XAUUSD") or "XAUUSD"
+        pool = symbol_to_pool(sym, payload.timeframe or "")
+        features = Features(
+            f1=payload.f1, f2=payload.f2, f3=payload.f3, f4=payload.f4,
+            f5=payload.f5, f6=payload.f6, f7=payload.f7, f8=payload.f8,
+            f9=payload.f9, f10=payload.f10, f11=payload.f11, f12=payload.f12,
+            f13=payload.f13, f14=payload.f14, f15=payload.f15, f16=payload.f16,
+            f17=payload.f17, f18=payload.f18, f19=payload.f19, f20=payload.f20,
+            f21=payload.f21, f22=payload.f22, f23=payload.f23, f24=payload.f24,
+            f25=payload.f25,
+        )
+        # Update in-memory cache immediately, persist to GitHub in background
+        from signal_engine import _latest_features
+        _latest_features[pool] = features
+        async def _persist_heartbeat():
+            try:
+                await asyncio.to_thread(update_latest_features, pool, features)
+            except Exception as e:
+                print(f"[heartbeat] persist error: {e}")
+        asyncio.create_task(_persist_heartbeat())
+        print(f"[heartbeat] Cache updated for pool={pool}")
+        return {"status": "ok", "outcome": "HEARTBEAT", "pool": pool}
+
+    # PROGRESS — TP1/TP2 milestone reached but trade still open; log only, no ML or DB write
+    if payload.outcome == "PROGRESS":
+        print(f"[progress] {payload.symbol} {payload.direction} {payload.tp_stage} @ {payload.exit_price}")
+        return {"status": "ok", "outcome": "PROGRESS", "stage": payload.tp_stage}
 
     from ml_model import get_model, Features
     from ml_ensemble import get_rf, get_gbm
     from db import insert_outcome, recent_outcomes, symbol_to_pool
 
-    sym  = getattr(payload, "symbol", "XAUUSD") or "XAUUSD"
-    pool = symbol_to_pool(sym, payload.timeframe or "")
-    model = get_model(pool)
-    features = Features(
-        f1=payload.f1,   f2=payload.f2,   f3=payload.f3,   f4=payload.f4,
-        f5=payload.f5,   f6=payload.f6,   f7=payload.f7,   f8=payload.f8,
-        f9=payload.f9,   f10=payload.f10, f11=payload.f11, f12=payload.f12,
-        f13=payload.f13, f14=payload.f14, f15=payload.f15, f16=payload.f16,
-        f17=payload.f17, f18=payload.f18, f19=payload.f19, f20=payload.f20,
-        f21=payload.f21, f22=payload.f22, f23=payload.f23, f24=payload.f24,
-        f25=payload.f25,
-    )
+    sym  = payload.symbol or "XAUUSD"
 
-    ml_label = payload.ml_outcome or payload.outcome
-    model.update_on_outcome(features, payload.direction, ml_label)
+    if not payload.entry_price or not payload.exit_price:
+        print(f"[trade-outcome] Missing entry/exit price for {sym} {payload.direction} — skipping")
+        return {"status": "ok", "skipped": "missing_prices"}
 
-    from signal_engine import update_latest_features
-    update_latest_features(pool, features)
+    try:
+        pool = symbol_to_pool(sym, payload.timeframe or "")
+        model = get_model(pool)
+        features = Features(
+            f1=payload.f1,   f2=payload.f2,   f3=payload.f3,   f4=payload.f4,
+            f5=payload.f5,   f6=payload.f6,   f7=payload.f7,   f8=payload.f8,
+            f9=payload.f9,   f10=payload.f10, f11=payload.f11, f12=payload.f12,
+            f13=payload.f13, f14=payload.f14, f15=payload.f15, f16=payload.f16,
+            f17=payload.f17, f18=payload.f18, f19=payload.f19, f20=payload.f20,
+            f21=payload.f21, f22=payload.f22, f23=payload.f23, f24=payload.f24,
+            f25=payload.f25,
+        )
 
-    raw_pct = (payload.exit_price - payload.entry_price) / max(payload.entry_price, 0.0001) * 100
-    pnl_pct = raw_pct if payload.direction == "LONG" else -raw_pct
+        ml_label = payload.ml_outcome or payload.outcome
+        _is_dup = _outcome_is_duplicate(sym, payload.direction, payload.entry_price, payload.exit_price, payload.timeframe or "")
+        if not _is_dup:
+            model.update_on_outcome(features, payload.direction, ml_label, tp_stage=payload.tp_stage or "")
+        else:
+            print(f"[trade-outcome] Duplicate within {_OUTCOME_DEDUP_TTL}s — skipping weight update for {sym} {payload.direction} entry={payload.entry_price}")
+
+        raw_pct = (payload.exit_price - payload.entry_price) / max(payload.entry_price, 0.0001) * 100
+        pnl_pct = raw_pct if payload.direction == "LONG" else -raw_pct
+
+        from signal_engine import _detect_regime, _session_multiplier
+        _is_stock_pool = not pool.startswith("XAUUSD")
+        _, _session = _session_multiplier(datetime.now(timezone.utc), is_stock=_is_stock_pool)
+        _regime     = _detect_regime(features)
+    except Exception as _exc:
+        print(f"[trade-outcome] ERROR processing {sym} {payload.direction} outcome={payload.outcome}: {_exc}")
+        import traceback; traceback.print_exc()
+        return {"status": "error", "detail": str(_exc)}
 
     outcome_row = {
         "symbol":        sym,
@@ -234,21 +422,36 @@ async def trade_outcome(payload: TradeOutcomePayload):
         "outcome":       payload.outcome,
         "ml_outcome":    ml_label,
         "mfe":           payload.mfe,
+        "tp_stage":      payload.tp_stage or "",
         "timeframe":     payload.timeframe or "",
         "pnl_pct":       round(pnl_pct, 4),
         "ml_bull_score": payload.ml_score,
+        "regime":        _regime,
+        "session":       _session,
     }
     outcome_row.update(features.as_db_dict())
 
     async def _persist():
         try:
-            await asyncio.to_thread(model.save, pool)
+            for _save_attempt in range(3):
+                try:
+                    await asyncio.to_thread(model.save, pool)
+                    break
+                except Exception as _se:
+                    if _save_attempt < 2:
+                        await asyncio.sleep(1 << _save_attempt)
+                    else:
+                        raise
             await asyncio.to_thread(insert_outcome, outcome_row)
             history = await asyncio.to_thread(recent_outcomes, pool, 500)
-            if len(history) >= 15:
-                await asyncio.to_thread(get_rf().retrain, history)
-                await asyncio.to_thread(get_gbm().train, history)
+            if len(history) >= 50:
+                await asyncio.to_thread(get_rf(pool).retrain, history)
+                await asyncio.to_thread(get_gbm(pool).train, history)
+            from scheduler import record_webhook_ok
+            record_webhook_ok()
         except Exception as e:
+            from scheduler import record_webhook_error
+            record_webhook_error()
             print(f"[trade-outcome] background persist error: {e}")
     asyncio.create_task(_persist())
 
@@ -265,43 +468,115 @@ async def trade_outcome(payload: TradeOutcomePayload):
 @app.post("/webhook/signal-entry")
 async def signal_entry(payload: SignalEntryPayload):
     _validate_secret(payload.secret)
+    if payload.direction not in ("LONG", "SHORT"):
+        print(f"[signal-entry] Ignoring entry with direction={payload.direction!r} — not LONG/SHORT")
+        return {"status": "ignored", "reason": "invalid_direction"}
+
+    from htf_bias import is_htf, store_bias, get_active_bias
+    sym = payload.symbol or "XAUUSD"
+    tf  = payload.timeframe or "5"
+
+    # Only XAUUSD 2M is suppressed — all other timeframes send to Telegram
+    if str(tf).strip() == "2" and sym.upper() == "XAUUSD":
+        print(f"[signal-entry] XAUUSD 2M — ML only, not sent to Telegram")
+        return {"status": "ok", "routed_to": "ml-only", "reason": "2m_suppressed"}
+
+    # HTF signals: store bias AND send to Telegram
+    if is_htf(tf):
+        store_bias(sym, payload.direction, tf, payload.trigger or "", payload.ml_score)
+        print(f"[signal-entry] HTF bias stored: {payload.direction} {sym} TF={tf}")
+
     from telegram_bot import send_entry_signal
     from scheduler import get_latest_news_sentiment, get_latest_velocity, get_latest_event
+    entry = payload.entry_price or 0.0
+    if entry <= 0:
+        print(f"[signal-entry] Missing entry_price for {sym} {payload.direction} — skipping Telegram")
+        return {"status": "ok", "routed_to": "suppressed", "reason": "no_entry_price"}
+
+    bias        = get_active_bias(sym, payload.direction)
+    contra_bias = get_active_bias(sym, "SHORT" if payload.direction == "LONG" else "LONG")
+    htf_context = "htf_direct" if is_htf(tf) else ("with_bias" if bias else ("counter_trend" if contra_bias else "scalp"))
+    print(f"[signal-entry] {payload.direction} {sym} TF={tf} htf={htf_context} → sending to Telegram")
+
     asyncio.create_task(send_entry_signal({
         "direction":   payload.direction,
-        "timeframe":   payload.timeframe,
-        "trigger":     payload.trigger,
-        "symbol":      payload.symbol,
-        "entry_price": payload.entry_price,
-        "tp1":         payload.tp1,
-        "tp2":         payload.tp2,
-        "tp3":         payload.tp3,
-        "sl":          payload.sl,
+        "timeframe":   tf,
+        "trigger":     payload.trigger or "RSI",
+        "symbol":      sym,
+        "entry_price": entry,
+        "tp1":         payload.tp1 or 0.0,
+        "tp2":         payload.tp2 or 0.0,
+        "tp3":         payload.tp3 or 0.0,
+        "sl":          payload.sl or 0.0,
         "ml_score":    payload.ml_score,
-        "tier":        payload.tier,
+        "tier":        payload.tier or "MED",
         "news_score":  get_latest_news_sentiment(),
         "velocity":    get_latest_velocity().get("label", "NORMAL"),
         "event":       get_latest_event().get("event_type", ""),
+        "htf_bias":    bias,
+        "contra_bias": contra_bias,
+        "htf_context": htf_context,
     }))
-    return {"status": "ok", "direction": payload.direction, "timeframe": payload.timeframe}
+    return {"status": "ok", "routed_to": "signal-entry", "direction": payload.direction, "htf_context": htf_context}
 
 
 @app.post("/webhook")
 async def unified_webhook(payload: UnifiedPayload):
     _validate_secret(payload.secret)
 
-    is_entry  = payload.tp1 is not None and payload.sl is not None
-    is_outcome = payload.trade_id is not None and payload.outcome is not None
+    if payload.outcome is not None:
+        payload.outcome = _normalize_outcome(payload.outcome)
+
+    # Log raw payload before processing (skip heartbeats to save space)
+    if payload.outcome != "HEARTBEAT" and payload.trade_id != "heartbeat":
+        asyncio.create_task(asyncio.to_thread(
+            __import__("db").log_raw_webhook, payload.model_dump()
+        ))
+
+    # Outcome payloads always carry trade_id + outcome — they must be checked FIRST.
+    # Entry payloads can also carry tp1/sl but never trade_id + outcome together.
+    # Checking is_entry first was a bug: a trade-close that happened to include tp1/sl
+    # would be routed to HTF bias store and the trade record would be permanently lost.
+    is_outcome = payload.trade_id is not None and payload.outcome is not None and \
+                 payload.outcome not in ("HEARTBEAT", "PROGRESS")
+    is_entry   = payload.tp1 is not None and payload.sl is not None and not is_outcome
 
     if is_entry:
+        if payload.direction not in ("LONG", "SHORT"):
+            print(f"[webhook] Ignoring entry with direction={payload.direction!r} — not LONG/SHORT")
+            return {"status": "ignored", "reason": "invalid_direction"}
+        from htf_bias import is_htf, store_bias, get_active_bias
+        sym = payload.symbol or "XAUUSD"
+        tf  = payload.timeframe or "5"
+
+        # Only XAUUSD 2M is suppressed — all other timeframes send to Telegram
+        if str(tf).strip() == "2" and sym.upper() == "XAUUSD":
+            print(f"[webhook] XAUUSD 2M — ML only, not sent to Telegram")
+            return {"status": "ok", "routed_to": "ml-only", "reason": "2m_suppressed"}
+
+        # HTF signals: store bias AND send to Telegram
+        if is_htf(tf):
+            store_bias(sym, payload.direction, tf, payload.trigger or "", payload.ml_score)
+            print(f"[webhook] HTF bias stored: {payload.direction} {sym} TF={tf}")
+
         from telegram_bot import send_entry_signal
         from scheduler import get_latest_news_sentiment, get_latest_velocity, get_latest_event
+        entry = payload.entry_price or 0.0
+        if entry <= 0:
+            print(f"[webhook] Missing entry_price for {sym} {payload.direction} — skipping Telegram")
+            return {"status": "ok", "routed_to": "suppressed", "reason": "no_entry_price"}
+
+        bias        = get_active_bias(sym, payload.direction)
+        contra_bias = get_active_bias(sym, "SHORT" if payload.direction == "LONG" else "LONG")
+        htf_context = "htf_direct" if is_htf(tf) else ("with_bias" if bias else ("counter_trend" if contra_bias else "scalp"))
+        print(f"[webhook] {payload.direction} {sym} TF={tf} htf={htf_context} → sending to Telegram")
+
         asyncio.create_task(send_entry_signal({
             "direction":   payload.direction,
-            "timeframe":   payload.timeframe or "5",
+            "timeframe":   tf,
             "trigger":     payload.trigger or "RSI",
-            "symbol":      payload.symbol or "XAUUSD",
-            "entry_price": payload.entry_price or 0.0,
+            "symbol":      sym,
+            "entry_price": entry,
             "tp1":         payload.tp1 or 0.0,
             "tp2":         payload.tp2 or 0.0,
             "tp3":         payload.tp3 or 0.0,
@@ -311,16 +586,18 @@ async def unified_webhook(payload: UnifiedPayload):
             "news_score":  get_latest_news_sentiment(),
             "velocity":    get_latest_velocity().get("label", "NORMAL"),
             "event":       get_latest_event().get("event_type", ""),
+            "htf_bias":    bias,
+            "contra_bias": contra_bias,
+            "htf_context": htf_context,
         }))
-        return {"status": "ok", "routed_to": "signal-entry", "direction": payload.direction}
+        return {"status": "ok", "routed_to": "signal-entry", "direction": payload.direction, "htf_context": htf_context}
 
-    if is_outcome:
-        from ml_model import get_model, Features
-        from ml_ensemble import get_rf, get_gbm
-        from db import insert_outcome, recent_outcomes, symbol_to_pool
-        sym2     = payload.symbol or "XAUUSD"
-        pool     = symbol_to_pool(sym2, payload.timeframe or "")
-        model    = get_model(pool)
+    if payload.outcome == "HEARTBEAT":
+        from ml_model import Features
+        from db import symbol_to_pool
+        from signal_engine import update_latest_features
+        sym2 = payload.symbol or "XAUUSD"
+        pool = symbol_to_pool(sym2, payload.timeframe or "")
         features = Features(
             f1=payload.f1, f2=payload.f2, f3=payload.f3, f4=payload.f4,
             f5=payload.f5, f6=payload.f6, f7=payload.f7, f8=payload.f8,
@@ -330,20 +607,65 @@ async def unified_webhook(payload: UnifiedPayload):
             f21=payload.f21, f22=payload.f22, f23=payload.f23, f24=payload.f24,
             f25=payload.f25,
         )
-        ml_label = payload.ml_outcome or payload.outcome
-        model.update_on_outcome(features, payload.direction, ml_label)
+        from signal_engine import _latest_features
+        _latest_features[pool] = features
+        async def _persist_hb():
+            try:
+                await asyncio.to_thread(update_latest_features, pool, features)
+            except Exception as e:
+                print(f"[heartbeat] persist error: {e}")
+        asyncio.create_task(_persist_hb())
+        print(f"[heartbeat] Cache updated for pool={pool}")
+        return {"status": "ok", "outcome": "HEARTBEAT", "pool": pool}
 
-        from signal_engine import update_latest_features
-        update_latest_features(pool, features)
+    # PROGRESS — TP1/TP2 milestone; log only (webhook_log already written above), no ML or DB
+    if payload.outcome == "PROGRESS":
+        print(f"[progress] {payload.symbol} {payload.direction} {payload.tp_stage} @ {payload.exit_price}")
+        return {"status": "ok", "outcome": "PROGRESS", "stage": payload.tp_stage}
 
-        entry = payload.entry_price or 0.0
-        exit_ = payload.exit_price or 0.0
-        if entry and exit_:
-            raw_pct = (exit_ - entry) / entry * 100
-            pnl_pct = raw_pct if payload.direction == "LONG" else -raw_pct
-        else:
-            pnl_pct = 0.0
+    if is_outcome:
+        if payload.direction not in ("LONG", "SHORT"):
+            print(f"[webhook] Ignoring outcome with direction={payload.direction!r} — not LONG/SHORT")
+            return {"status": "ignored", "reason": "invalid_direction"}
+        from ml_model import get_model, Features
+        from ml_ensemble import get_rf, get_gbm
+        from db import insert_outcome, recent_outcomes, symbol_to_pool
+        sym2 = payload.symbol or "XAUUSD"
+        try:
+            pool     = symbol_to_pool(sym2, payload.timeframe or "")
+            model    = get_model(pool)
+            features = Features(
+                f1=payload.f1, f2=payload.f2, f3=payload.f3, f4=payload.f4,
+                f5=payload.f5, f6=payload.f6, f7=payload.f7, f8=payload.f8,
+                f9=payload.f9, f10=payload.f10, f11=payload.f11, f12=payload.f12,
+                f13=payload.f13, f14=payload.f14, f15=payload.f15, f16=payload.f16,
+                f17=payload.f17, f18=payload.f18, f19=payload.f19, f20=payload.f20,
+                f21=payload.f21, f22=payload.f22, f23=payload.f23, f24=payload.f24,
+                f25=payload.f25,
+            )
+            ml_label = payload.ml_outcome or payload.outcome
+            _is_dup2 = _outcome_is_duplicate(sym2, payload.direction, payload.entry_price or 0.0, payload.exit_price or 0.0, payload.timeframe or "")
+            if not _is_dup2:
+                model.update_on_outcome(features, payload.direction, ml_label, tp_stage=payload.tp_stage or "")
+            else:
+                print(f"[webhook] Duplicate within {_OUTCOME_DEDUP_TTL}s — skipping weight update for {sym2} {payload.direction} entry={payload.entry_price}")
 
+            entry = payload.entry_price or 0.0
+            exit_ = payload.exit_price or 0.0
+            if entry and exit_:
+                raw_pct = (exit_ - entry) / max(entry, 0.0001) * 100
+                pnl_pct = raw_pct if payload.direction == "LONG" else -raw_pct
+            else:
+                pnl_pct = 0.0
+
+            from signal_engine import _detect_regime, _session_multiplier
+            _is_stock_pool2 = not pool.startswith("XAUUSD")
+            _, _session = _session_multiplier(datetime.now(timezone.utc), is_stock=_is_stock_pool2)
+            _regime     = _detect_regime(features)
+        except Exception as _exc:
+            print(f"[webhook] ERROR processing outcome {sym2} {payload.direction} outcome={payload.outcome}: {_exc}")
+            import traceback; traceback.print_exc()
+            return {"status": "error", "detail": str(_exc)}
         outcome_row = {
             "symbol":        sym2,
             "direction":     payload.direction,
@@ -353,36 +675,55 @@ async def unified_webhook(payload: UnifiedPayload):
             "outcome":       payload.outcome,
             "ml_outcome":    ml_label,
             "mfe":           payload.mfe,
+            "tp_stage":      payload.tp_stage or "",
             "timeframe":     payload.timeframe or "",
             "pnl_pct":       round(pnl_pct, 4),
             "ml_bull_score": payload.ml_score,
+            "regime":        _regime,
+            "session":       _session,
         }
         outcome_row.update(features.as_db_dict())
 
         async def _persist():
             try:
-                await asyncio.to_thread(model.save, pool)
+                for _save_attempt in range(3):
+                    try:
+                        await asyncio.to_thread(model.save, pool)
+                        break
+                    except Exception as _se:
+                        if _save_attempt < 2:
+                            await asyncio.sleep(1 << _save_attempt)
+                        else:
+                            raise
                 await asyncio.to_thread(insert_outcome, outcome_row)
                 history = await asyncio.to_thread(recent_outcomes, pool, 500)
-                if len(history) >= 15:
-                    await asyncio.to_thread(get_rf().retrain, history)
-                    await asyncio.to_thread(get_gbm().train, history)
+                if len(history) >= 50:
+                    await asyncio.to_thread(get_rf(pool).retrain, history)
+                    await asyncio.to_thread(get_gbm(pool).train, history)
+                from scheduler import record_webhook_ok
+                record_webhook_ok()
             except Exception as e:
+                from scheduler import record_webhook_error
+                record_webhook_error()
                 print(f"[webhook] background persist error: {e}")
         asyncio.create_task(_persist())
 
         return {"status": "ok", "routed_to": "trade-outcome", "outcome": payload.outcome, "ml_outcome": ml_label}
 
+    print(f"[webhook] Unmatched payload — tp1={payload.tp1} sl={payload.sl} trade_id={payload.trade_id} outcome={payload.outcome}")
     return {"status": "ignored", "reason": "payload did not match entry or outcome pattern"}
 
 
 @app.get("/weights")
-async def get_weights(secret: str = ""):
+async def get_weights(secret: str = "", pool: str = "XAUUSD_2M"):
     _validate_secret(secret)
+    if pool not in VALID_POOLS:
+        raise HTTPException(status_code=400, detail=f"Unknown pool '{pool}'. Valid: {sorted(VALID_POOLS)}")
     from ml_model import get_model
-    model = get_model()
+    model = get_model(pool)
     top3 = model.top_features(3)
     return {
+        "pool":         pool,
         "weights":      {f"w{i+1}": round(w, 4) for i, w in enumerate(model.weights)},
         "total_wins":   model._total_wins,
         "total_losses": model._total_losses,
@@ -392,13 +733,15 @@ async def get_weights(secret: str = ""):
 
 
 @app.get("/feature-importance")
-async def feature_importance(secret: str = ""):
+async def feature_importance(secret: str = "", pool: str = "XAUUSD_2M"):
     _validate_secret(secret)
+    if pool not in VALID_POOLS:
+        raise HTTPException(status_code=400, detail=f"Unknown pool '{pool}'. Valid: {sorted(VALID_POOLS)}")
     from ml_model import get_model, FEATURE_NAMES
     from ml_ensemble import get_rf
 
-    model = get_model()
-    rf    = get_rf()
+    model = get_model(pool)
+    rf    = get_rf(pool)
 
     knn_top = model.top_features(5)
     rf_top  = rf.top_features(5)
@@ -430,6 +773,14 @@ async def feature_importance(secret: str = ""):
         "rf_top_features":   [{"name": n, "importance": round(v, 4)} for n, v in rf_top],
         "combined_ranking":  combined,
     }
+
+
+@app.get("/test-session-report")
+async def test_session_report(secret: str = ""):
+    _validate_secret(secret)
+    from telegram_bot import send_stocks_session_report
+    sent = await send_stocks_session_report()
+    return {"status": "sent" if sent else "no_trades_today"}
 
 
 @app.get("/signal/now")
@@ -540,20 +891,23 @@ async def railway_status(secret: str = ""):
 
 
 @app.get("/dashboard")
-async def dashboard(secret: str = ""):
+async def dashboard(secret: str = "", pool: str = "XAUUSD_2M"):
     _validate_secret(secret)
+    if pool not in VALID_POOLS:
+        raise HTTPException(status_code=400, detail=f"Unknown pool '{pool}'. Valid: {sorted(VALID_POOLS)}")
     from ml_model import get_model
     from ml_ensemble import get_rf
     from db import recent_outcomes, recent_news
     from scheduler import get_latest_news_sentiment, get_latest_velocity, get_latest_event
 
-    model = get_model()
-    rf    = get_rf()
-    recent_trades     = recent_outcomes("XAUUSD", limit=10)
+    model = get_model(pool)
+    rf    = get_rf(pool)
+    recent_trades     = recent_outcomes(pool, limit=10)
     recent_news_items = recent_news(hours=4)
     top3              = model.top_features(3)
 
     return {
+        "pool": pool,
         "model": {
             "weights":      {f"w{i+1}": round(w, 4) for i, w in enumerate(model.weights)},
             "win_rate":     round(model.win_rate * 100, 1),

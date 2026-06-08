@@ -2,6 +2,17 @@
 
 ---
 
+## 📋 TOMORROW — To Do (June 5, 2026)
+
+| # | Task | Notes |
+|---|------|-------|
+| 1 | **Heartbeat alert** — Pine Script fires F1–F25 every bar close to keep feature cache fresh | Backend needs to handle `outcome="HEARTBEAT"` — update cache only, do NOT store as trade record. This fixes `Signal NEUTRAL conf=0.00` between real trade webhooks |
+| 2 | **Update CLAUDE.md** — remove "F25 computed server-side" (outdated since June 4 fix) | Small but important for next session context |
+| 3 | **Verify pool-specific trade history on GitHub** — Railway loaded 109/54/20 trades but GitHub directory only showed 2 files | Check if files exist on branch or only in Railway's cached state |
+| 4 | **Check Railway logs after market open** — confirm fresh webhooks firing with non-zero F22–F25 values | Proof that Pine Script new features are flowing correctly |
+
+---
+
 ## PHASE 1 — Current: Data Collection & Learning
 **Goal:** Build a statistically significant dataset, let ML find real edges
 
@@ -10,14 +21,19 @@
 | 25-feature KNN adaptive weights | ✅ Live |
 | RF + GBM ensemble | ✅ Live |
 | Multi-pool (Gold + Stocks) | ✅ Live |
-| 10-pool TF architecture (2M/5M/30M/1H + stocks 30M/4H) | ✅ Live |
+| Pool TF architecture (XAUUSD 2M/5M/30M/1H + stocks 30M/4H) | ✅ Live |
 | Trigger quality scoring | ✅ Live |
-| Session intelligence | ✅ Live |
-| VWAP stretch boost | ✅ Live |
+| Session intelligence (London fixed — was wrongly 0.60, now 1.15) | ✅ Fixed June 4 |
+| VWAP stretch boost (now MTF-gated — no boost when 1H opposing) | ✅ Fixed June 4 |
 | Pullback confirmation gate | ✅ Live |
 | MFE-based ML outcome labeling | ✅ Live |
 | FJ breaking news (red items only) | ✅ Live |
 | Direction-change Telegram signals | ✅ Live |
+| KNN label encoding fix (LOSS+SHORT now +1, PARTIAL uses PnL) | ✅ Fixed June 4 |
+| Counter-trend penalty: swing pools 0.80, scalp pools 0.95 exempt | ✅ Fixed June 4 |
+| F1–F25 all from Pine Script (F25 entry-time, not server-side) | ✅ Fixed June 4 |
+| TVC:GOLD as XAUUSD data source (daily levels) | ✅ Fixed June 4 |
+| MIN_CONFIDENCE raised to 0.62 (conservative until data grows) | ✅ Fixed June 4 |
 
 **Exit criteria:** 150+ XAUUSD trades per TF pool, 50+ per stock pool, trigger win rates stabilized
 
@@ -159,24 +175,27 @@ Always maintain human control:
 
 ## Timetable — Live Progress Tracker
 
-**Phase 1 started: June 1, 2026 | Today: June 3, 2026**
+**Phase 1 started: June 1, 2026 | Today: June 4, 2026**
 
-### Pool-by-Pool Progress (as of June 3, 2026)
+> ⚠️ **Note:** Backtest data (6,653 trades) was injected then removed — only 25 clean live trades remain in base XAUUSD pool. All pool-specific files reset to 0. 6 TradingView alerts now live as of June 4.
+
+### Pool-by-Pool Progress (as of June 4, 2026)
 
 | Pool | Trades | Target | Remaining | Rate/day | ETA | Status |
 |------|--------|--------|-----------|----------|-----|--------|
-| XAUUSD (legacy) | 109 | 150 | 41 | ~55 | **~June 4** | 🟢 Nearly done |
-| XAUUSD_2M | 2 | 150 | 148 | ~2-3 | ~Aug 1 | 🔵 Data flowing |
-| XAUUSD_5M | 1 | 150 | 149 | ~2-3 | ~Aug 5 | 🔵 Data flowing |
-| XAUUSD_30M | 0 | 150 | 150 | ~1-2 | ~Sep 1 | ⏳ Starting |
-| XAUUSD_1H | 0 | 150 | 150 | ~0-1 | ~Oct 1 | ⏳ Starting |
-| STOCKS_MOMENTUM_30M | 0 | 50 | 50 | ~1-2 | ~Aug 15 | ⏳ Starting |
-| STOCKS_MOMENTUM_4H | 0 | 50 | 50 | ~0-1 | ~Sep 15 | ⏳ Starting |
-| STOCKS_QUALITY_30M | 1 | 50 | 49 | ~1-2 | ~Aug 14 | 🔵 Data flowing |
-| STOCKS_QUALITY_4H | 0 | 50 | 50 | ~0-1 | ~Sep 15 | ⏳ Starting |
-| STOCKS_INDEX_30M/4H | 0 | 50 | 50 | ~1-2 | ~Aug 15 | ⏳ Starting |
+| XAUUSD (base fallback) | 25 | 150 | 125 | ~8-10 | ~June 18 | 🟡 Live only |
+| XAUUSD_2M | 0 | 150 | 150 | ~3-5 | ~July 20 | 🔵 Alert live |
+| XAUUSD_5M | 0 | 150 | 150 | ~2-4 | ~Aug 1 | 🔵 Alert live |
+| XAUUSD_30M | 0 | 150 | 150 | ~1-2 | ~Sep 15 | 🔵 Alert live |
+| XAUUSD_1H | 0 | 150 | 150 | ~0-1 | ~Nov 1 | 🔵 Alert live |
+| STOCKS_MOMENTUM_30M | 0 | 50 | 50 | ~1-2 | ~Aug 15 | 🔵 Alert live |
+| STOCKS_MOMENTUM_4H | 0 | 50 | 50 | ~0-1 | ~Sep 15 | 🔵 Alert live |
+| STOCKS_QUALITY_30M | 0 | 50 | 50 | ~1-2 | ~Aug 15 | ⏳ No alert yet |
+| STOCKS_QUALITY_4H | 0 | 50 | 50 | ~0-1 | ~Sep 15 | ⏳ No alert yet |
+| STOCKS_INDEX_30M | 0 | 50 | 50 | ~1-2 | ~Aug 15 | ⏳ No alert yet |
+| STOCKS_INDEX_4H | 0 | 50 | 50 | ~0-1 | ~Sep 15 | ⏳ No alert yet |
 
-> Rates estimated conservatively. Gold TF pools fire ~2-3 signals/day per pool; stock pools ~1-2/day on active sessions.
+> 6 active alerts: XAUUSD 2M/5M/30M/1H + 2 stocks (30M/4H). Stocks category routing depends on which ticker the alert fires on.
 
 ### Phase Milestones
 
@@ -200,6 +219,63 @@ Phase 4:  ⏳ Earliest Feb–Mar 2027 (gated by 58%+ WR over 200 consecutive tra
 ```
 
 > **Key gate before Phase 4:** Win rate must sustain 58%+ over 200 consecutive trades across all market regimes — not cherry-picked. This is a hard dependency, dates shift if WR criteria aren't met.
+
+---
+
+## 🔴 Known Issues — Open (as of June 7, 2026)
+
+### Recently Fixed (June 7)
+| # | Issue | Status |
+|---|-------|--------|
+| H1 | `main.py` — `is_entry` checked before `is_outcome`: trade-close payloads with tp1/sl silently routed to HTF bias store, trade record lost | ✅ Fixed |
+| H2 | `htf_bias.py` — bias store in-memory only, lost on Railway restart, signals suppressed silently after redeploy | ✅ Fixed — persists to `data/htf_bias.json`, loads on startup |
+| H3 | `ml_model.py` — race condition in `get_model()` singleton init, second concurrent request overwrites first's loaded weights | ✅ Fixed — double-checked locking |
+| H4 | `db.py` — `_put_file()` no retry on 409 conflict, `save_weights()` permanently lost weight update on SHA conflict | ✅ Fixed — 3-retry with SHA re-fetch |
+| M3 | `ml_ensemble.py` — same race condition in `get_rf()` / `get_gbm()` singleton init | ✅ Fixed — double-checked locking |
+| M6 | `db.py` — `insert_signal()` no 409 retry, concurrent signal writes silently dropped | ✅ Fixed — 3-retry loop |
+
+
+
+| # | Issue | Impact | Fix Trigger |
+|---|-------|--------|-------------|
+| 1 | `weights.json` missing — KNN adaptive weights never persisted to GitHub | Medium | Auto-creates on first WIN trade |
+| 2 | F19 (RSI Divergence) always `0.0` — dead feature, never fires | Low | Investigate Pine Script detection logic or replace feature |
+| 3 | All 25 historical trades are LOSS/PARTIAL, 0 WIN — KNN trained on losing patterns only | Medium | Resolves naturally as new trades accumulate with wins |
+| 4 | F22–F25 absent from the 25 historical trades (old Pine Script didn't have them) | Low | Resolves naturally — new trades have all 25 features |
+| 5 | CLAUDE.md still says "F25 computed server-side" — outdated after June 4 fix | Low | Update CLAUDE.md next session |
+| 6 | Stocks alerts: only 2 active (30M + 4H) — STOCKS_QUALITY and STOCKS_INDEX pools have no alerts | Medium | Add TradingView alerts for quality/index stocks when ready |
+| 7 | `main.py` lines ~347 & ~540 — `update_latest_features()` called synchronously in async handler, blocks event loop on every trade outcome | High | ✅ Fixed June 7 |
+| 8 | `scheduler.py` line ~192 — `get_latest_features("XAUUSD")` wrong pool; heartbeats update `XAUUSD_2M` only, so 15-min signal cycle runs with None features — ML ensemble contributes nothing, signals driven by news only | High | ✅ Fixed June 7 |
+| 9 | `main.py` `/weights`, `/feature-importance`, `/dashboard` — `get_model()` and `get_rf()` called without pool, defaults to base `XAUUSD` instead of `XAUUSD_2M` | Medium | ✅ Fixed June 7 |
+
+---
+
+## 🟡 Next Actions — When Trades Accumulate
+
+| Milestone | Trigger | Action |
+|-----------|---------|--------|
+| 15+ trades per pool | ~1–3 days per active pool | RF + GBM auto-train, confidence scores start improving |
+| First WIN recorded | Unknown | KNN weights save to GitHub for first time — adaptive learning begins |
+| 50+ trades per pool | ~1–2 weeks | Consider lowering MIN_CONFIDENCE back toward 0.58 |
+| 100+ trades per pool | ~3–4 weeks | Evaluate whether F19 (RSI div) should be replaced |
+| 150+ trades XAUUSD pools | ~Phase 1 exit | Begin Phase 2 development (HMM regime model) |
+
+---
+
+## 🔵 Deferred — Future Improvements (not yet scheduled)
+
+| Item | Description | Phase |
+|------|-------------|-------|
+| **F19 replacement** | RSI Divergence never fires — replace with Stochastic RSI or Volume Profile distance | Phase 1 exit |
+| **Heartbeat alert** | TradingView Pine Script fires F1–F25 every 15min even with no trade signal — keeps feature cache fresh between webhooks | Phase 1 |
+| **Breaking news Telegram** | Currently disabled (`BREAKING_NEWS_TELEGRAM=false`) — enable when user ready | Anytime |
+| **News calendar integration** | Block/reduce signals 5–30min before high-impact events (FOMC, NFP, CPI) | Phase 2D |
+| **Hidden Markov Model (HMM)** | Replace simple ADX regime detection with probabilistic regime transition model — detects regime shifts before they complete | Phase 2A |
+| **Full MTF stack** | Replace single F16 (1H) with 1H + 4H + Daily all scored — signal requires 2 of 3 TF agreement | Phase 2B |
+| **ATR position sizing** | Dynamic SL/TP based on current volatility — wider market = wider SL, smaller size | Phase 2C |
+| **DXY / US10Y intermarket** | When DXY breaks key level → gold signal gets context boost; VIX spike → reduce stock signal size | Phase 2E |
+| **Weekly Telegram report** | Every Sunday: win rate, best trigger/session/regime, ML weight changes | Phase 3C |
+| **Telegram bot commands** | `/pause`, `/resume`, `/close_all`, `/status` — human override layer | Phase 4D |
 
 ---
 

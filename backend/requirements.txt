@@ -9,4 +9,4 @@ pydantic==2.9.2
 scikit-learn==1.5.2
 numpy>=1.26.0
 yfinance>=0.2.40
-tvdatafeed>=0.2.7
+tvdatafeed @ git+https://github.com/rongardF/tvdatafeed.git

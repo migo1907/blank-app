@@ -1,5 +1,5 @@
 //@version=6
-indicator("f25XAU/USD Migo VS Market Sniper Pro [ML + Adaptive + ☁️ v3·25F]", overlay=true, max_labels_count=300, max_bars_back=510)
+indicator("XAU/USD Migo VS Market Sniper Pro [ML + Adaptive + ☁️ v3·25F]", overlay=true, max_labels_count=300, max_bars_back=510)
 
 // ═══════════════════════════════════════════════════════
 // TIMEFRAME AUTO-DETECTION
@@ -20,7 +20,7 @@ float tp1_inp      = input.float(1.5,  "TP1 ATR Multiplier",        group="⚙�
 float tp2_inp      = input.float(2.5,  "TP2 ATR Multiplier",        group="⚙️ Trade")
 float tp3_inp      = input.float(4.0,  "TP3 ATR Multiplier Runner", group="⚙️ Trade")
 float sl_inp       = input.float(1.5,  "SL ATR Multiplier",         group="⚙️ Trade")
-float trailMult    = input.float(1.8,  "Trail Stop Multiplier",     group="⚙️ Trade")
+float trailMult    = input.float(1.2,  "Trail Stop Multiplier (TP1)", group="⚙️ Trade")
 float tpProximity  = input.float(80.0, "Near-TP Reset %",           group="⚙️ Trade", minval=50, maxval=99) / 100.0
 int   adxLen       = input.int(14,     "ADX Length",                group="🔎 Filters")
 float adxThreshold = input.float(20.0, "ADX Sideways Threshold",    group="🔎 Filters")
@@ -51,11 +51,13 @@ string webhookSecret = input.string("gold2026", "Webhook Secret", group="☁️ 
 
 // ── Auto-TF overrides (only when autoTF = true) ───────────────────────────────
 int   lookback    = autoTF ? (isTF2 ? 30  : isTF5 ? 50  : isTF15 ? 75  : 100) : lookback_inp
-float atrMultTP1  = autoTF ? (isTF2 ? 1.5 : isTF5 ? 1.8 : isTF15 ? 2.0 : 2.5) : tp1_inp
-float atrMultTP2  = autoTF ? (isTF2 ? 2.7 : isTF5 ? 3.0 : isTF15 ? 3.5 : 4.5) : tp2_inp
-float atrMultTP3  = autoTF ? (isTF2 ? 4.5 : isTF5 ? 4.8 : isTF15 ? 5.5 : 7.0) : tp3_inp
-float atrMultSL   = autoTF ? (isTF2 ? 1.2 : isTF5 ? 1.8 : isTF15 ? 2.0 : 2.5) : sl_inp
-int   mlDepth     = autoTF ? (isTF2 ? 150 : isTF5 ? 250 : isTF15 ? 350 : 500 ) : mlDepth_inp
+float atrMultTP1  = autoTF ? (isTF2 ? 1.0 : isTF5 ? 1.5 : isTF15 ? 2.0 : 2.5) : tp1_inp
+float atrMultTP2  = autoTF ? (isTF2 ? 1.8 : isTF5 ? 2.5 : isTF15 ? 3.5 : 4.5) : tp2_inp
+float atrMultTP3  = autoTF ? (isTF2 ? 3.0 : isTF5 ? 4.0 : isTF15 ? 5.5 : 7.0) : tp3_inp
+float atrMultSL    = autoTF ? (isTF2 ? 0.8 : isTF5 ? 1.5 : isTF15 ? 2.0 : 2.5) : sl_inp
+// TP2 trail tighten — always auto, not exposed as input (tighter = lock in TP2 profit)
+float atrMultTrl2  = isTF2 ? 0.5 : isTF5 ? 0.7 : isTF15 ? 0.9 : 1.2
+int   mlDepth      = autoTF ? (isTF2 ? 150 : isTF5 ? 250 : isTF15 ? 350 : 500 ) : mlDepth_inp
 int   kWin        = autoTF ? (isTF2 ? 5   : isTF5 ? 8   : isTF15 ? 12  : 16  ) : kWin_inp
 
 // ═══════════════════════════════════════════════════════
@@ -75,6 +77,7 @@ float willR     = ta.wpr(14)
 float cmo       = ta.cmo(close, 14) / 100.0
 
 // ── MTF + DXY — consolidated into 3 request.security calls (was 7) ──────────
+// PERFORMANCE FIX: tuple returns = 3× fewer secondary series calculations
 [ma50_1h, ma200_1h, rsi_1h] = request.security(syminfo.tickerid, "60", [ta.ema(close, 50), ta.ema(close, 200), ta.rsi(close, 14)])
 float ma50_4h = request.security(syminfo.tickerid, "240", ta.ema(close, 50))
 [dxyEma5, dxyEma20] = request.security("DXY", timeframe.period, [ta.ema(close, 5), ta.ema(close, 20)])
@@ -88,6 +91,7 @@ bool isSideways    = (adxFlat ? 1 : 0) + (atrCompressed ? 1 : 0) + (emaTooClose 
 
 // ═══════════════════════════════════════════════════════
 // GLOBAL ta.* SERIES — consolidated (PERFORMANCE FIX)
+// Removed redundant overlapping lookback calls
 // ═══════════════════════════════════════════════════════
 float swingHigh20   = ta.highest(high, 20)
 float swingLow20    = ta.lowest(low,  20)
@@ -192,26 +196,32 @@ float f21     = useVWAP ? f21_raw : 0.0
 // ═══════════════════════════════════════════════════════
 
 // F22: Candle Body Ratio — institutional conviction vs doji
+// +1.0 = strong bullish candle, -1.0 = strong bearish, ~0 = doji/indecision
 float bodySize   = math.abs(close - open)
 float fullRange  = math.max(high - low, syminfo.mintick)
 float bodyDir    = close >= open ? 1.0 : -1.0
 float f22_raw    = bodyDir * math.min(bodySize / fullRange, 1.0)
 float f22        = useNewFeats ? f22_raw : 0.0
 
-// F23: RSI Acceleration — rate of change of RSI
+// F23: RSI Acceleration — rate of change of RSI (momentum speeding up vs slowing down)
+// +1.0 = RSI rising fast, -1.0 = RSI falling fast, 0 = flat momentum
 float rsiSlope   = (rsiVal - rsiVal[3]) / 3.0
 float f23_raw    = math.max(-1.0, math.min(1.0, rsiSlope / 15.0))
 float f23        = useNewFeats ? f23_raw : 0.0
 
-// F24: FVG Quality Score — FVG after liquidity sweep
+// F24: FVG Quality Score — FVG that formed AFTER a liquidity sweep (highest quality imbalance)
+// Standalone FVG = 0. FVG after sweep = ±1.0 (the setup ICT calls "optimal trade entry")
+// Step 1: sweep — prior bar broke AND closed back above/below the 20-bar swing level (true sweep)
 bool sweepDown   = low[1] < ta.lowest(low, 20)[2]  and close[1] > ta.lowest(low, 20)[2]
 bool sweepUp     = high[1] > ta.highest(high, 20)[2] and close[1] < ta.highest(high, 20)[2]
+// Step 2: FVG on current bar in reversal direction (gap + directional close confirms imbalance)
 bool fvgBullQual = sweepDown and (low > high[2]) and close > open
 bool fvgBearQual = sweepUp   and (high < low[2]) and close < open
 float f24_raw    = fvgBullQual ? 1.0 : fvgBearQual ? -1.0 : 0.0
 float f24        = useNewFeats ? f24_raw : 0.0
 
-// F25: Time-of-Day — sine wave peaking at London/NY overlap
+// F25: Time-of-Day — sine wave peaking at London/NY overlap, low at Asian
+// Natural rhythm of gold's institutional participation
 float todMinutes = float(utcHour * 60 + minute)
 float f25_raw    = math.sin((todMinutes / 1440.0) * 2.0 * math.pi)
 float f25        = useNewFeats ? f25_raw : 0.0
@@ -258,14 +268,17 @@ bool  kernelDown = kernelEst < kernelEst[2]
 
 // ═══════════════════════════════════════════════════════
 // KNN CLASSIFIER — 25 features, optimised search
+// PERFORMANCE FIX: step >= 2, max 150 comparisons
 // ═══════════════════════════════════════════════════════
 var float mlBull = 0.5
 var float mlBear = 0.5
 
+// Throttle: recalculate KNN every 2 bars — scores remain valid for 2-bar window
 if bar_index > mlK * 2 + mlLag and bar_index % 2 == 0
     float[] kDist  = array.new_float(mlK, 1.0e10)
     int[]   kLbl   = array.new_int(mlK, 0)
     int searchLen  = math.min(mlDepth, math.min(bar_index - mlLag - 1, 500))
+    // Step >= 2 ensures we never check every bar; cap at 100 comparisons
     int step = math.max(2, math.round(float(searchLen) / 100.0))
     for i = mlLag + step to searchLen by step
         bool dataOk = not na(f1[i]) and not na(f2[i]) and not na(f9[i])
@@ -317,7 +330,7 @@ var int    tradeConf   = 0
 var bool   tp1Hit      = false
 var bool   tp2Hit      = false
 var float  trailSL     = 0.0
-var float  mfeFav      = 0.0
+var float  mfeFav      = 0.0  // max favorable excursion since entry (in price units)
 
 // ═══════════════════════════════════════════════════════
 // WEIGHT UPDATE HELPERS — 25 features (index 0-24)
@@ -396,8 +409,35 @@ buildPayload(dir, outcome, mlOut, stage, entPx, exitPx, mlSc, trig, mfe, tf) =>
     p1 + p2 + p3 + p4 + p5 + p6 + f1s + f2s + f3s + f4s + f5s + f6s + f7s + f8s + f9s + f10s + f11s + f12s + f13s + f14s + f15s + f16s + f17s + f18s + f19s + f20s + f21s + f22s + f23s + f24s + f25s
 
 // ═══════════════════════════════════════════════════════
-// MFE TRACKING
+// HEARTBEAT PAYLOAD BUILDER — current live F1-F25 (not entry snapshot)
+// Fires every bar to keep backend feature cache fresh between trades
 // ═══════════════════════════════════════════════════════
+buildHeartbeatPayload(tf) =>
+    string h1  = '{"secret":"' + webhookSecret + '"'
+    string h2  = ',"trade_id":"heartbeat"'
+    string h3  = ',"direction":"LONG","outcome":"HEARTBEAT","ml_outcome":"HEARTBEAT","tp_stage":"","trigger":""'
+    string h4  = ',"entry_price":0,"exit_price":0,"ml_score":0,"mfe":0'
+    string h5  = ',"timeframe":"' + tf + '","symbol":"' + syminfo.ticker + '"'
+    string hf1  = ',"f1":'  + str.tostring(f1,  "#.####") + ',"f2":'  + str.tostring(f2,  "#.####")
+    string hf3  = ',"f3":'  + str.tostring(f3,  "#.####") + ',"f4":'  + str.tostring(f4,  "#.####")
+    string hf5  = ',"f5":'  + str.tostring(f5,  "#.####") + ',"f6":'  + str.tostring(f6,  "#.####")
+    string hf7  = ',"f7":'  + str.tostring(f7,  "#.####") + ',"f8":'  + str.tostring(f8,  "#.####")
+    string hf9  = ',"f9":'  + str.tostring(f9,  "#.####") + ',"f10":' + str.tostring(f10, "#.####")
+    string hf11 = ',"f11":' + str.tostring(f11, "#.####") + ',"f12":' + str.tostring(f12, "#.####")
+    string hf13 = ',"f13":' + str.tostring(f13, "#.####") + ',"f14":' + str.tostring(f14, "#.####")
+    string hf15 = ',"f15":' + str.tostring(f15, "#.####") + ',"f16":' + str.tostring(f16, "#.####")
+    string hf17 = ',"f17":' + str.tostring(f17, "#.####") + ',"f18":' + str.tostring(f18, "#.####")
+    string hf19 = ',"f19":' + str.tostring(f19, "#.####") + ',"f20":' + str.tostring(f20, "#.####")
+    string hf21 = ',"f21":' + str.tostring(f21, "#.####") + ',"f22":' + str.tostring(f22, "#.####")
+    string hf23 = ',"f23":' + str.tostring(f23, "#.####") + ',"f24":' + str.tostring(f24, "#.####")
+    string hf25 = ',"f25":' + str.tostring(f25, "#.####") + '}'
+    h1 + h2 + h3 + h4 + h5 + hf1 + hf3 + hf5 + hf7 + hf9 + hf11 + hf13 + hf15 + hf17 + hf19 + hf21 + hf23 + hf25
+
+// Fire heartbeat every bar close — keeps backend feature cache fresh between trades
+if barstate.isconfirmed
+    alert(buildHeartbeatPayload(timeframe.period), alert.freq_once_per_bar_close)
+
+
 if activeTrade == "LONG"
     mfeFav := math.max(mfeFav, high - entryPrice)
 if activeTrade == "SHORT"
@@ -406,12 +446,14 @@ if activeTrade == "SHORT"
 // TRAIL STOP
 // ═══════════════════════════════════════════════════════
 if activeTrade == "LONG" and tp1Hit
-    trailSL := math.max(trailSL, high - atr * trailMult)
-    slPrice  := trailSL
+    float tmL  = tp2Hit ? atrMultTrl2 : trailMult
+    trailSL   := math.max(trailSL, high - atr * tmL)
+    slPrice   := trailSL
 
 if activeTrade == "SHORT" and tp1Hit
-    trailSL := math.min(trailSL, low + atr * trailMult)
-    slPrice  := trailSL
+    float tmS  = tp2Hit ? atrMultTrl2 : trailMult
+    trailSL   := math.min(trailSL, low + atr * tmS)
+    slPrice   := trailSL
 
 // ═══════════════════════════════════════════════════════
 // LONG EXITS + ADAPTIVE UPDATE + WEBHOOK
@@ -419,15 +461,21 @@ if activeTrade == "SHORT" and tp1Hit
 if activeTrade == "LONG"
     if not tp1Hit and high >= tp1Price
         tp1Hit  := true
-        trailSL := close - atr * trailMult
+        // Break-even guarantee: trail stop must be at or above entry price
+        trailSL := math.max(close - atr * trailMult, entryPrice)
         slPrice := trailSL
+        alert(buildPayload(activeTrade, "TP1_HIT", "TP1_HIT", "TP1", entryPrice, tp1Price, mlBull, activeTrigger, mfeFav, timeframe.period), alert.freq_once_per_bar_close)
         label.new(bar_index, high, "TP1 ✓\nTrail ON", color=color.new(color.green, 40), textcolor=color.white, style=label.style_label_down, size=size.tiny)
 
     if tp1Hit and not tp2Hit and high >= tp2Price
-        tp2Hit := true
-        label.new(bar_index, high, "TP2 ✓", color=color.new(color.green, 20), textcolor=color.white, style=label.style_label_down, size=size.tiny)
+        tp2Hit  := true
+        trailSL := math.max(trailSL, high - atr * atrMultTrl2)
+        slPrice := trailSL
+        alert(buildPayload(activeTrade, "TP2_HIT", "TP2_HIT", "TP2", entryPrice, tp2Price, mlBull, activeTrigger, mfeFav, timeframe.period), alert.freq_once_per_bar_close)
+        label.new(bar_index, high, "TP2 ✓\nTrail ↑", color=color.new(color.green, 20), textcolor=color.white, style=label.style_label_down, size=size.tiny)
 
-    if tp1Hit and tp2Hit and high >= tp3Price
+    bool closedTP3L = tp1Hit and tp2Hit and high >= tp3Price
+    if closedTP3L
         totalWins += 1
         updateWeightsLong(winReward)
         alert(buildPayload(activeTrade, "WIN", "WIN", "TP3", entryPrice, high, mlBull, activeTrigger, mfeFav, timeframe.period), alert.freq_once_per_bar_close)
@@ -437,12 +485,12 @@ if activeTrade == "LONG"
         mfeFav  := 0.0
         label.new(bar_index, high, "TP3 ✓\nFULL RUN! ☁️", color=color.green, textcolor=color.white, style=label.style_label_down, size=size.small)
 
-    if low <= slPrice
+    if not closedTP3L and low <= slPrice
         string exitLbl  = tp1Hit ? (tp2Hit ? "SL (after TP2)" : "SL (after TP1)") : "SL HIT"
         string outcome  = tp1Hit ? "PARTIAL" : "LOSS"
         string stage    = tp2Hit ? "SL_TP2" : (tp1Hit ? "SL_TP1" : "SL")
-        float  slDist   = entryPrice - slPrice
-        string mlOut    = (not tp1Hit and mfeFav >= slDist * 0.875) ? "WIN" : outcome
+        float  slDist   = math.abs(entryPrice - slPrice)
+        string mlOut    = tp1Hit ? "WIN" : (mfeFav >= slDist * 0.875 ? "WIN" : "LOSS")
         if not tp1Hit
             totalLosses += 1
             penalizeWeightsLong(lossPenalty)
@@ -454,6 +502,7 @@ if activeTrade == "LONG"
         activeTrade := "NONE"
         tp1Hit := false
         tp2Hit := false
+        mfeFav := 0.0
 
 // ═══════════════════════════════════════════════════════
 // SHORT EXITS + ADAPTIVE UPDATE + WEBHOOK
@@ -461,15 +510,21 @@ if activeTrade == "LONG"
 if activeTrade == "SHORT"
     if not tp1Hit and low <= tp1Price
         tp1Hit  := true
-        trailSL := close + atr * trailMult
+        // Break-even guarantee: trail stop must be at or below entry price
+        trailSL := math.min(close + atr * trailMult, entryPrice)
         slPrice := trailSL
+        alert(buildPayload(activeTrade, "TP1_HIT", "TP1_HIT", "TP1", entryPrice, tp1Price, mlBear, activeTrigger, mfeFav, timeframe.period), alert.freq_once_per_bar_close)
         label.new(bar_index, low, "TP1 ✓\nTrail ON", color=color.new(color.green, 40), textcolor=color.white, style=label.style_label_up, size=size.tiny)
 
     if tp1Hit and not tp2Hit and low <= tp2Price
-        tp2Hit := true
-        label.new(bar_index, low, "TP2 ✓", color=color.new(color.green, 20), textcolor=color.white, style=label.style_label_up, size=size.tiny)
+        tp2Hit  := true
+        trailSL := math.min(trailSL, low + atr * atrMultTrl2)
+        slPrice := trailSL
+        alert(buildPayload(activeTrade, "TP2_HIT", "TP2_HIT", "TP2", entryPrice, tp2Price, mlBear, activeTrigger, mfeFav, timeframe.period), alert.freq_once_per_bar_close)
+        label.new(bar_index, low, "TP2 ✓\nTrail ↑", color=color.new(color.green, 20), textcolor=color.white, style=label.style_label_up, size=size.tiny)
 
-    if tp1Hit and tp2Hit and low <= tp3Price
+    bool closedTP3S = tp1Hit and tp2Hit and low <= tp3Price
+    if closedTP3S
         totalWins += 1
         updateWeightsShort(winReward)
         alert(buildPayload(activeTrade, "WIN", "WIN", "TP3", entryPrice, low, mlBear, activeTrigger, mfeFav, timeframe.period), alert.freq_once_per_bar_close)
@@ -479,12 +534,12 @@ if activeTrade == "SHORT"
         mfeFav  := 0.0
         label.new(bar_index, low, "TP3 ✓\nFULL RUN! ☁️", color=color.green, textcolor=color.white, style=label.style_label_up, size=size.small)
 
-    if high >= slPrice
+    if not closedTP3S and high >= slPrice
         string exitLbl  = tp1Hit ? (tp2Hit ? "SL (after TP2)" : "SL (after TP1)") : "SL HIT"
         string outcome  = tp1Hit ? "PARTIAL" : "LOSS"
         string stage    = tp2Hit ? "SL_TP2" : (tp1Hit ? "SL_TP1" : "SL")
-        float  slDist   = slPrice - entryPrice
-        string mlOut    = (not tp1Hit and mfeFav >= slDist * 0.875) ? "WIN" : outcome
+        float  slDist   = math.abs(slPrice - entryPrice)
+        string mlOut    = tp1Hit ? "WIN" : (mfeFav >= slDist * 0.875 ? "WIN" : "LOSS")
         if not tp1Hit
             totalLosses += 1
             penalizeWeightsShort(lossPenalty)
@@ -508,6 +563,7 @@ if activeTrade == "LONG" and not tp1Hit
         activeTrade := "NONE"
         tp1Hit := false
         tp2Hit := false
+        mfeFav := 0.0
 
 if activeTrade == "SHORT" and not tp1Hit
     float tpRange     = entryPrice - tp1Price
@@ -516,6 +572,7 @@ if activeTrade == "SHORT" and not tp1Hit
         activeTrade := "NONE"
         tp1Hit := false
         tp2Hit := false
+        mfeFav := 0.0
 
 // ═══════════════════════════════════════════════════════
 // MULTI-TRIGGER ENTRY SYSTEM (unchanged logic)
@@ -762,3 +819,4 @@ if barstate.islast
     table.cell(hub, 0, 14, "MKT IMPACT", text_color=color.gray, text_size=size.small)
     table.cell(hub, 1, 14, volStatus, text_color=volColor)
     table.merge_cells(hub, 1, 14, 3, 14)
+

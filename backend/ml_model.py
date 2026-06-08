@@ -4,6 +4,7 @@ Expanded to 25 features (v3·25F).
 Weights survive across sessions — true cross-session learning.
 """
 import math
+import threading
 from dataclasses import dataclass
 from db import load_weights, save_weights, recent_outcomes
 
@@ -166,7 +167,7 @@ class AdaptiveKNN:
     def predict(self, current: Features, history: list[dict]) -> tuple[float, float]:
         """
         Returns (bull_score, bear_score) in [0, 1].
-        history: list of trade_outcome rows with f1_rsi..f20_fib and outcome fields.
+        history: list of trade_outcome rows with f1_rsi..f25_tod and outcome fields.
         """
         if len(history) < self.k:
             return 0.5, 0.5
@@ -177,7 +178,17 @@ class AdaptiveKNN:
         for row in history:
             hist_vec = [float(row.get(col, 0.0)) for col in FEATURE_NAMES]
             dist = _lorentzian_dist(current_vec, hist_vec, self._weights)
-            label = 1 if row.get("outcome") == "WIN" and row.get("direction") == "LONG" else -1
+            # Use ml_outcome if present (e.g. SL_TP1 stored as WIN); fall back to outcome
+            outcome   = row.get("ml_outcome") or row.get("outcome", "LOSS")
+            direction = row.get("direction", "LONG")
+            pnl       = float(row.get("pnl_pct", 0.0))
+            # +1 = price moved UP, -1 = price moved DOWN
+            if outcome in ("WIN", "PARTIAL"):
+                label = 1 if direction == "LONG" else -1
+            elif outcome == "LOSS":
+                label = 1 if direction == "SHORT" else -1
+            else:
+                label = 1 if pnl > 0 else -1
             distances.append((dist, label))
 
         distances.sort(key=lambda x: x[0])
@@ -190,14 +201,31 @@ class AdaptiveKNN:
 
     # ── Adaptive weight update ────────────────────────────────
 
-    def update_on_outcome(self, features: Features, direction: str, outcome: str) -> None:
-        """Call after each trade closes. outcome: 'WIN' | 'LOSS' | 'PARTIAL'"""
+    def update_on_outcome(self, features: Features, direction: str, outcome: str, tp_stage: str = "") -> None:
+        """
+        Call after each trade closes.
+        outcome : 'WIN' | 'LOSS' | 'PARTIAL' (PARTIAL kept for backward compat)
+        tp_stage: 'TP3' | 'SL_TP2' | 'SL_TP1' | 'SL' — determines reward size for WIN outcomes.
+
+        Scoring logic (user-defined):
+          TP3        → full win   (1.0×)
+          SL_TP2     → medium win (0.7×)  reached TP2, trail stopped — still profitable
+          SL_TP1     → low win    (0.4×)  reached TP1, trail stopped — break-even or small profit
+          LOSS / SL  → full penalty
+        """
         feat_list = features.as_list()
         is_long = direction == "LONG"
 
-        if outcome == "WIN":
+        if outcome in ("WIN", "PARTIAL"):
             self._total_wins += 1
-            delta = self.learn_rate * self.win_reward
+            # Grade reward by how far price traveled
+            if tp_stage == "SL_TP1":
+                multiplier = 0.4
+            elif tp_stage == "SL_TP2":
+                multiplier = 0.7
+            else:                          # TP3, or any WIN without a stage
+                multiplier = 1.0
+            delta = self.learn_rate * self.win_reward * multiplier
             for i, fv in enumerate(feat_list):
                 sign = 1.0 if (fv >= 0 and is_long) or (fv < 0 and not is_long) else -1.0
                 self._weights[i] = _clamp(self._weights[i] + sign * delta)
@@ -208,13 +236,6 @@ class AdaptiveKNN:
             for i, fv in enumerate(feat_list):
                 sign = 1.0 if (fv >= 0 and is_long) or (fv < 0 and not is_long) else -1.0
                 self._weights[i] = _clamp(self._weights[i] - sign * delta)
-
-        elif outcome == "PARTIAL":
-            self._total_wins += 1
-            delta = self.learn_rate * self.win_reward * 0.4
-            for i, fv in enumerate(feat_list):
-                sign = 1.0 if (fv >= 0 and is_long) or (fv < 0 and not is_long) else -1.0
-                self._weights[i] = _clamp(self._weights[i] + sign * delta)
 
         self._dirty = True
 
@@ -240,18 +261,22 @@ class AdaptiveKNN:
         return paired[:n]
 
     def top_feature(self) -> str:
-        return self.top_features(1)[0][0]
+        tops = self.top_features(1)
+        return tops[0][0] if tops else "UNKNOWN"
 
 
 # Pool-aware singletons — one AdaptiveKNN per ML pool
 _models: dict[str, AdaptiveKNN] = {}
+_models_lock = threading.Lock()
 
 
 def get_model(pool: str = "XAUUSD") -> AdaptiveKNN:
     """Get or create an AdaptiveKNN model for the given pool name."""
     if pool not in _models:
-        m = AdaptiveKNN()
-        m.load(pool)
-        _models[pool] = m
-        print(f"[ml] Loaded model for pool '{pool}'")
+        with _models_lock:
+            if pool not in _models:  # double-checked locking
+                m = AdaptiveKNN()
+                m.load(pool)
+                _models[pool] = m
+                print(f"[ml] Loaded model for pool '{pool}'")
     return _models[pool]

@@ -44,7 +44,35 @@ DEFAULT_WEIGHTS = {
 }
 
 
+def _parse_ts(ts: str) -> datetime:
+    """Parse ISO timestamp to timezone-aware UTC datetime, safe for both naive and aware strings."""
+    ts = ts.replace("Z", "+00:00")
+    dt = datetime.fromisoformat(ts)
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
+
+
 # ── Low-level GitHub file API ─────────────────────────────────────────────────
+
+def _github_retry_wait(resp) -> None:
+    """Sleep if GitHub signals rate limiting via Retry-After or x-ratelimit-reset headers."""
+    import time
+    retry_after = resp.headers.get("Retry-After")
+    if retry_after:
+        try:
+            time.sleep(min(int(retry_after), 60))
+            return
+        except (ValueError, TypeError):
+            pass
+    reset = resp.headers.get("x-ratelimit-reset")
+    if reset:
+        try:
+            wait = max(0, int(reset) - int(time.time()))
+            time.sleep(min(wait, 60))
+        except (ValueError, TypeError):
+            pass
+
 
 def _get_file(path: str) -> tuple[dict | list | None, str | None]:
     """Returns (content, sha). sha is needed for updates."""
@@ -56,6 +84,9 @@ def _get_file(path: str) -> tuple[dict | list | None, str | None]:
         )
     if resp.status_code == 404:
         return None, None
+    if resp.status_code in (403, 429):
+        _github_retry_wait(resp)
+        resp.raise_for_status()
     resp.raise_for_status()
     data = resp.json()
     content = json.loads(base64.b64decode(data["content"]).decode())
@@ -63,22 +94,37 @@ def _get_file(path: str) -> tuple[dict | list | None, str | None]:
 
 
 def _put_file(path: str, content: dict | list, sha: str | None, message: str) -> None:
-    """Create or update a file in the repo."""
+    """Create or update a file in the repo. Retries on 409 SHA conflict (re-fetches SHA)."""
     encoded = base64.b64encode(json.dumps(content, indent=2).encode()).decode()
-    payload: dict = {
-        "message": message,
-        "content": encoded,
-        "branch": GITHUB_BRANCH,
-    }
-    if sha:
-        payload["sha"] = sha
-    with httpx.Client(timeout=15) as client:
-        resp = client.put(
-            f"{BASE_URL}/repos/{GITHUB_REPO}/contents/{path}",
-            headers=HEADERS,
-            json=payload,
-        )
-    resp.raise_for_status()
+    current_sha = sha
+    for attempt in range(3):
+        payload: dict = {
+            "message": message,
+            "content": encoded,
+            "branch":  GITHUB_BRANCH,
+        }
+        if current_sha:
+            payload["sha"] = current_sha
+        with httpx.Client(timeout=15) as client:
+            resp = client.put(
+                f"{BASE_URL}/repos/{GITHUB_REPO}/contents/{path}",
+                headers=HEADERS,
+                json=payload,
+            )
+        if resp.status_code in (403, 429) and attempt < 2:
+            _github_retry_wait(resp)
+            continue
+        if resp.status_code == 409 and attempt < 2:
+            # SHA stale — re-fetch and retry
+            _, current_sha = _get_file(path)
+            continue
+        if resp.status_code == 422 and attempt < 2:
+            # Unprocessable — re-fetch SHA/state and retry after short wait
+            import time as _time; _time.sleep(0.5)
+            _, current_sha = _get_file(path)
+            continue
+        resp.raise_for_status()
+        return
 
 
 # ── Symbol → ML pool routing ───────────────────────────────────────────────────
@@ -90,7 +136,9 @@ STOCKS_MOMENTUM = {
 STOCKS_QUALITY = {
     "META","GOOGL","GOOG","MSFT","AAPL","ADBE","IBKR","PATH","NOW","CRM",
 }
-STOCKS_INDEX = {"QQQ","SPY"}
+STOCKS_INDEX  = {"SPY"}
+STOCKS_SPX500 = {"SPX500", "SP500", "US500"}
+STOCKS_QQQ    = {"QQQ"}
 
 
 def symbol_to_pool(symbol: str, timeframe: str = "") -> str:
@@ -100,10 +148,16 @@ def symbol_to_pool(symbol: str, timeframe: str = "") -> str:
     # Normalise TradingView timeframe.period → suffix
     # TradingView sends minutes as strings: "2","5","30","60","240"
     def _tf_suffix(tf: str) -> str:
-        t = str(tf).strip().upper().replace("MIN","").replace("H","")
+        # Intercept shorthand labels BEFORE stripping — "1H"→"1" and "4H"→"4"
+        # would match the wrong numeric buckets if we stripped first.
+        normalized = str(tf).strip().upper()
+        if normalized in ("1H", "60M"):  return "1H"
+        if normalized in ("4H", "240M"): return "4H"
+        t = normalized.replace("MIN","").replace("H","")
         if t in ("1", "2"):          return "2M"
         if t in ("3", "4", "5"):     return "5M"
-        if t in ("15", "20", "30"):  return "30M"
+        if t in ("15",):             return "15M"
+        if t in ("20", "30"):        return "30M"
         if t in ("60",):             return "1H"
         if t in ("240",):            return "4H"
         return ""
@@ -112,15 +166,21 @@ def symbol_to_pool(symbol: str, timeframe: str = "") -> str:
 
     if ticker in ("XAUUSD", "GOLD", "GC"):
         return f"XAUUSD_{suffix}" if suffix else "XAUUSD"
-    if ticker in STOCKS_INDEX:
+    if ticker in STOCKS_SPX500:
+        base = "STOCKS_SPX500"
+    elif ticker in STOCKS_QQQ:
+        base = "STOCKS_QQQ"
+    elif ticker in STOCKS_INDEX:
         base = "STOCKS_INDEX"
     elif ticker in STOCKS_QUALITY:
         base = "STOCKS_QUALITY"
     elif ticker in STOCKS_MOMENTUM:
         base = "STOCKS_MOMENTUM"
     else:
+        print(f"[db] symbol_to_pool: unknown ticker '{ticker}' — defaulting to STOCKS_MOMENTUM")
         base = "STOCKS_MOMENTUM"
-    return f"{base}_{suffix}" if suffix else base
+    suffix = suffix or "30M"  # never return a bare pool name without suffix
+    return f"{base}_{suffix}"
 
 
 def _pool_weights_file(pool: str) -> str:
@@ -157,15 +217,46 @@ def load_weights(pool: str = "XAUUSD") -> dict:
 
 def save_weights(pool: str, weights: dict) -> None:
     path = _pool_weights_file(pool)
-    _, sha = _get_file(path)
     weights["updated_at"] = datetime.now(timezone.utc).isoformat()
     weights["symbol"] = pool
-    _put_file(
-        path,
-        weights,
-        sha,
-        f"chore: update {pool} weights — wins={weights.get('total_wins',0)} losses={weights.get('total_losses',0)}",
-    )
+    msg = f"chore: update {pool} weights — wins={weights.get('total_wins',0)} losses={weights.get('total_losses',0)}"
+    for attempt in range(3):
+        _, sha = _get_file(path)  # always re-fetch SHA to avoid overwriting concurrent updates
+        try:
+            _put_file(path, weights, sha, msg)
+            return
+        except Exception as e:
+            if attempt < 2 and "409" in str(e):
+                continue
+            raise
+
+
+def resync_pool_counters(pool: str) -> tuple[int, int]:
+    """
+    Recount wins/losses from actual trade history and patch weights file to match.
+    Fixes the mismatch where KNN weights show more trades than history records.
+    Returns (wins, losses) from history.
+    """
+    hist, _ = _get_file(_pool_history_file(pool))
+    if not isinstance(hist, list):
+        return 0, 0
+    wins   = sum(1 for t in hist if t.get("outcome") in ("WIN", "PARTIAL"))
+    losses = sum(1 for t in hist if t.get("outcome") == "LOSS")
+    weights, sha = _get_file(_pool_weights_file(pool))
+    if isinstance(weights, dict):
+        old_w = weights.get("total_wins", 0)
+        old_l = weights.get("total_losses", 0)
+        if old_w != wins or old_l != losses:
+            weights["total_wins"]   = wins
+            weights["total_losses"] = losses
+            weights["updated_at"]   = datetime.now(timezone.utc).isoformat()
+            try:
+                _put_file(_pool_weights_file(pool), weights, sha,
+                          f"fix: resync {pool} counters W{wins}/L{losses} (was W{old_w}/L{old_l})")
+                print(f"[resync] {pool}: counters fixed W{old_w}→{wins} L{old_l}→{losses}")
+            except Exception as e:
+                print(f"[resync] {pool}: failed to write — {e}")
+    return wins, losses
 
 
 # ── Trade outcomes ─────────────────────────────────────────────────────────────
@@ -173,21 +264,47 @@ def save_weights(pool: str, weights: dict) -> None:
 def insert_outcome(outcome: dict) -> None:
     pool = symbol_to_pool(outcome.get("symbol", "XAUUSD"), outcome.get("timeframe", ""))
     path = _pool_history_file(pool)
-    history, sha = _get_file(path)
-    if history is None:
-        history = []
-    outcome["id"] = str(uuid.uuid4())[:8]
-    outcome["pool"] = pool
+
+    outcome.setdefault("id",         str(uuid.uuid4())[:8])
+    outcome.setdefault("pool",       pool)
     outcome.setdefault("created_at", datetime.now(timezone.utc).isoformat())
-    history.append(outcome)
-    if len(history) > 1000:
-        history = history[-1000:]
-    _put_file(
-        path,
-        history,
-        sha,
-        f"data: record {outcome['outcome']} {outcome.get('direction','')} {pool} trade",
+    outcome.setdefault("regime",     "UNKNOWN")
+    outcome.setdefault("session",    "UNKNOWN")
+
+    dedup_key = (
+        f"{outcome.get('symbol','')}|{outcome.get('direction','')}|"
+        f"{outcome.get('entry_price',0)}|{outcome.get('timeframe','')}|"
+        f"{outcome.get('exit_price',0)}"
     )
+
+    for attempt in range(3):
+        history, sha = _get_file(path)
+        if history is None:
+            history = []
+
+        existing_keys = {
+            f"{t.get('symbol','')}|{t.get('direction','')}|{t.get('entry_price',0)}|{t.get('timeframe','')}|{t.get('exit_price',0)}"
+            for t in history
+        }
+        if dedup_key in existing_keys:
+            print(f"[db] Duplicate trade skipped: {dedup_key} pool={pool}")
+            return
+
+        history.append(outcome)
+        if len(history) > 1000:
+            history = history[-1000:]
+        try:
+            _put_file(
+                path,
+                history,
+                sha,
+                f"data: record {outcome['outcome']} {outcome.get('direction','')} {pool} trade",
+            )
+            return
+        except Exception as e:
+            if attempt < 2 and "409" in str(e):
+                continue  # SHA stale — re-fetch and retry
+            raise
 
 
 def recent_outcomes(pool: str = "XAUUSD", limit: int = 200) -> list[dict]:
@@ -223,25 +340,244 @@ def recent_news(hours: int = 4) -> list[dict]:
     cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
     return [
         n for n in cache
-        if datetime.fromisoformat(n.get("fetched_at", "2000-01-01")).replace(tzinfo=timezone.utc) >= cutoff
+        if _parse_ts(n.get("fetched_at", "2000-01-01T00:00:00+00:00")) >= cutoff
     ]
 
 
 # ── Signals ────────────────────────────────────────────────────────────────────
 
 def insert_signal(signal: dict) -> dict:
-    signals, sha = _get_file("data/signals.json")
-    if signals is None:
-        signals = []
-    signal["id"] = len(signals) + 1
     signal.setdefault("created_at", datetime.now(timezone.utc).isoformat())
-    signals.append(signal)
-    if len(signals) > 100:
-        signals = signals[-100:]
-    _put_file("data/signals.json", signals, sha, f"data: new {signal.get('direction','?')} signal")
+    for attempt in range(3):
+        signals, sha = _get_file("data/signals.json")
+        if signals is None:
+            signals = []
+        if "id" not in signal:  # assign ID once — don't mutate on retry
+            signal["id"] = len(signals) + 1
+        signals.append(signal)
+        if len(signals) > 100:
+            signals = signals[-100:]
+        try:
+            _put_file("data/signals.json", signals, sha, f"data: new {signal.get('direction','?')} signal")
+            return signal
+        except Exception as e:
+            if attempt < 2 and "409" in str(e):
+                signals = []            # reset so next attempt re-fetches clean list
+                signal.pop("id", None)  # re-assign ID from fresh list on next iteration
+                continue
+            raise
     return signal
 
 
-def expire_old_signals(symbol: str = "XAUUSD") -> None:
-    # Handled passively — old signals are just overwritten in the file
-    pass
+def expire_old_signals(symbol: str = "") -> None:
+    """Mark ACTIVE signals past their expires_at as EXPIRED in the signals file."""
+    now = datetime.now(timezone.utc)
+    try:
+        signals, sha = _get_file("data/signals.json")
+        if not isinstance(signals, list):
+            return
+        changed = False
+        for s in signals:
+            if s.get("status") != "ACTIVE":
+                continue
+            try:
+                exp = _parse_ts(s.get("expires_at", "2000-01-01T00:00:00+00:00"))
+                if now > exp:
+                    s["status"] = "EXPIRED"
+                    changed = True
+            except Exception:
+                continue
+        if changed:
+            _put_file("data/signals.json", signals, sha, "chore: expire stale ACTIVE signals")
+    except Exception as e:
+        print(f"[db] expire_old_signals failed (non-fatal): {e}")
+
+
+_WEBHOOK_LOG_PATH = "data/webhook_log.json"
+_WEBHOOK_LOG_MAX  = 2000  # keep last 2000 trade-close entries
+
+def log_raw_webhook(payload: dict) -> None:
+    """
+    Append raw trade-close webhooks to data/webhook_log.json.
+    Only stores payloads with exit_price (actual closes, not signal entries).
+    Capped at _WEBHOOK_LOG_MAX entries (oldest dropped first).
+    Never raises — logging must not block or break the main flow.
+    """
+    # Only log trade closes — signal entries (no exit_price) can't be repaired and waste space
+    if not payload.get("exit_price"):
+        return
+    try:
+        pool = symbol_to_pool(
+            str(payload.get("symbol") or ""),
+            str(payload.get("timeframe") or ""),
+        )
+        entry = {
+            "received_at": datetime.now(timezone.utc).isoformat(),
+            "pool":        pool,
+            "payload":     payload,
+        }
+        for attempt in range(3):
+            log, sha = _get_file(_WEBHOOK_LOG_PATH)
+            if not isinstance(log, list):
+                log = []
+            log.append(entry)
+            if len(log) > _WEBHOOK_LOG_MAX:
+                log = log[-_WEBHOOK_LOG_MAX:]
+            try:
+                _put_file(_WEBHOOK_LOG_PATH, log, sha, "chore: webhook log")
+                break
+            except Exception as put_err:
+                if attempt < 2 and "409" in str(put_err):
+                    continue
+                raise put_err
+    except Exception as e:
+        print(f"[webhook_log] Failed to log payload: {e}")
+
+
+def repair_missing_trades() -> list[str]:
+    """
+    Read webhook_log.json, compare each logged payload against the pool it belongs to.
+    Any payload not found in the pool → insert it automatically.
+    Returns a list of repair messages (one per inserted trade).
+    Match key: symbol + direction + entry_price + timeframe (unique per trade).
+    """
+    repaired = []
+    try:
+        log, _ = _get_file(_WEBHOOK_LOG_PATH)
+        if not isinstance(log, list) or not log:
+            return repaired
+
+        # Build a set of existing trade keys per pool for fast lookup
+        pool_keys: dict[str, set] = {}
+
+        def _get_pool_keys(pool: str) -> set:
+            if pool not in pool_keys:
+                path = _pool_history_file(pool)
+                hist, _ = _get_file(path)
+                if isinstance(hist, list):
+                    pool_keys[pool] = {
+                        f"{t.get('symbol','')}|{t.get('direction','')}|{t.get('entry_price',0)}|{t.get('timeframe','')}"
+                        for t in hist
+                    }
+                else:
+                    pool_keys[pool] = set()
+            return pool_keys[pool]
+
+        _pending: dict[str, list] = {}
+
+        for entry in log:
+            p = entry.get("payload", {})
+            outcome = p.get("outcome", "")
+            # Only process trade closes — skip heartbeats, signal entries, and progress events
+            outcome_up = outcome.upper()
+            if not outcome or outcome_up in ("HEARTBEAT", ""):
+                continue
+            if p.get("trade_id") == "heartbeat":
+                continue
+            if outcome_up in ("TP1_HIT", "TP2_HIT", "PROGRESS"):
+                continue
+            # Skip if no exit price (signal entry, not a close)
+            if not p.get("exit_price"):
+                continue
+
+            symbol    = p.get("symbol", "") or ""
+            if not symbol:
+                # Infer symbol from trade_id prefix: "SPY_123" → "SPY"
+                tid = p.get("trade_id", "") or ""
+                prefix = tid.split("_")[0] if "_" in tid else ""
+                if not prefix:
+                    print(f"[auto-repair] Skipping entry — no symbol and no recoverable trade_id prefix")
+                    continue
+                symbol = prefix
+            direction = p.get("direction", "")
+            entry_px  = float(p.get("entry_price", 0) or 0)
+            exit_px   = float(p.get("exit_price", 0) or 0)
+            timeframe = str(p.get("timeframe", "") or "")
+
+            if not direction or entry_px == 0:
+                continue
+
+            pool    = entry.get("pool") or symbol_to_pool(symbol, timeframe)
+            key     = f"{symbol}|{direction}|{entry_px}|{timeframe}"
+            keys    = _get_pool_keys(pool)
+
+            if key in keys:
+                continue  # already stored — skip
+
+            # Reconstruct trade record and insert
+            raw_pct = (exit_px - entry_px) / max(entry_px, 0.0001) * 100
+            pnl_pct = raw_pct if direction == "LONG" else -raw_pct
+
+            # Normalize outcome
+            norm = outcome_up.strip()
+            if norm in ("WIN", "TP3", "TP2", "TP1"):           norm = "WIN"
+            elif norm in ("LOSS", "SL"):                        norm = "LOSS"
+            elif norm in ("PARTIAL", "SL_TP1", "SL_TP2",
+                          "SL_TP3", "TP1_SL", "TP2_SL"):       norm = "PARTIAL"
+            else:                                               norm = "LOSS"
+
+            trade_row: dict = {
+                "symbol":       symbol,
+                "direction":    direction,
+                "trigger":      p.get("trigger", "") or "",
+                "entry_price":  entry_px,
+                "exit_price":   exit_px,
+                "outcome":      norm,
+                "ml_outcome":   p.get("ml_outcome") or norm,
+                "mfe":          float(p.get("mfe", 0) or 0),
+                "tp_stage":     p.get("tp_stage", "") or "",
+                "timeframe":    timeframe,
+                "pnl_pct":      round(pnl_pct, 4),
+                "ml_bull_score": float(p.get("ml_score", 0.5) or 0.5),
+                "created_at":   entry.get("received_at", datetime.now(timezone.utc).isoformat()),
+                "regime":       "UNKNOWN",
+                "session":      "UNKNOWN",
+                "_repaired":    True,
+            }
+            # Attach features f1-f25
+            for i in range(1, 26):
+                trade_row[f"f{i}"] = float(p.get(f"f{i}", 0) or 0)
+
+            # Batch: accumulate rows per pool, write once per pool at the end
+            pool_keys[pool].add(key)
+            _pending.setdefault(pool, []).append(trade_row)
+            msg = f"[auto-repair] Queued missing {norm} {direction} {symbol} {timeframe}m entry={entry_px} pool={pool}"
+            print(msg)
+            repaired.append(msg)
+
+        # Flush batched rows — one GitHub read+write per pool
+        for _pool, rows in _pending.items():
+            try:
+                path = _pool_history_file(_pool)
+                for attempt in range(3):
+                    history, sha = _get_file(path)
+                    if history is None:
+                        history = []
+                    existing_keys = {
+                        f"{t.get('symbol','')}|{t.get('direction','')}|{t.get('entry_price',0)}|{t.get('timeframe','')}"
+                        for t in history
+                    }
+                    for row in rows:
+                        dk = f"{row.get('symbol','')}|{row.get('direction','')}|{row.get('entry_price',0)}|{row.get('timeframe','')}"
+                        if dk not in existing_keys:
+                            row.setdefault("id", str(uuid.uuid4())[:8])
+                            row.setdefault("pool", _pool)
+                            row.setdefault("created_at", datetime.now(timezone.utc).isoformat())
+                            history.append(row)
+                            existing_keys.add(dk)
+                    if len(history) > 1000:
+                        history = history[-1000:]
+                    try:
+                        _put_file(path, history, sha, f"data: auto-repair batch {_pool} +{len(rows)}")
+                        break
+                    except Exception as e:
+                        if attempt < 2 and "409" in str(e):
+                            continue
+                        raise
+            except Exception as e:
+                print(f"[auto-repair] Batch flush failed for {_pool}: {e}")
+
+    except Exception as e:
+        print(f"[auto-repair] repair_missing_trades failed: {e}")
+
+    return repaired

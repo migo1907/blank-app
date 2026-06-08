@@ -1,0 +1,50 @@
+{
+  "fetched_at": "2026-06-05T11:00:55.248470+00:00",
+  "assets": {
+    "XAUUSD": {
+      "current": 4466.19,
+      "prev_high": 4509.9,
+      "prev_low": 4447.4,
+      "prev_close": 4475.8,
+      "pivot": 4477.7,
+      "r1": 4508.0,
+      "r2": 4540.2,
+      "r3": 4570.5,
+      "s1": 4445.5,
+      "s2": 4415.2,
+      "s3": 4383.0,
+      "expected_range_low": 4415.2,
+      "expected_range_high": 4540.2
+    },
+    "SPY": {
+      "current": 757.09,
+      "prev_high": 758.8,
+      "prev_low": 753.57,
+      "prev_close": 754.24,
+      "pivot": 755.54,
+      "r1": 757.5,
+      "r2": 760.77,
+      "r3": 762.73,
+      "s1": 752.27,
+      "s2": 750.31,
+      "s3": 747.04,
+      "expected_range_low": 750.31,
+      "expected_range_high": 760.77
+    },
+    "QQQ": {
+      "current": 740.61,
+      "prev_high": 748.65,
+      "prev_low": 741.01,
+      "prev_close": 744.21,
+      "pivot": 744.62,
+      "r1": 748.24,
+      "r2": 752.26,
+      "r3": 755.88,
+      "s1": 740.6,
+      "s2": 736.98,
+      "s3": 732.96,
+      "expected_range_low": 736.98,
+      "expected_range_high": 752.26
+    }
+  }
+}
