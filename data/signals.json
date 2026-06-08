@@ -1,25 +1,5 @@
 [
   {
-    "symbol": "XAUUSD",
-    "pool": "XAUUSD_2M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.625,
-    "rf_score": 0.2144,
-    "gbm_score": 0.031,
-    "news_score": 0.0287,
-    "combined_score": -0.368,
-    "session": "OVERLAP",
-    "regime": "NORMAL",
-    "regime_label": "NORMAL",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:OVERLAP\u00d71.30 | confluence\u00d70.91 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+0.76) | news:neutral(+0.029) | combined:-0.368 \u2192 conf:0.444 \u26a1 CPI",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-08T15:19:31.725962+00:00",
-    "created_at": "2026-06-08T14:49:32.071128+00:00",
-    "id": 101
-  },
-  {
     "symbol": "SPY",
     "pool": "STOCKS_INDEX_30M",
     "direction": "NEUTRAL",
@@ -2127,6 +2107,28 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-08T22:12:38.729657+00:00",
     "created_at": "2026-06-08T21:42:40.524827+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "SPY",
+    "pool": "STOCKS_INDEX_30M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "news_score": 0.1214,
+    "macro_bias": -0.9091,
+    "macro_label": "BEARISH",
+    "combined_score": -0.0959,
+    "session": "CLOSED",
+    "regime": "NORMAL",
+    "regime_label": "NORMAL",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d71.26 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.37) | news:neutral(+0.121) | macro:BEARISH(-0.909) | combined:-0.096 \u2192 conf:0.074 \u26a1 CPI",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-08T22:12:42.547015+00:00",
+    "created_at": "2026-06-08T21:42:44.203063+00:00",
     "id": 101
   }
 ]
