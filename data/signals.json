@@ -1894,7 +1894,7 @@
     "regime": "VOLATILE",
     "regime_label": "VOLATILE",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:VOLATILE(VOLATILE)\u00d70.92 | sess:NYSE_OPEN\u00d71.25 | confluence\u00d71.12 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.31) | news:neutral(-0.013) | combined:-0.003 \u2192 conf:0.004 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-08T15:34:30.805369+00:00",
     "created_at": "2026-06-08T15:04:31.086464+00:00",
     "id": 101
