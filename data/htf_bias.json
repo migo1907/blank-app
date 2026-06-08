@@ -61,5 +61,23 @@
     "ml_score": 0.5,
     "stored_at": "2026-06-08T15:00:18.375957+00:00",
     "expires_at": "2026-06-08T17:00:18.375978+00:00"
+  },
+  "TNA_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "TNA",
+    "trigger": "RSI",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-08T15:00:26.430406+00:00",
+    "expires_at": "2026-06-08T17:00:26.430424+00:00"
+  },
+  "BLNK_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "BLNK",
+    "trigger": "RSI",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-08T15:00:27.821364+00:00",
+    "expires_at": "2026-06-08T17:00:27.821382+00:00"
   }
 }
