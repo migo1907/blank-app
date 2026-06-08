@@ -831,10 +831,18 @@ def start_scheduler() -> AsyncIOScheduler:
     _scheduler.add_job(_hourly_system_check, trigger="interval", hours=1, id="hourly_system_check", replace_existing=True)
     _scheduler.add_job(_macro_refresh_cycle, trigger="interval", hours=1, id="macro_refresh_cycle", replace_existing=True,
                        start_date=_dt.now(_tz.utc) + _td(seconds=20))
-    _scheduler.add_job(_daily_market_brief, trigger="cron", hour=8, minute=0, id="daily_market_brief", replace_existing=True, misfire_grace_time=600)
-    _scheduler.add_job(_stocks_session_report, trigger="cron", hour=21, minute=5, id="stocks_session_report", replace_existing=True, misfire_grace_time=600)
-    _scheduler.add_job(_daily_trade_count_report, trigger="cron", hour=21, minute=15, id="daily_trade_count_report", replace_existing=True, misfire_grace_time=600)
+    _scheduler.add_job(_daily_market_brief, trigger="cron", hour=8, minute=0, id="daily_market_brief", replace_existing=True, misfire_grace_time=3600)
+    _scheduler.add_job(_stocks_session_report, trigger="cron", hour=21, minute=5, id="stocks_session_report", replace_existing=True, misfire_grace_time=3600)
+    _scheduler.add_job(_daily_trade_count_report, trigger="cron", hour=21, minute=15, id="daily_trade_count_report", replace_existing=True, misfire_grace_time=3600)
     _scheduler.start()
+
+    # Startup catch-up: fire daily brief if it should have run today but was missed (e.g. redeploy after 08:00)
+    _now = _dt.now(_tz.utc)
+    if _now.weekday() < 5 and 8 <= _now.hour < 11:
+        print("[scheduler] Startup catch-up: firing missed daily brief.")
+        _scheduler.add_job(_daily_market_brief, trigger="date", run_date=_dt.now(_tz.utc) + _td(seconds=30),
+                           id="daily_brief_catchup", replace_existing=True)
+
     print(f"[scheduler] Started — signal every {interval} min, breaking news every 2 min (Telegram paused), system check every 60 min, daily brief at 08:00 UTC.")
     return _scheduler
 
