@@ -121,27 +121,61 @@ app = FastAPI(
 
 
 # Pine Script str.tostring(na, "#.##") emits unquoted NaN — invalid JSON.
-# This middleware replaces :NaN and ,NaN with :0 and ,0 before the JSON parser runs.
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.requests import Request as StarletteRequest
+# Pure ASGI middleware patches the receive() callable directly so the sanitized
+# body reaches FastAPI's JSON parser. BaseHTTPMiddleware cannot do this because
+# call_next() ignores the request object and uses the original ASGI receive channel.
 import re as _re
 
-_NAN_RE = _re.compile(rb':\s*NaN\b')
+_NAN_RE  = _re.compile(rb':\s*NaN\b')
 _NAN_RE2 = _re.compile(rb',\s*NaN\b')
 
-class _SanitizeNaNMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: StarletteRequest, call_next):
-        ct = request.headers.get("content-type", "")
-        if "json" in ct:
-            body = await request.body()
-            if b'NaN' in body:
-                body = _NAN_RE.sub(b':0', body)
-                body = _NAN_RE2.sub(b',0', body)
-                # Rebuild the receive channel with sanitized body
-                async def _receive():
-                    return {"type": "http.request", "body": body, "more_body": False}
-                request = StarletteRequest(request.scope, _receive)
-        return await call_next(request)
+
+class _SanitizeNaNMiddleware:
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        # Check Content-Type header
+        ct = ""
+        for name, value in scope.get("headers", []):
+            if name.lower() == b"content-type":
+                ct = value.decode("utf-8", errors="ignore")
+                break
+
+        if "json" not in ct:
+            await self.app(scope, receive, send)
+            return
+
+        # Consume the full body from the real receive channel
+        body_parts: list[bytes] = []
+        more_body = True
+        while more_body:
+            message = await receive()
+            body_parts.append(message.get("body", b""))
+            more_body = message.get("more_body", False)
+
+        body = b"".join(body_parts)
+
+        if b"NaN" in body:
+            body = _NAN_RE.sub(b":0", body)
+            body = _NAN_RE2.sub(b",0", body)
+            print(f"[nan_middleware] Sanitized NaN in {scope.get('path','?')} body ({len(body)} bytes)")
+
+        # Replace receive with one that yields the (possibly patched) body
+        _sent = False
+        async def _patched_receive():
+            nonlocal _sent
+            if not _sent:
+                _sent = True
+                return {"type": "http.request", "body": body, "more_body": False}
+            return {"type": "http.disconnect"}
+
+        await self.app(scope, _patched_receive, send)
+
 
 app.add_middleware(_SanitizeNaNMiddleware)
 
