@@ -477,7 +477,7 @@ async def signal_entry(payload: SignalEntryPayload):
     tf  = payload.timeframe or "5"
 
     # Only XAUUSD 2M is suppressed — all other timeframes send to Telegram
-    if str(tf).strip() == "2" and sym.upper() in ("XAUUSD", "GOLD", "GC"):
+    if str(tf).strip() == "2" and sym.upper() == "XAUUSD":
         print(f"[signal-entry] XAUUSD 2M — ML only, not sent to Telegram")
         return {"status": "ok", "routed_to": "ml-only", "reason": "2m_suppressed"}
 
@@ -550,7 +550,7 @@ async def unified_webhook(payload: UnifiedPayload):
         tf  = payload.timeframe or "5"
 
         # Only XAUUSD 2M is suppressed — all other timeframes send to Telegram
-        if str(tf).strip() == "2" and sym.upper() in ("XAUUSD", "GOLD", "GC"):
+        if str(tf).strip() == "2" and sym.upper() == "XAUUSD":
             print(f"[webhook] XAUUSD 2M — ML only, not sent to Telegram")
             return {"status": "ok", "routed_to": "ml-only", "reason": "2m_suppressed"}
 
