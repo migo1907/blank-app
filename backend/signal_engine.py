@@ -24,46 +24,49 @@ from db import recent_outcomes, recent_news, insert_signal, expire_old_signals
 # ── Latest feature cache — updated on every webhook, read by scheduler ────────────
 # Persisted to GitHub data branch so it survives Railway restarts.
 # Keyed by pool name — scheduler passes real market state to generate_signal().
+import threading as _threading
 _latest_features: dict[str, Features] = {}
 _FEATURE_CACHE_PATH = "data/feature_cache.json"
+_feature_cache_lock = _threading.Lock()
 
 
 def update_latest_features(pool: str, features: Features) -> None:
     """Cache latest features in memory and persist to GitHub data branch."""
     _latest_features[pool] = features
+    # Serialize GitHub writes — concurrent heartbeats race on the same SHA
+    if not _feature_cache_lock.acquire(blocking=False):
+        return  # another thread is already writing; in-memory is updated, skip duplicate write
     try:
         from db import _get_file, _put_file
         from datetime import datetime, timezone as _tz
-        existing, sha = _get_file(_FEATURE_CACHE_PATH)
-        payload = existing if isinstance(existing, dict) else {}
-        payload[pool] = {
-            "f1":  features.f1,  "f2":  features.f2,  "f3":  features.f3,
-            "f4":  features.f4,  "f5":  features.f5,  "f6":  features.f6,
-            "f7":  features.f7,  "f8":  features.f8,  "f9":  features.f9,
-            "f10": features.f10, "f11": features.f11, "f12": features.f12,
-            "f13": features.f13, "f14": features.f14, "f15": features.f15,
-            "f16": features.f16, "f17": features.f17, "f18": features.f18,
-            "f19": features.f19, "f20": features.f20, "f21": features.f21,
-            "f22": features.f22, "f23": features.f23, "f24": features.f24,
-            "f25": features.f25,
-            "updated_at": datetime.now(_tz.utc).isoformat(),
-        }
-        for attempt in range(2):
+        for attempt in range(3):
             try:
+                existing, sha = _get_file(_FEATURE_CACHE_PATH)
+                # Merge ALL in-memory pools into the persisted payload so no pool is lost
+                payload = existing if isinstance(existing, dict) else {}
+                for _pool, _feat in _latest_features.items():
+                    payload[_pool] = {
+                        "f1":  _feat.f1,  "f2":  _feat.f2,  "f3":  _feat.f3,
+                        "f4":  _feat.f4,  "f5":  _feat.f5,  "f6":  _feat.f6,
+                        "f7":  _feat.f7,  "f8":  _feat.f8,  "f9":  _feat.f9,
+                        "f10": _feat.f10, "f11": _feat.f11, "f12": _feat.f12,
+                        "f13": _feat.f13, "f14": _feat.f14, "f15": _feat.f15,
+                        "f16": _feat.f16, "f17": _feat.f17, "f18": _feat.f18,
+                        "f19": _feat.f19, "f20": _feat.f20, "f21": _feat.f21,
+                        "f22": _feat.f22, "f23": _feat.f23, "f24": _feat.f24,
+                        "f25": _feat.f25,
+                        "timestamp": datetime.now(_tz.utc).isoformat(),
+                    }
                 _put_file(_FEATURE_CACHE_PATH, payload, sha,
-                          f"chore: update feature cache for {pool}")
+                          f"chore: update feature cache ({len(payload)} pools)")
                 break
             except Exception as put_err:
-                if attempt == 0 and "409" in str(put_err):
-                    # SHA stale — re-fetch and retry once
-                    existing2, sha = _get_file(_FEATURE_CACHE_PATH)
-                    if isinstance(existing2, dict):
-                        existing2.update(payload)
-                        payload = existing2
-                else:
-                    raise put_err
-    except Exception as e:
-        print(f"[features] Cache persist failed: {e}")
+                if attempt < 2 and "409" in str(put_err):
+                    continue  # SHA stale — re-fetch on next iteration
+                print(f"[features] Cache persist failed: {put_err}")
+                break
+    finally:
+        _feature_cache_lock.release()
 
 
 def load_feature_cache() -> None:
