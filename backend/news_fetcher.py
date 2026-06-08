@@ -735,6 +735,9 @@ def score_headlines_with_claude(articles: list[dict]) -> list[dict]:
             raw = parts[1] if len(parts) >= 2 else raw
             if raw.startswith("json"):
                 raw = raw[4:]
+        # Strip trailing commas before ] or } — Claude occasionally emits them
+        import re as _re
+        raw = _re.sub(r",\s*([}\]])", r"\1", raw)
         scores = json.loads(raw)
     except Exception as e:
         print(f"[news] Claude scoring failed: {e}")
