@@ -709,8 +709,48 @@ def calculate_velocity(scored_items: list[dict], previous_agg: float) -> dict:
 
 # ── Claude sentiment scoring ──────────────────────────────────────────────────
 
+# Score headlines in bounded chunks. A single large batch overflows the model's
+# token budget on busy (e.g. geopolitical) days — the JSON truncates mid-string,
+# json.loads throws, and the ENTIRE batch falls back to zeros. Chunking caps each
+# response so truncation can't happen, and isolates any failure to one small chunk.
+_SCORE_CHUNK_SIZE = 20
+_SCORE_MAX_TOKENS = 4096
+
+
+def _score_chunk_with_claude(client, chunk: list[dict]) -> list[dict]:
+    """Score one bounded chunk of headlines. Returns a list aligned to `chunk`."""
+    numbered = "\n".join(f"{i+1}. {a['title']}" for i, a in enumerate(chunk))
+    try:
+        response = client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=_SCORE_MAX_TOKENS,
+            messages=[{"role": "user", "content": XAU_SENTIMENT_PROMPT.format(headlines=numbered)}],
+        )
+        if not response.content or not response.content[0].text:
+            raise ValueError("Claude returned empty response content")
+        if response.stop_reason == "max_tokens":
+            raise ValueError(f"response truncated at max_tokens for {len(chunk)} headlines")
+        raw = response.content[0].text.strip()
+        if raw.startswith("```"):
+            parts = raw.split("```")
+            raw = parts[1] if len(parts) >= 2 else raw
+            if raw.startswith("json"):
+                raw = raw[4:]
+        import re as _re
+        # Model sometimes wraps the array in prose ("Here are the scores: [...]").
+        # Extract the outermost JSON array so leading/trailing text can't break parsing.
+        first, last = raw.find("["), raw.rfind("]")
+        if first != -1 and last != -1 and last > first:
+            raw = raw[first:last + 1]
+        raw = _re.sub(r",\s*([}\]])", r"\1", raw)  # strip trailing commas
+        return json.loads(raw)
+    except Exception as e:
+        print(f"[news] Claude chunk scoring failed ({len(chunk)} headlines): {e}")
+        return [{"score": 0.0, "impact": "LOW", "keywords": []}] * len(chunk)
+
+
 def score_headlines_with_claude(articles: list[dict]) -> list[dict]:
-    """Use claude-haiku to score each headline's XAU/USD sentiment."""
+    """Score each headline's XAU/USD sentiment with claude-haiku, in bounded chunks."""
     if not articles:
         return []
 
@@ -719,29 +759,18 @@ def score_headlines_with_claude(articles: list[dict]) -> list[dict]:
         print("[news] ANTHROPIC_API_KEY not set — skipping Claude sentiment scoring")
         return [{"score": 0.0, "impact": "LOW", "keywords": []}] * len(articles)
     client = anthropic.Anthropic(api_key=api_key)
-    numbered = "\n".join(f"{i+1}. {a['title']}" for i, a in enumerate(articles))
 
-    try:
-        response = client.messages.create(
-            model="claude-haiku-4-5-20251001",
-            max_tokens=1500,
-            messages=[{"role": "user", "content": XAU_SENTIMENT_PROMPT.format(headlines=numbered)}],
-        )
-        if not response.content or not response.content[0].text:
-            raise ValueError("Claude returned empty response content")
-        raw = response.content[0].text.strip()
-        if raw.startswith("```"):
-            parts = raw.split("```")
-            raw = parts[1] if len(parts) >= 2 else raw
-            if raw.startswith("json"):
-                raw = raw[4:]
-        # Strip trailing commas before ] or } — Claude occasionally emits them
-        import re as _re
-        raw = _re.sub(r",\s*([}\]])", r"\1", raw)
-        scores = json.loads(raw)
-    except Exception as e:
-        print(f"[news] Claude scoring failed: {e}")
-        scores = [{"score": 0.0, "impact": "LOW", "keywords": []}] * len(articles)
+    # Chunk so each response stays well within the token budget — prevents the
+    # truncation-zeros-everything failure mode.
+    scores: list[dict] = []
+    for start in range(0, len(articles), _SCORE_CHUNK_SIZE):
+        chunk = articles[start:start + _SCORE_CHUNK_SIZE]
+        scores.extend(_score_chunk_with_claude(client, chunk))
+
+    nonzero = sum(1 for s in scores if float(s.get("score", 0.0)) != 0.0)
+    print(f"[news] Scored {len(articles)} headlines in "
+          f"{(len(articles) + _SCORE_CHUNK_SIZE - 1) // _SCORE_CHUNK_SIZE} chunk(s) — "
+          f"{nonzero} non-zero.")
 
     results = []
     for i, art in enumerate(articles):
