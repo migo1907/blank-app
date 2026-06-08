@@ -82,22 +82,18 @@ async def send_entry_signal(s: dict) -> bool:
 
 
 async def send_signal(signal: dict) -> bool:
-    """Send a scheduler-generated signal (15-min cycle)."""
+    """Send a direction change alert — fires only when market direction flips."""
     direction  = signal.get("direction", "NEUTRAL")
     confidence = signal.get("confidence", 0.0)
-    event      = signal.get("high_impact_event", "")
-    session    = signal.get("session", "")
     symbol     = signal.get("symbol", "XAUUSD").split(":")[-1]
-    pool       = signal.get("pool", "XAUUSD")
-    top_feat   = signal.get("top_feature", "—")
-    now        = signal.get("timestamp", datetime.now(timezone.utc).strftime("%H:%M UTC — %d %b %Y"))
+    session    = signal.get("session", "")
+    event      = signal.get("high_impact_event", "")
 
     dir_emoji  = "🟢" if direction == "LONG" else "🔴"
-    conf_emoji = "🔥" if confidence >= 0.75 else "✅" if confidence >= 0.60 else "⚠️"
-    strength   = "HIGH 🔥" if confidence >= 0.75 else "MED ✅" if confidence >= 0.60 else "LOW ⚠️"
-    now_fmt    = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    is_gold    = symbol in ("XAUUSD", "GOLD", "GC")
+    asset_emoji = "🥇" if is_gold else "📊"
+    now        = datetime.now(timezone.utc).strftime("%H:%M UTC — %d %b %Y")
 
-    # Session label
     session_map = {
         "OVERLAP":        "London/NY Overlap",
         "LONDON":         "London",
@@ -107,20 +103,19 @@ async def send_signal(signal: dict) -> bool:
         "NYSE_OPEN":      "NYSE Open",
         "NYSE_AFTERNOON": "NYSE Afternoon",
         "PRE_MARKET":     "Pre-Market",
+        "CLOSED":         "Closed",
     }
     sess_label = session_map.get(session, session)
 
     msg = (
-        f"{dir_emoji} <b>{direction}  {symbol}  Direction Expected</b>\n"
+        f"{dir_emoji} <b>{direction} — {asset_emoji} {symbol}</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
-        f"Confidence: <b>{confidence*100:.0f}%</b>  |  Strength: {conf_emoji} {strength}\n"
+        f"Confidence: <b>{confidence*100:.0f}%</b>\n"
         f"Session: {sess_label}\n"
     )
-
     if event:
-        msg += f"⚡ <b>{event}</b>\n"
-
-    msg += f"\n⏰ {now_fmt}"
+        msg += f"⚡ {html.escape(event)}\n"
+    msg += f"\n⏰ {now}"
     return await _send(msg)
 
 
