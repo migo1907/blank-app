@@ -479,6 +479,34 @@ async def signal_entry(payload: SignalEntryPayload):
     if is_htf(tf):
         store_bias(sym, payload.direction, tf, payload.trigger or "", payload.ml_score)
         print(f"[signal-entry] HTF bias stored: {payload.direction} {sym} TF={tf}")
+        # 30M and 1H: also send directly to Telegram so user sees the signal
+        # 4H stays bias-only (too wide for direct entry execution)
+        from htf_bias import _normalize_tf as _ntf
+        if _ntf(tf) in ("30", "60"):
+            from telegram_bot import send_entry_signal
+            from scheduler import get_latest_news_sentiment, get_latest_velocity, get_latest_event
+            entry = payload.entry_price or 0.0
+            if entry > 0:
+                asyncio.create_task(send_entry_signal({
+                    "direction":   payload.direction,
+                    "timeframe":   tf,
+                    "trigger":     payload.trigger or "RSI",
+                    "symbol":      sym,
+                    "entry_price": entry,
+                    "tp1":         payload.tp1 or 0.0,
+                    "tp2":         payload.tp2 or 0.0,
+                    "tp3":         payload.tp3 or 0.0,
+                    "sl":          payload.sl or 0.0,
+                    "ml_score":    payload.ml_score,
+                    "tier":        payload.tier or "MED",
+                    "news_score":  get_latest_news_sentiment(),
+                    "velocity":    get_latest_velocity().get("label", "NORMAL"),
+                    "event":       get_latest_event().get("event_type", ""),
+                    "htf_bias":    None,
+                    "contra_bias": None,
+                    "htf_context": "htf_direct",
+                }))
+                print(f"[signal-entry] HTF {tf} signal also sent to Telegram: {payload.direction} {sym}")
         return {"status": "ok", "routed_to": "htf-bias", "direction": payload.direction, "timeframe": tf}
 
     # 2M signals feed ML only — too noisy for Telegram
@@ -553,6 +581,34 @@ async def unified_webhook(payload: UnifiedPayload):
         if is_htf(tf):
             store_bias(sym, payload.direction, tf, payload.trigger or "", payload.ml_score)
             print(f"[webhook] HTF bias stored: {payload.direction} {sym} TF={tf}")
+            # 30M and 1H: also send directly to Telegram so user sees the signal
+            # 4H stays bias-only (too wide for direct entry execution)
+            from htf_bias import _normalize_tf as _ntf
+            if _ntf(tf) in ("30", "60"):
+                from telegram_bot import send_entry_signal
+                from scheduler import get_latest_news_sentiment, get_latest_velocity, get_latest_event
+                entry = payload.entry_price or 0.0
+                if entry > 0:
+                    asyncio.create_task(send_entry_signal({
+                        "direction":   payload.direction,
+                        "timeframe":   tf,
+                        "trigger":     payload.trigger or "RSI",
+                        "symbol":      sym,
+                        "entry_price": entry,
+                        "tp1":         payload.tp1 or 0.0,
+                        "tp2":         payload.tp2 or 0.0,
+                        "tp3":         payload.tp3 or 0.0,
+                        "sl":          payload.sl or 0.0,
+                        "ml_score":    payload.ml_score,
+                        "tier":        payload.tier or "MED",
+                        "news_score":  get_latest_news_sentiment(),
+                        "velocity":    get_latest_velocity().get("label", "NORMAL"),
+                        "event":       get_latest_event().get("event_type", ""),
+                        "htf_bias":    None,
+                        "contra_bias": None,
+                        "htf_context": "htf_direct",
+                    }))
+                    print(f"[webhook] HTF {tf} signal also sent to Telegram: {payload.direction} {sym}")
             return {"status": "ok", "routed_to": "htf-bias", "direction": payload.direction, "timeframe": tf}
 
         # 2M signals feed ML only — too noisy for Telegram

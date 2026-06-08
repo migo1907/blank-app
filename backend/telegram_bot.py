@@ -66,10 +66,15 @@ async def send_entry_signal(s: dict) -> bool:
     strength_map = {"HIGH": "🔥 HIGH", "MED": "✅ MED", "LOW": "⚡ LOW"}
     strength_str = strength_map.get(tier.upper(), "⚡ LOW")
 
+    htf_context  = s.get("htf_context", "")
+    tf_label_map = {"2": "2M", "5": "5M", "15": "15M", "30": "30M", "60": "1H", "240": "4H"}
+    tf_display   = tf_label_map.get(str(tf), f"{tf}M")
+    htf_badge    = " 🏔 HTF" if htf_context == "htf_direct" else ""
+
     msg = (
-        f"{dir_emoji} <b>{direction} SIGNAL</b> — {asset_emoji} {symbol_clean}\n"
+        f"{dir_emoji} <b>{direction} SIGNAL{htf_badge}</b> — {asset_emoji} {symbol_clean}\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
-        f"⏱ Timeframe: {tf}\n"
+        f"⏱ Timeframe: {tf_display}\n"
         f"Strength:  {strength_str}\n\n"
         f"📍 Entry:  {entry:.2f}\n"
         f"🎯 TP1:    {tp1:.2f}\n"
