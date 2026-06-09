@@ -1,27 +1,5 @@
 [
   {
-    "symbol": "SPY",
-    "pool": "STOCKS_INDEX_30M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "news_score": -0.0129,
-    "macro_bias": -0.9091,
-    "macro_label": "BEARISH",
-    "combined_score": -0.1393,
-    "session": "PRE_MARKET",
-    "regime": "NORMAL",
-    "regime_label": "NORMAL",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:PRE_MARKET\u00d70.90 | confluence\u00d71.26 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.37) | news:neutral(-0.013) | macro:BEARISH(-0.909) | combined:-0.139 \u2192 conf:0.190 \u26a1 CPI",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-09T11:31:52.028431+00:00",
-    "created_at": "2026-06-09T11:01:52.306854+00:00",
-    "id": 101
-  },
-  {
     "symbol": "QQQ",
     "pool": "STOCKS_QQQ_30M",
     "direction": "NEUTRAL",
@@ -2171,6 +2149,26 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-09T19:12:14.747888+00:00",
     "created_at": "2026-06-09T18:42:15.248289+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "XAUUSD",
+    "pool": "XAUUSD_2M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "news_score": 0.2141,
+    "combined_score": 0.0,
+    "session": "NEW_YORK",
+    "regime": "NORMAL",
+    "regime_label": "NORMAL",
+    "reasoning": "News CONFLICTED \u2014 low conviction",
+    "status": "NEUTRAL",
+    "expires_at": "2026-06-09T19:24:25.248878+00:00",
+    "created_at": "2026-06-09T18:54:25.272603+00:00",
     "id": 101
   }
 ]
