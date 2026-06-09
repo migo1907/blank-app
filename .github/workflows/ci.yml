@@ -1,0 +1,47 @@
+name: Backend CI
+
+on:
+  push:
+    branches:
+      - "claude/hopeful-pasteur-VVHCl"
+      - "main"
+  pull_request:
+    branches:
+      - "main"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install --quiet fastapi uvicorn apscheduler httpx python-telegram-bot \
+            scikit-learn numpy pandas requests feedparser python-dotenv PyGithub \
+            yfinance aiohttp
+          pip install --quiet pytest
+
+      - name: Syntax check all backend files
+        run: |
+          for f in *.py; do
+            python -m py_compile "$f" && echo "OK: $f" || exit 1
+          done
+
+      - name: Run unit tests
+        env:
+          GITHUB_TOKEN: "test"
+          GITHUB_REPO: "test/test"
+          GITHUB_BRANCH: "data"
+          TELEGRAM_TOKEN: "test"
+          TELEGRAM_CHAT_ID: "12345"
+        run: pytest tests/test_core.py -v
