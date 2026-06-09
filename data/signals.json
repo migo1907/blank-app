@@ -1,27 +1,5 @@
 [
   {
-    "symbol": "SPY",
-    "pool": "STOCKS_INDEX_30M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "news_score": 0.0296,
-    "macro_bias": -0.9091,
-    "macro_label": "BEARISH",
-    "combined_score": -0.1295,
-    "session": "NYSE_OPEN",
-    "regime": "NORMAL",
-    "regime_label": "NORMAL",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:NYSE_OPEN\u00d71.25 | confluence\u00d71.26 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.37) | news:neutral(+0.030) | macro:BEARISH(-0.909) | combined:-0.130 \u2192 conf:0.245 \u26a1 CPI",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-09T14:02:05.148378+00:00",
-    "created_at": "2026-06-09T13:32:06.586605+00:00",
-    "id": 101
-  },
-  {
     "symbol": "QQQ",
     "pool": "STOCKS_QQQ_30M",
     "direction": "NEUTRAL",
@@ -2175,6 +2153,28 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-09T20:34:47.983236+00:00",
     "created_at": "2026-06-09T20:04:48.526636+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "XAUUSD",
+    "pool": "XAUUSD_2M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.2755,
+    "gbm_score": 0.0522,
+    "news_score": 0.2479,
+    "macro_bias": -0.2588,
+    "macro_label": "BEARISH",
+    "combined_score": -0.2066,
+    "session": "NY_LATE",
+    "regime": "NORMAL",
+    "regime_label": "NORMAL",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:NY_LATE\u00d70.90 | confluence\u00d71.07 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-1.00) | news:bullish(+0.248) | macro:BEARISH(-0.259) | combined:-0.207 \u2192 conf:0.239 \u26a1 CPI",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-09T20:41:34.967548+00:00",
+    "created_at": "2026-06-09T20:11:35.389963+00:00",
     "id": 101
   }
 ]
