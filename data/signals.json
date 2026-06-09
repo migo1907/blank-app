@@ -1,27 +1,5 @@
 [
   {
-    "symbol": "SPY",
-    "pool": "STOCKS_INDEX_30M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "news_score": -0.1291,
-    "macro_bias": 0.0,
-    "macro_label": "NEUTRAL",
-    "combined_score": -0.0215,
-    "session": "NYSE_AFTERNOON",
-    "regime": "TRENDING_BULL",
-    "regime_label": "PULLBACK_SHORT",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(PULLBACK_SHORT)\u00d70.80 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d71.15 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.09) | news:neutral(-0.129) | combined:-0.022 \u2192 conf:0.022",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-08T17:22:41.509924+00:00",
-    "created_at": "2026-06-08T16:52:41.820868+00:00",
-    "id": 101
-  },
-  {
     "symbol": "QQQ",
     "pool": "STOCKS_QQQ_30M",
     "direction": "NEUTRAL",
@@ -2165,6 +2143,28 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-09T00:57:24.332844+00:00",
     "created_at": "2026-06-09T00:27:25.987329+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "QQQ",
+    "pool": "STOCKS_QQQ_30M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "news_score": 0.0271,
+    "macro_bias": -0.9091,
+    "macro_label": "BEARISH",
+    "combined_score": -0.1301,
+    "session": "CLOSED",
+    "regime": "TRENDING_BULL",
+    "regime_label": "PULLBACK_SHORT",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(PULLBACK_SHORT)\u00d70.80 | sess:CLOSED\u00d70.60 | confluence\u00d71.22 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.17) | news:neutral(+0.027) | macro:BEARISH(-0.909) | combined:-0.130 \u2192 conf:0.091 \u26a1 WAR/CONFLICT",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-09T00:57:27.860425+00:00",
+    "created_at": "2026-06-09T00:27:29.444831+00:00",
     "id": 101
   }
 ]
