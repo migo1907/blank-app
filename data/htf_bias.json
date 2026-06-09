@@ -1,1 +1,11 @@
-{}
+{
+  "SPY_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "SPY",
+    "trigger": "FVG",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-09T14:00:03.363498+00:00",
+    "expires_at": "2026-06-09T16:00:03.363515+00:00"
+  }
+}
