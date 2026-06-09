@@ -722,6 +722,70 @@ async def _hourly_system_check() -> None:
     except Exception as e:
         print(f"[system_check] Counter resync failed: {e}")
 
+    # ── News-feed freshness (catches a dead source like an expired FJ session) ──
+    try:
+        from db import _get_file
+        news, _ = await asyncio.to_thread(_get_file, "data/news_cache.json")
+        if isinstance(news, list) and news:
+            now_utc = datetime.now(timezone.utc)
+            def _age_min(items):
+                ts = [i.get("fetched_at") for i in items if i.get("fetched_at")]
+                if not ts:
+                    return None
+                newest = max(datetime.fromisoformat(str(t).replace("Z", "+00:00")) for t in ts)
+                if newest.tzinfo is None:
+                    newest = newest.replace(tzinfo=timezone.utc)
+                return (now_utc - newest).total_seconds() / 60
+            overall_age = _age_min(news)
+            # Overall feed: breaking-news cycle runs every 2 min, so >60 min stale = dead pipeline
+            if overall_age is not None and overall_age > 60:
+                critical_alerts.append((
+                    "News Feed Stale",
+                    f"No news fetched for {overall_age:.0f} min — the news pipeline may be down.",
+                    "Check Railway logs for the breaking-news cycle / RSS+Finnhub errors."
+                ))
+                issues.append(f"News feed stale ({overall_age:.0f}m) ⚠️")
+            else:
+                ok.append(f"News feed fresh ({overall_age:.0f}m ago) ✅" if overall_age is not None else "News feed present ✅")
+            # FinancialJuice specifically — its session can lapse; flag if FJ silent >6h while feed alive
+            fj = [i for i in news if "juice" in str(i.get("source", "")).lower()]
+            fj_age = _age_min(fj)
+            if (fj_age is None or fj_age > 360) and overall_age is not None and overall_age < 60:
+                critical_alerts.append((
+                    "FinancialJuice Feed Silent",
+                    f"FJ has no fresh items ({'none in cache' if fj_age is None else f'{fj_age:.0f} min old'}) "
+                    f"while other sources are live — FJ session likely lapsed.",
+                    "Auto-relogin should recover it; if not, check FJ_EMAIL/FJ_PASSWORD in Railway."
+                ))
+                issues.append("FJ feed silent ⚠️")
+            elif fj_age is not None:
+                ok.append(f"FJ feed fresh ({fj_age:.0f}m ago) ✅")
+    except Exception as e:
+        print(f"[system_check] News freshness check failed: {e}")
+
+    # ── Daily levels staleness (GitHub Action writes pivots ~07:50 UTC Mon-Fri) ──
+    try:
+        from db import _get_file
+        levels, _ = await asyncio.to_thread(_get_file, "data/daily_levels.json")
+        if isinstance(levels, dict) and levels.get("fetched_at"):
+            now_utc = datetime.now(timezone.utc)
+            lvl_ts = datetime.fromisoformat(str(levels["fetched_at"]).replace("Z", "+00:00"))
+            if lvl_ts.tzinfo is None:
+                lvl_ts = lvl_ts.replace(tzinfo=timezone.utc)
+            lvl_age_h = (now_utc - lvl_ts).total_seconds() / 3600
+            # Refreshed every weekday; >30h means the GitHub Action failed (signals use stale pivots)
+            if now_utc.weekday() < 5 and lvl_age_h > 30:
+                critical_alerts.append((
+                    "Daily Levels Stale",
+                    f"daily_levels.json is {lvl_age_h:.0f}h old — the pivot-fetch GitHub Action may have failed.",
+                    "Signals are using stale pivot levels. Check the fetch_daily_levels workflow run."
+                ))
+                issues.append(f"Daily levels stale ({lvl_age_h:.0f}h) ⚠️")
+            else:
+                ok.append(f"Daily levels fresh ({lvl_age_h:.0f}h ago) ✅")
+    except Exception as e:
+        print(f"[system_check] Daily levels staleness check failed: {e}")
+
     n_issue = len(issues)
     print(f"[system_check] {len(ok)}/{len(ok)+n_issue} checks passed.")
     for iss in issues:
