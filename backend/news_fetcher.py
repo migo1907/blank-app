@@ -8,7 +8,7 @@ import time
 import httpx
 import anthropic
 import xml.etree.ElementTree as ET
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 # Rate-limit guard: minimum seconds between FJ RSS fetches
 _FJ_RSS_MIN_INTERVAL = 30.0
