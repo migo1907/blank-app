@@ -9,13 +9,13 @@
     "expires_at": "2026-06-09T17:30:03.970380+00:00"
   },
   "GOOG_30": {
-    "direction": "SHORT",
+    "direction": "LONG",
     "timeframe": "30",
     "symbol": "GOOG",
     "trigger": "FVG",
-    "ml_score": 0.625,
-    "stored_at": "2026-06-09T15:30:13.828125+00:00",
-    "expires_at": "2026-06-09T17:30:13.828143+00:00"
+    "ml_score": 0.25,
+    "stored_at": "2026-06-09T14:00:05.318241+00:00",
+    "expires_at": "2026-06-09T16:00:05.318255+00:00"
   },
   "GOOGL_30": {
     "direction": "SHORT",
