@@ -45,13 +45,13 @@
     "expires_at": "2026-06-09T16:00:14.440964+00:00"
   },
   "QQQ_30": {
-    "direction": "LONG",
+    "direction": "SHORT",
     "timeframe": "30",
     "symbol": "QQQ",
-    "trigger": "RSI",
-    "ml_score": 0.875,
-    "stored_at": "2026-06-09T14:00:15.767864+00:00",
-    "expires_at": "2026-06-09T16:00:15.767878+00:00"
+    "trigger": "FVG",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-09T15:00:06.480180+00:00",
+    "expires_at": "2026-06-09T17:00:06.480196+00:00"
   },
   "META_30": {
     "direction": "LONG",
@@ -160,5 +160,14 @@
     "ml_score": 0.5,
     "stored_at": "2026-06-09T15:00:02.260025+00:00",
     "expires_at": "2026-06-09T17:00:02.260047+00:00"
+  },
+  "SOXL_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "SOXL",
+    "trigger": "FVG",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-09T15:00:05.660791+00:00",
+    "expires_at": "2026-06-09T17:00:05.660814+00:00"
   }
 }
