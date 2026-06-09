@@ -420,6 +420,7 @@ def generate_signal(
     trigger: str = "",
     pool: str | None = None,
     macro_bias: dict | None = None,
+    conflicted_cycles: int = 0,
 ) -> dict:
     from db import symbol_to_pool
     pool     = pool or symbol_to_pool(symbol)
@@ -464,10 +465,11 @@ def generate_signal(
     event    = high_impact_event or {"detected": False, "urgency": 0.0}
 
     if v_label == "CONFLICTED":
-        # Bypass if all 3 ML models unanimously agree on direction (Option F)
+        # Suppress for up to 2 consecutive CONFLICTED cycles (~30 min) — original intent:
+        # wait briefly for news to stabilise. After 2 cycles, release to ML models regardless.
         all_agree = (knn_dir == rf_dir == gbm_dir)
-        if not all_agree:
-            return _neutral_signal(symbol, now, model, rf, "News velocity CONFLICTED", news_agg, pool, current_features, is_stock=is_stock)
+        if not all_agree and conflicted_cycles < 2:
+            return _neutral_signal(symbol, now, model, rf, f"News velocity CONFLICTED (cycle {conflicted_cycles+1}/2)", news_agg, pool, current_features, is_stock=is_stock)
 
     if event.get("detected") and event.get("urgency", 0) >= 0.9:
         v_mult = min(v_mult * 1.5, 3.0)
