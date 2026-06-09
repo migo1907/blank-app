@@ -1882,7 +1882,7 @@
     "regime": "TRENDING_BULL",
     "regime_label": "PULLBACK_SHORT",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(PULLBACK_SHORT)\u00d70.80 | sess:NYSE_OPEN\u00d71.25 | confluence\u00d70.93 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.06) | news:neutral(-0.003) | macro:BEARISH(-0.909) | combined:-0.137 \u2192 conf:0.153 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-09T14:32:15.077517+00:00",
     "created_at": "2026-06-09T14:02:16.506348+00:00",
     "id": 101
@@ -1904,7 +1904,7 @@
     "regime": "TRENDING_BULL",
     "regime_label": "PULLBACK_SHORT",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(PULLBACK_SHORT)\u00d70.80 | sess:NYSE_OPEN\u00d71.25 | confluence\u00d70.93 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.09) | news:neutral(-0.003) | macro:BEARISH(-0.909) | combined:-0.137 \u2192 conf:0.153 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-09T14:32:18.122535+00:00",
     "created_at": "2026-06-09T14:02:18.554828+00:00",
     "id": 101
@@ -1926,7 +1926,7 @@
     "regime": "TRENDING_BEAR",
     "regime_label": "PULLBACK_LONG",
     "reasoning": "KNN:LONG RF:LONG GBM:LONG | agree\u00d71.20 | regime:TRENDING_BEAR(PULLBACK_LONG)\u00d70.95 | sess:OVERLAP\u00d71.30 | confluence\u00d70.96 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.22) | news:neutral(-0.023) | macro:BEARISH(-0.640) | combined:+0.110 \u2192 conf:0.157 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-09T14:40:06.190940+00:00",
     "created_at": "2026-06-09T14:10:06.699287+00:00",
     "id": 101
@@ -1948,7 +1948,7 @@
     "regime": "TRENDING_BULL",
     "regime_label": "PULLBACK_SHORT",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(PULLBACK_SHORT)\u00d70.80 | sess:NYSE_OPEN\u00d71.25 | confluence\u00d70.93 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.06) | news:neutral(-0.023) | macro:BEARISH(-0.909) | combined:-0.142 \u2192 conf:0.159 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-09T14:40:09.170753+00:00",
     "created_at": "2026-06-09T14:10:09.550477+00:00",
     "id": 101
@@ -1970,7 +1970,7 @@
     "regime": "TRENDING_BULL",
     "regime_label": "PULLBACK_SHORT",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(PULLBACK_SHORT)\u00d70.80 | sess:NYSE_OPEN\u00d71.25 | confluence\u00d70.93 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.09) | news:neutral(-0.023) | macro:BEARISH(-0.909) | combined:-0.142 \u2192 conf:0.159 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-09T14:40:11.926632+00:00",
     "created_at": "2026-06-09T14:10:12.471086+00:00",
     "id": 101
