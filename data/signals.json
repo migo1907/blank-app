@@ -1866,7 +1866,7 @@
     "regime": "TRENDING_BEAR",
     "regime_label": "TREND_FOLLOW",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BEAR(TREND_FOLLOW)\u00d71.15 | sess:NEW_YORK\u00d71.10 | confluence\u00d71.00 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-1.00) | news:neutral(+0.165) | macro:BEARISH(-0.259) | combined:-0.341 \u2192 conf:0.518 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-09T20:29:13.945354+00:00",
     "created_at": "2026-06-09T19:59:15.485781+00:00",
     "id": 101
@@ -1888,7 +1888,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d70.95 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.14) | news:neutral(+0.165) | macro:BEARISH(-0.510) | combined:-0.022 \u2192 conf:0.027 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-09T20:29:17.562909+00:00",
     "created_at": "2026-06-09T19:59:17.863195+00:00",
     "id": 101
@@ -1910,7 +1910,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d70.95 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.06) | news:neutral(+0.165) | macro:BEARISH(-0.510) | combined:-0.022 \u2192 conf:0.027 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-09T20:29:19.624338+00:00",
     "created_at": "2026-06-09T19:59:19.919392+00:00",
     "id": 101
@@ -1932,7 +1932,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:NY_LATE\u00d70.90 | confluence\u00d71.07 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-1.00) | news:bullish(+0.237) | macro:BEARISH(-0.259) | combined:-0.398 \u2192 conf:0.460 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-09T20:34:41.915955+00:00",
     "created_at": "2026-06-09T20:04:43.405564+00:00",
     "id": 101
@@ -1954,7 +1954,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d70.95 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.32) | news:bullish(+0.237) | macro:BEARISH(-0.510) | combined:-0.009 \u2192 conf:0.011 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-09T20:34:45.509146+00:00",
     "created_at": "2026-06-09T20:04:46.067739+00:00",
     "id": 101
@@ -1976,7 +1976,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d71.05 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.27) | news:bullish(+0.237) | macro:BEARISH(-0.510) | combined:-0.009 \u2192 conf:0.012 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-09T20:34:47.983236+00:00",
     "created_at": "2026-06-09T20:04:48.526636+00:00",
     "id": 101
