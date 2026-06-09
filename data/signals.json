@@ -1,27 +1,5 @@
 [
   {
-    "symbol": "QQQ",
-    "pool": "STOCKS_QQQ_30M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "news_score": 0.0745,
-    "macro_bias": -0.5096,
-    "macro_label": "BEARISH",
-    "combined_score": -0.0592,
-    "session": "NYSE_AFTERNOON",
-    "regime": "NORMAL",
-    "regime_label": "NORMAL",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d71.50 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-0.83) | news:neutral(+0.074) | macro:BEARISH(-0.510) | combined:-0.059 \u2192 conf:0.117 \u26a1 WAR/CONFLICT",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-09T16:39:44.093565+00:00",
-    "created_at": "2026-06-09T16:09:44.645733+00:00",
-    "id": 101
-  },
-  {
     "symbol": "XAUUSD",
     "pool": "XAUUSD_2M",
     "direction": "SHORT",
@@ -2177,6 +2155,28 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-09T23:06:52.826418+00:00",
     "created_at": "2026-06-09T22:36:54.305175+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "XAUUSD",
+    "pool": "XAUUSD_2M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.625,
+    "rf_score": 0.4274,
+    "gbm_score": 0.1684,
+    "news_score": 0.2704,
+    "macro_bias": -0.1388,
+    "macro_label": "NEUTRAL",
+    "combined_score": -0.1382,
+    "session": "OFF",
+    "regime": "VOLATILE",
+    "regime_label": "VOLATILE",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:VOLATILE(VOLATILE)\u00d70.92 | sess:OFF\u00d70.65 | confluence\u00d71.57 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-1.00) | news:bullish(+0.270) | macro:NEUTRAL(-0.139) | combined:-0.138 \u2192 conf:0.156 \u26a1 WAR/CONFLICT",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-09T23:22:00.209039+00:00",
+    "created_at": "2026-06-09T22:52:01.967011+00:00",
     "id": 101
   }
 ]
