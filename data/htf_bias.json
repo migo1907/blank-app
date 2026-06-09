@@ -43,5 +43,23 @@
     "ml_score": 0.5,
     "stored_at": "2026-06-09T01:00:03.360487+00:00",
     "expires_at": "2026-06-09T09:00:03.360509+00:00"
+  },
+  "SPX500_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "SPX500",
+    "trigger": "FVG",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-09T01:00:04.341472+00:00",
+    "expires_at": "2026-06-09T03:00:04.341499+00:00"
+  },
+  "XAUUSD_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "XAUUSD",
+    "trigger": "OB",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-09T02:32:01.334061+00:00",
+    "expires_at": "2026-06-09T04:32:01.334088+00:00"
   }
 }
