@@ -1,27 +1,5 @@
 [
   {
-    "symbol": "SPY",
-    "pool": "STOCKS_INDEX_30M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "news_score": 0.1048,
-    "macro_bias": -0.9091,
-    "macro_label": "BEARISH",
-    "combined_score": -0.1122,
-    "session": "NYSE_OPEN",
-    "regime": "TRENDING_BULL",
-    "regime_label": "PULLBACK_SHORT",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(PULLBACK_SHORT)\u00d70.80 | sess:NYSE_OPEN\u00d71.25 | confluence\u00d70.93 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.06) | news:neutral(+0.105) | macro:BEARISH(-0.909) | combined:-0.112 \u2192 conf:0.126 \u26a1 WAR/CONFLICT",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-09T14:51:36.623993+00:00",
-    "created_at": "2026-06-09T14:21:37.029005+00:00",
-    "id": 101
-  },
-  {
     "symbol": "QQQ",
     "pool": "STOCKS_QQQ_30M",
     "direction": "NEUTRAL",
@@ -2179,6 +2157,28 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-09T21:06:52.985973+00:00",
     "created_at": "2026-06-09T20:36:53.511818+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "XAUUSD",
+    "pool": "XAUUSD_2M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.3466,
+    "gbm_score": 0.1675,
+    "news_score": 0.1779,
+    "macro_bias": -0.1255,
+    "macro_label": "NEUTRAL",
+    "combined_score": -0.1655,
+    "session": "NY_LATE",
+    "regime": "NORMAL",
+    "regime_label": "NORMAL",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:NY_LATE\u00d70.90 | confluence\u00d70.94 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-1.00) | news:neutral(+0.178) | macro:NEUTRAL(-0.126) | combined:-0.166 \u2192 conf:0.167 \u26a1 WAR/CONFLICT",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-09T21:21:58.847674+00:00",
+    "created_at": "2026-06-09T20:52:00.666006+00:00",
     "id": 101
   }
 ]
