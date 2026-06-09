@@ -43,5 +43,32 @@
     "ml_score": 0.75,
     "stored_at": "2026-06-09T14:00:14.440944+00:00",
     "expires_at": "2026-06-09T16:00:14.440964+00:00"
+  },
+  "QQQ_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "QQQ",
+    "trigger": "RSI",
+    "ml_score": 0.875,
+    "stored_at": "2026-06-09T14:00:15.767864+00:00",
+    "expires_at": "2026-06-09T16:00:15.767878+00:00"
+  },
+  "META_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "META",
+    "trigger": "FVG",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-09T14:00:16.729428+00:00",
+    "expires_at": "2026-06-09T16:00:16.729442+00:00"
+  },
+  "UPST_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "UPST",
+    "trigger": "BOS",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-09T14:00:19.363596+00:00",
+    "expires_at": "2026-06-09T16:00:19.363618+00:00"
   }
 }
