@@ -706,7 +706,7 @@
   {
     "symbol": "NOW",
     "direction": "SHORT",
-    "trigger": "FVG",
+    "trigger": "",
     "entry_price": 111.43,
     "exit_price": 109.77,
     "outcome": "PARTIAL",
@@ -743,8 +743,8 @@
     "f23_rsiacc": -0.5611,
     "f24_fvgq": 0.0,
     "f25_tod": -0.4423,
-    "id": "d865338b",
+    "id": "4316aa5a",
     "pool": "STOCKS_QUALITY_15M",
-    "created_at": "2026-06-09T14:45:16.192187+00:00"
+    "created_at": "2026-06-09T14:45:12.873087+00:00"
   }
 ]
