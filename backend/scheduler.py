@@ -30,6 +30,22 @@ def _cached_macro_label() -> str:
         return "n/a"
 
 
+def _live_macro_bias() -> float:
+    try:
+        from market_macro import get_macro_bias
+        return float(get_macro_bias().get("bias", 0.0) or 0.0)
+    except Exception:
+        return 0.0
+
+
+def _live_macro_label() -> str:
+    try:
+        from market_macro import get_macro_bias
+        return get_macro_bias().get("label", "n/a") or "n/a"
+    except Exception:
+        return "n/a"
+
+
 def get_latest_news_sentiment() -> float:
     return _latest_news_agg
 
@@ -318,8 +334,8 @@ async def _write_health_status(signal: dict, news_agg: float, velocity: dict, br
             "rf_trained":     rf.is_trained,
             "win_rate":       round(model.win_rate * 100, 1),
             "knn_bearish_pct": round(signal.get("ml_score", 0) * 100, 1),
-            "macro_bias":         signal.get("macro_bias", 0.0),
-            "macro_label":        signal.get("macro_label", "n/a"),
+            "macro_bias":         _live_macro_bias(),
+            "macro_label":        _live_macro_label(),
             "equity_macro_bias":  (equity_macro or {}).get("bias", 0.0),
             "equity_macro_label": (equity_macro or {}).get("label", "n/a"),
             "scheduler":      "running",

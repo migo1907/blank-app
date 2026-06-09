@@ -222,6 +222,10 @@ class GradientBoostEnsemble:
             y_rows.append(1 if outcome_val in ("WIN", "PARTIAL") else 0)
             w_rows.append(_session_weight(row.get("created_at", "")))
 
+        if len(set(y_rows)) < 2:
+            print(f"[gbm] Only one class in training data ({set(y_rows)}) — skipping train until wins accumulate.")
+            return False
+
         X = np.array(X_rows, dtype=np.float32)
         y = np.array(y_rows, dtype=np.int32)
         w = np.array(w_rows, dtype=np.float32)
