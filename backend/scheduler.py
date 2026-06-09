@@ -443,7 +443,7 @@ async def _hourly_system_check() -> None:
         if _scheduler and _scheduler.running:
             jobs = _scheduler.get_jobs()
             job_ids = [j.id for j in jobs]
-            expected = {"news_signal_cycle", "breaking_news_cycle", "hourly_system_check", "macro_refresh_cycle", "daily_market_brief", "stocks_session_report", "daily_trade_count_report"}
+            expected = {"news_signal_cycle", "breaking_news_cycle", "hourly_system_check", "macro_refresh_cycle", "daily_market_brief", "stocks_session_report", "daily_trade_count_report", "fj_session_refresh"}
             missing = expected - set(job_ids)
             if not missing:
                 ok.append(f"Scheduler — {len(jobs)} jobs running ✅")
@@ -903,6 +903,23 @@ async def _macro_refresh_cycle() -> None:
         print(f"[scheduler] macro refresh failed: {e}")
 
 
+async def _fj_session_refresh_cycle() -> None:
+    """
+    Proactively renew the FinancialJuice login session on a timer so the cookie
+    never lapses. The breaking-news path already re-logins reactively on 401/403
+    or non-JSON 200, but this keeps the session fresh ahead of expiry so the FJ
+    feed never silently goes quiet. No-op if FJ_EMAIL/FJ_PASSWORD are unset.
+    """
+    try:
+        from news_fetcher import _fj_auto_login, FJ_EMAIL, FJ_PASSWORD
+        if not (FJ_EMAIL and FJ_PASSWORD):
+            return  # credentials not configured — nothing to refresh
+        ok = await asyncio.to_thread(_fj_auto_login)
+        print(f"[scheduler] FJ session refresh: {'success' if ok else 'failed'}")
+    except Exception as e:
+        print(f"[scheduler] FJ session refresh error: {e}")
+
+
 def start_scheduler() -> AsyncIOScheduler:
     global _scheduler
     _load_seen_headlines()
@@ -924,9 +941,16 @@ def start_scheduler() -> AsyncIOScheduler:
     _scheduler.add_job(_daily_market_brief, trigger="cron", hour=8, minute=0, id="daily_market_brief", replace_existing=True, misfire_grace_time=3600)
     _scheduler.add_job(_stocks_session_report, trigger="cron", hour=21, minute=5, id="stocks_session_report", replace_existing=True, misfire_grace_time=3600)
     _scheduler.add_job(_daily_trade_count_report, trigger="cron", hour=21, minute=1, id="daily_trade_count_report", replace_existing=True, misfire_grace_time=3600)
+    # Proactively renew the FinancialJuice session twice daily so the cookie never lapses.
+    _scheduler.add_job(_fj_session_refresh_cycle, trigger="cron", hour="5,17", minute=30, id="fj_session_refresh", replace_existing=True, misfire_grace_time=3600)
     _scheduler.start()
 
     _now = _dt.now(_tz.utc)
+
+    # Startup: refresh the FJ session shortly after boot so every deploy starts
+    # with a fresh login cookie instead of waiting for the next cron window.
+    _scheduler.add_job(_fj_session_refresh_cycle, trigger="date", run_date=_now + _td(seconds=60),
+                       id="fj_session_refresh_boot", replace_existing=True)
 
     # Startup catch-up: fire daily brief if missed today (redeploy between 08:00–11:00)
     if _now.weekday() < 5 and 8 <= _now.hour < 11:
