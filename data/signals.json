@@ -1,27 +1,5 @@
 [
   {
-    "symbol": "XAUUSD",
-    "pool": "XAUUSD_2M",
-    "direction": "SHORT",
-    "confidence": 0.5795,
-    "tier": "LOW",
-    "ml_score": 0.625,
-    "rf_score": 0.4293,
-    "gbm_score": 0.1815,
-    "news_score": 0.1287,
-    "macro_bias": -0.64,
-    "macro_label": "BEARISH",
-    "combined_score": -0.2844,
-    "session": "OVERLAP",
-    "regime": "TRENDING_BEAR",
-    "regime_label": "TREND_FOLLOW",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BEAR(TREND_FOLLOW)\u00d71.15 | sess:OVERLAP\u00d71.30 | confluence\u00d71.14 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-1.00) | news:neutral(+0.129) | macro:BEARISH(-0.640) | combined:-0.284 \u2192 conf:0.579 \u26a1 WAR/CONFLICT",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-09T15:43:00.487635+00:00",
-    "created_at": "2026-06-09T15:13:02.363850+00:00",
-    "id": 101
-  },
-  {
     "symbol": "SPY",
     "pool": "STOCKS_INDEX_30M",
     "direction": "NEUTRAL",
@@ -2181,6 +2159,28 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-09T22:06:47.315223+00:00",
     "created_at": "2026-06-09T21:36:47.857646+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "SPY",
+    "pool": "STOCKS_INDEX_30M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "news_score": 0.2238,
+    "macro_bias": -0.1581,
+    "macro_label": "BEARISH",
+    "combined_score": 0.0509,
+    "session": "CLOSED",
+    "regime": "NORMAL",
+    "regime_label": "NORMAL",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.89 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.32) | news:bullish(+0.224) | macro:BEARISH(-0.158) | combined:+0.051 \u2192 conf:0.033 \u26a1 CPI",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-09T22:06:49.889216+00:00",
+    "created_at": "2026-06-09T21:36:50.387667+00:00",
     "id": 101
   }
 ]
