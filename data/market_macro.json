@@ -1,11 +1,12 @@
 {
-  "bias": -0.64,
+  "bias": -0.2872,
   "label": "BEARISH",
   "components": {
-    "real_yield": -1.0,
-    "dollar": -1.0,
-    "breakeven": -0.2,
-    "cot": 0.5
+    "real_yield": -0.5333,
+    "dollar": -0.403,
+    "breakeven": -0.0667,
+    "cot": 0.5,
+    "gld": -0.5
   },
   "real_yield": 2.19,
   "dollar": 120.0831,
@@ -18,11 +19,17 @@
     "spec_net_prev": 154260,
     "net_change": 21760
   },
-  "gld": null,
-  "updated_at": "2026-06-09T15:28:03.601079+00:00",
+  "gld": {
+    "date": "2026-06-09",
+    "tonnes": 392.69000244140625,
+    "tonnes_prev": 397.2699890136719,
+    "tonnes_change": -4.58,
+    "source": "yfinance_proxy"
+  },
+  "updated_at": "2026-06-09T15:54:43.560174+00:00",
   "sources_live": {
     "fred": true,
     "cot": true,
-    "gld": false
+    "gld": true
   }
 }
