@@ -1,27 +1,5 @@
 [
   {
-    "symbol": "QQQ",
-    "pool": "STOCKS_QQQ_30M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "news_score": 0.1462,
-    "macro_bias": 0.1923,
-    "macro_label": "BULLISH",
-    "combined_score": 0.0626,
-    "session": "NYSE_AFTERNOON",
-    "regime": "TRENDING_BULL",
-    "regime_label": "TREND_FOLLOW",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(TREND_FOLLOW)\u00d71.15 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d70.98 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.17) | news:neutral(+0.146) | macro:BULLISH(+0.192) | combined:+0.063 \u2192 conf:0.079 \u26a1 NFP",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-08T20:52:57.857210+00:00",
-    "created_at": "2026-06-08T20:22:59.156957+00:00",
-    "id": 101
-  },
-  {
     "symbol": "XAUUSD",
     "pool": "XAUUSD_2M",
     "direction": "NEUTRAL",
@@ -2175,6 +2153,28 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-09T04:27:27.975798+00:00",
     "created_at": "2026-06-09T03:57:29.587914+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "XAUUSD",
+    "pool": "XAUUSD_2M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.44,
+    "gbm_score": 0.4379,
+    "news_score": -0.107,
+    "macro_bias": -0.64,
+    "macro_label": "BEARISH",
+    "combined_score": -0.2102,
+    "session": "ASIAN",
+    "regime": "NORMAL",
+    "regime_label": "NORMAL",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:ASIAN\u00d70.85 | confluence\u00d70.98 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:neutral(-0.107) | macro:BEARISH(-0.640) | combined:-0.210 \u2192 conf:0.209 \u26a1 FOMC",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-09T04:42:36.686302+00:00",
+    "created_at": "2026-06-09T04:12:37.244757+00:00",
     "id": 101
   }
 ]
