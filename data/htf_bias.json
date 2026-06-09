@@ -187,5 +187,23 @@
     "ml_score": 0.875,
     "stored_at": "2026-06-09T15:00:13.165805+00:00",
     "expires_at": "2026-06-09T17:00:13.165824+00:00"
+  },
+  "SPX500_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "SPX500",
+    "trigger": "BOS",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-09T15:00:21.512557+00:00",
+    "expires_at": "2026-06-09T17:00:21.512573+00:00"
+  },
+  "IBKR_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "IBKR",
+    "trigger": "FVG",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-09T15:00:23.471202+00:00",
+    "expires_at": "2026-06-09T17:00:23.471217+00:00"
   }
 }
