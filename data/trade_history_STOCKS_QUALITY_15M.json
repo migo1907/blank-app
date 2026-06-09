@@ -838,7 +838,7 @@
   {
     "symbol": "IBKR",
     "direction": "SHORT",
-    "trigger": "FVG",
+    "trigger": "",
     "entry_price": 86.83,
     "exit_price": 85.71,
     "outcome": "PARTIAL",
@@ -875,8 +875,8 @@
     "f23_rsiacc": -0.4341,
     "f24_fvgq": 0.0,
     "f25_tod": -0.5556,
-    "id": "80fcbeb7",
+    "id": "870461e4",
     "pool": "STOCKS_QUALITY_15M",
-    "created_at": "2026-06-09T15:31:59.744697+00:00"
+    "created_at": "2026-06-09T15:32:12.750374+00:00"
   }
 ]
