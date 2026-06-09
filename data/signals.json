@@ -1,27 +1,5 @@
 [
   {
-    "symbol": "XAUUSD",
-    "pool": "XAUUSD_2M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.625,
-    "rf_score": 0.4532,
-    "gbm_score": 0.2623,
-    "news_score": -0.0496,
-    "macro_bias": -0.64,
-    "macro_label": "BEARISH",
-    "combined_score": -0.3247,
-    "session": "ASIAN",
-    "regime": "NORMAL",
-    "regime_label": "NORMAL",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:ASIAN\u00d70.85 | confluence\u00d71.21 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.39) | news:neutral(-0.050) | macro:BEARISH(-0.640) | combined:-0.325 \u2192 conf:0.401 \u26a1 CPI",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-09T07:29:16.792443+00:00",
-    "created_at": "2026-06-09T06:59:18.420255+00:00",
-    "id": 101
-  },
-  {
     "symbol": "SPY",
     "pool": "STOCKS_INDEX_30M",
     "direction": "NEUTRAL",
@@ -2165,6 +2143,28 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-09T15:12:56.377156+00:00",
     "created_at": "2026-06-09T14:42:57.745619+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "QQQ",
+    "pool": "STOCKS_QQQ_30M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "news_score": 0.095,
+    "macro_bias": -0.9091,
+    "macro_label": "BEARISH",
+    "combined_score": -0.1144,
+    "session": "NYSE_OPEN",
+    "regime": "TRENDING_BULL",
+    "regime_label": "PULLBACK_SHORT",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(PULLBACK_SHORT)\u00d70.80 | sess:NYSE_OPEN\u00d71.25 | confluence\u00d71.05 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.30) | news:neutral(+0.095) | macro:BEARISH(-0.909) | combined:-0.114 \u2192 conf:0.144 \u26a1 WAR/CONFLICT",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-09T15:12:59.529487+00:00",
+    "created_at": "2026-06-09T14:43:00.002907+00:00",
     "id": 101
   }
 ]
