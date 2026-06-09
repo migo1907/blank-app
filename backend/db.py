@@ -537,9 +537,11 @@ def repair_missing_trades() -> list[str]:
                 "session":      "UNKNOWN",
                 "_repaired":    True,
             }
-            # Attach features f1-f25
-            for i in range(1, 26):
-                trade_row[f"f{i}"] = float(p.get(f"f{i}", 0) or 0)
+            # Attach features using named keys (f1_rsi, f2_adx, ...) matching FEATURE_NAMES
+            # Payload may use compact keys (f1, f2...) or named keys — try both
+            from ml_model import FEATURE_NAMES
+            for i, col in enumerate(FEATURE_NAMES, start=1):
+                trade_row[col] = float(p.get(col, 0) or p.get(f"f{i}", 0) or 0)
 
             # Batch: accumulate rows per pool, write once per pool at the end
             pool_keys[pool].add(key)
