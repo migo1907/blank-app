@@ -31,9 +31,9 @@
     "timeframe": "30",
     "symbol": "TNA",
     "trigger": "FVG",
-    "ml_score": 0.375,
-    "stored_at": "2026-06-09T15:30:23.765509+00:00",
-    "expires_at": "2026-06-09T17:30:23.765527+00:00"
+    "ml_score": 0.5,
+    "stored_at": "2026-06-09T17:00:13.630279+00:00",
+    "expires_at": "2026-06-09T19:00:13.630293+00:00"
   },
   "QQQ_30": {
     "direction": "SHORT",
@@ -259,5 +259,14 @@
     "ml_score": 0.5,
     "stored_at": "2026-06-09T17:00:08.304010+00:00",
     "expires_at": "2026-06-10T01:00:08.304024+00:00"
+  },
+  "TSLA_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "TSLA",
+    "trigger": "FVG",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-09T17:00:11.935008+00:00",
+    "expires_at": "2026-06-09T19:00:11.935029+00:00"
   }
 }
