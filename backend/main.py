@@ -434,6 +434,9 @@ async def trade_outcome(payload: TradeOutcomePayload):
         from signal_engine import update_latest_features
         sym  = getattr(payload, "symbol", "XAUUSD") or "XAUUSD"
         pool = symbol_to_pool(sym, payload.timeframe or "")
+        if not pool:
+            # Unmapped pool (e.g. XAUUSD 4H) — drop silently, no cache write
+            return {"status": "ok", "outcome": "HEARTBEAT", "pool": "ignored"}
         features = Features(
             f1=payload.f1, f2=payload.f2, f3=payload.f3, f4=payload.f4,
             f5=payload.f5, f6=payload.f6, f7=payload.f7, f8=payload.f8,
@@ -714,6 +717,8 @@ async def unified_webhook(payload: UnifiedPayload):
         from signal_engine import update_latest_features
         sym2 = payload.symbol or "XAUUSD"
         pool = symbol_to_pool(sym2, payload.timeframe or "")
+        if not pool:
+            return {"status": "ok", "outcome": "HEARTBEAT", "pool": "ignored"}
         features = Features(
             f1=payload.f1, f2=payload.f2, f3=payload.f3, f4=payload.f4,
             f5=payload.f5, f6=payload.f6, f7=payload.f7, f8=payload.f8,

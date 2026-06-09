@@ -2,7 +2,7 @@
 XAU/USD Signal Engine — Market-Aware Intelligence Layer
 
 Scoring pipeline:
-  1. KNN similarity (adaptive weights on 21 features)
+  1. KNN similarity (adaptive weights on 25 features F1–F25)
   2. Random Forest ensemble (pattern recognition)
   3. Gradient Boosting ensemble — XGBoost equivalent (item 2)
   4. News sentiment + velocity

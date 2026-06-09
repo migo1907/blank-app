@@ -165,6 +165,9 @@ def symbol_to_pool(symbol: str, timeframe: str = "") -> str:
     suffix = _tf_suffix(timeframe) if timeframe else ""
 
     if ticker in ("XAUUSD", "GOLD", "GC"):
+        # XAUUSD_4H is not a live trading pool — drop heartbeats to prevent orphan cache entries
+        if suffix == "4H":
+            return ""
         return f"XAUUSD_{suffix}" if suffix else "XAUUSD"
     if ticker in STOCKS_SPX500:
         base = "STOCKS_SPX500"
