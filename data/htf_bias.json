@@ -133,5 +133,23 @@
     "ml_score": 0.5,
     "stored_at": "2026-06-09T14:30:30.125762+00:00",
     "expires_at": "2026-06-09T16:30:30.125777+00:00"
+  },
+  "ADBE_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "ADBE",
+    "trigger": "FVG",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-09T14:30:32.813903+00:00",
+    "expires_at": "2026-06-09T16:30:32.813916+00:00"
+  },
+  "XAUUSD_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "XAUUSD",
+    "trigger": "BOS",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-09T14:32:02.758048+00:00",
+    "expires_at": "2026-06-09T16:32:02.758066+00:00"
   }
 }
