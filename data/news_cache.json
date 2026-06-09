@@ -1,343 +1,5 @@
 [
   {
-    "source": "Investing.com Comm",
-    "headline": "US says BYD, Baidu, Alibaba and other tech giants are aiding China\u2019s military",
-    "url": "https://www.investing.com/news/stock-market-news/us-says-byd-baidu-and-alibaba-are-aiding-chinas-military-4731318",
-    "sentiment_score": 0.3,
-    "impact": "LOW",
-    "keywords": [
-      "geopolitical",
-      "China",
-      "risk-off"
-    ],
-    "fetched_at": "2026-06-09T12:31:42.554003+00:00"
-  },
-  {
-    "source": "Investing.com Comm",
-    "headline": "Britain begins formal review of Paramount\u2019s $110 billion Warner Bros deal",
-    "url": "https://www.investing.com/news/stock-market-news/britain-begins-formal-review-of-paramounts-110-billion-warner-bros-deal-4732532",
-    "sentiment_score": 0.1,
-    "impact": "LOW",
-    "keywords": [
-      "corporate",
-      "M&A",
-      "neutral"
-    ],
-    "fetched_at": "2026-06-09T12:31:42.554003+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Deutsche Bank says June Fed meeting will test new chair Warsh",
-    "url": "https://www.investing.com/news/forex-news/deutsche-bank-says-june-fed-meeting-will-test-new-chair-warsh-93CH-4732753",
-    "sentiment_score": -0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "Fed policy",
-      "leadership change",
-      "uncertainty"
-    ],
-    "fetched_at": "2026-06-09T12:31:42.554003+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "European bond yields ease ahead of ECB meeting, Middle East risks linger",
-    "url": "https://www.investing.com/news/forex-news/european-bond-yields-ease-ahead-of-ecb-meeting-middle-east-risks-linger-4732269",
-    "sentiment_score": 0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "Middle East",
-      "yields ease",
-      "risk-on"
-    ],
-    "fetched_at": "2026-06-09T12:31:42.554003+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Dollar retreats from 2-mth high as risk sentiment improves ahead of CPI test",
-    "url": "https://www.investing.com/news/forex-news/asia-fx-gains-dollar-dips-amid-middle-east-peace-hopes-china-trade-data-in-focus-4731976",
-    "sentiment_score": 0.7,
-    "impact": "MEDIUM",
-    "keywords": [
-      "dollar weakness",
-      "risk sentiment",
-      "Iran-Israel"
-    ],
-    "fetched_at": "2026-06-09T12:31:42.554003+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "U.S. dollar eases amid boost to risk sentiment as Iran and Israel halt strikes",
-    "url": "https://www.investing.com/news/forex-news/asia-fx-steadies-after-sliding-on-strong-us-jobs-data-dollar-firm-at-2mth-high-4729761",
-    "sentiment_score": 0.7,
-    "impact": "MEDIUM",
-    "keywords": [
-      "dollar easing",
-      "ceasefire",
-      "risk-on"
-    ],
-    "fetched_at": "2026-06-09T12:31:42.554003+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Wells Fargo closes short dollar bets on Chilean, Argentine pesos",
-    "url": "https://www.investing.com/news/forex-news/wells-fargo-closes-short-dollar-bets-on-chilean-argentine-pesos-93CH-4731320",
-    "sentiment_score": -0.2,
-    "impact": "LOW",
-    "keywords": [
-      "dollar positioning",
-      "technical",
-      "neutral"
-    ],
-    "fetched_at": "2026-06-09T12:31:42.554003+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Sterling today: Pound steady as Fed tightening bets and tech sell-off grip markets",
-    "url": "https://www.investing.com/news/forex-news/sterling-today-pound-steady-as-fed-tightening-bets-and-tech-selloff-grip-markets-4730715",
-    "sentiment_score": -0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "Fed tightening",
-      "stronger dollar",
-      "pound weakness"
-    ],
-    "fetched_at": "2026-06-09T12:31:42.554003+00:00"
-  },
-  {
-    "source": "Mining.com",
-    "headline": "Ericsson,\u00a0Epiroc expand alliance to accelerate mining automation",
-    "url": "https://www.mining.com/ericsson-epiroc-expand-alliance-to-accelerate-mining-automation/",
-    "sentiment_score": -0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "mining automation",
-      "efficiency",
-      "supply"
-    ],
-    "fetched_at": "2026-06-09T12:31:42.554003+00:00"
-  },
-  {
-    "source": "Mining.com",
-    "headline": "Chinese buyers spark bidding war for US tungsten scrap: FT",
-    "url": "https://www.mining.com/chinese-buyers-spark-bidding-war-for-us-tungsten-scrap-ft/",
-    "sentiment_score": -0.2,
-    "impact": "LOW",
-    "keywords": [
-      "tungsten",
-      "alternative metals",
-      "substitution"
-    ],
-    "fetched_at": "2026-06-09T12:31:42.554003+00:00"
-  },
-  {
-    "source": "Mining.com",
-    "headline": "GoGold gets green light to build $227M mine in Mexico",
-    "url": "https://www.mining.com/gogold-approved-to-build-227m-mine-in-mexico/",
-    "sentiment_score": -0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "gold mining",
-      "production increase",
-      "supply"
-    ],
-    "fetched_at": "2026-06-09T12:31:42.554003+00:00"
-  },
-  {
-    "source": "Mining.com",
-    "headline": "Australian gold output down slightly as prices vary widely",
-    "url": "https://www.mining.com/australian-gold-output-down-slightly-as-prices-vary-widely/",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "gold output",
-      "neutral",
-      "volatility"
-    ],
-    "fetched_at": "2026-06-09T12:31:42.554003+00:00"
-  },
-  {
-    "source": "Mining.com",
-    "headline": "Eldorado\u2019s McIlvenna Bay starts copper concentrate output",
-    "url": "https://www.mining.com/eldorados-mcilvenna-bay-starts-copper-concentrate-output/",
-    "sentiment_score": -0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "copper production",
-      "base metals",
-      "mining"
-    ],
-    "fetched_at": "2026-06-09T12:31:42.554003+00:00"
-  },
-  {
-    "source": "Mining.com",
-    "headline": "Ex-CIA agent created fake spy program to amass $40M gold stash: reports",
-    "url": "https://www.mining.com/ex-cia-agent-created-fake-spy-program-to-amass-40m-gold-stash-reports/",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "fraud",
-      "unrelated",
-      "anecdotal"
-    ],
-    "fetched_at": "2026-06-09T12:31:42.554003+00:00"
-  },
-  {
-    "source": "Mining.com",
-    "headline": "Litus, Uwin Nanotech\u00a0to collaborate on critical minerals recovery tech",
-    "url": "https://www.mining.com/litus-uwin-nanotech-to-collaborate-on-critical-minerals-recovery-tech/",
-    "sentiment_score": -0.2,
-    "impact": "LOW",
-    "keywords": [
-      "critical minerals",
-      "supply chain",
-      "technology"
-    ],
-    "fetched_at": "2026-06-09T12:31:42.554003+00:00"
-  },
-  {
-    "source": "Mining.com",
-    "headline": "Gold price erases year\u2019s gains as rate hike chances surge",
-    "url": "https://www.mining.com/gold-price-nearly-flat-on-the-year-as-rate-hike-chances-surge/",
-    "sentiment_score": -0.9,
-    "impact": "HIGH",
-    "keywords": [
-      "rate hike",
-      "hawkish",
-      "stronger dollar"
-    ],
-    "fetched_at": "2026-06-09T12:31:42.554003+00:00"
-  },
-  {
-    "source": "Forexlive",
-    "headline": "Stocks higher, yields lower and oil lower leading to a lower dollar is the formula today",
-    "url": "https://investinglive.com/technical-analysis/stocks-higher-yields-lower-and-oil-lower-leading-to-a-lower-dollar-is-the-formula-today-20260609/",
-    "sentiment_score": 0.8,
-    "impact": "HIGH",
-    "keywords": [
-      "weak dollar",
-      "lower yields",
-      "risk-on"
-    ],
-    "fetched_at": "2026-06-09T12:31:42.554003+00:00"
-  },
-  {
-    "source": "ForexLive",
-    "headline": "Stocks higher, yields lower and oil lower leading to a lower dollar is the formula today",
-    "url": "https://investinglive.com/technical-analysis/stocks-higher-yields-lower-and-oil-lower-leading-to-a-lower-dollar-is-the-formula-today-20260609/",
-    "sentiment_score": 0.7,
-    "impact": "HIGH",
-    "keywords": [
-      "weak dollar",
-      "lower yields",
-      "risk sentiment"
-    ],
-    "fetched_at": "2026-06-09T12:46:45.569854+00:00"
-  },
-  {
-    "source": "ForexLive",
-    "headline": "investingLive European FX news wrap: Markets consolidate as US CPI looms",
-    "url": "https://investinglive.com/news/investinglive-european-fx-news-wrap-markets-consolidate-as-us-cpi-looms-20260609/",
-    "sentiment_score": 0.1,
-    "impact": "LOW",
-    "keywords": [
-      "consolidation",
-      "CPI",
-      "uncertainty"
-    ],
-    "fetched_at": "2026-06-09T12:46:45.569854+00:00"
-  },
-  {
-    "source": "ForexLive",
-    "headline": "USD/JPY holds above the 160.00 mark as traders look beyond the imminent BoJ rate hike",
-    "url": "https://investinglive.com/forex/usdjpy-holds-above-the-16000-mark-as-traders-look-beyond-the-imminent-boj-rate-hike-20260609/",
-    "sentiment_score": -0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "strong yen",
-      "rate hike",
-      "risk off"
-    ],
-    "fetched_at": "2026-06-09T12:46:45.569854+00:00"
-  },
-  {
-    "source": "ForexLive",
-    "headline": "Goldman Sachs no longer sees the Fed cutting interest rates this year",
-    "url": "https://investinglive.com/centralbank/goldman-sachs-no-longer-sees-the-fed-cutting-interest-rates-this-year-20260609/",
-    "sentiment_score": -0.8,
-    "impact": "HIGH",
-    "keywords": [
-      "Fed hawkish",
-      "no rate cuts",
-      "stronger dollar"
-    ],
-    "fetched_at": "2026-06-09T12:46:45.569854+00:00"
-  },
-  {
-    "source": "ForexLive",
-    "headline": "Indian Rupee maintains the bearish bias amid prolonged US-Iran stalemate, hawkish Fed risk",
-    "url": "https://investinglive.com/forex/indian-rupee-maintains-the-bearish-bias-amid-prolonged-us-iran-stalemate-hawkish-fed-risk-20260609/",
-    "sentiment_score": -0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "hawkish Fed",
-      "stronger dollar",
-      "risk off"
-    ],
-    "fetched_at": "2026-06-09T12:46:45.569854+00:00"
-  },
-  {
-    "source": "ForexLive",
-    "headline": "A quick US-Iran catchup ahead of European trading today",
-    "url": "https://investinglive.com/news/a-quick-us-iran-catchup-ahead-of-european-trading-today-20260609/",
-    "sentiment_score": 0.2,
-    "impact": "LOW",
-    "keywords": [
-      "geopolitical",
-      "Iran",
-      "uncertainty"
-    ],
-    "fetched_at": "2026-06-09T12:46:45.569854+00:00"
-  },
-  {
-    "source": "ForexLive",
-    "headline": "US president Trump says he may have an \"idea\" on Iran deal within a few days",
-    "url": "https://investinglive.com/news/us-president-trump-says-he-may-have-an-idea-on-iran-deal-within-a-few-days-20260609/",
-    "sentiment_score": 0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "Iran deal",
-      "geopolitical relief",
-      "risk sentiment"
-    ],
-    "fetched_at": "2026-06-09T12:46:45.569854+00:00"
-  },
-  {
-    "source": "ForexLive",
-    "headline": "Pentagon adds Alibaba, Baidu and BYD to China military-linked firms list",
-    "url": "https://investinglive.com/news/pentagon-adds-alibaba-baidu-and-byd-to-china-military-linked-firms-list-20260609/",
-    "sentiment_score": -0.2,
-    "impact": "LOW",
-    "keywords": [
-      "China sanctions",
-      "tech stocks",
-      "risk off"
-    ],
-    "fetched_at": "2026-06-09T12:46:45.569854+00:00"
-  },
-  {
-    "source": "ForexLive",
-    "headline": "China's May trade balance, exports and imports all higher than expected",
-    "url": "https://investinglive.com/news/chinas-may-trade-balance-exports-and-imports-all-higher-than-expected-20260609/",
-    "sentiment_score": 0.2,
-    "impact": "LOW",
-    "keywords": [
-      "China growth",
-      "trade surplus",
-      "risk sentiment"
-    ],
-    "fetched_at": "2026-06-09T12:46:45.569854+00:00"
-  },
-  {
     "source": "ForexLive",
     "headline": "China car sales fall 22% in May as oil prices crush petrol demand",
     "url": "https://investinglive.com/news/china-car-sales-fall-22-in-may-as-oil-prices-crush-petrol-demand-20260609/",
@@ -2599,5 +2261,343 @@
       "geopolitical uncertainty"
     ],
     "fetched_at": "2026-06-09T13:32:01.835110+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Talks on an agreement to prevent Iran from acquiring a nuclear weapon are achieving positive results - Al-Arabiya TV, citing a White House official",
+    "url": "https://www.financialjuice.com/News/9626605/Talks-on-an-agreement-to-prevent-Iran-from-acquiring-a-nuclear-weapon-are-achieving-positive-results---Al-Arabiya-TV-citing-a-White-House-official-.aspx?xy=rss",
+    "sentiment_score": 0.3,
+    "impact": "LOW",
+    "keywords": [
+      "geopolitical",
+      "Iran",
+      "nuclear"
+    ],
+    "fetched_at": "2026-06-09T14:02:11.704065+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Energy Secretary Wright met House Republicans ahead of their closed-door conference: Lots of Republicans wary about high gas prices ahead of midterms. Wright believed fuel prices will lower eventually - Three People in The Room.",
+    "url": "https://www.financialjuice.com/News/9626546/Energy-Secretary-Wright-met-House-Republicans-ahead-of-their-closed-door-conference-Lots-of-Republicans-wary-about-high-gas-prices-ahead-of-midterms-Wright-believed-fuel-prices-will-lower-eventually---Three-People-in-The-Room.aspx?xy=rss",
+    "sentiment_score": -0.2,
+    "impact": "LOW",
+    "keywords": [
+      "energy",
+      "inflation",
+      "Fed policy"
+    ],
+    "fetched_at": "2026-06-09T14:02:11.704065+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "China Unicom: Trump Administration proposal to crack down on Chinese telecom firms would cause severe disruption to global communications network, harm US companies with significant business in China - Filing with FCC.",
+    "url": "https://www.financialjuice.com/News/9626544/China-Unicom-Trump-Administration-proposal-to-crack-down-on-Chinese-telecom-firms-would-cause-severe-disruption-to-global-communications-network-harm-US-companies-with-significant-business-in-China---Filing-with-FCC.aspx?xy=rss",
+    "sentiment_score": 0.2,
+    "impact": "LOW",
+    "keywords": [
+      "trade tension",
+      "China",
+      "disruption"
+    ],
+    "fetched_at": "2026-06-09T14:02:11.704065+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Russian Urals oil flips to discount versus brent in India and China for the first time in three months - Sources.",
+    "url": "https://www.financialjuice.com/News/9626525/Russian-Urals-oil-flips-to-discount-versus-brent-in-India-and-China-for-the-first-time-in-three-months---Sources.aspx?xy=rss",
+    "sentiment_score": -0.3,
+    "impact": "LOW",
+    "keywords": [
+      "oil discount",
+      "supply pressure",
+      "energy"
+    ],
+    "fetched_at": "2026-06-09T14:02:11.704065+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Effective fed funds rate: 3.62% June 8th vs 3.62% June 5th",
+    "url": "https://www.financialjuice.com/News/9626500/Effective-fed-funds-rate-362-June-8th-vs-362-June-5th.aspx?xy=rss",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "rates",
+      "unchanged",
+      "neutral"
+    ],
+    "fetched_at": "2026-06-09T14:02:11.704065+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Goldman Sachs: Our US FCI Tightened Back to Its Pre-War Level Following Better Than Expected Employment Data Last Friday - FJElite",
+    "url": "https://www.financialjuice.com/News/9626488/Goldman-Sachs-Our-US-FCI-Tightened-Back-to-Its-Pre-War-Level-Following-Better-Than-Expected-Employment-Data-Last-Friday---FJElite.aspx?xy=rss",
+    "sentiment_score": -0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "financial conditions",
+      "tightening",
+      "employment"
+    ],
+    "fetched_at": "2026-06-09T14:02:11.704065+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Goldman Sachs US CPI Expectations - FJElite",
+    "url": "https://www.financialjuice.com/News/9626487/Goldman-Sachs-US-CPI-Expectations---FJElite.aspx?xy=rss",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "CPI",
+      "inflation",
+      "expectations"
+    ],
+    "fetched_at": "2026-06-09T14:02:11.704065+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "US Sentiment: Is Trump Done With Iran Conflict? - FJElite",
+    "url": "https://www.financialjuice.com/News/9626485/US-Sentiment-Is-Trump-Done-With-Iran-Conflict---FJElite.aspx?xy=rss",
+    "sentiment_score": 0.2,
+    "impact": "LOW",
+    "keywords": [
+      "geopolitical",
+      "Iran",
+      "sentiment"
+    ],
+    "fetched_at": "2026-06-09T14:02:11.704065+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "UN's Gutierrez: Ceasefires in Lebanon, Iran & Gaza must be fully respected",
+    "url": "https://www.financialjuice.com/News/9626431/UNs-Gutierrez-Ceasefires-in-Lebanon-Iran--Gaza-must-be-fully-respected.aspx?xy=rss",
+    "sentiment_score": 0.2,
+    "impact": "LOW",
+    "keywords": [
+      "ceasefire",
+      "Middle East",
+      "de-escalation"
+    ],
+    "fetched_at": "2026-06-09T14:02:11.704065+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "ECB's Moulin: Bank of France to revise inflation forecast higher",
+    "url": "https://www.financialjuice.com/News/9626396/ECBs-Moulin-Bank-of-France-to-revise-inflation-forecast-higher.aspx?xy=rss",
+    "sentiment_score": -0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "ECB",
+      "inflation revision",
+      "hawkish"
+    ],
+    "fetched_at": "2026-06-09T14:02:11.704065+00:00"
+  },
+  {
+    "source": "MarketWatch Top",
+    "headline": "Inflation is set to top 4% for the first time since 2023 \u2014 and the Fed is back in the hot seat",
+    "url": "https://www.marketwatch.com/story/inflation-is-set-to-top-4-for-the-first-time-since-2023-and-the-fed-is-back-in-the-hot-seat-0ae4efc7?mod=mw_rss_topstories",
+    "sentiment_score": -0.6,
+    "impact": "HIGH",
+    "keywords": [
+      "inflation",
+      "rate hike",
+      "Fed pressure"
+    ],
+    "fetched_at": "2026-06-09T14:02:11.704065+00:00"
+  },
+  {
+    "source": "MarketWatch Top",
+    "headline": "Markets are pricing in a rate hike by the European Central Bank \u2014 which one top economist sees as a \u2018mistake in the making\u2019",
+    "url": "https://www.marketwatch.com/story/markets-are-pricing-in-a-rate-hike-by-the-european-central-bank-and-that-could-be-a-mistake-in-the-making-b99771ca?mod=mw_rss_topstories",
+    "sentiment_score": -0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "ECB",
+      "rate hike",
+      "tightening"
+    ],
+    "fetched_at": "2026-06-09T14:02:11.704065+00:00"
+  },
+  {
+    "source": "Investing.com Comm",
+    "headline": "UK regulator begins review of Paramount Skydance Warner Bros deal",
+    "url": "https://www.investing.com/news/stock-market-news/uk-regulator-begins-review-of-paramount-skydance-warner-bros-deal-93CH-4733307",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "regulatory",
+      "merger",
+      "tech"
+    ],
+    "fetched_at": "2026-06-09T14:02:11.704065+00:00"
+  },
+  {
+    "source": "Investing.com Comm",
+    "headline": "Roblox stock rises on potential Russia restrictions lift",
+    "url": "https://www.investing.com/news/stock-market-news/roblox-stock-rises-on-potential-russia-restrictions-lift-93CH-4733303",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "equity",
+      "Russia",
+      "stock"
+    ],
+    "fetched_at": "2026-06-09T14:02:11.704065+00:00"
+  },
+  {
+    "source": "Investing.com Comm",
+    "headline": "Britain begins formal review of Paramount\u2019 s $110 billion Warner Bros deal",
+    "url": "https://www.investing.com/news/stock-market-news/britain-begins-formal-review-of-paramounts-110-billion-warner-bros-deal-4732532",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "regulatory",
+      "merger",
+      "tech"
+    ],
+    "fetched_at": "2026-06-09T14:02:11.704065+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Deutsche Bank says June Fed meeting will test new chair Warsh",
+    "url": "https://www.investing.com/news/forex-news/deutsche-bank-says-june-fed-meeting-will-test-new-chair-warsh-93CH-4732753",
+    "sentiment_score": -0.3,
+    "impact": "LOW",
+    "keywords": [
+      "Fed",
+      "policy",
+      "uncertainty"
+    ],
+    "fetched_at": "2026-06-09T14:02:11.704065+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "European bond yields ease ahead of ECB meeting, Middle East risks linger",
+    "url": "https://www.investing.com/news/forex-news/european-bond-yields-ease-ahead-of-ecb-meeting-middle-east-risks-linger-4732269",
+    "sentiment_score": 0.3,
+    "impact": "MEDIUM",
+    "keywords": [
+      "bond yields",
+      "geopolitical",
+      "Middle East"
+    ],
+    "fetched_at": "2026-06-09T14:02:11.704065+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Dollar retreats from 2-mth high as risk sentiment improves ahead of CPI test",
+    "url": "https://www.investing.com/news/forex-news/asia-fx-gains-dollar-dips-amid-middle-east-peace-hopes-china-trade-data-in-focus-4731976",
+    "sentiment_score": 0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "dollar weakness",
+      "risk-on",
+      "sentiment"
+    ],
+    "fetched_at": "2026-06-09T14:02:11.704065+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "U.S. dollar eases amid boost to risk sentiment as Iran and Israel halt strikes",
+    "url": "https://www.investing.com/news/forex-news/asia-fx-steadies-after-sliding-on-strong-us-jobs-data-dollar-firm-at-2mth-high-4729761",
+    "sentiment_score": 0.6,
+    "impact": "HIGH",
+    "keywords": [
+      "dollar weakness",
+      "geopolitical relief",
+      "Iran-Israel"
+    ],
+    "fetched_at": "2026-06-09T14:02:11.704065+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Wells Fargo closes short dollar bets on Chilean, Argentine pesos",
+    "url": "https://www.investing.com/news/forex-news/wells-fargo-closes-short-dollar-bets-on-chilean-argentine-pesos-93CH-4731320",
+    "sentiment_score": 0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "dollar weakness",
+      "risk sentiment",
+      "EM currencies"
+    ],
+    "fetched_at": "2026-06-09T14:02:11.704065+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Sterling today: Pound steady as Fed tightening bets and tech sell-off grip markets",
+    "url": "https://www.investing.com/news/forex-news/sterling-today-pound-steady-as-fed-tightening-bets-and-tech-selloff-grip-markets-4730715",
+    "sentiment_score": -0.6,
+    "impact": "MEDIUM",
+    "keywords": [
+      "Fed tightening",
+      "tech sell-off",
+      "USD strength"
+    ],
+    "fetched_at": "2026-06-09T14:02:11.704065+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Ericsson,\u00a0Epiroc expand alliance to accelerate mining automation",
+    "url": "https://www.mining.com/ericsson-epiroc-expand-alliance-to-accelerate-mining-automation/",
+    "sentiment_score": 0.3,
+    "impact": "LOW",
+    "keywords": [
+      "mining automation",
+      "operational efficiency",
+      "cost reduction"
+    ],
+    "fetched_at": "2026-06-09T14:02:11.704065+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Chinese buyers spark bidding war for US tungsten scrap: FT",
+    "url": "https://www.mining.com/chinese-buyers-spark-bidding-war-for-us-tungsten-scrap-ft/",
+    "sentiment_score": 0.2,
+    "impact": "LOW",
+    "keywords": [
+      "tungsten demand",
+      "industrial metals",
+      "scrap market"
+    ],
+    "fetched_at": "2026-06-09T14:02:11.704065+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "GoGold gets green light to build $227M mine in Mexico",
+    "url": "https://www.mining.com/gogold-approved-to-build-227m-mine-in-mexico/",
+    "sentiment_score": 0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "mine development",
+      "gold production",
+      "supply growth"
+    ],
+    "fetched_at": "2026-06-09T14:02:11.704065+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Australian gold output down slightly as prices vary widely",
+    "url": "https://www.mining.com/australian-gold-output-down-slightly-as-prices-vary-widely/",
+    "sentiment_score": -0.3,
+    "impact": "LOW",
+    "keywords": [
+      "Australian output",
+      "supply increase",
+      "production decline"
+    ],
+    "fetched_at": "2026-06-09T14:02:11.704065+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Eldorado\u2019s McIlvenna Bay starts copper concentrate output",
+    "url": "https://www.mining.com/eldorados-mcilvenna-bay-starts-copper-concentrate-output/",
+    "sentiment_score": 0.2,
+    "impact": "LOW",
+    "keywords": [
+      "copper production",
+      "mining operations",
+      "base metals"
+    ],
+    "fetched_at": "2026-06-09T14:02:11.704065+00:00"
   }
 ]
