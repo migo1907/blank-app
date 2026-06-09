@@ -27,7 +27,10 @@ FRED_API_KEY = os.environ.get("FRED_API_KEY", "")
 _FRED_BASE   = "https://api.stlouisfed.org/fred/series/observations"
 _CFTC_GOLD   = "https://publicreporting.cftc.gov/resource/6dca-aqww.json"  # Legacy futures-only (Socrata)
 _GOLD_CODE   = "088691"  # Gold, COMEX
-_SPDR_CSV    = "https://www.spdrgoldshares.com/assets/dynamic/GLD/GLD_US_archive_EN.csv"
+_SPDR_CSV_URLS = [
+    "https://www.spdrgoldshares.com/assets/dynamic/GLD/GLD_US_archive_EN.csv",
+    "https://www.ssga.com/us/en/individual/etfs/funds/spdr-gold-shares-gld/fund-data/gld-us-fund-data.csv",
+]
 _MACRO_PATH        = "data/market_macro.json"
 _EQUITY_MACRO_PATH = "data/equity_macro.json"
 
@@ -111,52 +114,85 @@ def _cftc_gold_cot() -> dict | None:
 
 # ── SPDR GLD: latest holdings in tonnes ───────────────────────────────────────
 
-def _gld_holdings() -> dict | None:
-    """Latest GLD tonnes-in-trust + day-over-day change from SPDR's official CSV. No auth."""
-    try:
-        with httpx.Client(timeout=15, follow_redirects=True) as client:
-            resp = client.get(_SPDR_CSV, headers={"User-Agent": _BROWSER_UA})
-        resp.raise_for_status()
-        rows = list(csv.reader(io.StringIO(resp.text)))
-        # Find the header row containing a "Tonnes" column; data rows are newest-first below it.
-        header_idx = None
-        tonnes_col = None
-        date_col = None
-        for i, row in enumerate(rows):
-            joined = ",".join(c.lower() for c in row)
-            if "tonnes" in joined:
-                header_idx = i
-                for j, c in enumerate(row):
-                    cl = c.strip().lower()
-                    if "tonnes" in cl:
-                        tonnes_col = j
-                    if cl == "date" or cl.startswith("date"):
-                        date_col = j
-                break
-        if header_idx is None or tonnes_col is None:
-            return None
-
-        def _row_tonnes(r: list) -> float | None:
-            try:
-                return float(r[tonnes_col].replace(",", ""))
-            except (ValueError, IndexError):
-                return None
-
-        data_rows = [r for r in rows[header_idx + 1:] if len(r) > tonnes_col and _row_tonnes(r) is not None]
-        if not data_rows:
-            return None
-        latest = data_rows[0]
-        cur_t = _row_tonnes(latest)
-        prev_t = _row_tonnes(data_rows[1]) if len(data_rows) > 1 else cur_t
-        return {
-            "date":   latest[date_col].strip() if date_col is not None and len(latest) > date_col else "",
-            "tonnes": round(cur_t, 2),
-            "tonnes_prev": round(prev_t, 2),
-            "tonnes_change": round(cur_t - prev_t, 2),
-        }
-    except Exception as e:
-        print(f"[macro] SPDR GLD fetch failed: {e}")
+def _parse_spdr_csv(text: str) -> dict | None:
+    """Parse SPDR GLD CSV text — finds header row with 'tonnes', returns latest holdings."""
+    rows = list(csv.reader(io.StringIO(text)))
+    header_idx = tonnes_col = date_col = None
+    for i, row in enumerate(rows):
+        joined = ",".join(c.lower() for c in row)
+        if "tonnes" in joined:
+            header_idx = i
+            for j, c in enumerate(row):
+                cl = c.strip().lower()
+                if "tonnes" in cl:
+                    tonnes_col = j
+                if cl == "date" or cl.startswith("date"):
+                    date_col = j
+            break
+    if header_idx is None or tonnes_col is None:
         return None
+
+    def _row_tonnes(r: list) -> float | None:
+        try:
+            return float(r[tonnes_col].replace(",", ""))
+        except (ValueError, IndexError):
+            return None
+
+    data_rows = [r for r in rows[header_idx + 1:] if len(r) > tonnes_col and _row_tonnes(r) is not None]
+    if not data_rows:
+        return None
+    latest = data_rows[0]
+    cur_t  = _row_tonnes(latest)
+    prev_t = _row_tonnes(data_rows[1]) if len(data_rows) > 1 else cur_t
+    return {
+        "date":          latest[date_col].strip() if date_col is not None and len(latest) > date_col else "",
+        "tonnes":        round(cur_t, 2),
+        "tonnes_prev":   round(prev_t, 2),
+        "tonnes_change": round(cur_t - prev_t, 2),
+    }
+
+
+def _gld_holdings() -> dict | None:
+    """
+    Latest GLD tonnes-in-trust from SPDR CSV (tries multiple URLs).
+    Falls back to yfinance GLD price-change proxy if all CSV sources fail.
+    """
+    with httpx.Client(timeout=15, follow_redirects=True) as client:
+        for url in _SPDR_CSV_URLS:
+            try:
+                resp = client.get(url, headers={"User-Agent": _BROWSER_UA})
+                if resp.status_code == 200 and resp.text.strip():
+                    result = _parse_spdr_csv(resp.text)
+                    if result:
+                        print(f"[macro] GLD holdings from {url.split('/')[2]}: {result['tonnes']}t")
+                        return result
+                    print(f"[macro] SPDR CSV parse failed ({url.split('/')[2]}) — no 'tonnes' column found")
+            except Exception as e:
+                print(f"[macro] SPDR CSV fetch failed ({url.split('/')[2]}): {e}")
+
+    # Fallback: use yfinance GLD ETF price change as a flow proxy
+    # Not tonnes, but direction is the same: rising GLD price = rising demand
+    try:
+        import yfinance as yf
+        tk   = yf.Ticker("GLD")
+        hist = tk.history(period="5d", interval="1d", auto_adjust=True)
+        if hist is not None and len(hist) >= 2:
+            cur  = float(hist["Close"].iloc[-1])
+            prev = float(hist["Close"].iloc[-2])
+            pct_chg = (cur - prev) / prev * 100.0
+            # Express as a pseudo-tonnes change (directional signal only)
+            print(f"[macro] GLD yfinance fallback: price {prev:.2f}→{cur:.2f} ({pct_chg:+.2f}%)")
+            return {
+                "date":          str(hist.index[-1].date()),
+                "tonnes":        cur,
+                "tonnes_prev":   prev,
+                "tonnes_change": round(cur - prev, 4),
+                "source":        "yfinance_proxy",
+            }
+    except Exception as e:
+        print(f"[macro] GLD yfinance fallback failed: {e}")
+
+    return None
 
 
 # ── Macro bias computation ────────────────────────────────────────────────────
@@ -174,19 +210,21 @@ def _compute_equity_macro_bias(
     components: dict[str, float] = {}
 
     # Real yield: rising = higher discount rate = bearish growth/equities
+    # Threshold 15bp: a meaningful daily TIPS move (5bp was too sensitive, maxed out on noise)
     if real_yield is not None and real_yield_prev is not None:
         chg = real_yield - real_yield_prev
-        components["real_yield"] = max(-1.0, min(1.0, -chg / 0.05))
+        components["real_yield"] = max(-1.0, min(1.0, -chg / 0.15))
 
     # Nominal 10yr yield: rising risk-free rate competes with equities
     if nominal_yield is not None and nominal_yield_prev is not None:
         chg = nominal_yield - nominal_yield_prev
-        components["nominal_yield"] = max(-1.0, min(1.0, -chg / 0.05))
+        components["nominal_yield"] = max(-1.0, min(1.0, -chg / 0.15))
 
     # Dollar: strong USD = earnings headwind for multinational S&P500
+    # Threshold 1.5%: meaningful broad-dollar daily move (0.5% was too sensitive)
     if dollar is not None and dollar_prev is not None and dollar_prev:
         pct = (dollar - dollar_prev) / dollar_prev * 100.0
-        components["dollar"] = max(-0.5, min(0.5, -pct / 0.5))
+        components["dollar"] = max(-0.5, min(0.5, -pct / 1.5))
 
     weights = {"real_yield": 1.0, "nominal_yield": 0.8, "dollar": 0.4}
     num = sum(components[k] * weights[k] for k in components)
@@ -232,19 +270,21 @@ def compute_macro_bias() -> dict:
     components: dict[str, float] = {}
 
     # Real yield change — gold's #1 driver. Rising real yields ⇒ bearish.
+    # Threshold 15bp: a big daily TIPS move (5bp maxed out on routine noise)
     if real_yield is not None and real_yield_prev is not None:
-        chg = real_yield - real_yield_prev          # in percentage points
-        components["real_yield"] = max(-1.0, min(1.0, -chg / 0.05))  # 5bp move ≈ full tilt
+        chg = real_yield - real_yield_prev
+        components["real_yield"] = max(-1.0, min(1.0, -chg / 0.15))
 
     # Dollar change. Rising dollar ⇒ bearish gold.
+    # Threshold 1.5%: meaningful broad-dollar daily swing (0.5% was too sensitive)
     if dollar is not None and dollar_prev is not None and dollar_prev:
         pct = (dollar - dollar_prev) / dollar_prev * 100.0
-        components["dollar"] = max(-1.0, min(1.0, -pct / 0.5))       # 0.5% move ≈ full tilt
+        components["dollar"] = max(-1.0, min(1.0, -pct / 1.5))
 
     # Breakeven inflation change. Rising inflation expectations ⇒ bullish gold.
     if breakeven is not None and breakeven_prev is not None:
         chg = breakeven - breakeven_prev
-        components["breakeven"] = max(-1.0, min(1.0, chg / 0.05))
+        components["breakeven"] = max(-1.0, min(1.0, chg / 0.15))
 
     # COT confirmation — speculators adding longs ⇒ mild bullish lean.
     if cot and cot.get("spec_net_prev"):
