@@ -196,5 +196,23 @@
     "ml_score": 0.5,
     "stored_at": "2026-06-09T18:30:04.695762+00:00",
     "expires_at": "2026-06-09T20:30:04.695786+00:00"
+  },
+  "META_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "META",
+    "trigger": "FVG",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-09T18:30:14.328063+00:00",
+    "expires_at": "2026-06-09T20:30:14.328078+00:00"
+  },
+  "GOOG_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "GOOG",
+    "trigger": "FVG",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-09T18:30:14.882260+00:00",
+    "expires_at": "2026-06-09T20:30:14.882283+00:00"
   }
 }
