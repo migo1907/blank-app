@@ -2082,7 +2082,7 @@
   {
     "symbol": "XAUUSD",
     "direction": "LONG",
-    "trigger": "",
+    "trigger": "FVG",
     "entry_price": 4333.42,
     "exit_price": 4325.31,
     "outcome": "LOSS",
@@ -2119,8 +2119,8 @@
     "f23_rsiacc": 0.3676,
     "f24_fvgq": 1.0,
     "f25_tod": 0.8387,
-    "id": "f058fb3f",
+    "id": "6424516e",
     "pool": "XAUUSD_5M",
-    "created_at": "2026-06-09T09:02:05.868382+00:00"
+    "created_at": "2026-06-09T09:02:04.561934+00:00"
   }
 ]
