@@ -2038,7 +2038,7 @@
   {
     "symbol": "XAUUSD",
     "direction": "SHORT",
-    "trigger": "",
+    "trigger": "RSI",
     "entry_price": 4333.66,
     "exit_price": 4332.27,
     "outcome": "PARTIAL",
@@ -2075,8 +2075,8 @@
     "f23_rsiacc": -0.3563,
     "f24_fvgq": 0.0,
     "f25_tod": 0.9931,
-    "id": "11f107b0",
+    "id": "e583a083",
     "pool": "XAUUSD_5M",
-    "created_at": "2026-06-09T07:32:03.717366+00:00"
+    "created_at": "2026-06-09T07:32:04.862270+00:00"
   }
 ]
