@@ -896,20 +896,11 @@ async def _daily_trade_count_report() -> None:
                 lines.append(f"\n📈 <b>Stocks</b> ({o_tot} trades)")
                 lines.append(_wr_line(o_tot, o_tp, o_sl, o_par))
 
-        # All-time totals for context
-        all_hist_total = 0
-        for path in all_paths:
-            hist, _ = await asyncio.to_thread(_get_file, path)
-            if isinstance(hist, list):
-                all_hist_total += len(hist)
-
         msg = (
             f"📊 <b>DAILY PERFORMANCE REPORT — {date_str}</b>\n"
             f"━━━━━━━━━━━━━━━━━━━━\n"
             + "\n".join(lines) +
             f"\n━━━━━━━━━━━━━━━━━━━━\n"
-            f"All-time trades: <b>{all_hist_total}</b> | "
-            f"Macro: {_cached_macro_label()} | "
             f"⏰ {now_utc.strftime('%H:%M UTC')}"
         )
         await send_text(msg)
