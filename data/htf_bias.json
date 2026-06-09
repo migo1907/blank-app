@@ -79,5 +79,59 @@
     "ml_score": 0.5,
     "stored_at": "2026-06-09T14:30:04.293100+00:00",
     "expires_at": "2026-06-09T16:30:04.293117+00:00"
+  },
+  "PLTR_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "PLTR",
+    "trigger": "FVG",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-09T14:30:15.216519+00:00",
+    "expires_at": "2026-06-09T16:30:15.216553+00:00"
+  },
+  "MSTR_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "MSTR",
+    "trigger": "FVG",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-09T14:30:15.877555+00:00",
+    "expires_at": "2026-06-09T16:30:15.877583+00:00"
+  },
+  "NOW_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "NOW",
+    "trigger": "FVG",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-09T14:30:24.381289+00:00",
+    "expires_at": "2026-06-09T16:30:24.381306+00:00"
+  },
+  "RR_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "RR",
+    "trigger": "BOS",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-09T14:30:27.972766+00:00",
+    "expires_at": "2026-06-09T16:30:27.972777+00:00"
+  },
+  "CRM_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "CRM",
+    "trigger": "FVG",
+    "ml_score": 0.25,
+    "stored_at": "2026-06-09T14:30:28.616554+00:00",
+    "expires_at": "2026-06-09T16:30:28.616568+00:00"
+  },
+  "PATH_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "PATH",
+    "trigger": "FVG",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-09T14:30:30.125762+00:00",
+    "expires_at": "2026-06-09T16:30:30.125777+00:00"
   }
 }
