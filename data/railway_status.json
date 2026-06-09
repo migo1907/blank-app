@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-06-09T09:38:46.290377+00:00",
+  "checked_at": "2026-06-09T12:26:18.046626+00:00",
   "health": {
     "status_code": 200,
     "data": {
@@ -14,46 +14,46 @@
       "pool": "XAUUSD_2M",
       "model": {
         "weights": {
-          "w1": 0.2947,
-          "w2": 0.5467,
-          "w3": 0.9828,
-          "w4": 0.2,
-          "w5": 0.21,
-          "w6": 2.0728,
-          "w7": 0.2237,
-          "w8": 0.7362,
-          "w9": 0.2897,
-          "w10": 0.7937,
-          "w11": 0.3397,
-          "w12": 1.2613,
-          "w13": 1.3498,
-          "w14": 1.1053,
-          "w15": 1.1788,
-          "w16": 0.8197,
-          "w17": 0.8112,
-          "w18": 0.2,
-          "w19": 1.1518,
-          "w20": 0.6562,
-          "w21": 0.7827,
-          "w22": 0.2,
-          "w23": 0.2,
-          "w24": 1.0613,
-          "w25": 1.1527
+          "w1": 0.3017,
+          "w2": 0.5597,
+          "w3": 0.9958,
+          "w4": 0.207,
+          "w5": 0.203,
+          "w6": 2.0798,
+          "w7": 0.2307,
+          "w8": 0.7432,
+          "w9": 0.2767,
+          "w10": 0.8007,
+          "w11": 0.3467,
+          "w12": 1.2683,
+          "w13": 1.3428,
+          "w14": 1.0923,
+          "w15": 1.1858,
+          "w16": 0.8127,
+          "w17": 0.8182,
+          "w18": 0.203,
+          "w19": 1.1588,
+          "w20": 0.6632,
+          "w21": 0.7897,
+          "w22": 0.203,
+          "w23": 0.203,
+          "w24": 1.0683,
+          "w25": 1.1657
         },
-        "win_rate": 35.4,
-        "total_trades": 175,
+        "win_rate": 35.6,
+        "total_trades": 177,
         "top_features": [
           {
             "name": "WillR",
-            "weight": 2.0728
+            "weight": 2.0798
           },
           {
             "name": "P/D",
-            "weight": 1.3498
+            "weight": 1.3428
           },
           {
             "name": "Liq",
-            "weight": 1.2613
+            "weight": 1.2683
           }
         ]
       },
@@ -62,44 +62,54 @@
         "top_features": [
           {
             "name": "f3_atr",
-            "importance": 0.0833
-          },
-          {
-            "name": "f2_adx",
-            "importance": 0.082
+            "importance": 0.0838
           },
           {
             "name": "f25_tod",
-            "importance": 0.0787
+            "importance": 0.0799
+          },
+          {
+            "name": "f2_adx",
+            "importance": 0.0777
           }
         ]
       },
-      "news_sentiment": -0.0654,
+      "news_sentiment": -0.0662,
       "news_velocity": {
         "multiplier": 0.6,
-        "volume": 25,
-        "consistency": 0.062,
-        "acceleration": 0.178,
-        "direction": "BULLISH",
+        "volume": 28,
+        "consistency": 0.067,
+        "acceleration": 0.356,
+        "direction": "BEARISH",
         "label": "CONFLICTED",
-        "high_count": 5,
-        "total_count": 49
+        "high_count": 7,
+        "total_count": 47
       },
       "high_impact_event": {
         "detected": true,
         "event_type": "CPI",
         "urgency": 0.9,
         "headlines": [
-          "Dutch CPI MoM Actual 0.1% (Forecast -, Previous 1.1%)",
-          "Dutch CPI YoY Actual 3.5% (Forecast 3.5%, Previous 2.8%)",
+          "investingLive European FX news wrap: Markets consolidate as US CPI looms",
           "Dollar retreats from 2-mth high as risk sentiment improves ahead of CPI test"
         ],
         "all_events": [
-          "CPI"
+          "CPI",
+          "SANCTIONS"
         ]
       },
       "recent_news_count": 200,
       "recent_trades": [
+        {
+          "direction": "SHORT",
+          "outcome": "PARTIAL",
+          "created_at": "2026-06-09T12:18:05.235325+00:00"
+        },
+        {
+          "direction": "SHORT",
+          "outcome": "LOSS",
+          "created_at": "2026-06-09T11:30:06.585150+00:00"
+        },
         {
           "direction": "LONG",
           "outcome": "LOSS",
@@ -139,16 +149,6 @@
           "direction": "LONG",
           "outcome": "LOSS",
           "created_at": "2026-06-09T07:52:02.190624+00:00"
-        },
-        {
-          "direction": "SHORT",
-          "outcome": "LOSS",
-          "created_at": "2026-06-09T07:42:03.782597+00:00"
-        },
-        {
-          "direction": "LONG",
-          "outcome": "LOSS",
-          "created_at": "2026-06-09T07:32:05.504946+00:00"
         }
       ]
     }
@@ -158,47 +158,47 @@
     "data": {
       "pool": "XAUUSD_2M",
       "weights": {
-        "w1": 0.2947,
-        "w2": 0.5467,
-        "w3": 0.9828,
-        "w4": 0.2,
-        "w5": 0.21,
-        "w6": 2.0728,
-        "w7": 0.2237,
-        "w8": 0.7362,
-        "w9": 0.2897,
-        "w10": 0.7937,
-        "w11": 0.3397,
-        "w12": 1.2613,
-        "w13": 1.3498,
-        "w14": 1.1053,
-        "w15": 1.1788,
-        "w16": 0.8197,
-        "w17": 0.8112,
-        "w18": 0.2,
-        "w19": 1.1518,
-        "w20": 0.6562,
-        "w21": 0.7827,
-        "w22": 0.2,
-        "w23": 0.2,
-        "w24": 1.0613,
-        "w25": 1.1527
+        "w1": 0.3017,
+        "w2": 0.5597,
+        "w3": 0.9958,
+        "w4": 0.207,
+        "w5": 0.203,
+        "w6": 2.0798,
+        "w7": 0.2307,
+        "w8": 0.7432,
+        "w9": 0.2767,
+        "w10": 0.8007,
+        "w11": 0.3467,
+        "w12": 1.2683,
+        "w13": 1.3428,
+        "w14": 1.0923,
+        "w15": 1.1858,
+        "w16": 0.8127,
+        "w17": 0.8182,
+        "w18": 0.203,
+        "w19": 1.1588,
+        "w20": 0.6632,
+        "w21": 0.7897,
+        "w22": 0.203,
+        "w23": 0.203,
+        "w24": 1.0683,
+        "w25": 1.1657
       },
-      "total_wins": 62,
-      "total_losses": 113,
-      "win_rate": 35.4,
+      "total_wins": 63,
+      "total_losses": 114,
+      "win_rate": 35.6,
       "top_features": [
         {
           "name": "WillR",
-          "weight": 2.0728
+          "weight": 2.0798
         },
         {
           "name": "P/D",
-          "weight": 1.3498
+          "weight": 1.3428
         },
         {
           "name": "Liq",
-          "weight": 1.2613
+          "weight": 1.2683
         }
       ]
     }
