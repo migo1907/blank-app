@@ -9,22 +9,22 @@
     "expires_at": "2026-06-09T17:30:03.970380+00:00"
   },
   "GOOG_30": {
-    "direction": "LONG",
+    "direction": "SHORT",
     "timeframe": "30",
     "symbol": "GOOG",
     "trigger": "FVG",
-    "ml_score": 0.25,
-    "stored_at": "2026-06-09T14:00:05.318241+00:00",
-    "expires_at": "2026-06-09T16:00:05.318255+00:00"
+    "ml_score": 0.625,
+    "stored_at": "2026-06-09T15:30:13.828125+00:00",
+    "expires_at": "2026-06-09T17:30:13.828143+00:00"
   },
   "GOOGL_30": {
-    "direction": "LONG",
+    "direction": "SHORT",
     "timeframe": "30",
     "symbol": "GOOGL",
     "trigger": "FVG",
-    "ml_score": 0.25,
-    "stored_at": "2026-06-09T14:00:10.880039+00:00",
-    "expires_at": "2026-06-09T16:00:10.880054+00:00"
+    "ml_score": 0.75,
+    "stored_at": "2026-06-09T15:30:12.962963+00:00",
+    "expires_at": "2026-06-09T17:30:12.962982+00:00"
   },
   "AAPL_30": {
     "direction": "SHORT",
@@ -84,10 +84,10 @@
     "direction": "SHORT",
     "timeframe": "30",
     "symbol": "PLTR",
-    "trigger": "FVG",
-    "ml_score": 0.375,
-    "stored_at": "2026-06-09T14:30:15.216519+00:00",
-    "expires_at": "2026-06-09T16:30:15.216553+00:00"
+    "trigger": "BOS",
+    "ml_score": 0.75,
+    "stored_at": "2026-06-09T15:30:06.555982+00:00",
+    "expires_at": "2026-06-09T17:30:06.555992+00:00"
   },
   "MSTR_30": {
     "direction": "SHORT",
@@ -194,8 +194,8 @@
     "symbol": "SPX500",
     "trigger": "BOS",
     "ml_score": 0.5,
-    "stored_at": "2026-06-09T15:00:21.512557+00:00",
-    "expires_at": "2026-06-09T17:00:21.512573+00:00"
+    "stored_at": "2026-06-09T15:30:09.834968+00:00",
+    "expires_at": "2026-06-09T17:30:09.834981+00:00"
   },
   "IBKR_30": {
     "direction": "SHORT",
