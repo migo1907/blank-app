@@ -26,9 +26,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install --quiet fastapi uvicorn apscheduler httpx python-telegram-bot \
-            scikit-learn numpy pandas requests feedparser python-dotenv PyGithub \
-            yfinance aiohttp
+          pip install --quiet -r requirements.txt
           pip install --quiet pytest
 
       - name: Syntax check all backend files
