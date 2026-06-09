@@ -67,9 +67,9 @@
     "timeframe": "30",
     "symbol": "PLTR",
     "trigger": "BOS",
-    "ml_score": 0.75,
-    "stored_at": "2026-06-09T15:30:06.555982+00:00",
-    "expires_at": "2026-06-09T17:30:06.555992+00:00"
+    "ml_score": 0.5,
+    "stored_at": "2026-06-09T16:30:09.130621+00:00",
+    "expires_at": "2026-06-09T18:30:09.130644+00:00"
   },
   "MSTR_30": {
     "direction": "SHORT",
@@ -156,10 +156,10 @@
     "direction": "SHORT",
     "timeframe": "30",
     "symbol": "TSLL",
-    "trigger": "FVG",
+    "trigger": "BOS",
     "ml_score": 0.375,
-    "stored_at": "2026-06-09T15:00:08.153946+00:00",
-    "expires_at": "2026-06-09T17:00:08.153966+00:00"
+    "stored_at": "2026-06-09T16:30:08.923682+00:00",
+    "expires_at": "2026-06-09T18:30:08.923705+00:00"
   },
   "PLUG_30": {
     "direction": "SHORT",
