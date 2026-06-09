@@ -183,11 +183,13 @@ def _gld_holdings() -> dict | None:
             # Express as a pseudo-tonnes change (directional signal only)
             print(f"[macro] GLD yfinance fallback: price {prev:.2f}→{cur:.2f} ({pct_chg:+.2f}%)")
             return {
-                "date":          str(hist.index[-1].date()),
-                "tonnes":        cur,
-                "tonnes_prev":   prev,
-                "tonnes_change": round(cur - prev, 4),
-                "source":        "yfinance_proxy",
+                "date":           str(hist.index[-1].date()),
+                "price":          round(cur, 2),
+                "price_prev":     round(prev, 2),
+                "price_change":   round(cur - prev, 4),
+                "tonnes":         None,
+                "tonnes_change":  round(cur - prev, 4),  # directional proxy only
+                "source":         "yfinance_proxy",
             }
     except Exception as e:
         print(f"[macro] GLD yfinance fallback failed: {e}")

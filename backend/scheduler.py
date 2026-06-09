@@ -864,8 +864,6 @@ async def _daily_trade_count_report() -> None:
         print(f"[daily_report] Performance report sent — {tot} trades today, TP={tp} SL={sl} P={par}.")
     except Exception as e:
         print(f"[daily_report] Error: {e}")
-    except Exception as e:
-        print(f"[daily_report] Error: {e}")
 
 
 async def _stocks_session_report() -> None:
