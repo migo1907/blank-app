@@ -420,7 +420,6 @@ def generate_signal(
     trigger: str = "",
     pool: str | None = None,
     macro_bias: dict | None = None,
-    conflicted_cycles: int = 0,
 ) -> dict:
     from db import symbol_to_pool
     pool     = pool or symbol_to_pool(symbol)
@@ -465,11 +464,15 @@ def generate_signal(
     event    = high_impact_event or {"detected": False, "urgency": 0.0}
 
     if v_label == "CONFLICTED":
-        # Suppress for up to 2 consecutive CONFLICTED cycles (~30 min) — original intent:
-        # wait briefly for news to stabilise. After 2 cycles, release to ML models regardless.
+        # Option B: pass immediately if ML confidence is high enough (≥0.65),
+        # regardless of model agreement — a strong signal beats noisy news.
+        # Only suppress genuinely low-conviction / disagreeing signals.
+        ml_strength = (abs(knn_directional) + abs(rf_directional) + abs(gbm_directional)) / 3.0
+        ml_conf_proxy = 0.5 + ml_strength * 0.5   # map [0,1] directional → [0.5,1.0]
+        high_conviction = ml_conf_proxy >= 0.65
         all_agree = (knn_dir == rf_dir == gbm_dir)
-        if not all_agree and conflicted_cycles < 2:
-            return _neutral_signal(symbol, now, model, rf, f"News velocity CONFLICTED (cycle {conflicted_cycles+1}/2)", news_agg, pool, current_features, is_stock=is_stock)
+        if not high_conviction and not all_agree:
+            return _neutral_signal(symbol, now, model, rf, "News CONFLICTED — low conviction", news_agg, pool, current_features, is_stock=is_stock)
 
     if event.get("detected") and event.get("urgency", 0) >= 0.9:
         v_mult = min(v_mult * 1.5, 3.0)

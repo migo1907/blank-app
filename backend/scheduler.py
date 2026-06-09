@@ -14,9 +14,6 @@ _last_sent_direction: str     = "NEUTRAL"
 _last_sent_direction_spy: str = "NEUTRAL"
 _last_sent_direction_qqq: str = "NEUTRAL"
 _startup_cycle: bool = True  # suppress alert on first cycle after restart
-_conflicted_cycles_xau: int = 0   # consecutive CONFLICTED news cycles for XAUUSD
-_conflicted_cycles_spy: int = 0   # consecutive CONFLICTED news cycles for SPY
-_conflicted_cycles_qqq: int = 0   # consecutive CONFLICTED news cycles for QQQ
 _webhook_errors:  int = 0   # count of failed trade webhooks since last hourly check
 _webhook_ok:      int = 0   # count of successful trade webhooks since last hourly check
 
@@ -209,8 +206,6 @@ async def _news_signal_cycle() -> None:
             _latest_velocity = velocity
             _latest_event    = event
 
-        global _conflicted_cycles_xau, _conflicted_cycles_spy, _conflicted_cycles_qqq
-
         from market_macro import get_macro_bias, get_equity_macro_bias
         _gold_macro   = get_macro_bias()
         _equity_macro = get_equity_macro_bias()
@@ -222,18 +217,11 @@ async def _news_signal_cycle() -> None:
             symbol="XAUUSD",
             pool="XAUUSD_2M",
             macro_bias=_gold_macro,
-            conflicted_cycles=_conflicted_cycles_xau,
         )
-        # Track consecutive CONFLICTED cycles — reset on any non-CONFLICTED velocity
-        if _latest_velocity.get("label") == "CONFLICTED":
-            _conflicted_cycles_xau += 1
-        else:
-            _conflicted_cycles_xau = 0
         print(
             f"[scheduler] Signal: {signal['direction']} "
             f"conf={signal['confidence']:.2f} "
             f"velocity={signal['news_velocity']} ×{signal['velocity_mult']}"
-            + (f" [CONFLICTED cycle {_conflicted_cycles_xau}]" if _conflicted_cycles_xau > 0 else "")
         )
 
         # ── Send direction alert — only on explicit LONG/SHORT flip with confidence > 0 ──
@@ -265,12 +253,7 @@ async def _news_signal_cycle() -> None:
                 symbol="SPY",
                 pool="STOCKS_INDEX_30M",
                 macro_bias=_equity_macro,
-                conflicted_cycles=_conflicted_cycles_spy,
             )
-            if _latest_velocity.get("label") == "CONFLICTED":
-                _conflicted_cycles_spy += 1
-            else:
-                _conflicted_cycles_spy = 0
             spy_dir  = spy_signal["direction"]
             spy_conf = spy_signal.get("confidence", 0.0)
             print(f"[scheduler] SPY: {spy_dir} conf={spy_conf:.2f} sess={spy_signal['session']}")
@@ -301,12 +284,7 @@ async def _news_signal_cycle() -> None:
                 symbol="QQQ",
                 pool="STOCKS_QQQ_30M",
                 macro_bias=_equity_macro,
-                conflicted_cycles=_conflicted_cycles_qqq,
             )
-            if _latest_velocity.get("label") == "CONFLICTED":
-                _conflicted_cycles_qqq += 1
-            else:
-                _conflicted_cycles_qqq = 0
             qqq_dir  = qqq_signal["direction"]
             qqq_conf = qqq_signal.get("confidence", 0.0)
             print(f"[scheduler] QQQ: {qqq_dir} conf={qqq_conf:.2f} sess={qqq_signal['session']}")
