@@ -25,5 +25,23 @@
     "ml_score": 0.25,
     "stored_at": "2026-06-09T14:00:10.880039+00:00",
     "expires_at": "2026-06-09T16:00:10.880054+00:00"
+  },
+  "AAPL_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "AAPL",
+    "trigger": "FVG",
+    "ml_score": 0.125,
+    "stored_at": "2026-06-09T14:00:11.682720+00:00",
+    "expires_at": "2026-06-09T16:00:11.682745+00:00"
+  },
+  "TNA_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "TNA",
+    "trigger": "BOS",
+    "ml_score": 0.75,
+    "stored_at": "2026-06-09T14:00:14.440944+00:00",
+    "expires_at": "2026-06-09T16:00:14.440964+00:00"
   }
 }
