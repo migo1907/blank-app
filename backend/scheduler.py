@@ -1003,8 +1003,13 @@ def start_scheduler() -> AsyncIOScheduler:
     _scheduler.add_job(_macro_refresh_cycle, trigger="interval", hours=1, id="macro_refresh_cycle", replace_existing=True,
                        start_date=_dt.now(_tz.utc) + _td(seconds=20))
     _scheduler.add_job(_daily_market_brief, trigger="cron", hour=8, minute=0, id="daily_market_brief", replace_existing=True, misfire_grace_time=3600)
-    _scheduler.add_job(_stocks_session_report, trigger="cron", hour=21, minute=5, id="stocks_session_report", replace_existing=True, misfire_grace_time=3600)
-    _scheduler.add_job(_daily_trade_count_report, trigger="cron", hour=21, minute=1, id="daily_trade_count_report", replace_existing=True, misfire_grace_time=3600)
+    # NY-close reports are pinned to America/New_York (16:0x ET) so they auto-adjust
+    # for DST. Previously hardcoded to 21:0x UTC, which fired an hour late all summer
+    # (EDT close is 20:00 UTC, not 21:00).
+    from zoneinfo import ZoneInfo
+    _ny_tz = ZoneInfo("America/New_York")
+    _scheduler.add_job(_stocks_session_report, trigger="cron", hour=16, minute=5, timezone=_ny_tz, id="stocks_session_report", replace_existing=True, misfire_grace_time=3600)
+    _scheduler.add_job(_daily_trade_count_report, trigger="cron", hour=16, minute=1, timezone=_ny_tz, id="daily_trade_count_report", replace_existing=True, misfire_grace_time=3600)
     # Proactively renew the FinancialJuice session twice daily so the cookie never lapses.
     _scheduler.add_job(_fj_session_refresh_cycle, trigger="cron", hour="5,17", minute=30, id="fj_session_refresh", replace_existing=True, misfire_grace_time=3600)
     _scheduler.start()
@@ -1022,8 +1027,10 @@ def start_scheduler() -> AsyncIOScheduler:
         _scheduler.add_job(_daily_market_brief, trigger="date", run_date=_now + _td(seconds=30),
                            id="daily_brief_catchup", replace_existing=True)
 
-    # Startup catch-up: fire daily performance report only if we missed the 21:01 cron (boot after 21:00 UTC)
-    if _now.weekday() < 5 and _now.hour >= 21:
+    # Startup catch-up: fire daily performance report only if we missed the 16:01 ET
+    # cron today (boot after NY close). Uses NY time so it tracks DST automatically.
+    _now_ny = _now.astimezone(_ny_tz)
+    if _now_ny.weekday() < 5 and _now_ny.hour >= 16 and (_now_ny.hour, _now_ny.minute) >= (16, 1):
         print("[scheduler] Startup catch-up: firing daily performance report on boot.")
         _scheduler.add_job(_daily_trade_count_report, trigger="date", run_date=_now + _td(seconds=45),
                            id="daily_report_catchup", replace_existing=True)
