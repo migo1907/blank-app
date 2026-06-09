@@ -1,27 +1,5 @@
 [
   {
-    "symbol": "QQQ",
-    "pool": "STOCKS_QQQ_30M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "news_score": -0.0409,
-    "macro_bias": -0.9091,
-    "macro_label": "BEARISH",
-    "combined_score": -0.1432,
-    "session": "CLOSED",
-    "regime": "TRENDING_BULL",
-    "regime_label": "PULLBACK_SHORT",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(PULLBACK_SHORT)\u00d70.80 | sess:CLOSED\u00d70.60 | confluence\u00d71.22 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.17) | news:neutral(-0.041) | macro:BEARISH(-0.909) | combined:-0.143 \u2192 conf:0.085",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-08T22:27:30.404113+00:00",
-    "created_at": "2026-06-08T21:57:32.105330+00:00",
-    "id": 101
-  },
-  {
     "symbol": "XAUUSD",
     "pool": "XAUUSD_2M",
     "direction": "NEUTRAL",
@@ -2179,6 +2157,28 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-09T06:42:41.757648+00:00",
     "created_at": "2026-06-09T06:12:43.426805+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "XAUUSD",
+    "pool": "XAUUSD_2M",
+    "direction": "SHORT",
+    "confidence": 0.551,
+    "tier": "LOW",
+    "ml_score": 0.625,
+    "rf_score": 0.3661,
+    "gbm_score": 0.1227,
+    "news_score": 0.0366,
+    "macro_bias": -0.64,
+    "macro_label": "BEARISH",
+    "combined_score": -0.3906,
+    "session": "ASIAN",
+    "regime": "TRENDING_BEAR",
+    "regime_label": "TREND_FOLLOW",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BEAR(TREND_FOLLOW)\u00d71.15 | sess:ASIAN\u00d70.85 | confluence\u00d71.20 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:neutral(+0.037) | macro:BEARISH(-0.640) | combined:-0.391 \u2192 conf:0.551 \u26a1 CPI",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-09T06:57:21.191287+00:00",
+    "created_at": "2026-06-09T06:27:22.817221+00:00",
     "id": 101
   }
 ]
