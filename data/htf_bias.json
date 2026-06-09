@@ -1,13 +1,4 @@
 {
-  "SPX500_30": {
-    "direction": "SHORT",
-    "timeframe": "30",
-    "symbol": "SPX500",
-    "trigger": "OB",
-    "ml_score": 0.5,
-    "stored_at": "2026-06-08T19:00:08.838268+00:00",
-    "expires_at": "2026-06-08T21:00:08.838281+00:00"
-  },
   "PLTR_30": {
     "direction": "LONG",
     "timeframe": "30",
@@ -52,5 +43,14 @@
     "ml_score": 0.5,
     "stored_at": "2026-06-09T01:00:03.360487+00:00",
     "expires_at": "2026-06-09T09:00:03.360509+00:00"
+  },
+  "SPX500_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "SPX500",
+    "trigger": "FVG",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-09T01:00:04.341472+00:00",
+    "expires_at": "2026-06-09T03:00:04.341499+00:00"
   }
 }
