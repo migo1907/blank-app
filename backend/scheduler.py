@@ -559,8 +559,8 @@ async def _hourly_system_check() -> None:
         active_pools = [
             ("data/trade_history_XAUUSD_2M.json",            "XAUUSD_2M",            gold_active,    6),
             ("data/trade_history_XAUUSD_5M.json",            "XAUUSD_5M",            gold_active,    8),
-            ("data/trade_history_XAUUSD_30M.json",           "XAUUSD_30M",           gold_active,   12),
-            ("data/trade_history_XAUUSD_1H.json",            "XAUUSD_1H",            gold_active,   16),
+            ("data/trade_history_XAUUSD_30M.json",           "XAUUSD_30M",           gold_active,   48),
+            ("data/trade_history_XAUUSD_1H.json",            "XAUUSD_1H",            gold_active,   72),
             ("data/trade_history_STOCKS_MOMENTUM_15M.json",  "STOCKS_MOMENTUM_15M",  stocks_active,  3),
             ("data/trade_history_STOCKS_MOMENTUM_30M.json",  "STOCKS_MOMENTUM_30M",  stocks_active,  4),
             ("data/trade_history_STOCKS_QUALITY_15M.json",   "STOCKS_QUALITY_15M",   stocks_active,  3),
@@ -569,13 +569,13 @@ async def _hourly_system_check() -> None:
             ("data/trade_history_STOCKS_INDEX_30M.json",     "STOCKS_INDEX_30M",     stocks_active,  4),
             ("data/trade_history_STOCKS_QQQ_15M.json",       "STOCKS_QQQ_15M",       stocks_active,  3),
             ("data/trade_history_STOCKS_QQQ_30M.json",       "STOCKS_QQQ_30M",       stocks_active,  4),
-            ("data/trade_history_STOCKS_SPX500_15M.json",    "STOCKS_SPX500_15M",    True,           6),
-            ("data/trade_history_STOCKS_SPX500_30M.json",    "STOCKS_SPX500_30M",    True,           8),
+            ("data/trade_history_STOCKS_SPX500_15M.json",    "STOCKS_SPX500_15M",    stocks_active,  6),
+            ("data/trade_history_STOCKS_SPX500_30M.json",    "STOCKS_SPX500_30M",    stocks_active,  8),
             ("data/trade_history_STOCKS_MOMENTUM_4H.json",   "STOCKS_MOMENTUM_4H",   stocks_active,  8),
             ("data/trade_history_STOCKS_QUALITY_4H.json",    "STOCKS_QUALITY_4H",    stocks_active,  8),
             ("data/trade_history_STOCKS_INDEX_4H.json",      "STOCKS_INDEX_4H",      stocks_active,  8),
             ("data/trade_history_STOCKS_QQQ_4H.json",        "STOCKS_QQQ_4H",        stocks_active,  8),
-            ("data/trade_history_STOCKS_SPX500_4H.json",     "STOCKS_SPX500_4H",     True,          12),
+            ("data/trade_history_STOCKS_SPX500_4H.json",     "STOCKS_SPX500_4H",     stocks_active, 12),
         ]
 
         silent_pools = []
