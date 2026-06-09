@@ -2056,7 +2056,7 @@
     "regime": "TRENDING_BEAR",
     "regime_label": "TREND_FOLLOW",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BEAR(TREND_FOLLOW)\u00d71.15 | sess:OVERLAP\u00d71.30 | confluence\u00d71.35 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-1.00) | news:neutral(-0.049) | macro:BEARISH(-0.640) | combined:-0.323 \u2192 conf:0.781 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-09T15:27:51.583832+00:00",
     "created_at": "2026-06-09T14:57:53.012346+00:00",
     "id": 101
