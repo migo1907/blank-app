@@ -9,13 +9,13 @@
     "expires_at": "2026-06-09T17:30:03.970380+00:00"
   },
   "GOOG_30": {
-    "direction": "LONG",
+    "direction": "SHORT",
     "timeframe": "30",
     "symbol": "GOOG",
     "trigger": "FVG",
-    "ml_score": 0.25,
-    "stored_at": "2026-06-09T14:00:05.318241+00:00",
-    "expires_at": "2026-06-09T16:00:05.318255+00:00"
+    "ml_score": 0.625,
+    "stored_at": "2026-06-09T15:30:13.828125+00:00",
+    "expires_at": "2026-06-09T17:30:13.828143+00:00"
   },
   "GOOGL_30": {
     "direction": "SHORT",
@@ -36,13 +36,13 @@
     "expires_at": "2026-06-09T16:00:11.682745+00:00"
   },
   "TNA_30": {
-    "direction": "LONG",
+    "direction": "SHORT",
     "timeframe": "30",
     "symbol": "TNA",
-    "trigger": "BOS",
-    "ml_score": 0.75,
-    "stored_at": "2026-06-09T14:00:14.440944+00:00",
-    "expires_at": "2026-06-09T16:00:14.440964+00:00"
+    "trigger": "FVG",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-09T15:30:23.765509+00:00",
+    "expires_at": "2026-06-09T17:30:23.765527+00:00"
   },
   "QQQ_30": {
     "direction": "SHORT",
@@ -63,13 +63,13 @@
     "expires_at": "2026-06-09T16:00:16.729442+00:00"
   },
   "UPST_30": {
-    "direction": "LONG",
+    "direction": "SHORT",
     "timeframe": "30",
     "symbol": "UPST",
-    "trigger": "BOS",
+    "trigger": "FVG",
     "ml_score": 0.5,
-    "stored_at": "2026-06-09T14:00:19.363596+00:00",
-    "expires_at": "2026-06-09T16:00:19.363618+00:00"
+    "stored_at": "2026-06-09T15:30:28.366961+00:00",
+    "expires_at": "2026-06-09T17:30:28.366975+00:00"
   },
   "SMCI_30": {
     "direction": "SHORT",
@@ -113,17 +113,17 @@
     "symbol": "RR",
     "trigger": "BOS",
     "ml_score": 0.5,
-    "stored_at": "2026-06-09T14:30:27.972766+00:00",
-    "expires_at": "2026-06-09T16:30:27.972777+00:00"
+    "stored_at": "2026-06-09T15:30:30.043421+00:00",
+    "expires_at": "2026-06-09T17:30:30.043441+00:00"
   },
   "CRM_30": {
     "direction": "SHORT",
     "timeframe": "30",
     "symbol": "CRM",
     "trigger": "FVG",
-    "ml_score": 0.25,
-    "stored_at": "2026-06-09T14:30:28.616554+00:00",
-    "expires_at": "2026-06-09T16:30:28.616568+00:00"
+    "ml_score": 0.75,
+    "stored_at": "2026-06-09T15:30:20.820537+00:00",
+    "expires_at": "2026-06-09T17:30:20.820560+00:00"
   },
   "PATH_30": {
     "direction": "SHORT",
@@ -140,8 +140,8 @@
     "symbol": "ADBE",
     "trigger": "FVG",
     "ml_score": 0.5,
-    "stored_at": "2026-06-09T14:30:32.813903+00:00",
-    "expires_at": "2026-06-09T16:30:32.813916+00:00"
+    "stored_at": "2026-06-09T15:30:18.555162+00:00",
+    "expires_at": "2026-06-09T17:30:18.555179+00:00"
   },
   "XAUUSD_30": {
     "direction": "SHORT",
@@ -241,5 +241,14 @@
     "ml_score": 0.25,
     "stored_at": "2026-06-09T15:30:00.575692+00:00",
     "expires_at": "2026-06-09T17:30:00.575711+00:00"
+  },
+  "MSFT_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "MSFT",
+    "trigger": "FVG",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-09T15:30:15.260126+00:00",
+    "expires_at": "2026-06-09T17:30:15.260140+00:00"
   }
 }
