@@ -94,10 +94,16 @@ def _get_file(path: str) -> tuple[dict | list | None, str | None]:
 
 
 def _put_file(path: str, content: dict | list, sha: str | None, message: str) -> None:
-    """Create or update a file in the repo. Retries on 409 SHA conflict (re-fetches SHA)."""
+    """Create or update a file in the repo. Retries on 409 SHA conflict with
+    jittered backoff (re-fetches SHA each time). Concurrent writes to the same
+    data-branch file are common on the busy pools, so we give the conflict
+    resolution a generous budget instead of dropping the write."""
+    import time as _time, random as _random
     encoded = base64.b64encode(json.dumps(content, indent=2).encode()).decode()
     current_sha = sha
-    for attempt in range(3):
+    MAX_ATTEMPTS = 6
+    for attempt in range(MAX_ATTEMPTS):
+        last = attempt == MAX_ATTEMPTS - 1
         payload: dict = {
             "message": message,
             "content": encoded,
@@ -111,16 +117,17 @@ def _put_file(path: str, content: dict | list, sha: str | None, message: str) ->
                 headers=HEADERS,
                 json=payload,
             )
-        if resp.status_code in (403, 429) and attempt < 2:
+        if resp.status_code in (403, 429) and not last:
             _github_retry_wait(resp)
             continue
-        if resp.status_code == 409 and attempt < 2:
-            # SHA stale — re-fetch and retry
+        if resp.status_code == 409 and not last:
+            # SHA stale (concurrent write) — back off with jitter, re-fetch, retry
+            _time.sleep(0.3 * (attempt + 1) + _random.uniform(0, 0.4))
             _, current_sha = _get_file(path)
             continue
-        if resp.status_code == 422 and attempt < 2:
+        if resp.status_code == 422 and not last:
             # Unprocessable — re-fetch SHA/state and retry after short wait
-            import time as _time; _time.sleep(0.5)
+            _time.sleep(0.5 + _random.uniform(0, 0.3))
             _, current_sha = _get_file(path)
             continue
         resp.raise_for_status()

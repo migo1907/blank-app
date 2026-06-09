@@ -572,26 +572,33 @@ async def _hourly_system_check() -> None:
         gold_active   = (dow < 5)              # gold trades Mon-Fri; skip weekend silence alerts
         stocks_active = (dow < 5 and 13 <= hour_utc < 21)  # stocks 09:30–17:00 ET ≈ 13:30–21:00 UTC
 
+        # max_silent_hours is timeframe-aware: long timeframes legitimately go
+        # many hours/days between *closed* trades. Thresholds set to ~a few bars
+        # of silence so we only alert on a genuine webhook outage, not normal
+        # low-frequency behavior. (Tuned 2026-06-09 to cut false-alarm noise:
+        # 4H pools were alerting after 8-12h; XAUUSD_1H after 72h despite being
+        # a very low-frequency pool.)
         active_pools = [
-            ("data/trade_history_XAUUSD_2M.json",            "XAUUSD_2M",            gold_active,    6),
-            ("data/trade_history_XAUUSD_5M.json",            "XAUUSD_5M",            gold_active,    8),
-            ("data/trade_history_XAUUSD_30M.json",           "XAUUSD_30M",           gold_active,   48),
-            ("data/trade_history_XAUUSD_1H.json",            "XAUUSD_1H",            gold_active,   72),
-            ("data/trade_history_STOCKS_MOMENTUM_15M.json",  "STOCKS_MOMENTUM_15M",  stocks_active,  3),
-            ("data/trade_history_STOCKS_MOMENTUM_30M.json",  "STOCKS_MOMENTUM_30M",  stocks_active,  4),
-            ("data/trade_history_STOCKS_QUALITY_15M.json",   "STOCKS_QUALITY_15M",   stocks_active,  3),
-            ("data/trade_history_STOCKS_QUALITY_30M.json",   "STOCKS_QUALITY_30M",   stocks_active,  4),
-            ("data/trade_history_STOCKS_INDEX_15M.json",     "STOCKS_INDEX_15M",     stocks_active,  3),
-            ("data/trade_history_STOCKS_INDEX_30M.json",     "STOCKS_INDEX_30M",     stocks_active,  4),
-            ("data/trade_history_STOCKS_QQQ_15M.json",       "STOCKS_QQQ_15M",       stocks_active,  3),
-            ("data/trade_history_STOCKS_QQQ_30M.json",       "STOCKS_QQQ_30M",       stocks_active,  4),
-            ("data/trade_history_STOCKS_SPX500_15M.json",    "STOCKS_SPX500_15M",    stocks_active,  6),
-            ("data/trade_history_STOCKS_SPX500_30M.json",    "STOCKS_SPX500_30M",    stocks_active,  8),
-            ("data/trade_history_STOCKS_MOMENTUM_4H.json",   "STOCKS_MOMENTUM_4H",   stocks_active,  8),
-            ("data/trade_history_STOCKS_QUALITY_4H.json",    "STOCKS_QUALITY_4H",    stocks_active,  8),
-            ("data/trade_history_STOCKS_INDEX_4H.json",      "STOCKS_INDEX_4H",      stocks_active,  8),
-            ("data/trade_history_STOCKS_QQQ_4H.json",        "STOCKS_QQQ_4H",        stocks_active,  8),
-            ("data/trade_history_STOCKS_SPX500_4H.json",     "STOCKS_SPX500_4H",     stocks_active, 12),
+            ("data/trade_history_XAUUSD_2M.json",            "XAUUSD_2M",            gold_active,     6),
+            ("data/trade_history_XAUUSD_5M.json",            "XAUUSD_5M",            gold_active,    12),
+            ("data/trade_history_XAUUSD_30M.json",           "XAUUSD_30M",           gold_active,    48),
+            ("data/trade_history_XAUUSD_1H.json",            "XAUUSD_1H",            gold_active,    168),
+            ("data/trade_history_STOCKS_MOMENTUM_15M.json",  "STOCKS_MOMENTUM_15M",  stocks_active,   4),
+            ("data/trade_history_STOCKS_MOMENTUM_30M.json",  "STOCKS_MOMENTUM_30M",  stocks_active,   6),
+            ("data/trade_history_STOCKS_QUALITY_15M.json",   "STOCKS_QUALITY_15M",   stocks_active,   4),
+            ("data/trade_history_STOCKS_QUALITY_30M.json",   "STOCKS_QUALITY_30M",   stocks_active,   6),
+            ("data/trade_history_STOCKS_INDEX_15M.json",     "STOCKS_INDEX_15M",     stocks_active,   6),
+            ("data/trade_history_STOCKS_INDEX_30M.json",     "STOCKS_INDEX_30M",     stocks_active,   8),
+            ("data/trade_history_STOCKS_QQQ_15M.json",       "STOCKS_QQQ_15M",       stocks_active,   6),
+            ("data/trade_history_STOCKS_QQQ_30M.json",       "STOCKS_QQQ_30M",       stocks_active,   8),
+            ("data/trade_history_STOCKS_SPX500_15M.json",    "STOCKS_SPX500_15M",    stocks_active,   8),
+            ("data/trade_history_STOCKS_SPX500_30M.json",    "STOCKS_SPX500_30M",    stocks_active,  12),
+            # 4H pools resolve trades over many hours — only alert after ~2 sessions of silence
+            ("data/trade_history_STOCKS_MOMENTUM_4H.json",   "STOCKS_MOMENTUM_4H",   stocks_active,  48),
+            ("data/trade_history_STOCKS_QUALITY_4H.json",    "STOCKS_QUALITY_4H",    stocks_active,  48),
+            ("data/trade_history_STOCKS_INDEX_4H.json",      "STOCKS_INDEX_4H",      stocks_active,  48),
+            ("data/trade_history_STOCKS_QQQ_4H.json",        "STOCKS_QQQ_4H",        stocks_active,  48),
+            ("data/trade_history_STOCKS_SPX500_4H.json",     "STOCKS_SPX500_4H",     stocks_active,  48),
         ]
 
         silent_pools = []
@@ -623,10 +630,13 @@ async def _hourly_system_check() -> None:
 
         # Webhook error counter check
         if _webhook_errors > 0:
+            total = _webhook_errors + _webhook_ok
+            fail_pct = (_webhook_errors / total * 100) if total else 0
             critical_alerts.append((
-                "Webhook Errors Detected",
-                f"{_webhook_errors} webhook(s) failed in the last hour — {_webhook_ok} succeeded.",
-                "Check Railway logs for details. Trades may not be recording correctly."
+                "Trade Persistence Errors Detected",
+                f"{_webhook_errors} of {total} trade saves failed in the last hour "
+                f"({fail_pct:.0f}%) — likely GitHub write conflicts on busy pools.",
+                "These are background GitHub-save failures (not 422s). Check Railway logs for the persist error."
             ))
             issues.append(f"{_webhook_errors} webhook error(s) in last hour ⚠️")
             _webhook_errors = 0
