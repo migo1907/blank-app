@@ -63,13 +63,13 @@
     "expires_at": "2026-06-09T20:30:04.695786+00:00"
   },
   "META_30": {
-    "direction": "LONG",
+    "direction": "SHORT",
     "timeframe": "30",
     "symbol": "META",
     "trigger": "FVG",
-    "ml_score": 0.625,
-    "stored_at": "2026-06-09T18:30:14.328063+00:00",
-    "expires_at": "2026-06-09T20:30:14.328078+00:00"
+    "ml_score": 0.375,
+    "stored_at": "2026-06-09T20:00:32.085068+00:00",
+    "expires_at": "2026-06-09T22:00:32.085083+00:00"
   },
   "MSFT_30": {
     "direction": "SHORT",
