@@ -43,6 +43,22 @@ FEATURE_NAMES = [
 N_FEATURES = 25
 
 
+def row_to_vector(row: dict) -> list[float]:
+    """
+    Build a 25-element feature vector from a trade-history row.
+    Prefers named keys (f1_rsi..f25_tod); falls back to legacy compact
+    keys (f1..f25) for older/repaired records written before the schema
+    was standardized. Missing values default to 0.0.
+    """
+    vec = []
+    for i, col in enumerate(FEATURE_NAMES, start=1):
+        v = row.get(col)
+        if v is None:
+            v = row.get(f"f{i}", 0.0)
+        vec.append(float(v or 0.0))
+    return vec
+
+
 @dataclass
 class Features:
     f1:  float = 0.0   # RSI norm
@@ -176,7 +192,7 @@ class AdaptiveKNN:
         distances: list[tuple[float, int]] = []  # (dist, label: +1 bull / -1 bear)
 
         for row in history:
-            hist_vec = [float(row.get(col, 0.0)) for col in FEATURE_NAMES]
+            hist_vec = row_to_vector(row)
             dist = _lorentzian_dist(current_vec, hist_vec, self._weights)
             # Use ml_outcome if present (e.g. SL_TP1 stored as WIN); fall back to outcome
             outcome   = row.get("ml_outcome") or row.get("outcome", "LOSS")

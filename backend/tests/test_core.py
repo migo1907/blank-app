@@ -22,7 +22,7 @@ os.environ.setdefault("GITHUB_BRANCH", "data")
 # ── Imports ───────────────────────────────────────────────────────────────────
 
 from db import symbol_to_pool
-from ml_model import FEATURE_NAMES
+from ml_model import FEATURE_NAMES, row_to_vector
 from ml_ensemble import _session_weight, MIN_TRADES
 from news_fetcher import aggregate_sentiment
 
@@ -319,6 +319,33 @@ def test_ml_thresholds():
     print(f"  INFO  gold={MIN_CONFIDENCE} stocks={MIN_CONFIDENCE_STOCKS} gate={ML_GATE_THRESHOLD}")
 
 
+# ── 10. row_to_vector (compact-key fallback) ──────────────────────────────────
+
+def test_row_to_vector():
+    print("\n[10] row_to_vector")
+
+    # Named keys read directly
+    named_row = {name: float(i) for i, name in enumerate(FEATURE_NAMES, start=1)}
+    vec = row_to_vector(named_row)
+    assert_eq("named vec length", len(vec), 25)
+    assert_eq("named f1_rsi → 1.0", vec[0], 1.0)
+    assert_eq("named f25_tod → 25.0", vec[24], 25.0)
+
+    # Legacy compact keys (f1..f25) fall back correctly
+    compact_row = {f"f{i}": float(i) * 0.1 for i in range(1, 26)}
+    vec2 = row_to_vector(compact_row)
+    assert_eq("compact vec length", len(vec2), 25)
+    assert_eq("compact f1 → 0.1", round(vec2[0], 4), 0.1)
+    assert_eq("compact f25 → 2.5", round(vec2[24], 4), 2.5)
+
+    # Named takes precedence over compact when both present
+    mixed = {"f1_rsi": 9.0, "f1": 1.0}
+    assert_eq("named wins over compact", row_to_vector(mixed)[0], 9.0)
+
+    # Missing keys default to 0.0 (no crash)
+    assert_eq("empty row → zeros", row_to_vector({}), [0.0] * 25)
+
+
 # ── Runner ────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
@@ -332,6 +359,7 @@ if __name__ == "__main__":
         test_conflicted_gate_option_b,
         test_agreement_multiplier,
         test_ml_thresholds,
+        test_row_to_vector,
     ]
     failed = []
     for t in tests:

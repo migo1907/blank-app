@@ -20,7 +20,7 @@ try:
 except ImportError:
     _SKLEARN_AVAILABLE = False
 
-from ml_model import FEATURE_NAMES
+from ml_model import FEATURE_NAMES, row_to_vector
 
 
 def _session_weight(created_at: str) -> float:
@@ -81,7 +81,7 @@ class RandomForestEnsemble:
         X_rows = []
         y_rows = []
         for row in history:
-            feat_vec = [float(row.get(col, 0.0)) for col in FEATURE_NAMES]
+            feat_vec = row_to_vector(row)
             # PARTIAL is a profitable close (hit TP1+) — treat as win, not loss
             outcome_val = row.get("ml_outcome") or row.get("outcome", "LOSS")
             label = 1 if outcome_val in ("WIN", "PARTIAL") else 0
@@ -216,7 +216,7 @@ class GradientBoostEnsemble:
 
         X_rows, y_rows, w_rows = [], [], []
         for row in history:
-            X_rows.append([float(row.get(col, 0.0)) for col in FEATURE_NAMES])
+            X_rows.append(row_to_vector(row))
             # PARTIAL is a profitable close (hit TP1+) — treat as win, not loss
             outcome_val = row.get("ml_outcome") or row.get("outcome", "LOSS")
             y_rows.append(1 if outcome_val in ("WIN", "PARTIAL") else 0)
