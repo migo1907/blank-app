@@ -205,5 +205,23 @@
     "ml_score": 0.625,
     "stored_at": "2026-06-09T15:00:23.471202+00:00",
     "expires_at": "2026-06-09T17:00:23.471217+00:00"
+  },
+  "BBAI_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "BBAI",
+    "trigger": "FVG",
+    "ml_score": 0.75,
+    "stored_at": "2026-06-09T15:00:29.325152+00:00",
+    "expires_at": "2026-06-09T17:00:29.325166+00:00"
+  },
+  "BLNK_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "BLNK",
+    "trigger": "FVG",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-09T15:01:01.540595+00:00",
+    "expires_at": "2026-06-09T17:01:01.540608+00:00"
   }
 }
