@@ -1,27 +1,5 @@
 [
   {
-    "symbol": "XAUUSD",
-    "pool": "XAUUSD_2M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.4001,
-    "gbm_score": 0.6378,
-    "news_score": -0.3776,
-    "macro_bias": -0.64,
-    "macro_label": "BEARISH",
-    "combined_score": -0.3456,
-    "session": "LONDON",
-    "regime": "TRENDING_BEAR",
-    "regime_label": "TREND_FOLLOW",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:LONG | agree\u00d71.00 | regime:TRENDING_BEAR(TREND_FOLLOW)\u00d71.15 | sess:LONDON\u00d71.15 | confluence\u00d71.07 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:bearish(-0.378) | macro:BEARISH(-0.640) | combined:-0.346 \u2192 conf:0.491 \u26a1 CPI",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-09T12:31:57.598684+00:00",
-    "created_at": "2026-06-09T12:01:59.073476+00:00",
-    "id": 101
-  },
-  {
     "symbol": "SPY",
     "pool": "STOCKS_INDEX_30M",
     "direction": "NEUTRAL",
@@ -2173,6 +2151,28 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-09T19:52:28.952061+00:00",
     "created_at": "2026-06-09T19:22:29.259517+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "QQQ",
+    "pool": "STOCKS_QQQ_30M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "news_score": 0.1713,
+    "macro_bias": -0.5096,
+    "macro_label": "BEARISH",
+    "combined_score": -0.0369,
+    "session": "NYSE_AFTERNOON",
+    "regime": "NORMAL",
+    "regime_label": "NORMAL",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d71.02 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.23) | news:neutral(+0.171) | macro:BEARISH(-0.510) | combined:-0.037 \u2192 conf:0.050 \u26a1 CPI",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-09T19:52:31.607736+00:00",
+    "created_at": "2026-06-09T19:22:31.906991+00:00",
     "id": 101
   }
 ]
