@@ -2058,7 +2058,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:NYSE_OPEN\u00d71.25 | confluence\u00d71.26 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.37) | news:neutral(+0.188) | macro:BEARISH(-0.909) | combined:-0.093 \u2192 conf:0.176 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-09T13:46:52.218408+00:00",
     "created_at": "2026-06-09T13:16:53.673529+00:00",
     "id": 101
@@ -2080,7 +2080,7 @@
     "regime": "TRENDING_BULL",
     "regime_label": "PULLBACK_SHORT",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(PULLBACK_SHORT)\u00d70.80 | sess:NYSE_OPEN\u00d71.25 | confluence\u00d71.22 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.17) | news:neutral(+0.188) | macro:BEARISH(-0.909) | combined:-0.093 \u2192 conf:0.136 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-09T13:46:56.325787+00:00",
     "created_at": "2026-06-09T13:16:57.697494+00:00",
     "id": 101
@@ -2122,7 +2122,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:NYSE_OPEN\u00d71.25 | confluence\u00d71.26 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.37) | news:neutral(+0.030) | macro:BEARISH(-0.909) | combined:-0.130 \u2192 conf:0.245 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-09T14:02:05.148378+00:00",
     "created_at": "2026-06-09T13:32:06.586605+00:00",
     "id": 101
@@ -2144,7 +2144,7 @@
     "regime": "TRENDING_BULL",
     "regime_label": "PULLBACK_SHORT",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(PULLBACK_SHORT)\u00d70.80 | sess:NYSE_OPEN\u00d71.25 | confluence\u00d71.22 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.17) | news:neutral(+0.030) | macro:BEARISH(-0.909) | combined:-0.130 \u2192 conf:0.190 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-09T14:02:08.321498+00:00",
     "created_at": "2026-06-09T13:32:08.752199+00:00",
     "id": 101
