@@ -42,9 +42,11 @@ def update_latest_features(pool: str, features: Features) -> None:
         for attempt in range(3):
             try:
                 existing, sha = _get_file(_FEATURE_CACHE_PATH)
-                # Merge ALL in-memory pools into the persisted payload so no pool is lost
-                payload = existing if isinstance(existing, dict) else {}
+                # Merge valid in-memory pools — exclude empty-string pool (XAUUSD_4H etc.)
+                payload = {k: v for k, v in (existing if isinstance(existing, dict) else {}).items() if k}
                 for _pool, _feat in _latest_features.items():
+                    if not _pool:
+                        continue  # skip unmapped pools
                     payload[_pool] = {
                         "f1":  _feat.f1,  "f2":  _feat.f2,  "f3":  _feat.f3,
                         "f4":  _feat.f4,  "f5":  _feat.f5,  "f6":  _feat.f6,
@@ -464,13 +466,13 @@ def generate_signal(
     event    = high_impact_event or {"detected": False, "urgency": 0.0}
 
     if v_label == "CONFLICTED":
-        # Option B: pass immediately if ML confidence is high enough (≥0.65),
-        # regardless of model agreement — a strong signal beats noisy news.
-        # Only suppress genuinely low-conviction / disagreeing signals.
-        ml_strength = (abs(knn_directional) + abs(rf_directional) + abs(gbm_directional)) / 3.0
-        ml_conf_proxy = 0.5 + ml_strength * 0.5   # map [0,1] directional → [0.5,1.0]
+        # Option B: high-conviction ML signal overrides noisy news immediately.
+        # ml_conf_proxy ≥ 0.65 OR unanimous model agreement → send instantly.
+        # Only suppress low-conviction disagreeing signals — genuine noise.
+        ml_strength    = (abs(knn_directional) + abs(rf_directional) + abs(gbm_directional)) / 3.0
+        ml_conf_proxy  = 0.5 + ml_strength * 0.5
         high_conviction = ml_conf_proxy >= 0.65
-        all_agree = (knn_dir == rf_dir == gbm_dir)
+        all_agree       = (knn_dir == rf_dir == gbm_dir)
         if not high_conviction and not all_agree:
             return _neutral_signal(symbol, now, model, rf, "News CONFLICTED — low conviction", news_agg, pool, current_features, is_stock=is_stock)
 
