@@ -70,5 +70,14 @@
     "ml_score": 0.5,
     "stored_at": "2026-06-09T14:00:19.363596+00:00",
     "expires_at": "2026-06-09T16:00:19.363618+00:00"
+  },
+  "SMCI_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "SMCI",
+    "trigger": "FVG",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-09T14:30:04.293100+00:00",
+    "expires_at": "2026-06-09T16:30:04.293117+00:00"
   }
 }
