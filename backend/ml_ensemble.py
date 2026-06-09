@@ -274,6 +274,9 @@ class GradientBoostEnsemble:
         paired.sort(key=lambda x: x[1], reverse=True)
         return paired[:n]
 
+    def retrain(self, history: list[dict]) -> bool:
+        return self.train(history)
+
 
 # ── Pool-aware singletons — one GBM per pool ─────────────────────────────────
 
