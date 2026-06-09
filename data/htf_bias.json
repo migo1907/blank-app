@@ -152,15 +152,6 @@
     "stored_at": "2026-06-09T16:30:08.923682+00:00",
     "expires_at": "2026-06-09T18:30:08.923705+00:00"
   },
-  "PLUG_30": {
-    "direction": "SHORT",
-    "timeframe": "30",
-    "symbol": "PLUG",
-    "trigger": "FVG",
-    "ml_score": 0.875,
-    "stored_at": "2026-06-09T15:00:13.165805+00:00",
-    "expires_at": "2026-06-09T17:00:13.165824+00:00"
-  },
   "SPX500_30": {
     "direction": "SHORT",
     "timeframe": "30",
@@ -277,5 +268,32 @@
     "ml_score": 0.25,
     "stored_at": "2026-06-09T17:00:16.777551+00:00",
     "expires_at": "2026-06-09T19:00:16.777564+00:00"
+  },
+  "AAPL_240": {
+    "direction": "SHORT",
+    "timeframe": "240",
+    "symbol": "AAPL",
+    "trigger": "FVG",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-09T17:30:09.497160+00:00",
+    "expires_at": "2026-06-10T01:30:09.497171+00:00"
+  },
+  "HOOD_240": {
+    "direction": "SHORT",
+    "timeframe": "240",
+    "symbol": "HOOD",
+    "trigger": "OB",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-09T17:30:14.346023+00:00",
+    "expires_at": "2026-06-10T01:30:14.346042+00:00"
+  },
+  "PLUG_240": {
+    "direction": "SHORT",
+    "timeframe": "240",
+    "symbol": "PLUG",
+    "trigger": "BOS",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-09T17:30:23.600266+00:00",
+    "expires_at": "2026-06-10T01:30:23.600299+00:00"
   }
 }
