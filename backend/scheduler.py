@@ -926,9 +926,8 @@ def start_scheduler() -> AsyncIOScheduler:
         _scheduler.add_job(_daily_market_brief, trigger="date", run_date=_now + _td(seconds=30),
                            id="daily_brief_catchup", replace_existing=True)
 
-    # Startup catch-up: fire daily performance report if we boot during/after US session (14:00+ UTC)
-    # Covers: missed 21:01 after redeploy, and "send now" on any US-hours restart
-    if _now.weekday() < 5 and _now.hour >= 14:
+    # Startup catch-up: fire daily performance report only if we missed the 21:01 cron (boot after 21:00 UTC)
+    if _now.weekday() < 5 and _now.hour >= 21:
         print("[scheduler] Startup catch-up: firing daily performance report on boot.")
         _scheduler.add_job(_daily_trade_count_report, trigger="date", run_date=_now + _td(seconds=45),
                            id="daily_report_catchup", replace_existing=True)
