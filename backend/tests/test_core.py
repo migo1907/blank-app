@@ -114,10 +114,9 @@ def test_symbol_to_pool():
 def test_normalize_outcome():
     print("\n[2] _normalize_outcome")
 
-    # Progress — no DB write
+    # Progress — no DB write (Pine Script sends TP1_HIT/TP2_HIT, never literal "PROGRESS")
     assert_eq("TP1_HIT",  _normalize_outcome("TP1_HIT"),  "PROGRESS")
     assert_eq("TP2_HIT",  _normalize_outcome("TP2_HIT"),  "PROGRESS")
-    assert_eq("PROGRESS", _normalize_outcome("PROGRESS"),  "PROGRESS")
 
     # WIN variants
     assert_eq("WIN",      _normalize_outcome("WIN"),   "WIN")
@@ -295,10 +294,12 @@ def test_conflicted_gate_option_b():
 def test_agreement_multiplier():
     print("\n[8] _agreement_multiplier")
 
-    assert_eq("unanimous LONG  → 1.20", _agreement_multiplier("LONG","LONG","LONG"),    1.20)
+    assert_eq("unanimous LONG  → 1.20", _agreement_multiplier("LONG","LONG","LONG"),     1.20)
     assert_eq("unanimous SHORT → 1.20", _agreement_multiplier("SHORT","SHORT","SHORT"),  1.20)
-    assert_eq("2/3 agree       → 1.00", _agreement_multiplier("LONG","LONG","SHORT"),   1.00)
-    assert_eq("all disagree    → 0.80", _agreement_multiplier("LONG","SHORT","LONG"),   0.80)
+    assert_eq("2/3 LONG  → 1.00",       _agreement_multiplier("LONG","LONG","SHORT"),   1.00)
+    assert_eq("2/3 SHORT → 1.00",       _agreement_multiplier("SHORT","LONG","SHORT"),  1.00)
+    # 0.80 branch: triggered when a vote is neither LONG nor SHORT (e.g. "NEUTRAL")
+    assert_eq("mixed/neutral → 0.80",   _agreement_multiplier("LONG","SHORT","NEUTRAL"), 0.80)
 
 
 # ── 9. ML thresholds sanity ───────────────────────────────────────────────────
