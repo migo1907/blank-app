@@ -2,7 +2,7 @@
   {
     "symbol": "SPY",
     "direction": "SHORT",
-    "trigger": "RSI",
+    "trigger": "",
     "entry_price": 744.03,
     "exit_price": 746.9,
     "outcome": "PARTIAL",
@@ -39,8 +39,8 @@
     "f23_rsiacc": -0.4172,
     "f24_fvgq": 0.0,
     "f25_tod": -0.3827,
-    "id": "13eb33fa",
+    "id": "6324afb3",
     "pool": "STOCKS_INDEX_4H",
-    "created_at": "2026-06-09T17:32:09.063819+00:00"
+    "created_at": "2026-06-09T17:32:11.582934+00:00"
   }
 ]
