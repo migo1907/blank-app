@@ -250,5 +250,14 @@
     "ml_score": 0.5,
     "stored_at": "2026-06-09T15:30:15.260126+00:00",
     "expires_at": "2026-06-09T17:30:15.260140+00:00"
+  },
+  "HOOD_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "HOOD",
+    "trigger": "FVG",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-09T16:00:20.055533+00:00",
+    "expires_at": "2026-06-09T18:00:20.055554+00:00"
   }
 }
