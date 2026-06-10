@@ -18,7 +18,7 @@ try:
     from sklearn.calibration import CalibratedClassifierCV
     import numpy as np
     _SKLEARN_AVAILABLE = True
-except ImportError:
+except Exception:
     _SKLEARN_AVAILABLE = False
 
 from ml_model import FEATURE_NAMES, row_to_vector
@@ -388,7 +388,7 @@ STOCK_POOL_IDS: dict[str, tuple[int, int]] = {
 try:
     import lightgbm as _lgb
     _LGBM_AVAILABLE = True
-except ImportError:
+except Exception:
     _LGBM_AVAILABLE = False
 
 
@@ -577,7 +577,7 @@ def get_joint_stocks() -> JointStocksGBM:
 try:
     from tabpfn import TabPFNClassifier as _TabPFNClassifier
     _TABPFN_AVAILABLE = True
-except ImportError:
+except Exception:
     _TABPFN_AVAILABLE = False
 
 
@@ -747,7 +747,7 @@ try:
     import optuna as _optuna
     _optuna.logging.set_verbosity(_optuna.logging.WARNING)
     _OPTUNA_AVAILABLE = True
-except ImportError:
+except Exception:
     _OPTUNA_AVAILABLE = False
 
 _hpo_cache: dict[str, dict] = {}   # pool → {params, trained_at_n}
@@ -826,7 +826,7 @@ def tune_gbm_hyperparams(pool: str, X: "np.ndarray", y: "np.ndarray",
 try:
     import shap as _shap
     _SHAP_AVAILABLE = True
-except ImportError:
+except Exception:
     _SHAP_AVAILABLE = False
 
 

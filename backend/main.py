@@ -80,17 +80,20 @@ async def lifespan(app: FastAPI):
             print(f"[startup] {_pool}: {len(_hist)} trades — RF/GBM will train when data grows.")
 
     print("[startup] Priming joint models (gold + stocks)…")
-    from ml_ensemble import get_joint_gold, get_joint_stocks, GOLD_TF_IDS, STOCK_POOL_IDS
-    _gold_hists = {p: recent_outcomes(p, 500) for p in GOLD_TF_IDS}
-    _gold_hists = {p: h for p, h in _gold_hists.items() if h}
-    if _gold_hists:
-        get_joint_gold().train(_gold_hists)
-        print(f"[startup] JointGoldGBM primed on {sum(len(h) for h in _gold_hists.values())} gold trades")
-    _stock_hists = {p: recent_outcomes(p, 500) for p in STOCK_POOL_IDS}
-    _stock_hists = {p: h for p, h in _stock_hists.items() if h}
-    if _stock_hists:
-        get_joint_stocks().train(_stock_hists)
-        print(f"[startup] JointStocksGBM primed on {sum(len(h) for h in _stock_hists.values())} stock trades")
+    try:
+        from ml_ensemble import get_joint_gold, get_joint_stocks, GOLD_TF_IDS, STOCK_POOL_IDS
+        _gold_hists = {p: recent_outcomes(p, 500) for p in GOLD_TF_IDS}
+        _gold_hists = {p: h for p, h in _gold_hists.items() if h}
+        if _gold_hists:
+            get_joint_gold().train(_gold_hists)
+            print(f"[startup] JointGoldGBM primed on {sum(len(h) for h in _gold_hists.values())} gold trades")
+        _stock_hists = {p: recent_outcomes(p, 500) for p in STOCK_POOL_IDS}
+        _stock_hists = {p: h for p, h in _stock_hists.items() if h}
+        if _stock_hists:
+            get_joint_stocks().train(_stock_hists)
+            print(f"[startup] JointStocksGBM primed on {sum(len(h) for h in _stock_hists.values())} stock trades")
+    except Exception as _je:
+        print(f"[startup] ⚠ Joint model priming skipped (non-fatal): {_je}")
 
     print("[startup] Resyncing pool win/loss counters…")
     from db import resync_pool_counters
