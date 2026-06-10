@@ -36,5 +36,24 @@
       "trigger:",
       "atr:HIGH"
     ]
+  },
+  {
+    "id": "0500b40f",
+    "pool": "XAUUSD_2M",
+    "symbol": "XAUUSD",
+    "direction": "LONG",
+    "trigger": "",
+    "session": "OFF",
+    "regime": "TRENDING_BEAR",
+    "pnl_pct": -0.2903,
+    "atr_level": "HIGH",
+    "created_at": "2026-06-10T23:46:02.606458+00:00",
+    "cause_tags": [
+      "OFF",
+      "TRENDING_BEAR",
+      "LONG",
+      "trigger:",
+      "atr:HIGH"
+    ]
   }
 ]
