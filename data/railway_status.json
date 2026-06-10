@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-06-10T12:55:17.655185+00:00",
+  "checked_at": "2026-06-10T16:34:49.748849+00:00",
   "health": {
     "status_code": 200,
     "data": {
@@ -14,46 +14,46 @@
       "pool": "XAUUSD_2M",
       "model": {
         "weights": {
-          "w1": 0.2,
-          "w2": 0.2577,
-          "w3": 1.1438,
+          "w1": 0.203,
+          "w2": 0.2585,
+          "w3": 1.1935,
           "w4": 0.2,
           "w5": 0.2,
-          "w6": 2.5872,
+          "w6": 2.6515,
           "w7": 0.2,
-          "w8": 0.5687,
-          "w9": 0.2,
-          "w10": 0.8407,
-          "w11": 0.2053,
-          "w12": 1.4473,
-          "w13": 1.6483,
-          "w14": 1.2663,
-          "w15": 1.2143,
-          "w16": 0.6432,
-          "w17": 0.6552,
-          "w18": 0.2108,
-          "w19": 1.2883,
-          "w20": 0.4317,
-          "w21": 0.6152,
+          "w8": 0.574,
+          "w9": 0.248,
+          "w10": 0.8555,
+          "w11": 0.2,
+          "w12": 1.482,
+          "w13": 1.6475,
+          "w14": 1.281,
+          "w15": 1.249,
+          "w16": 0.6085,
+          "w17": 0.596,
+          "w18": 0.2,
+          "w19": 1.323,
+          "w20": 0.4265,
+          "w21": 0.5605,
           "w22": 0.2,
-          "w23": 0.2053,
-          "w24": 1.2378,
-          "w25": 1.1857
+          "w23": 0.2,
+          "w24": 1.2725,
+          "w25": 1.151
         },
         "win_rate": 33.0,
-        "total_trades": 282,
+        "total_trades": 297,
         "top_features": [
           {
             "name": "WillR",
-            "weight": 2.5872
+            "weight": 2.6515
           },
           {
             "name": "P/D",
-            "weight": 1.6483
+            "weight": 1.6475
           },
           {
             "name": "Liq",
-            "weight": 1.4473
+            "weight": 1.482
           }
         ]
       },
@@ -62,168 +62,95 @@
         "top_features": [
           {
             "name": "f3_atr",
-            "importance": 0.0917
+            "importance": 0.0983
           },
           {
             "name": "f25_tod",
-            "importance": 0.0765
+            "importance": 0.082
           },
           {
-            "name": "f7_cmo",
-            "importance": 0.0747
+            "name": "f2_adx",
+            "importance": 0.0753
           }
         ]
       },
-      "news_sentiment": 0.1074,
+      "news_sentiment": 0.3415,
       "news_velocity": {
-        "multiplier": 0.6,
-        "volume": 33,
-        "consistency": 0.231,
-        "acceleration": 0.094,
+        "multiplier": 1.0,
+        "volume": 32,
+        "consistency": 0.5,
+        "acceleration": 0.092,
         "direction": "BULLISH",
-        "label": "CONFLICTED",
-        "high_count": 5,
-        "total_count": 46
+        "label": "NORMAL",
+        "high_count": 4,
+        "total_count": 45
       },
       "high_impact_event": {
         "detected": true,
         "event_type": "CPI",
         "urgency": 0.9,
         "headlines": [
-          "US Supercore CPI MoM: 0.27% Previous: 0.45%",
-          "US Supercore CPI YoY: 3.67% Previous: 3.38%",
-          "US Core CPI YoY Actual 2.9% (Forecast 2.9%, Previous 2.8%)"
+          "The market breathes a sigh of relief as CPI matches estimates but details still tricky",
+          "CPI inflation comes in a bit lighter (it wasn't higher). Markets improve. USD tilts lower",
+          "US May CPI +4.2% vs +4.2% y/y expected"
         ],
         "all_events": [
           "CPI",
           "SANCTIONS"
         ],
-        "scheduled": [
-          {
-            "event_type": "Core Inflation Rate MoM",
-            "name": "Core Inflation Rate MoM",
-            "minutes_until": -12,
-            "urgency": 0.85,
-            "actual": 0.2,
-            "estimate": 0.3,
-            "time": "2026-06-10 12:30:00"
-          },
-          {
-            "event_type": "Core Inflation Rate YoY",
-            "name": "Core Inflation Rate YoY",
-            "minutes_until": -12,
-            "urgency": 0.85,
-            "actual": 2.9,
-            "estimate": 2.9,
-            "time": "2026-06-10 12:30:00"
-          },
-          {
-            "event_type": "CPI",
-            "name": "CPI",
-            "minutes_until": -12,
-            "urgency": 0.9,
-            "actual": 335.12,
-            "estimate": 335.11,
-            "time": "2026-06-10 12:30:00"
-          },
-          {
-            "event_type": "CPI",
-            "name": "CPI s.a",
-            "minutes_until": -12,
-            "urgency": 0.9,
-            "actual": 333.979,
-            "estimate": null,
-            "time": "2026-06-10 12:30:00"
-          },
-          {
-            "event_type": "Inflation Rate MoM",
-            "name": "Inflation Rate MoM",
-            "minutes_until": -12,
-            "urgency": 0.85,
-            "actual": 0.5,
-            "estimate": 0.5,
-            "time": "2026-06-10 12:30:00"
-          },
-          {
-            "event_type": "Inflation Rate YoY",
-            "name": "Inflation Rate YoY",
-            "minutes_until": -12,
-            "urgency": 0.85,
-            "actual": 4.2,
-            "estimate": 4.2,
-            "time": "2026-06-10 12:30:00"
-          },
-          {
-            "event_type": "PPI",
-            "name": "Core PPI MoM",
-            "minutes_until": 1427,
-            "urgency": 0.7,
-            "actual": null,
-            "estimate": 0.5,
-            "time": "2026-06-11 12:30:00"
-          },
-          {
-            "event_type": "PPI",
-            "name": "Core PPI YoY",
-            "minutes_until": 1427,
-            "urgency": 0.7,
-            "actual": null,
-            "estimate": 5.4,
-            "time": "2026-06-11 12:30:00"
-          }
-        ]
+        "scheduled": []
       },
       "recent_news_count": 200,
       "recent_trades": [
         {
-          "direction": "LONG",
-          "outcome": "LOSS",
-          "created_at": "2026-06-10T12:36:07.128721+00:00"
-        },
-        {
-          "direction": "LONG",
-          "outcome": "PARTIAL",
-          "created_at": "2026-06-10T12:34:08.742088+00:00"
-        },
-        {
           "direction": "SHORT",
           "outcome": "LOSS",
-          "created_at": "2026-06-10T12:28:01.833652+00:00"
-        },
-        {
-          "direction": "SHORT",
-          "outcome": "LOSS",
-          "created_at": "2026-06-10T12:18:01.731836+00:00"
+          "created_at": "2026-06-10T15:54:04.242657+00:00"
         },
         {
           "direction": "SHORT",
           "outcome": "PARTIAL",
-          "created_at": "2026-06-10T12:14:02.929101+00:00"
-        },
-        {
-          "direction": "SHORT",
-          "outcome": "PARTIAL",
-          "created_at": "2026-06-10T12:12:03.730251+00:00"
-        },
-        {
-          "direction": "SHORT",
-          "outcome": "LOSS",
-          "created_at": "2026-06-10T12:04:06.692293+00:00"
+          "created_at": "2026-06-10T15:52:07.634694+00:00"
         },
         {
           "direction": "LONG",
           "outcome": "LOSS",
-          "created_at": "2026-06-10T11:54:02.489485+00:00"
-        },
-        {
-          "direction": "SHORT",
-          "outcome": "LOSS",
-          "created_at": "2026-06-10T11:52:04.865628+00:00"
+          "created_at": "2026-06-10T15:48:05.507077+00:00"
         },
         {
           "direction": "LONG",
           "outcome": "LOSS",
-          "created_at": "2026-06-10T10:26:01.705781+00:00"
+          "created_at": "2026-06-10T15:32:09.675956+00:00"
+        },
+        {
+          "direction": "SHORT",
+          "outcome": "LOSS",
+          "created_at": "2026-06-10T15:22:03.846762+00:00"
+        },
+        {
+          "direction": "SHORT",
+          "outcome": "LOSS",
+          "created_at": "2026-06-10T15:00:23.285797+00:00"
+        },
+        {
+          "direction": "SHORT",
+          "outcome": "WIN",
+          "created_at": "2026-06-10T14:58:02.891238+00:00"
+        },
+        {
+          "direction": "SHORT",
+          "outcome": "LOSS",
+          "created_at": "2026-06-10T14:18:05.988007+00:00"
+        },
+        {
+          "direction": "SHORT",
+          "outcome": "LOSS",
+          "created_at": "2026-06-10T14:14:02.370708+00:00"
+        },
+        {
+          "direction": "SHORT",
+          "outcome": "LOSS",
+          "created_at": "2026-06-10T14:04:05.851292+00:00"
         }
       ]
     }
@@ -233,47 +160,47 @@
     "data": {
       "pool": "XAUUSD_2M",
       "weights": {
-        "w1": 0.2,
-        "w2": 0.2577,
-        "w3": 1.1438,
+        "w1": 0.203,
+        "w2": 0.2585,
+        "w3": 1.1935,
         "w4": 0.2,
         "w5": 0.2,
-        "w6": 2.5872,
+        "w6": 2.6515,
         "w7": 0.2,
-        "w8": 0.5687,
-        "w9": 0.2,
-        "w10": 0.8407,
-        "w11": 0.2053,
-        "w12": 1.4473,
-        "w13": 1.6483,
-        "w14": 1.2663,
-        "w15": 1.2143,
-        "w16": 0.6432,
-        "w17": 0.6552,
-        "w18": 0.2108,
-        "w19": 1.2883,
-        "w20": 0.4317,
-        "w21": 0.6152,
+        "w8": 0.574,
+        "w9": 0.248,
+        "w10": 0.8555,
+        "w11": 0.2,
+        "w12": 1.482,
+        "w13": 1.6475,
+        "w14": 1.281,
+        "w15": 1.249,
+        "w16": 0.6085,
+        "w17": 0.596,
+        "w18": 0.2,
+        "w19": 1.323,
+        "w20": 0.4265,
+        "w21": 0.5605,
         "w22": 0.2,
-        "w23": 0.2053,
-        "w24": 1.2378,
-        "w25": 1.1857
+        "w23": 0.2,
+        "w24": 1.2725,
+        "w25": 1.151
       },
-      "total_wins": 93,
-      "total_losses": 189,
+      "total_wins": 98,
+      "total_losses": 199,
       "win_rate": 33.0,
       "top_features": [
         {
           "name": "WillR",
-          "weight": 2.5872
+          "weight": 2.6515
         },
         {
           "name": "P/D",
-          "weight": 1.6483
+          "weight": 1.6475
         },
         {
           "name": "Liq",
-          "weight": 1.4473
+          "weight": 1.482
         }
       ]
     }
