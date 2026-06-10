@@ -1,4 +1,37 @@
 {
-  "fetched_at": "2026-06-10T12:11:25.510925+00:00",
-  "assets": {}
+  "fetched_at": "2026-06-10T12:21:33.496554+00:00",
+  "assets": {
+    "SPY": {
+      "current": 730.84,
+      "prev_high": 745.34,
+      "prev_low": 738.19,
+      "prev_close": 739.22,
+      "pivot": 740.92,
+      "r1": 743.64,
+      "r2": 748.07,
+      "r3": 750.79,
+      "s1": 736.49,
+      "s2": 733.77,
+      "s3": 729.34,
+      "expected_range_low": 728.11,
+      "expected_range_high": 748.07,
+      "price_source": "AMEX:SPY premarket_close"
+    },
+    "QQQ": {
+      "current": 698.2,
+      "prev_high": 723.03,
+      "prev_low": 713.07,
+      "prev_close": 716.07,
+      "pivot": 717.39,
+      "r1": 721.71,
+      "r2": 727.35,
+      "r3": 731.67,
+      "s1": 711.75,
+      "s2": 707.43,
+      "s3": 701.79,
+      "expected_range_low": 693.88,
+      "expected_range_high": 727.35,
+      "price_source": "NASDAQ:QQQ premarket_close"
+    }
+  }
 }
