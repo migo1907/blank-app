@@ -637,33 +637,34 @@ async def _hourly_system_check() -> None:
         gold_active   = (dow < 5)              # gold trades Mon-Fri; skip weekend silence alerts
         stocks_active = (dow < 5 and 13 <= hour_utc < 21)  # stocks 09:30–17:00 ET ≈ 13:30–21:00 UTC
 
-        # max_silent_hours is timeframe-aware: long timeframes legitimately go
-        # many hours/days between *closed* trades. Thresholds set to ~a few bars
-        # of silence so we only alert on a genuine webhook outage, not normal
-        # low-frequency behavior. (Tuned 2026-06-09 to cut false-alarm noise:
-        # 4H pools were alerting after 8-12h; XAUUSD_1H after 72h despite being
-        # a very low-frequency pool.)
+        # max_silent_hours is calibrated to each pool's REAL trade cadence (verified
+        # against the live webhook log), not a flat value. Thin pools (INDEX/QQQ) and
+        # all slow 4H pools trade <1×/day, so short thresholds produce daily false
+        # "flow gap" alarms. Windows are sized so the alert only fires when a pool that
+        # SHOULD trade daily goes dark for 1.5–3 days — the real signature of an
+        # expired/broken TradingView alert. XAUUSD_1H is ultra-thin (a few trades ever)
+        # so it gets a full week before alerting.
         active_pools = [
             ("data/trade_history_XAUUSD_2M.json",            "XAUUSD_2M",            gold_active,     6),
             ("data/trade_history_XAUUSD_5M.json",            "XAUUSD_5M",            gold_active,    12),
             ("data/trade_history_XAUUSD_30M.json",           "XAUUSD_30M",           gold_active,    48),
             ("data/trade_history_XAUUSD_1H.json",            "XAUUSD_1H",            gold_active,    168),
-            ("data/trade_history_STOCKS_MOMENTUM_15M.json",  "STOCKS_MOMENTUM_15M",  stocks_active,   4),
-            ("data/trade_history_STOCKS_MOMENTUM_30M.json",  "STOCKS_MOMENTUM_30M",  stocks_active,   6),
-            ("data/trade_history_STOCKS_QUALITY_15M.json",   "STOCKS_QUALITY_15M",   stocks_active,   4),
-            ("data/trade_history_STOCKS_QUALITY_30M.json",   "STOCKS_QUALITY_30M",   stocks_active,   6),
-            ("data/trade_history_STOCKS_INDEX_15M.json",     "STOCKS_INDEX_15M",     stocks_active,   6),
-            ("data/trade_history_STOCKS_INDEX_30M.json",     "STOCKS_INDEX_30M",     stocks_active,   8),
-            ("data/trade_history_STOCKS_QQQ_15M.json",       "STOCKS_QQQ_15M",       stocks_active,   6),
-            ("data/trade_history_STOCKS_QQQ_30M.json",       "STOCKS_QQQ_30M",       stocks_active,   8),
-            ("data/trade_history_STOCKS_SPX500_15M.json",    "STOCKS_SPX500_15M",    stocks_active,   8),
-            ("data/trade_history_STOCKS_SPX500_30M.json",    "STOCKS_SPX500_30M",    stocks_active,  12),
+            ("data/trade_history_STOCKS_MOMENTUM_15M.json",  "STOCKS_MOMENTUM_15M",  stocks_active,    6),
+            ("data/trade_history_STOCKS_MOMENTUM_30M.json",  "STOCKS_MOMENTUM_30M",  stocks_active,    8),
+            ("data/trade_history_STOCKS_QUALITY_15M.json",   "STOCKS_QUALITY_15M",   stocks_active,   12),
+            ("data/trade_history_STOCKS_QUALITY_30M.json",   "STOCKS_QUALITY_30M",   stocks_active,   24),
+            ("data/trade_history_STOCKS_INDEX_15M.json",     "STOCKS_INDEX_15M",     stocks_active,   48),
+            ("data/trade_history_STOCKS_INDEX_30M.json",     "STOCKS_INDEX_30M",     stocks_active,   48),
+            ("data/trade_history_STOCKS_QQQ_15M.json",       "STOCKS_QQQ_15M",       stocks_active,   48),
+            ("data/trade_history_STOCKS_QQQ_30M.json",       "STOCKS_QQQ_30M",       stocks_active,   48),
+            ("data/trade_history_STOCKS_SPX500_15M.json",    "STOCKS_SPX500_15M",    stocks_active,   24),
+            ("data/trade_history_STOCKS_SPX500_30M.json",    "STOCKS_SPX500_30M",    stocks_active,   24),
             # 4H pools resolve trades over many hours — only alert after ~2 sessions of silence
-            ("data/trade_history_STOCKS_MOMENTUM_4H.json",   "STOCKS_MOMENTUM_4H",   stocks_active,  48),
-            ("data/trade_history_STOCKS_QUALITY_4H.json",    "STOCKS_QUALITY_4H",    stocks_active,  48),
-            ("data/trade_history_STOCKS_INDEX_4H.json",      "STOCKS_INDEX_4H",      stocks_active,  48),
-            ("data/trade_history_STOCKS_QQQ_4H.json",        "STOCKS_QQQ_4H",        stocks_active,  48),
-            ("data/trade_history_STOCKS_SPX500_4H.json",     "STOCKS_SPX500_4H",     stocks_active,  48),
+            ("data/trade_history_STOCKS_MOMENTUM_4H.json",   "STOCKS_MOMENTUM_4H",   stocks_active,   72),
+            ("data/trade_history_STOCKS_QUALITY_4H.json",    "STOCKS_QUALITY_4H",    stocks_active,   72),
+            ("data/trade_history_STOCKS_INDEX_4H.json",      "STOCKS_INDEX_4H",      stocks_active,   72),
+            ("data/trade_history_STOCKS_QQQ_4H.json",        "STOCKS_QQQ_4H",        stocks_active,   72),
+            ("data/trade_history_STOCKS_SPX500_4H.json",     "STOCKS_SPX500_4H",     stocks_active,   72),
         ]
 
         silent_pools = []
