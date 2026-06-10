@@ -80,15 +80,6 @@
     "stored_at": "2026-06-09T20:00:08.299221+00:00",
     "expires_at": "2026-06-10T04:00:08.299236+00:00"
   },
-  "SPX500_30": {
-    "direction": "SHORT",
-    "timeframe": "30",
-    "symbol": "SPX500",
-    "trigger": "FVG",
-    "ml_score": 0.5,
-    "stored_at": "2026-06-10T05:00:14.447900+00:00",
-    "expires_at": "2026-06-10T07:00:14.447920+00:00"
-  },
   "XAUUSD_60": {
     "direction": "SHORT",
     "timeframe": "60",
