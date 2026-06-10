@@ -45,13 +45,13 @@
     "expires_at": "2026-06-10T16:30:01.653951+00:00"
   },
   "PLTR_30": {
-    "direction": "SHORT",
+    "direction": "LONG",
     "timeframe": "30",
     "symbol": "PLTR",
-    "trigger": "LIQ",
-    "ml_score": 0.625,
-    "stored_at": "2026-06-10T14:30:06.953996+00:00",
-    "expires_at": "2026-06-10T16:30:06.954013+00:00"
+    "trigger": "RSI",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-10T16:00:07.194499+00:00",
+    "expires_at": "2026-06-10T18:00:07.194518+00:00"
   },
   "PATH_30": {
     "direction": "SHORT",
