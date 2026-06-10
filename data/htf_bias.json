@@ -178,5 +178,23 @@
     "ml_score": 0.25,
     "stored_at": "2026-06-10T17:30:05.591051+00:00",
     "expires_at": "2026-06-11T01:30:05.591072+00:00"
+  },
+  "TSLA_240": {
+    "direction": "SHORT",
+    "timeframe": "240",
+    "symbol": "TSLA",
+    "trigger": "BOS",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-10T17:30:12.573465+00:00",
+    "expires_at": "2026-06-11T01:30:12.573492+00:00"
+  },
+  "GOOG_240": {
+    "direction": "SHORT",
+    "timeframe": "240",
+    "symbol": "GOOG",
+    "trigger": "OB",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-10T17:30:17.152968+00:00",
+    "expires_at": "2026-06-11T01:30:17.152989+00:00"
   }
 }
