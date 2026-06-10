@@ -2060,7 +2060,7 @@
     "regime": "TRENDING_BEAR",
     "regime_label": "PULLBACK_LONG",
     "reasoning": "KNN:LONG RF:LONG GBM:LONG | agree\u00d71.20 | regime:TRENDING_BEAR(PULLBACK_LONG)\u00d70.95 | sess:LONDON_OPEN\u00d70.90 | confluence\u00d70.65 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-0.63) | news:neutral(-0.008) | macro:NEUTRAL(-0.139) | combined:+0.189 \u2192 conf:0.126 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-10T08:06:48.017424+00:00",
     "created_at": "2026-06-10T07:36:49.857867+00:00",
     "id": 101
