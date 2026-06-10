@@ -805,11 +805,17 @@ async def _daily_trade_count_report() -> None:
     if datetime.now(timezone.utc).weekday() >= 5:
         return
     try:
-        from db import _get_file
+        from db import _get_file, repair_missing_trades
         from telegram_bot import send_text
+
+        # Recover any trades that arrived but failed to save (SHA conflicts etc.)
+        repaired = await asyncio.to_thread(repair_missing_trades)
+        if repaired:
+            print(f"[daily_report] Pre-report repair: {len(repaired)} trades recovered.")
 
         today = date.today().isoformat()
         all_paths = [
+            "data/trade_history.json",          # legacy XAUUSD pool (pre-timeframe era)
             "data/trade_history_XAUUSD_2M.json",
             "data/trade_history_XAUUSD_5M.json",
             "data/trade_history_XAUUSD_30M.json",

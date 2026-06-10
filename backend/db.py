@@ -175,7 +175,7 @@ def symbol_to_pool(symbol: str, timeframe: str = "") -> str:
         # XAUUSD_4H is not a live trading pool — drop heartbeats to prevent orphan cache entries
         if suffix == "4H":
             return ""
-        return f"XAUUSD_{suffix}" if suffix else "XAUUSD"
+        return f"XAUUSD_{suffix}" if suffix else "XAUUSD_2M"
     if ticker in STOCKS_SPX500:
         base = "STOCKS_SPX500"
     elif ticker in STOCKS_QQQ:
@@ -320,6 +320,8 @@ def insert_outcome(outcome: dict) -> None:
 def recent_outcomes(pool: str = "XAUUSD", limit: int = 200) -> list[dict]:
     path = _pool_history_file(pool)
     history, _ = _get_file(path)
+    if not isinstance(history, list):
+        history = []
     if not history:
         return []
     return list(reversed(history))[:limit]
