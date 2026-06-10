@@ -1062,9 +1062,9 @@ def start_scheduler() -> AsyncIOScheduler:
     _scheduler.add_job(_fj_session_refresh_cycle, trigger="date", run_date=_now + _td(seconds=60),
                        id="fj_session_refresh_boot", replace_existing=True)
 
-    # Startup catch-up: fire daily brief if missed today (redeploy between 12:00–15:00 UTC)
-    if _now.weekday() < 5 and 12 <= _now.hour < 15:
-        print("[scheduler] Startup catch-up: firing missed daily brief.")
+    # Startup catch-up: fire daily brief only if redeployed within 1h of the 12:00 UTC slot
+    if _now.weekday() < 5 and 12 <= _now.hour < 13:
+        print("[scheduler] Startup catch-up: firing missed 12:00 UTC daily brief.")
         _scheduler.add_job(_daily_market_brief, trigger="date", run_date=_now + _td(seconds=30),
                            id="daily_brief_catchup", replace_existing=True)
 
@@ -1076,7 +1076,7 @@ def start_scheduler() -> AsyncIOScheduler:
         _scheduler.add_job(_daily_trade_count_report, trigger="date", run_date=_now + _td(seconds=45),
                            id="daily_report_catchup", replace_existing=True)
 
-    print(f"[scheduler] Started — signal every {interval} min, breaking news every 2 min (Telegram paused), system check every 60 min, daily brief at 08:00 UTC.")
+    print(f"[scheduler] Started — signal every {interval} min, breaking news every 2 min (Telegram paused), system check every 60 min, daily brief at 12:00 UTC.")
     return _scheduler
 
 

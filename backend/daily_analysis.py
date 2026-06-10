@@ -229,12 +229,19 @@ def generate_daily_brief() -> str | None:
     now      = datetime.now(timezone.utc)
     weekday  = now.strftime("%A")
     date_str = now.strftime("%d %b %Y")
+    # US regular session opens 13:30 UTC; NY close 20:00 UTC
+    if now.hour < 13 or (now.hour == 13 and now.minute < 30):
+        session_label = "Pre-market analysis"
+    elif now.hour < 20:
+        session_label = "Regular session"
+    else:
+        session_label = "After-hours"
 
     msg = (
         f"📅 <b>DAILY MARKET Technical BRIEF — {weekday}, {date_str}</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━\n\n"
         f"{analysis}\n\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
-        f"⏰ {now.strftime('%H:%M UTC')} | Pre-market analysis"
+        f"⏰ {now.strftime('%H:%M UTC')} | {session_label}"
     )
     return msg
