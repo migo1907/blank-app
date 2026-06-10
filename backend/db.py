@@ -446,6 +446,82 @@ def log_raw_webhook(payload: dict) -> None:
         print(f"[webhook_log] Failed to log payload: {e}")
 
 
+_MISTAKE_LEDGER_PATH = "data/mistake_ledger.json"
+_MISTAKE_LEDGER_MAX  = 500
+
+
+def log_mistake(trade_row: dict) -> None:
+    """
+    Append a LOSS trade to the mistake ledger with auto-categorized cause tags.
+    Used for weekly autopsy: which session/regime/trigger bleeds most.
+    Non-blocking — never raises.
+    """
+    try:
+        atr = float(trade_row.get("f3_atr") or 0.0)
+        entry = {
+            "id":        trade_row.get("id", ""),
+            "pool":      trade_row.get("pool", ""),
+            "symbol":    trade_row.get("symbol", ""),
+            "direction": trade_row.get("direction", ""),
+            "trigger":   trade_row.get("trigger", ""),
+            "session":   trade_row.get("session", "UNKNOWN"),
+            "regime":    trade_row.get("regime", "UNKNOWN"),
+            "pnl_pct":   trade_row.get("pnl_pct", 0.0),
+            "atr_level": "HIGH" if atr > 0.5 else "LOW",
+            "created_at": trade_row.get("created_at", datetime.now(timezone.utc).isoformat()),
+            "cause_tags": [
+                trade_row.get("session", "UNKNOWN"),
+                trade_row.get("regime", "UNKNOWN"),
+                trade_row.get("direction", ""),
+                f"trigger:{trade_row.get('trigger', 'UNKNOWN')}",
+                f"atr:{'HIGH' if atr > 0.5 else 'LOW'}",
+            ],
+        }
+        for attempt in range(3):
+            ledger, sha = _get_file(_MISTAKE_LEDGER_PATH)
+            if not isinstance(ledger, list):
+                ledger = []
+            ledger.append(entry)
+            if len(ledger) > _MISTAKE_LEDGER_MAX:
+                ledger = ledger[-_MISTAKE_LEDGER_MAX:]
+            try:
+                _put_file(_MISTAKE_LEDGER_PATH, ledger, sha,
+                          f"data: log mistake {entry['pool']} {entry['direction']}")
+                return
+            except Exception as e:
+                if attempt < 2 and "409" in str(e):
+                    continue
+                raise
+    except Exception as e:
+        print(f"[mistake_ledger] Failed to log (non-fatal): {e}")
+
+
+def get_mistake_summary(pool: str = "", last_n: int = 50) -> dict:
+    """
+    Return a summary of recent mistakes: top bleeding patterns by tag.
+    Used by weekly Telegram autopsy.
+    """
+    try:
+        ledger, _ = _get_file(_MISTAKE_LEDGER_PATH)
+        if not isinstance(ledger, list) or not ledger:
+            return {}
+        entries = [e for e in ledger if not pool or e.get("pool") == pool]
+        entries = entries[-last_n:]
+        tag_counts: dict[str, int] = {}
+        for e in entries:
+            for tag in e.get("cause_tags", []):
+                tag_counts[tag] = tag_counts.get(tag, 0) + 1
+        top = sorted(tag_counts.items(), key=lambda x: -x[1])[:10]
+        return {
+            "total_mistakes": len(entries),
+            "pool": pool or "ALL",
+            "top_patterns": [{"tag": t, "count": c} for t, c in top],
+        }
+    except Exception as e:
+        print(f"[mistake_ledger] get_mistake_summary error: {e}")
+        return {}
+
+
 def repair_missing_trades() -> list[str]:
     """
     Read webhook_log.json, compare each logged payload against the pool it belongs to.

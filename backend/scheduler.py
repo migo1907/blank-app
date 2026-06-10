@@ -1037,6 +1037,30 @@ async def _daily_market_brief() -> None:
         print(f"[daily] Brief error: {e}")
 
 
+async def _weekly_mistake_autopsy() -> None:
+    """Every Monday 09:00 UTC — summarise top bleeding patterns from the mistake ledger."""
+    from datetime import datetime, timezone
+    now = datetime.now(timezone.utc)
+    if now.weekday() != 0:   # Monday only (safety guard)
+        return
+    print("[autopsy] Running weekly mistake autopsy…")
+    try:
+        from db import get_mistake_summary
+        summary = await asyncio.to_thread(get_mistake_summary, "", 100)
+        if not summary or not summary.get("top_patterns"):
+            return
+        lines = ["🔬 *Weekly Mistake Autopsy*\n"]
+        lines.append(f"Last 100 losses analysed:\n")
+        for pat in summary["top_patterns"][:8]:
+            lines.append(f"  • `{pat['tag']}` — {pat['count']} losses")
+        lines.append(f"\nTotal mistakes logged: {summary['total_mistakes']}")
+        from telegram_bot import send_text
+        await send_text("\n".join(lines))
+        print("[autopsy] Weekly autopsy sent.")
+    except Exception as e:
+        print(f"[autopsy] Error: {e}")
+
+
 async def _test_personal_alert() -> None:
     from telegram_bot import send_critical_alert
     await send_critical_alert(
@@ -1144,6 +1168,8 @@ def start_scheduler() -> AsyncIOScheduler:
     _scheduler.add_job(_fj_session_refresh_cycle, trigger="cron", hour="5,17", minute=30, id="fj_session_refresh", replace_existing=True, misfire_grace_time=3600)
     # Market pulse — direction summary at London open (10:00), NY open (14:00), NY close (20:00) UTC.
     _scheduler.add_job(_market_pulse_cycle, trigger="cron", hour="10,14,20", minute=0, id="market_pulse", replace_existing=True, misfire_grace_time=600)
+    # Weekly mistake autopsy — every Monday 09:00 UTC
+    _scheduler.add_job(_weekly_mistake_autopsy, trigger="cron", day_of_week="mon", hour=9, minute=0, id="weekly_autopsy", replace_existing=True, misfire_grace_time=3600)
     _scheduler.start()
 
     _now = _dt.now(_tz.utc)

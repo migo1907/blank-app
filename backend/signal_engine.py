@@ -114,6 +114,71 @@ import os as _os
 # Lenient default — only blocks entries the trained models actively distrust.
 ML_GATE_THRESHOLD = float(_os.environ.get("ML_GATE_THRESHOLD", "0.45"))
 
+# Per-pool expectancy thresholds — computed from trade history, updated after each retrain.
+# Key: pool name, Value: optimal threshold in [0.30, 0.65]. Falls back to ML_GATE_THRESHOLD.
+_pool_thresholds: dict[str, float] = {}
+
+# Per-pool rolling performance tracker for champion-challenger.
+# Stores (predicted_prob, actual_label) for the last 30 OOS predictions.
+_pool_perf_buffer: dict[str, list[tuple[float, int]]] = {}
+_ROLLBACK_WINDOW   = 30   # trades to evaluate before rollback check
+_ROLLBACK_DROP_PP  = 15   # pp drop vs baseline triggers rollback
+
+
+def compute_expectancy_threshold(pool: str, history: list[dict]) -> float:
+    """
+    Compute optimal classification threshold to maximize E[PnL] = WR × avg_win − (1−WR) × avg_loss.
+    Uses the Neyman-Pearson closed-form: thresh = 1 / (1 + avg_win / avg_loss).
+    Falls back to ML_GATE_THRESHOLD when data is insufficient (<30 closed trades).
+    """
+    closed = [t for t in history if t.get("pnl_pct") is not None and t.get("outcome") in ("WIN", "PARTIAL", "LOSS")]
+    if len(closed) < 30:
+        return ML_GATE_THRESHOLD
+
+    wins_pnl   = [float(t["pnl_pct"]) for t in closed if t["outcome"] in ("WIN", "PARTIAL") and float(t["pnl_pct"]) > 0]
+    losses_pnl = [abs(float(t["pnl_pct"])) for t in closed if t["outcome"] == "LOSS"]
+
+    if not wins_pnl or not losses_pnl:
+        return ML_GATE_THRESHOLD
+
+    avg_win  = sum(wins_pnl)  / len(wins_pnl)
+    avg_loss = sum(losses_pnl) / len(losses_pnl)
+    if avg_loss < 0.001:
+        return ML_GATE_THRESHOLD
+
+    optimal = 1.0 / (1.0 + avg_win / avg_loss)
+    clamped = round(max(0.30, min(0.65, optimal)), 3)
+    print(f"[gate] Pool '{pool}' expectancy threshold: {clamped:.3f} "
+          f"(avg_win={avg_win:.2f} avg_loss={avg_loss:.2f})")
+    return clamped
+
+
+def refresh_pool_models(pool: str, history: list[dict]) -> None:
+    """
+    Called after every retrain. Updates per-pool expectancy threshold and checks
+    whether the new challenger model should be rolled back (champion-challenger).
+    """
+    # 1. Recompute expectancy threshold from fresh history
+    _pool_thresholds[pool] = compute_expectancy_threshold(pool, history)
+
+    # 2. Champion-challenger: check if new model lifted or hurt perf vs baseline
+    buf = _pool_perf_buffer.get(pool, [])
+    if len(buf) >= _ROLLBACK_WINDOW:
+        base_rate = sum(label for _, label in buf) / len(buf)
+        # Lift = hit rate in top-half predictions vs bottom-half
+        sorted_buf = sorted(buf, key=lambda x: x[0])
+        half = len(sorted_buf) // 2
+        top_rate = sum(label for _, label in sorted_buf[half:]) / max(half, 1)
+        bot_rate = sum(label for _, label in sorted_buf[:half]) / max(half, 1)
+        lift_pp = (top_rate - bot_rate) * 100
+        if lift_pp < -_ROLLBACK_DROP_PP:
+            from ml_ensemble import get_rf, get_gbm
+            rf_ok  = get_rf(pool).rollback()
+            gbm_ok = get_gbm(pool).rollback()
+            if rf_ok or gbm_ok:
+                print(f"[champion] Pool '{pool}' rolled back — challenger lift {lift_pp:.1f}pp below threshold")
+        _pool_perf_buffer[pool] = []  # reset after evaluation
+
 # Short-TTL in-memory cache for pool trade history. recent_outcomes() hits GitHub
 # on every call (db._get_file has no caching), so without this a burst of entries
 # during an active session would each trigger a full history fetch — latency +
@@ -137,6 +202,14 @@ def _cached_history(pool: str, limit: int = 500) -> list[dict]:
 def invalidate_history_cache(pool: str) -> None:
     """Call after inserting a new outcome so the gate sees it on the next entry."""
     _history_cache.pop(pool, None)
+
+
+def record_oob_prediction(pool: str, score: float, actual_win: bool) -> None:
+    """Record an OOS (out-of-bag) prediction for champion-challenger tracking."""
+    buf = _pool_perf_buffer.setdefault(pool, [])
+    buf.append((score, int(actual_win)))
+    if len(buf) > _ROLLBACK_WINDOW * 2:
+        _pool_perf_buffer[pool] = buf[-_ROLLBACK_WINDOW:]
 
 
 def _memory_features(history: list[dict], direction: str, n: int = 10) -> list[float]:
@@ -241,10 +314,14 @@ def score_entry_gate(pool: str, direction: str) -> dict:
         # Nothing trained yet → bypass so the pool can mature.
         return {"pass": True, "score": 0.5, "reason": "cold_start_bypass", "components": {}}
 
-    score   = sum(components.values()) / len(components)
-    passed  = score >= ML_GATE_THRESHOLD
-    reason  = "approved" if passed else "rejected_low_confidence"
-    return {"pass": passed, "score": round(score, 4), "reason": reason, "components": components}
+    score     = sum(components.values()) / len(components)
+    threshold = _pool_thresholds.get(pool, ML_GATE_THRESHOLD)
+    passed    = score >= threshold
+    reason    = "approved" if passed else "rejected_low_confidence"
+    return {
+        "pass": passed, "score": round(score, 4), "reason": reason,
+        "components": components, "threshold": threshold,
+    }
 
 
 # ── Base weights ────────────────────────────────────────────────────────────────

@@ -537,12 +537,26 @@ async def trade_outcome(payload: TradeOutcomePayload):
                     else:
                         raise
             await asyncio.to_thread(insert_outcome, outcome_row)
-            from signal_engine import invalidate_history_cache
+
+            # Log to mistake ledger for weekly autopsy
+            if outcome_row.get("outcome") == "LOSS":
+                from db import log_mistake
+                await asyncio.to_thread(log_mistake, outcome_row)
+
+            from signal_engine import invalidate_history_cache, refresh_pool_models, record_oob_prediction
             invalidate_history_cache(pool)
             history = await asyncio.to_thread(recent_outcomes, pool, 500)
+
+            # Record OOS prediction for champion-challenger tracking
+            _prev_score = outcome_row.get("ml_bull_score") or 0.5
+            _actual_win = outcome_row.get("outcome") in ("WIN", "PARTIAL")
+            record_oob_prediction(pool, float(_prev_score), bool(_actual_win))
+
             if len(history) >= 50:
                 await asyncio.to_thread(get_rf(pool).retrain, history)
                 await asyncio.to_thread(get_gbm(pool).train, history)
+                # Update expectancy threshold + champion-challenger check
+                await asyncio.to_thread(refresh_pool_models, pool, history)
             from scheduler import record_webhook_ok
             record_webhook_ok()
         except Exception as e:
