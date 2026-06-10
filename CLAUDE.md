@@ -8,6 +8,15 @@
 - **Project ID:** bcc5442d-2f19-4dfa-ad25-219a5c70868a
 - **Service ID:** e4310b2b-3a37-440e-a3b7-a14ea476f8a1
 
+## Non-Negotiable Rules
+These are permanent agreements — never override, skip, or work around them under any circumstance:
+
+1. **CI must be green before any push is reported as done.** After every `git push`, wait for the Backend CI run on that exact commit SHA to complete with `conclusion: success`. Do not tell the user the work is done until that green line is confirmed. If CI fails, fix it before reporting.
+2. **Never push to `main`.**
+3. **Credentials (tokens, passwords, secrets) stay in Railway env only — never committed to the repo.**
+
+---
+
 ## Git
 - **Development branch:** `claude/hopeful-pasteur-VVHCl`
 - **DATA branch:** `data` — ALL live trade history, weights, signals, news cache, feature cache are written here by Railway at runtime (db.py GITHUB_BRANCH="data"). ALWAYS check the `data` branch for trade counts, not the dev branch.
