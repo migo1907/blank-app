@@ -97,11 +97,8 @@ jobs:
                   print(f"[action] TV price {sym}: no usable field in {price_fields} — {d}")
               return None, None
 
-          def yahoo_prevday(ticker, decimals):
-              """
-              Previous COMPLETED daily H/L/C from Yahoo (spot tickers, e.g. XAU=X).
-              Skips today's in-progress bar so pivots use the last finished session.
-              """
+          def _yahoo_one(ticker):
+              """Previous COMPLETED daily H/L/C from one Yahoo ticker, or None."""
               try:
                   url = f"https://query1.finance.yahoo.com/v8/finance/chart/{quote(ticker)}?range=7d&interval=1d"
                   resp = requests.get(url, timeout=10, headers={"User-Agent": UA})
@@ -132,12 +129,20 @@ jobs:
                   print(f"[action] Yahoo {ticker}: {e}")
                   return None
 
-          def build_levels(tv_symbols, price_fields, yahoo_ticker, decimals):
+          def yahoo_prevday(tickers, decimals):
+              """Try each Yahoo ticker (spot first) for prior-day H/L/C."""
+              for tk in tickers:
+                  prev = _yahoo_one(tk)
+                  if prev is not None:
+                      return prev
+              return None
+
+          def build_levels(tv_symbols, price_fields, yahoo_tickers, decimals):
               """Live price from TradingView + prev-day H/L/C from Yahoo spot → pivots."""
               price, psrc = tv_price(tv_symbols, price_fields)
               if price is None:
                   return None
-              prev = yahoo_prevday(yahoo_ticker, decimals)
+              prev = yahoo_prevday(yahoo_tickers, decimals)
               if prev is None:
                   return None
               ph, pl, pc = prev
@@ -151,17 +156,17 @@ jobs:
               "XAUUSD": {
                   "tv": ["TVC:GOLD", "OANDA:XAUUSD", "FX_IDC:XAUUSD", "FOREXCOM:XAUUSD", "ICMARKETS:XAUUSD"],
                   "fields": ["close"],
-                  "yahoo": "XAU=X", "dec": 2,
+                  "yahoo": ["XAUUSD=X", "XAU=X", "GC=F"], "dec": 2,
               },
               "SPY": {
                   "tv": ["AMEX:SPY"],
                   "fields": ["premarket_close", "close"],
-                  "yahoo": "SPY", "dec": 2,
+                  "yahoo": ["SPY"], "dec": 2,
               },
               "QQQ": {
                   "tv": ["NASDAQ:QQQ"],
                   "fields": ["premarket_close", "close"],
-                  "yahoo": "QQQ", "dec": 2,
+                  "yahoo": ["QQQ"], "dec": 2,
               },
           }
 
