@@ -310,7 +310,7 @@
   {
     "symbol": "SPX500",
     "direction": "SHORT",
-    "trigger": "",
+    "trigger": "FVG",
     "entry_price": 7326.63,
     "exit_price": 7250.1,
     "outcome": "PARTIAL",
@@ -347,8 +347,8 @@
     "f23_rsiacc": -0.3422,
     "f24_fvgq": 0.0,
     "f25_tod": -0.7071,
-    "id": "7f70c86d",
+    "id": "ddae5586",
     "pool": "STOCKS_SPX500_30M",
-    "created_at": "2026-06-10T23:30:08.415230+00:00"
+    "created_at": "2026-06-10T23:30:05.648046+00:00"
   }
 ]
