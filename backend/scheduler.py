@@ -1039,7 +1039,9 @@ def start_scheduler() -> AsyncIOScheduler:
     _scheduler.add_job(_hourly_system_check, trigger="interval", hours=1, id="hourly_system_check", replace_existing=True)
     _scheduler.add_job(_macro_refresh_cycle, trigger="interval", hours=1, id="macro_refresh_cycle", replace_existing=True,
                        start_date=_dt.now(_tz.utc) + _td(seconds=20))
-    _scheduler.add_job(_daily_market_brief, trigger="cron", hour=8, minute=0, id="daily_market_brief", replace_existing=True, misfire_grace_time=3600)
+    # Daily brief at 12:00 UTC (4:00 PM Dubai) — inside US premarket so SPY/QQQ show
+    # live premarket prices; levels are pre-fetched at 11:50 UTC by GitHub Actions.
+    _scheduler.add_job(_daily_market_brief, trigger="cron", hour=12, minute=0, id="daily_market_brief", replace_existing=True, misfire_grace_time=3600)
     # NY-close reports are pinned to America/New_York (16:0x ET) so they auto-adjust
     # for DST. Previously hardcoded to 21:0x UTC, which fired an hour late all summer
     # (EDT close is 20:00 UTC, not 21:00).
@@ -1060,8 +1062,8 @@ def start_scheduler() -> AsyncIOScheduler:
     _scheduler.add_job(_fj_session_refresh_cycle, trigger="date", run_date=_now + _td(seconds=60),
                        id="fj_session_refresh_boot", replace_existing=True)
 
-    # Startup catch-up: fire daily brief if missed today (redeploy between 08:00–11:00)
-    if _now.weekday() < 5 and 8 <= _now.hour < 11:
+    # Startup catch-up: fire daily brief if missed today (redeploy between 12:00–15:00 UTC)
+    if _now.weekday() < 5 and 12 <= _now.hour < 15:
         print("[scheduler] Startup catch-up: firing missed daily brief.")
         _scheduler.add_job(_daily_market_brief, trigger="date", run_date=_now + _td(seconds=30),
                            id="daily_brief_catchup", replace_existing=True)
