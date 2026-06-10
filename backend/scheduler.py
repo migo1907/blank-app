@@ -443,7 +443,7 @@ async def _hourly_system_check() -> None:
         if _scheduler and _scheduler.running:
             jobs = _scheduler.get_jobs()
             job_ids = [j.id for j in jobs]
-            expected = {"news_signal_cycle", "breaking_news_cycle", "hourly_system_check", "macro_refresh_cycle", "daily_market_brief", "stocks_session_report", "daily_trade_count_report", "fj_session_refresh"}
+            expected = {"news_signal_cycle", "breaking_news_cycle", "hourly_system_check", "macro_refresh_cycle", "daily_market_brief", "stocks_session_report", "daily_trade_count_report", "fj_session_refresh", "market_pulse"}
             missing = expected - set(job_ids)
             if not missing:
                 ok.append(f"Scheduler — {len(jobs)} jobs running ✅")
@@ -981,6 +981,46 @@ async def _fj_session_refresh_cycle() -> None:
         print(f"[scheduler] FJ session refresh error: {e}")
 
 
+async def _market_pulse_cycle() -> None:
+    """
+    Periodic market-direction summary to Telegram (London open / NY open / NY close).
+    Sends current bias for XAUUSD/SPY/QQQ + regime + macro, regardless of flips.
+    """
+    try:
+        from signal_engine import generate_signal, get_latest_features
+        from market_macro import get_macro_bias, get_equity_macro_bias
+        from telegram_bot import send_market_pulse
+
+        _gold_macro   = get_macro_bias()
+        _equity_macro = get_equity_macro_bias()
+
+        gold = await asyncio.to_thread(
+            generate_signal,
+            current_features=get_latest_features("XAUUSD_2M"),
+            news_agg=_latest_news_agg, news_velocity=_latest_velocity,
+            high_impact_event=_latest_event, symbol="XAUUSD",
+            pool="XAUUSD_2M", macro_bias=_gold_macro,
+        )
+        spy = await asyncio.to_thread(
+            generate_signal,
+            current_features=get_latest_features("STOCKS_INDEX_30M"),
+            news_agg=_latest_news_agg, news_velocity=_latest_velocity,
+            high_impact_event=_latest_event, symbol="SPY",
+            pool="STOCKS_INDEX_30M", macro_bias=_equity_macro,
+        )
+        qqq = await asyncio.to_thread(
+            generate_signal,
+            current_features=get_latest_features("STOCKS_QQQ_30M"),
+            news_agg=_latest_news_agg, news_velocity=_latest_velocity,
+            high_impact_event=_latest_event, symbol="QQQ",
+            pool="STOCKS_QQQ_30M", macro_bias=_equity_macro,
+        )
+        await send_market_pulse(gold, spy, qqq, _gold_macro)
+        print(f"[pulse] Market pulse sent — XAU={gold['direction']} SPY={spy['direction']} QQQ={qqq['direction']}")
+    except Exception as e:
+        print(f"[pulse] Market pulse error: {e}")
+
+
 def start_scheduler() -> AsyncIOScheduler:
     global _scheduler
     _load_seen_headlines()
@@ -1009,6 +1049,8 @@ def start_scheduler() -> AsyncIOScheduler:
     _scheduler.add_job(_daily_trade_count_report, trigger="cron", hour=16, minute=1, timezone=_ny_tz, id="daily_trade_count_report", replace_existing=True, misfire_grace_time=3600)
     # Proactively renew the FinancialJuice session twice daily so the cookie never lapses.
     _scheduler.add_job(_fj_session_refresh_cycle, trigger="cron", hour="5,17", minute=30, id="fj_session_refresh", replace_existing=True, misfire_grace_time=3600)
+    # Market pulse — direction summary at London open (10:00), NY open (14:00), NY close (20:00) UTC.
+    _scheduler.add_job(_market_pulse_cycle, trigger="cron", hour="10,14,20", minute=0, id="market_pulse", replace_existing=True, misfire_grace_time=600)
     _scheduler.start()
 
     _now = _dt.now(_tz.utc)

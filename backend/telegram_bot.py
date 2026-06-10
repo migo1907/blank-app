@@ -291,6 +291,52 @@ async def send_market_intelligence(signal: dict, ml_direction: str) -> bool:
     return await _send(msg)
 
 
+_REGIME_MAP = {
+    "TRENDING_BEAR": "📉 Trending Bear",
+    "TRENDING_BULL": "📈 Trending Bull",
+    "RANGING":       "↔️ Ranging",
+    "VOLATILE":      "⚡ Volatile",
+    "NORMAL":        "〰️ Normal",
+    "UNKNOWN":       "❓ Unknown",
+}
+
+
+def _bias_line(label_emoji: str, name: str, signal: dict) -> str:
+    """One asset line: '🥇 XAUUSD Bias: 🟢 LONG (68%)  ·  📈 Trending Bull'."""
+    direction  = signal.get("direction", "NEUTRAL")
+    confidence = signal.get("confidence", 0.0)
+    regime     = signal.get("regime", "UNKNOWN")
+    if direction == "LONG":
+        dir_str = f"🟢 LONG ({confidence*100:.0f}%)"
+    elif direction == "SHORT":
+        dir_str = f"🔴 SHORT ({confidence*100:.0f}%)"
+    else:
+        dir_str = "⚪ NEUTRAL"
+    regime_str = _REGIME_MAP.get(regime, regime)
+    return f"{label_emoji} <b>{name} Bias:</b> {dir_str}  ·  {regime_str}"
+
+
+async def send_market_pulse(gold: dict, spy: dict, qqq: dict, macro: dict) -> bool:
+    """
+    Periodic market-direction summary across XAUUSD/SPY/QQQ.
+    Sent on a schedule (London open / NY open / NY close), regardless of flips.
+    """
+    now        = datetime.now(timezone.utc).strftime("%H:%M UTC — %d %b %Y")
+    macro_bias = macro.get("bias", 0.0)
+    macro_lbl  = macro.get("label", "NEUTRAL")
+
+    msg = (
+        f"📡 <b>MARKET PULSE</b>\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n"
+        f"Macro:  <b>{macro_lbl}</b> ({macro_bias:+.2f})\n\n"
+        f"{_bias_line('🥇', 'XAUUSD', gold)}\n"
+        f"{_bias_line('📊', 'SPY', spy)}\n"
+        f"{_bias_line('📊', 'QQQ', qqq)}\n"
+        f"\n⏰ {now}"
+    )
+    return await _send(msg)
+
+
 async def send_critical_alert(title: str, detail: str, action: str = "") -> bool:
     """
     Send a critical system alert to the personal chat only.
