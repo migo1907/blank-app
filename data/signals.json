@@ -1,27 +1,5 @@
 [
   {
-    "symbol": "SPY",
-    "pool": "STOCKS_INDEX_30M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "news_score": 0.3116,
-    "macro_bias": -0.1581,
-    "macro_label": "BEARISH",
-    "combined_score": 0.1098,
-    "session": "CLOSED",
-    "regime": "NORMAL",
-    "regime_label": "NORMAL",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.89 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.32) | news:bullish(+0.312) | macro:BEARISH(-0.158) | combined:+0.110 \u2192 conf:0.070 \u26a1 CPI",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-09T22:36:50.605939+00:00",
-    "created_at": "2026-06-09T22:06:52.321412+00:00",
-    "id": 101
-  },
-  {
     "symbol": "QQQ",
     "pool": "STOCKS_QQQ_30M",
     "direction": "NEUTRAL",
@@ -2193,6 +2171,28 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-10T06:51:48.953282+00:00",
     "created_at": "2026-06-10T06:21:49.482229+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "QQQ",
+    "pool": "STOCKS_QQQ_30M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "news_score": 0.0503,
+    "macro_bias": -0.1581,
+    "macro_label": "BEARISH",
+    "combined_score": -0.0121,
+    "session": "CLOSED",
+    "regime": "NORMAL",
+    "regime_label": "NORMAL",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d71.05 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.27) | news:neutral(+0.050) | macro:BEARISH(-0.158) | combined:-0.012 \u2192 conf:0.009 \u26a1 CPI",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-10T06:51:51.436123+00:00",
+    "created_at": "2026-06-10T06:21:51.970827+00:00",
     "id": 101
   }
 ]
