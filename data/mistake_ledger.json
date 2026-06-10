@@ -17,5 +17,24 @@
       "trigger:",
       "atr:LOW"
     ]
+  },
+  {
+    "id": "5298f8ae",
+    "pool": "XAUUSD_5M",
+    "symbol": "XAUUSD",
+    "direction": "SHORT",
+    "trigger": "",
+    "session": "OFF",
+    "regime": "TRENDING_BEAR",
+    "pnl_pct": -0.4796,
+    "atr_level": "HIGH",
+    "created_at": "2026-06-10T23:22:01.559438+00:00",
+    "cause_tags": [
+      "OFF",
+      "TRENDING_BEAR",
+      "SHORT",
+      "trigger:",
+      "atr:HIGH"
+    ]
   }
 ]
