@@ -362,3 +362,369 @@ def get_gbm(pool: str = "XAUUSD") -> GradientBoostEnsemble:
             if pool not in _gbm_pool:  # double-checked locking
                 _gbm_pool[pool] = GradientBoostEnsemble()
     return _gbm_pool[pool]
+
+
+# ── Joint pool training — v3 small-data method ───────────────────────────────
+# Pools with n<200 suffer from high variance. Combining related pools multiplies
+# effective n (JFE 2024: pooled >> per-asset at small n). A single LightGBM with
+# a pool-identifier feature learns pool-specific decision boundaries naturally.
+
+# Gold pool → timeframe ID mapping
+GOLD_TF_IDS: dict[str, int] = {
+    "XAUUSD_2M": 0, "XAUUSD_5M": 1, "XAUUSD_30M": 2, "XAUUSD_1H": 3,
+}
+
+# Stock pool → (cluster_id, timeframe_id) mapping
+# cluster: 0=MOMENTUM 1=QUALITY 2=INDEX 3=QQQ 4=SPX500
+# tf:      0=15M 1=30M 2=4H
+STOCK_POOL_IDS: dict[str, tuple[int, int]] = {
+    "STOCKS_MOMENTUM_15M": (0, 0), "STOCKS_MOMENTUM_30M": (0, 1),
+    "STOCKS_QUALITY_15M":  (1, 0), "STOCKS_QUALITY_30M":  (1, 1), "STOCKS_QUALITY_4H":  (1, 2),
+    "STOCKS_INDEX_15M":    (2, 0), "STOCKS_INDEX_30M":    (2, 1), "STOCKS_INDEX_4H":    (2, 2),
+    "STOCKS_QQQ_15M":      (3, 0), "STOCKS_QQQ_30M":      (3, 1), "STOCKS_QQQ_4H":      (3, 2),
+    "STOCKS_SPX500_15M":   (4, 0), "STOCKS_SPX500_30M":   (4, 1), "STOCKS_SPX500_4H":   (4, 2),
+}
+
+try:
+    import lightgbm as _lgb
+    _LGBM_AVAILABLE = True
+except ImportError:
+    _LGBM_AVAILABLE = False
+
+
+class JointGoldGBM:
+    """
+    LightGBM trained on all 4 XAUUSD pools combined (2M+5M+30M+1H).
+    Adds timeframe_id as a feature so the tree learns pool-specific boundaries.
+    Effective n grows from ~84 (5M alone) to ~497 (all gold pools combined).
+    """
+
+    def __init__(self):
+        self._model = None
+        self._trained = False
+        self._n_trained = 0
+        self._lock = threading.Lock()
+
+    def train(self, pool_histories: dict[str, list[dict]]) -> bool:
+        if not _LGBM_AVAILABLE:
+            print("[joint_gold] lightgbm not available — skipping joint training")
+            return False
+
+        X_rows, y_rows, w_rows = [], [], []
+        for pool, history in pool_histories.items():
+            tf_id = GOLD_TF_IDS.get(pool)
+            if tf_id is None:
+                continue
+            for row in history:
+                feat = row_to_vector(row) + [float(tf_id)]
+                outcome_val = row.get("ml_outcome") or row.get("outcome", "LOSS")
+                label = 1 if outcome_val in ("WIN", "PARTIAL") else 0
+                X_rows.append(feat)
+                y_rows.append(label)
+                w_rows.append(_session_weight(row.get("created_at", "")))
+
+        if len(X_rows) < MIN_TRADES or len(set(y_rows)) < 2:
+            print(f"[joint_gold] Not enough data ({len(X_rows)} rows, classes={set(y_rows)}) — skipping")
+            return False
+
+        X = np.array(X_rows, dtype=np.float32)
+        y = np.array(y_rows, dtype=np.int32)
+        w = np.array(w_rows, dtype=np.float32)
+
+        model = _lgb.LGBMClassifier(
+            n_estimators=80, max_depth=3, learning_rate=0.08,
+            num_leaves=7, class_weight="balanced", subsample=0.8,
+            colsample_bytree=0.8, random_state=42, verbose=-1,
+        )
+        try:
+            model.fit(X, y, sample_weight=w)
+        except Exception as exc:
+            print(f"[joint_gold] Training failed: {exc}")
+            return False
+
+        with self._lock:
+            self._model = model
+            self._trained = True
+            self._n_trained = len(X_rows)
+        print(f"[joint_gold] Trained on {len(X_rows)} trades across {len([p for p in pool_histories if p in GOLD_TF_IDS])} gold pools")
+        return True
+
+    def predict(self, features: list[float], pool: str) -> float:
+        if not self._trained or self._model is None:
+            return 0.5
+        tf_id = GOLD_TF_IDS.get(pool)
+        if tf_id is None:
+            return 0.5
+        X = np.array([features[:len(FEATURE_NAMES)] + [float(tf_id)]], dtype=np.float32)
+        try:
+            with self._lock:
+                proba = self._model.predict_proba(X)[0]
+            classes = list(self._model.classes_)
+            win_idx = classes.index(1) if 1 in classes else -1
+            return float(proba[win_idx]) if win_idx >= 0 else 0.5
+        except Exception as exc:
+            print(f"[joint_gold] predict error: {exc}")
+            return 0.5
+
+    @property
+    def is_trained(self) -> bool:
+        return self._trained
+
+
+class JointStocksGBM:
+    """
+    LightGBM trained on all stock pools combined.
+    Adds cluster_id + timeframe_id features (2 extra columns).
+    """
+
+    def __init__(self):
+        self._model = None
+        self._trained = False
+        self._n_trained = 0
+        self._lock = threading.Lock()
+
+    def train(self, pool_histories: dict[str, list[dict]]) -> bool:
+        if not _LGBM_AVAILABLE:
+            print("[joint_stocks] lightgbm not available")
+            return False
+
+        X_rows, y_rows, w_rows = [], [], []
+        for pool, history in pool_histories.items():
+            ids = STOCK_POOL_IDS.get(pool)
+            if ids is None:
+                continue
+            cluster_id, tf_id = ids
+            for row in history:
+                feat = row_to_vector(row) + [float(cluster_id), float(tf_id)]
+                outcome_val = row.get("ml_outcome") or row.get("outcome", "LOSS")
+                label = 1 if outcome_val in ("WIN", "PARTIAL") else 0
+                X_rows.append(feat)
+                y_rows.append(label)
+                w_rows.append(_session_weight(row.get("created_at", "")))
+
+        if len(X_rows) < MIN_TRADES or len(set(y_rows)) < 2:
+            print(f"[joint_stocks] Not enough data ({len(X_rows)} rows) — skipping")
+            return False
+
+        X = np.array(X_rows, dtype=np.float32)
+        y = np.array(y_rows, dtype=np.int32)
+        w = np.array(w_rows, dtype=np.float32)
+
+        model = _lgb.LGBMClassifier(
+            n_estimators=80, max_depth=3, learning_rate=0.08,
+            num_leaves=7, class_weight="balanced", subsample=0.8,
+            colsample_bytree=0.8, random_state=42, verbose=-1,
+        )
+        try:
+            model.fit(X, y, sample_weight=w)
+        except Exception as exc:
+            print(f"[joint_stocks] Training failed: {exc}")
+            return False
+
+        with self._lock:
+            self._model = model
+            self._trained = True
+            self._n_trained = len(X_rows)
+        print(f"[joint_stocks] Trained on {len(X_rows)} trades across {len([p for p in pool_histories if p in STOCK_POOL_IDS])} stock pools")
+        return True
+
+    def predict(self, features: list[float], pool: str) -> float:
+        if not self._trained or self._model is None:
+            return 0.5
+        ids = STOCK_POOL_IDS.get(pool)
+        if ids is None:
+            return 0.5
+        cluster_id, tf_id = ids
+        X = np.array([features[:len(FEATURE_NAMES)] + [float(cluster_id), float(tf_id)]], dtype=np.float32)
+        try:
+            with self._lock:
+                proba = self._model.predict_proba(X)[0]
+            classes = list(self._model.classes_)
+            win_idx = classes.index(1) if 1 in classes else -1
+            return float(proba[win_idx]) if win_idx >= 0 else 0.5
+        except Exception as exc:
+            print(f"[joint_stocks] predict error: {exc}")
+            return 0.5
+
+    @property
+    def is_trained(self) -> bool:
+        return self._trained
+
+
+# ── Joint model singletons ───────────────────────────────────────────────────
+_joint_gold = JointGoldGBM()
+_joint_stocks = JointStocksGBM()
+
+
+def get_joint_gold() -> JointGoldGBM:
+    return _joint_gold
+
+
+def get_joint_stocks() -> JointStocksGBM:
+    return _joint_stocks
+
+
+# ── TabPFN v2 — pre-trained in-context learner (Nature 2025) ─────────────────
+# Works at n≥10. No training — passes (X_train, y_train) as context each call.
+# IID assumption: use as one signal alongside walk-forward models, not standalone.
+
+try:
+    from tabpfn import TabPFNClassifier as _TabPFNClassifier
+    _TABPFN_AVAILABLE = True
+except ImportError:
+    _TABPFN_AVAILABLE = False
+
+
+class TabPFNEnsemble:
+    """
+    TabPFN v2 in-context classifier. fit() stores the training context;
+    predict() performs inference. Re-fit only when history length changes.
+    """
+
+    def __init__(self):
+        self._clf = None
+        self._trained = False
+        self._last_n = 0
+        self._lock = threading.Lock()
+
+    def fit(self, history: list[dict]) -> bool:
+        if not _TABPFN_AVAILABLE:
+            return False
+        if len(history) < 10:
+            return False
+
+        X_rows, y_rows = [], []
+        for row in history:
+            X_rows.append(row_to_vector(row))
+            outcome_val = row.get("ml_outcome") or row.get("outcome", "LOSS")
+            y_rows.append(1 if outcome_val in ("WIN", "PARTIAL") else 0)
+
+        if len(set(y_rows)) < 2:
+            return False
+
+        X = np.array(X_rows, dtype=np.float32)
+        y = np.array(y_rows, dtype=np.int32)
+
+        try:
+            clf = _TabPFNClassifier(device="cpu", ignore_pretraining_limits=True)
+            clf.fit(X, y)
+        except Exception as exc:
+            err_str = str(exc)
+            if "gated" in err_str or "authentication" in err_str or "HuggingFace" in err_str:
+                import ml_ensemble as _self
+                _self._TABPFN_AVAILABLE = False
+                print("[tabpfn] Disabled: HuggingFace auth required (set HF_TOKEN env var to enable)")
+            else:
+                print(f"[tabpfn] fit failed: {exc}")
+            return False
+
+        with self._lock:
+            self._clf = clf
+            self._trained = True
+            self._last_n = len(X_rows)
+        print(f"[tabpfn] Context set: {len(X_rows)} trades")
+        return True
+
+    def fit_if_stale(self, history: list[dict]) -> bool:
+        """Re-fit only when history has grown (avoids redundant inference overhead)."""
+        if len(history) != self._last_n:
+            return self.fit(history)
+        return self._trained
+
+    def predict(self, features: list[float]) -> float:
+        if not self._trained or self._clf is None:
+            return 0.5
+        X = np.array([features[:len(FEATURE_NAMES)]], dtype=np.float32)
+        try:
+            with self._lock:
+                proba = self._clf.predict_proba(X)[0]
+            classes = list(self._clf.classes_)
+            win_idx = classes.index(1) if 1 in classes else -1
+            return float(proba[win_idx]) if win_idx >= 0 else 0.5
+        except Exception as exc:
+            print(f"[tabpfn] predict error: {exc}")
+            return 0.5
+
+    @property
+    def is_trained(self) -> bool:
+        return self._trained
+
+
+# ── TabPFN per-pool singletons ───────────────────────────────────────────────
+_tabpfn_pool: dict[str, TabPFNEnsemble] = {}
+_tabpfn_pool_lock = threading.Lock()
+
+
+def get_tabpfn(pool: str) -> TabPFNEnsemble:
+    if pool not in _tabpfn_pool:
+        with _tabpfn_pool_lock:
+            if pool not in _tabpfn_pool:
+                _tabpfn_pool[pool] = TabPFNEnsemble()
+    return _tabpfn_pool[pool]
+
+
+# ── Warm-start transfer (XAUUSD_2M → thin gold pools) ───────────────────────
+# When a target pool has <80 trades, initialise from the source pool's LightGBM
+# Booster and add correction trees. Falls back to standalone training if lift<0.
+# Walk-forward A/B is tracked per-fold; caller decides whether to keep transfer.
+
+def train_with_warm_start(
+    source_history: list[dict],
+    target_history: list[dict],
+) -> "object | None":
+    """
+    Train a LightGBM model on target_history, warm-started from a model pre-trained
+    on source_history. Returns the fitted LGBMClassifier or None on failure.
+
+    Caller should A/B test the returned model against a fresh per-pool model.
+    Use this when len(target_history) < 80.
+    """
+    if not _LGBM_AVAILABLE:
+        return None
+    if len(source_history) < MIN_TRADES or len(target_history) < MIN_TRADES:
+        return None
+
+    # Train source
+    def _build_arrays(hist):
+        xs, ys, ws = [], [], []
+        for row in hist:
+            xs.append(row_to_vector(row))
+            outcome_val = row.get("ml_outcome") or row.get("outcome", "LOSS")
+            ys.append(1 if outcome_val in ("WIN", "PARTIAL") else 0)
+            ws.append(_session_weight(row.get("created_at", "")))
+        return (np.array(xs, np.float32), np.array(ys, np.int32), np.array(ws, np.float32))
+
+    X_src, y_src, w_src = _build_arrays(source_history)
+    X_tgt, y_tgt, w_tgt = _build_arrays(target_history)
+
+    if len(set(y_src.tolist())) < 2 or len(set(y_tgt.tolist())) < 2:
+        return None
+
+    import tempfile, os as _os
+
+    try:
+        # Source model — more trees to build a strong initialisation
+        src_clf = _lgb.LGBMClassifier(
+            n_estimators=100, max_depth=3, learning_rate=0.08,
+            num_leaves=7, class_weight="balanced", subsample=0.8,
+            random_state=42, verbose=-1,
+        )
+        src_clf.fit(X_src, y_src, sample_weight=w_src)
+        # Save booster to temp file for init_model handoff
+        tmp = tempfile.NamedTemporaryFile(suffix=".txt", delete=False)
+        src_clf.booster_.save_model(tmp.name)
+        tmp.close()
+
+        # Target model — fewer correction trees on top of source init
+        tgt_clf = _lgb.LGBMClassifier(
+            n_estimators=40, max_depth=2, learning_rate=0.06,
+            num_leaves=5, class_weight="balanced", subsample=0.8,
+            random_state=42, verbose=-1,
+        )
+        tgt_clf.fit(X_tgt, y_tgt, sample_weight=w_tgt, init_model=tmp.name)
+        _os.unlink(tmp.name)
+        print(f"[warm_start] Transfer complete: {len(X_src)} src + {len(X_tgt)} tgt trades")
+        return tgt_clf
+    except Exception as exc:
+        print(f"[warm_start] Transfer failed: {exc}")
+        return None

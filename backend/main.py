@@ -543,7 +543,10 @@ async def trade_outcome(payload: TradeOutcomePayload):
                 from db import log_mistake
                 await asyncio.to_thread(log_mistake, outcome_row)
 
-            from signal_engine import invalidate_history_cache, refresh_pool_models, record_oob_prediction
+            from signal_engine import (
+                invalidate_history_cache, refresh_pool_models,
+                refresh_joint_models, record_oob_prediction,
+            )
             invalidate_history_cache(pool)
             history = await asyncio.to_thread(recent_outcomes, pool, 500)
 
@@ -557,6 +560,18 @@ async def trade_outcome(payload: TradeOutcomePayload):
                 await asyncio.to_thread(get_gbm(pool).train, history)
                 # Update expectancy threshold + champion-challenger check
                 await asyncio.to_thread(refresh_pool_models, pool, history)
+
+            # Retrain joint models (combines all related pools — most valuable for thin pools)
+            from db import symbol_to_pool as _stp
+            from ml_ensemble import GOLD_TF_IDS, STOCK_POOL_IDS
+            _related_pools = list(GOLD_TF_IDS.keys()) if pool in GOLD_TF_IDS else list(STOCK_POOL_IDS.keys())
+            _all_hists = {}
+            for _p in _related_pools:
+                _h = await asyncio.to_thread(recent_outcomes, _p, 500)
+                if _h:
+                    _all_hists[_p] = _h
+            if _all_hists:
+                await asyncio.to_thread(refresh_joint_models, _all_hists)
             from scheduler import record_webhook_ok
             record_webhook_ok()
         except Exception as e:

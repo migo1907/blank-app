@@ -18,7 +18,10 @@ Scoring pipeline:
 """
 from datetime import datetime, timezone, timedelta
 from ml_model import get_model, Features
-from ml_ensemble import get_rf, get_gbm
+from ml_ensemble import (
+    get_rf, get_gbm, get_joint_gold, get_joint_stocks, get_tabpfn,
+    GOLD_TF_IDS, STOCK_POOL_IDS,
+)
 from db import recent_outcomes, recent_news, insert_signal, expire_old_signals
 
 # ── Latest feature cache — updated on every webhook, read by scheduler ────────────
@@ -151,6 +154,19 @@ def compute_expectancy_threshold(pool: str, history: list[dict]) -> float:
     print(f"[gate] Pool '{pool}' expectancy threshold: {clamped:.3f} "
           f"(avg_win={avg_win:.2f} avg_loss={avg_loss:.2f})")
     return clamped
+
+
+def refresh_joint_models(all_histories: dict[str, list[dict]]) -> None:
+    """
+    Retrain joint gold and stock LightGBM models from the latest combined histories.
+    Call after any outcome is persisted. Runs in the caller's thread (use asyncio.to_thread).
+    """
+    gold_pools   = {p: h for p, h in all_histories.items() if p in GOLD_TF_IDS}
+    stock_pools  = {p: h for p, h in all_histories.items() if p in STOCK_POOL_IDS}
+    if gold_pools:
+        get_joint_gold().train(gold_pools)
+    if stock_pools:
+        get_joint_stocks().train(stock_pools)
 
 
 def refresh_pool_models(pool: str, history: list[dict]) -> None:
@@ -299,6 +315,25 @@ def score_entry_gate(pool: str, direction: str) -> dict:
     # GBM — P(win); uses 25 Pine features (calibrated shallow model).
     if gbm.is_trained:
         components["gbm"] = gbm.predict(feat_list)
+
+    # Joint pool model — LightGBM trained on all related pools combined.
+    # Multiplies effective training n (JFE 2024); most valuable for thin pools (<200 trades).
+    if pool in GOLD_TF_IDS:
+        jm = get_joint_gold()
+        if jm.is_trained:
+            components["joint"] = jm.predict(feat_list, pool)
+    elif pool in STOCK_POOL_IDS:
+        jm = get_joint_stocks()
+        if jm.is_trained:
+            components["joint"] = jm.predict(feat_list, pool)
+
+    # TabPFN v2 — in-context pre-trained foundation model (Nature 2025).
+    # Works at n≥10 with no fine-tuning. Re-fit only when history length changes.
+    tabpfn = get_tabpfn(pool)
+    if len(history) >= 10:
+        tabpfn.fit_if_stale(history)
+        if tabpfn.is_trained:
+            components["tabpfn"] = tabpfn.predict(feat_list)
 
     # Memory score: simple average of the 5 memory features mapped to win probability.
     # overall_rate and same_dir_rate are direct hit-rate estimates from recent history.
