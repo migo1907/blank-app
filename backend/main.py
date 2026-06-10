@@ -819,10 +819,11 @@ async def unified_webhook(payload: UnifiedPayload):
                 await asyncio.to_thread(insert_outcome, outcome_row)
                 from signal_engine import invalidate_history_cache
                 invalidate_history_cache(pool)
-                history = await asyncio.to_thread(recent_outcomes, pool, 500)
-                if len(history) >= 50:
-                    await asyncio.to_thread(get_rf(pool).retrain, history)
-                    await asyncio.to_thread(get_gbm(pool).train, history)
+                # NOTE: RF/GBM retraining is intentionally NOT done here. sklearn fit()
+                # is CPU/GIL-bound; retraining on every outcome stalled the event loop
+                # during trade bursts (e.g. post-CPI) → webhook timeouts. The hourly
+                # system check retrains RF+GBM for every pool, keeping models fresh
+                # without blocking the webhook hot path.
                 from scheduler import record_webhook_ok
                 record_webhook_ok()
             except Exception as e:
