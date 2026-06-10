@@ -2014,7 +2014,7 @@
     "regime": "RANGING",
     "regime_label": "RANGING",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:RANGING(RANGING)\u00d70.82 | sess:LONDON\u00d71.15 | confluence\u00d70.94 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-1.00) | news:neutral(+0.181) | macro:NEUTRAL(-0.139) | combined:-0.079 \u2192 conf:0.083 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-10T11:03:23.493177+00:00",
     "created_at": "2026-06-10T10:33:25.287625+00:00",
     "id": 101
@@ -2036,7 +2036,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.89 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.32) | news:neutral(+0.181) | macro:BEARISH(-0.158) | combined:+0.036 \u2192 conf:0.023 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-10T11:03:27.505938+00:00",
     "created_at": "2026-06-10T10:33:28.015681+00:00",
     "id": 101
@@ -2058,7 +2058,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.98 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.27) | news:neutral(+0.181) | macro:BEARISH(-0.158) | combined:+0.036 \u2192 conf:0.026 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-10T11:03:30.218629+00:00",
     "created_at": "2026-06-10T10:33:30.758796+00:00",
     "id": 101
@@ -2080,7 +2080,7 @@
     "regime": "RANGING",
     "regime_label": "RANGING",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:RANGING(RANGING)\u00d70.82 | sess:LONDON\u00d71.15 | confluence\u00d70.94 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-1.00) | news:bullish(+0.222) | macro:NEUTRAL(-0.139) | combined:-0.094 \u2192 conf:0.099 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-10T11:09:13.233850+00:00",
     "created_at": "2026-06-10T10:39:15.347222+00:00",
     "id": 101
