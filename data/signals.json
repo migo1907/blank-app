@@ -1,27 +1,5 @@
 [
   {
-    "symbol": "XAUUSD",
-    "pool": "XAUUSD_2M",
-    "direction": "SHORT",
-    "confidence": 0.7661,
-    "tier": "HIGH",
-    "ml_score": 1.0,
-    "rf_score": 0.2912,
-    "gbm_score": 0.0684,
-    "news_score": 0.189,
-    "macro_bias": -0.1388,
-    "macro_label": "NEUTRAL",
-    "combined_score": -0.5162,
-    "session": "OVERLAP",
-    "regime": "TRENDING_BEAR",
-    "regime_label": "TREND_FOLLOW",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BEAR(TREND_FOLLOW)\u00d71.15 | sess:OVERLAP\u00d71.30 | confluence\u00d70.83 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.13) | news:neutral(+0.189) | macro:NEUTRAL(-0.139) | combined:-0.516 \u2192 conf:0.766 \u26a1 CPI",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-10T14:24:13.222098+00:00",
-    "created_at": "2026-06-10T13:54:14.779526+00:00",
-    "id": 101
-  },
-  {
     "symbol": "SPY",
     "pool": "STOCKS_INDEX_30M",
     "direction": "NEUTRAL",
@@ -2191,6 +2169,28 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-10T21:38:02.792889+00:00",
     "created_at": "2026-06-10T21:08:03.363928+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "QQQ",
+    "pool": "STOCKS_QQQ_30M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "news_score": 0.1062,
+    "macro_bias": 0.0298,
+    "macro_label": "NEUTRAL",
+    "combined_score": 0.029,
+    "session": "CLOSED",
+    "regime": "NORMAL",
+    "regime_label": "NORMAL",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.77 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.42) | news:neutral(+0.106) | macro:NEUTRAL(+0.030) | combined:+0.029 \u2192 conf:0.016 \u26a1 CPI",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-10T21:38:05.029873+00:00",
+    "created_at": "2026-06-10T21:08:05.310999+00:00",
     "id": 101
   }
 ]
