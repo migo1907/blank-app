@@ -1,11 +1,165 @@
 {
-  "checked_at": "2026-06-10T21:34:49.680909+00:00",
+  "checked_at": "2026-06-10T23:14:44.150360+00:00",
   "health": {
     "status_code": 200,
     "data": {
       "status": "ok",
-      "version": "3.1.0-25F",
-      "scheduler": "running"
+      "version": "5.0.0-25F",
+      "scheduler": "running",
+      "ml": {
+        "joint_gold_trained": false,
+        "joint_stocks_trained": false,
+        "optuna_available": true,
+        "shap_available": true,
+        "lgbm_available": false,
+        "tabpfn_available": false,
+        "pools": {
+          "XAUUSD_2M": {
+            "rf_trained": false,
+            "gbm_trained": false,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "XAUUSD_5M": {
+            "rf_trained": false,
+            "gbm_trained": false,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "XAUUSD_30M": {
+            "rf_trained": false,
+            "gbm_trained": false,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "XAUUSD_1H": {
+            "rf_trained": false,
+            "gbm_trained": false,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "STOCKS_MOMENTUM_15M": {
+            "rf_trained": false,
+            "gbm_trained": false,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "STOCKS_MOMENTUM_30M": {
+            "rf_trained": false,
+            "gbm_trained": false,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "STOCKS_QUALITY_15M": {
+            "rf_trained": false,
+            "gbm_trained": false,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "STOCKS_QUALITY_30M": {
+            "rf_trained": false,
+            "gbm_trained": false,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "STOCKS_QUALITY_4H": {
+            "rf_trained": false,
+            "gbm_trained": false,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "STOCKS_INDEX_15M": {
+            "rf_trained": false,
+            "gbm_trained": false,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "STOCKS_INDEX_30M": {
+            "rf_trained": false,
+            "gbm_trained": false,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "STOCKS_INDEX_4H": {
+            "rf_trained": false,
+            "gbm_trained": false,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "STOCKS_QQQ_15M": {
+            "rf_trained": false,
+            "gbm_trained": false,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "STOCKS_QQQ_30M": {
+            "rf_trained": false,
+            "gbm_trained": false,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "STOCKS_QQQ_4H": {
+            "rf_trained": false,
+            "gbm_trained": false,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "STOCKS_SPX500_15M": {
+            "rf_trained": false,
+            "gbm_trained": false,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "STOCKS_SPX500_30M": {
+            "rf_trained": false,
+            "gbm_trained": false,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "STOCKS_SPX500_4H": {
+            "rf_trained": false,
+            "gbm_trained": false,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          }
+        }
+      }
     }
   },
   "dashboard": {
@@ -14,75 +168,75 @@
       "pool": "XAUUSD_2M",
       "model": {
         "weights": {
-          "w1": 0.213,
-          "w2": 0.213,
-          "w3": 1.2213,
-          "w4": 0.203,
+          "w1": 0.2,
+          "w2": 0.2,
+          "w3": 1.3113,
+          "w4": 0.2,
           "w5": 0.2,
-          "w6": 2.8072,
-          "w7": 0.213,
-          "w8": 0.5122,
-          "w9": 0.2723,
-          "w10": 0.8772,
-          "w11": 0.2,
-          "w12": 1.5438,
-          "w13": 1.7388,
-          "w14": 1.3428,
-          "w15": 1.3108,
-          "w16": 0.5467,
-          "w17": 0.5402,
-          "w18": 0.213,
-          "w19": 1.3848,
-          "w20": 0.3647,
-          "w21": 0.4987,
-          "w22": 0.203,
-          "w23": 0.203,
-          "w24": 1.3343,
-          "w25": 1.0892
+          "w6": 2.8972,
+          "w7": 0.2,
+          "w8": 0.4422,
+          "w9": 0.2222,
+          "w10": 0.8872,
+          "w11": 0.22,
+          "w12": 1.6138,
+          "w13": 1.8393,
+          "w14": 1.4128,
+          "w15": 1.2208,
+          "w16": 0.4767,
+          "w17": 0.4702,
+          "w18": 0.2,
+          "w19": 1.4548,
+          "w20": 0.2947,
+          "w21": 0.4287,
+          "w22": 0.2,
+          "w23": 0.2,
+          "w24": 1.4043,
+          "w25": 1.0192
         },
-        "win_rate": 32.5,
-        "total_trades": 320,
+        "win_rate": 33.9,
+        "total_trades": 333,
         "top_features": [
           {
             "name": "WillR",
-            "weight": 2.8072
+            "weight": 2.8972
           },
           {
             "name": "P/D",
-            "weight": 1.7388
+            "weight": 1.8393
           },
           {
             "name": "Liq",
-            "weight": 1.5438
+            "weight": 1.6138
           }
         ]
       },
       "rf": {
-        "trained": true,
+        "trained": false,
         "top_features": [
           {
-            "name": "f25_tod",
-            "importance": 0.09
+            "name": "f1_rsi",
+            "importance": 0.04
+          },
+          {
+            "name": "f2_adx",
+            "importance": 0.04
           },
           {
             "name": "f3_atr",
-            "importance": 0.0884
-          },
-          {
-            "name": "f7_cmo",
-            "importance": 0.0796
+            "importance": 0.04
           }
         ]
       },
-      "news_sentiment": 0.3229,
+      "news_sentiment": 0.402,
       "news_velocity": {
         "multiplier": 1.0,
-        "volume": 38,
-        "consistency": 0.405,
-        "acceleration": 0.129,
+        "volume": 49,
+        "consistency": 0.538,
+        "acceleration": 0.307,
         "direction": "BULLISH",
         "label": "NORMAL",
-        "high_count": 8,
+        "high_count": 16,
         "total_count": 45
       },
       "high_impact_event": {
@@ -103,53 +257,53 @@
       "recent_trades": [
         {
           "direction": "SHORT",
+          "outcome": "WIN",
+          "created_at": "2026-06-10T23:14:09.422148+00:00"
+        },
+        {
+          "direction": "SHORT",
           "outcome": "PARTIAL",
-          "created_at": "2026-06-10T20:58:01.881467+00:00"
+          "created_at": "2026-06-10T23:14:03.461037+00:00"
+        },
+        {
+          "direction": "SHORT",
+          "outcome": "WIN",
+          "created_at": "2026-06-10T23:10:04.308857+00:00"
+        },
+        {
+          "direction": "SHORT",
+          "outcome": "PARTIAL",
+          "created_at": "2026-06-10T22:56:01.947873+00:00"
         },
         {
           "direction": "LONG",
-          "outcome": "LOSS",
-          "created_at": "2026-06-10T20:32:03.753236+00:00"
-        },
-        {
-          "direction": "SHORT",
-          "outcome": "LOSS",
-          "created_at": "2026-06-10T20:18:02.890524+00:00"
-        },
-        {
-          "direction": "SHORT",
           "outcome": "PARTIAL",
-          "created_at": "2026-06-10T20:10:05.163842+00:00"
-        },
-        {
-          "direction": "SHORT",
-          "outcome": "PARTIAL",
-          "created_at": "2026-06-10T20:04:02.878153+00:00"
-        },
-        {
-          "direction": "SHORT",
-          "outcome": "PARTIAL",
-          "created_at": "2026-06-10T20:02:03.526947+00:00"
+          "created_at": "2026-06-10T22:44:01.598289+00:00"
         },
         {
           "direction": "LONG",
-          "outcome": "LOSS",
-          "created_at": "2026-06-10T19:54:07.375693+00:00"
+          "outcome": "PARTIAL",
+          "created_at": "2026-06-10T22:38:11.431533+00:00"
         },
         {
           "direction": "SHORT",
           "outcome": "LOSS",
-          "created_at": "2026-06-10T19:32:06.397579+00:00"
+          "created_at": "2026-06-10T22:24:02.085999+00:00"
+        },
+        {
+          "direction": "SHORT",
+          "outcome": "LOSS",
+          "created_at": "2026-06-10T22:20:01.929197+00:00"
         },
         {
           "direction": "SHORT",
           "outcome": "PARTIAL",
-          "created_at": "2026-06-10T19:24:03.819580+00:00"
+          "created_at": "2026-06-10T22:18:03.354420+00:00"
         },
         {
           "direction": "SHORT",
-          "outcome": "PARTIAL",
-          "created_at": "2026-06-10T19:12:03.954878+00:00"
+          "outcome": "LOSS",
+          "created_at": "2026-06-10T22:14:01.614945+00:00"
         }
       ]
     }
@@ -159,47 +313,47 @@
     "data": {
       "pool": "XAUUSD_2M",
       "weights": {
-        "w1": 0.213,
-        "w2": 0.213,
-        "w3": 1.2213,
-        "w4": 0.203,
+        "w1": 0.2,
+        "w2": 0.2,
+        "w3": 1.3113,
+        "w4": 0.2,
         "w5": 0.2,
-        "w6": 2.8072,
-        "w7": 0.213,
-        "w8": 0.5122,
-        "w9": 0.2723,
-        "w10": 0.8772,
-        "w11": 0.2,
-        "w12": 1.5438,
-        "w13": 1.7388,
-        "w14": 1.3428,
-        "w15": 1.3108,
-        "w16": 0.5467,
-        "w17": 0.5402,
-        "w18": 0.213,
-        "w19": 1.3848,
-        "w20": 0.3647,
-        "w21": 0.4987,
-        "w22": 0.203,
-        "w23": 0.203,
-        "w24": 1.3343,
-        "w25": 1.0892
+        "w6": 2.8972,
+        "w7": 0.2,
+        "w8": 0.4422,
+        "w9": 0.2222,
+        "w10": 0.8872,
+        "w11": 0.22,
+        "w12": 1.6138,
+        "w13": 1.8393,
+        "w14": 1.4128,
+        "w15": 1.2208,
+        "w16": 0.4767,
+        "w17": 0.4702,
+        "w18": 0.2,
+        "w19": 1.4548,
+        "w20": 0.2947,
+        "w21": 0.4287,
+        "w22": 0.2,
+        "w23": 0.2,
+        "w24": 1.4043,
+        "w25": 1.0192
       },
-      "total_wins": 104,
-      "total_losses": 216,
-      "win_rate": 32.5,
+      "total_wins": 113,
+      "total_losses": 220,
+      "win_rate": 33.9,
       "top_features": [
         {
           "name": "WillR",
-          "weight": 2.8072
+          "weight": 2.8972
         },
         {
           "name": "P/D",
-          "weight": 1.7388
+          "weight": 1.8393
         },
         {
           "name": "Liq",
-          "weight": 1.5438
+          "weight": 1.6138
         }
       ]
     }
