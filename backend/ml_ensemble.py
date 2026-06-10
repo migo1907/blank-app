@@ -92,7 +92,7 @@ class RandomForestEnsemble:
             X_rows.append(feat_vec)
             y_rows.append(label)
 
-        X = np.array(X_rows, dtype=np.float32)
+        X = np.array(X_rows, dtype=np.float64)
         y = np.array(y_rows, dtype=np.int32)
 
         # Feature selection: top-8 by |correlation| when n>=80 (validated: +3.5–20pp lift)
@@ -117,7 +117,7 @@ class RandomForestEnsemble:
         # Session-weighted training: London/NY trades count more
         sample_weights = np.array(
             [_session_weight(row.get("created_at", "")) for row in history],
-            dtype=np.float32
+            dtype=np.float64
         )
 
         # Platt calibration: sigmoid wrapper, cv=3 (isotonic overfits below ~1000 samples)
@@ -165,7 +165,7 @@ class RandomForestEnsemble:
             print(f"[ensemble] Feature vector length {len(features)} != expected {len(FEATURE_NAMES)} — returning 0.5")
             return 0.5
 
-        X = np.array([[features[i] for i in self._feature_indices]], dtype=np.float32)
+        X = np.array([[features[i] for i in self._feature_indices]], dtype=np.float64)
         try:
             with self._lock:
                 proba = self._model.predict_proba(X)[0]
@@ -262,9 +262,9 @@ class GradientBoostEnsemble:
             print(f"[gbm] Only one class in training data ({set(y_rows)}) — skipping train until wins accumulate.")
             return False
 
-        X = np.array(X_rows, dtype=np.float32)
+        X = np.array(X_rows, dtype=np.float64)
         y = np.array(y_rows, dtype=np.int32)
-        w = np.array(w_rows, dtype=np.float32)
+        w = np.array(w_rows, dtype=np.float64)
 
         # Feature selection: top-8 by |correlation| when n>=80
         if len(X_rows) >= 80:
@@ -316,7 +316,7 @@ class GradientBoostEnsemble:
         if len(features) != len(FEATURE_NAMES):
             print(f"[gbm] Feature vector length {len(features)} != expected {len(FEATURE_NAMES)} — returning 0.5")
             return 0.5
-        X = np.array([[features[i] for i in self._feature_indices]], dtype=np.float32)
+        X = np.array([[features[i] for i in self._feature_indices]], dtype=np.float64)
         try:
             with self._lock:
                 proba = self._model.predict_proba(X)[0]
@@ -388,8 +388,9 @@ STOCK_POOL_IDS: dict[str, tuple[int, int]] = {
 try:
     import lightgbm as _lgb
     _LGBM_AVAILABLE = True
-except Exception:
+except Exception as _lgb_err:
     _LGBM_AVAILABLE = False
+    print(f"[lgbm] lightgbm import failed: {_lgb_err}")
 
 
 class JointGoldGBM:
@@ -427,9 +428,9 @@ class JointGoldGBM:
             print(f"[joint_gold] Not enough data ({len(X_rows)} rows, classes={set(y_rows)}) — skipping")
             return False
 
-        X = np.array(X_rows, dtype=np.float32)
+        X = np.array(X_rows, dtype=np.float64)
         y = np.array(y_rows, dtype=np.int32)
-        w = np.array(w_rows, dtype=np.float32)
+        w = np.array(w_rows, dtype=np.float64)
 
         model = _lgb.LGBMClassifier(
             n_estimators=80, max_depth=3, learning_rate=0.08,
@@ -455,7 +456,7 @@ class JointGoldGBM:
         tf_id = GOLD_TF_IDS.get(pool)
         if tf_id is None:
             return 0.5
-        X = np.array([features[:len(FEATURE_NAMES)] + [float(tf_id)]], dtype=np.float32)
+        X = np.array([features[:len(FEATURE_NAMES)] + [float(tf_id)]], dtype=np.float64)
         try:
             import warnings
             with self._lock:
@@ -509,9 +510,9 @@ class JointStocksGBM:
             print(f"[joint_stocks] Not enough data ({len(X_rows)} rows) — skipping")
             return False
 
-        X = np.array(X_rows, dtype=np.float32)
+        X = np.array(X_rows, dtype=np.float64)
         y = np.array(y_rows, dtype=np.int32)
-        w = np.array(w_rows, dtype=np.float32)
+        w = np.array(w_rows, dtype=np.float64)
 
         model = _lgb.LGBMClassifier(
             n_estimators=80, max_depth=3, learning_rate=0.08,
@@ -538,7 +539,7 @@ class JointStocksGBM:
         if ids is None:
             return 0.5
         cluster_id, tf_id = ids
-        X = np.array([features[:len(FEATURE_NAMES)] + [float(cluster_id), float(tf_id)]], dtype=np.float32)
+        X = np.array([features[:len(FEATURE_NAMES)] + [float(cluster_id), float(tf_id)]], dtype=np.float64)
         try:
             import warnings
             with self._lock:
@@ -610,7 +611,7 @@ class TabPFNEnsemble:
         if len(set(y_rows)) < 2:
             return False
 
-        X = np.array(X_rows, dtype=np.float32)
+        X = np.array(X_rows, dtype=np.float64)
         y = np.array(y_rows, dtype=np.int32)
 
         try:
@@ -643,7 +644,7 @@ class TabPFNEnsemble:
     def predict(self, features: list[float]) -> float:
         if not self._trained or self._clf is None:
             return 0.5
-        X = np.array([features[:len(FEATURE_NAMES)]], dtype=np.float32)
+        X = np.array([features[:len(FEATURE_NAMES)]], dtype=np.float64)
         try:
             with self._lock:
                 proba = self._clf.predict_proba(X)[0]
@@ -840,7 +841,7 @@ def explain_prediction(model, features: list[float], feature_names: list[str],
     if not _SHAP_AVAILABLE or model is None:
         return []
     try:
-        X = np.array([features[:len(feature_names)]], dtype=np.float32)
+        X = np.array([features[:len(feature_names)]], dtype=np.float64)
         # CalibratedClassifierCV wraps the base estimator — unwrap for TreeExplainer
         base_model = model
         if hasattr(model, "calibrated_classifiers_"):

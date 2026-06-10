@@ -336,8 +336,8 @@ def _fj_save_session(resp_headers: dict) -> None:
 def _fj_auto_login() -> bool:
     """
     Log in to FinancialJuice using FJ_EMAIL + FJ_PASSWORD env vars.
-    Extracts the fresh .ASPXAUTH + ASP.NET_SessionId cookies and saves them
-    to GitHub data branch so all future calls use the new session.
+    FJ uses classic ASP.NET WebForms — scrapes all hidden inputs + email/password
+    field names from the login page before posting.
     Returns True on success, False on failure.
     """
     global _fj_cookie_cache
@@ -347,90 +347,84 @@ def _fj_auto_login() -> bool:
         print("[fj] Auto-login skipped — FJ_EMAIL or FJ_PASSWORD not set.")
         return False
 
+    import re as _re
     print(f"[fj] Auto-login: attempting login for {email}…")
     login_url = "https://www.financialjuice.com/account/login"
-    _UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+    _UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+           "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
 
     try:
         with httpx.Client(timeout=15, follow_redirects=True) as client:
-            # Step 1: GET login page to obtain ASP.NET form tokens + session cookie
-            r0 = client.get(login_url, headers={"User-Agent": _UA})
-            # Extract __RequestVerificationToken (multiple possible formats)
-            rvt = ""
-            try:
-                import re as _re
-                for pattern in [
-                    r'__RequestVerificationToken[^>]+value="([^"]+)"',
-                    r'name="__RequestVerificationToken"\s+value="([^"]+)"',
-                    r'"__RequestVerificationToken":"([^"]+)"',
-                ]:
-                    match = _re.search(pattern, r0.text)
-                    if match:
-                        rvt = match.group(1)
-                        break
-            except Exception:
-                pass
+            # Step 1: GET login page — scrape all form inputs
+            r0 = client.get(login_url, headers={"User-Agent": _UA,
+                                                 "Accept": "text/html,*/*"})
 
-            # Extract all hidden input fields (ASP.NET forms often have multiple)
-            hidden_fields: dict[str, str] = {}
-            try:
-                for m in _re.finditer(r'<input[^>]+type=["\']hidden["\'][^>]*>', r0.text, _re.IGNORECASE):
-                    tag = m.group(0)
-                    name_m  = _re.search(r'name=["\']([^"\']+)["\']', tag)
-                    value_m = _re.search(r'value=["\']([^"\']*)["\']', tag)
-                    if name_m:
-                        hidden_fields[name_m.group(1)] = value_m.group(1) if value_m else ""
-            except Exception:
-                pass
+            # Collect every hidden input field (captures __VIEWSTATE, __EVENTVALIDATION etc.)
+            form_data: dict[str, str] = {}
+            for m in _re.finditer(r'<input([^>]+)>', r0.text, _re.IGNORECASE):
+                tag = m.group(1)
+                t_m = _re.search(r'type=["\']([^"\']+)["\']', tag, _re.I)
+                n_m = _re.search(r'name=["\']([^"\']+)["\']', tag, _re.I)
+                v_m = _re.search(r'value=["\']([^"\']*)["\']', tag, _re.I)
+                if n_m:
+                    t = (t_m.group(1).lower() if t_m else "text")
+                    if t in ("hidden", "submit", "checkbox"):
+                        form_data[n_m.group(1)] = v_m.group(1) if v_m else ""
 
-            # Step 2: POST credentials — try lowercase field names (modern ASP.NET Identity)
-            # then fall back to PascalCase (classic Forms Auth)
-            form_data = {**hidden_fields, "RememberMe": "true"}
-            if rvt:
-                form_data["__RequestVerificationToken"] = rvt
+            # Find email and password field names dynamically (type=email/password/text)
+            email_field = password_field = ""
+            for m in _re.finditer(r'<input([^>]+)>', r0.text, _re.IGNORECASE):
+                tag = m.group(1)
+                t_m = _re.search(r'type=["\']([^"\']+)["\']', tag, _re.I)
+                n_m = _re.search(r'name=["\']([^"\']+)["\']', tag, _re.I)
+                if not t_m or not n_m:
+                    continue
+                t = t_m.group(1).lower()
+                n = n_m.group(1)
+                if t == "email" or (t == "text" and "mail" in n.lower()):
+                    email_field = n
+                elif t == "password":
+                    password_field = n
 
-            # Try lowercase first (ASP.NET Core Identity default)
-            form_data["email"]    = email
-            form_data["password"] = password
+            # Fallback to common names if not found in page
+            email_field    = email_field    or "Email"
+            password_field = password_field or "Password"
 
+            form_data[email_field]    = email
+            form_data[password_field] = password
+            form_data["RememberMe"]   = "true"
+
+            # Also try setting the submit button value (ASP.NET WebForms often requires it)
+            for m in _re.finditer(r'<input([^>]+)>', r0.text, _re.IGNORECASE):
+                tag = m.group(1)
+                t_m = _re.search(r'type=["\']submit["\']', tag, _re.I)
+                n_m = _re.search(r'name=["\']([^"\']+)["\']', tag, _re.I)
+                v_m = _re.search(r'value=["\']([^"\']*)["\']', tag, _re.I)
+                if t_m and n_m:
+                    form_data[n_m.group(1)] = v_m.group(1) if v_m else "Login"
+
+            # Step 2: POST credentials
             r1 = client.post(
-                login_url,
-                data=form_data,
+                login_url, data=form_data,
                 headers={
-                    "User-Agent":   _UA,
-                    "Referer":      login_url,
-                    "Content-Type": "application/x-www-form-urlencoded",
-                    "Accept":       "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-                    "Accept-Language": "en-US,en;q=0.5",
-                    "Origin":       "https://www.financialjuice.com",
+                    "User-Agent":    _UA,
+                    "Referer":       login_url,
+                    "Content-Type":  "application/x-www-form-urlencoded",
+                    "Accept":        "text/html,application/xhtml+xml,*/*;q=0.8",
+                    "Origin":        "https://www.financialjuice.com",
+                    "Cache-Control": "no-cache",
                 },
             )
 
-            # If lowercase didn't work, try PascalCase
-            cookies_check = dict(client.cookies)
-            if not cookies_check.get(".ASPXAUTH"):
-                form_data2 = {**hidden_fields, "RememberMe": "true",
-                              "Email": email, "Password": password}
-                if rvt:
-                    form_data2["__RequestVerificationToken"] = rvt
-                r1 = client.post(
-                    login_url, data=form_data2,
-                    headers={"User-Agent": _UA, "Referer": login_url,
-                             "Content-Type": "application/x-www-form-urlencoded",
-                             "Origin": "https://www.financialjuice.com"},
-                )
-
-        # Check cookies from the client jar
         cookies = dict(client.cookies)
         auth_cookie   = cookies.get(".ASPXAUTH", "")
         aspnet_cookie = cookies.get("ASP.NET_SessionId", "")
 
         if not auth_cookie:
-            # Log first 300 chars of response to help diagnose form changes
-            snippet = (r1.text or "")[:300].replace("\n", " ")
-            print(f"[fj] Auto-login failed — no .ASPXAUTH cookie (HTTP {r1.status_code}). "
-                  f"hidden_fields={list(hidden_fields.keys())} rvt={'yes' if rvt else 'no'} "
-                  f"response_snippet={snippet!r}")
+            snippet = (r1.text or "")[:200].replace("\n", " ")
+            print(f"[fj] Auto-login failed (HTTP {r1.status_code}). "
+                  f"email_field={email_field!r} pw_field={password_field!r} "
+                  f"hidden={list(form_data.keys())[:6]} snippet={snippet!r}")
             return False
 
         payload = {
