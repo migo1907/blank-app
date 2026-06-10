@@ -1,27 +1,5 @@
 [
   {
-    "symbol": "SPY",
-    "pool": "STOCKS_INDEX_30M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "news_score": -0.0194,
-    "macro_bias": -0.1581,
-    "macro_label": "BEARISH",
-    "combined_score": -0.0282,
-    "session": "CLOSED",
-    "regime": "NORMAL",
-    "regime_label": "NORMAL",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.95 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.32) | news:neutral(-0.019) | macro:BEARISH(-0.158) | combined:-0.028 \u2192 conf:0.019 \u26a1 CPI",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-10T05:06:47.662131+00:00",
-    "created_at": "2026-06-10T04:36:49.217257+00:00",
-    "id": 101
-  },
-  {
     "symbol": "QQQ",
     "pool": "STOCKS_QQQ_30M",
     "direction": "NEUTRAL",
@@ -2195,6 +2173,28 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-10T12:49:30.848727+00:00",
     "created_at": "2026-06-10T12:19:31.586026+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "XAUUSD",
+    "pool": "XAUUSD_2M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.625,
+    "rf_score": 0.3909,
+    "gbm_score": 0.5996,
+    "news_score": 0.1782,
+    "macro_bias": -0.1388,
+    "macro_label": "NEUTRAL",
+    "combined_score": 0.0958,
+    "session": "LONDON",
+    "regime": "TRENDING_BEAR",
+    "regime_label": "PULLBACK_LONG",
+    "reasoning": "KNN:LONG RF:SHORT GBM:LONG | agree\u00d71.00 | regime:TRENDING_BEAR(PULLBACK_LONG)\u00d70.95 | sess:LONDON\u00d71.15 | confluence\u00d70.70 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-1.00) | news:neutral(+0.178) | macro:NEUTRAL(-0.139) | combined:+0.096 \u2192 conf:0.073 \u26a1 Core Inflation Rate MoM",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-10T12:50:04.085519+00:00",
+    "created_at": "2026-06-10T12:20:04.655620+00:00",
     "id": 101
   }
 ]
