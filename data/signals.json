@@ -1,27 +1,5 @@
 [
   {
-    "symbol": "QQQ",
-    "pool": "STOCKS_QQQ_30M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "news_score": 0.0756,
-    "macro_bias": -0.5096,
-    "macro_label": "BEARISH",
-    "combined_score": -0.059,
-    "session": "NYSE_AFTERNOON",
-    "regime": "NORMAL",
-    "regime_label": "NORMAL",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d71.14 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.11) | news:neutral(+0.076) | macro:BEARISH(-0.510) | combined:-0.059 \u2192 conf:0.089 \u26a1 CPI",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-09T19:12:14.747888+00:00",
-    "created_at": "2026-06-09T18:42:15.248289+00:00",
-    "id": 101
-  },
-  {
     "symbol": "XAUUSD",
     "pool": "XAUUSD_2M",
     "direction": "NEUTRAL",
@@ -2185,6 +2163,28 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-10T01:52:05.433276+00:00",
     "created_at": "2026-06-10T01:22:05.958002+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "XAUUSD",
+    "pool": "XAUUSD_2M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.25,
+    "rf_score": 0.6785,
+    "gbm_score": 0.9223,
+    "news_score": 0.2216,
+    "macro_bias": -0.1388,
+    "macro_label": "NEUTRAL",
+    "combined_score": 0.142,
+    "session": "ASIAN",
+    "regime": "TRENDING_BEAR",
+    "regime_label": "PULLBACK_LONG",
+    "reasoning": "KNN:SHORT RF:LONG GBM:LONG | agree\u00d71.00 | regime:TRENDING_BEAR(PULLBACK_LONG)\u00d70.95 | sess:ASIAN\u00d70.85 | confluence\u00d70.75 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-0.96) | news:bullish(+0.222) | macro:NEUTRAL(-0.139) | combined:+0.142 \u2192 conf:0.086 \u26a1 CPI",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-10T02:06:52.301127+00:00",
+    "created_at": "2026-06-10T01:36:53.904039+00:00",
     "id": 101
   }
 ]
