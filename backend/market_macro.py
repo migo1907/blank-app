@@ -116,7 +116,7 @@ def _cftc_gold_cot() -> dict | None:
 
 def _parse_spdr_csv(text: str) -> dict | None:
     """Parse SPDR GLD CSV text — finds header row with 'tonnes', returns latest holdings."""
-    rows = list(csv.reader(io.StringIO(text)))
+    rows = list(csv.reader(io.StringIO(text, newline='')))
     header_idx = tonnes_col = date_col = None
     for i, row in enumerate(rows):
         joined = ",".join(c.lower() for c in row)

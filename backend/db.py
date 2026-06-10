@@ -555,7 +555,7 @@ def repair_missing_trades() -> list[str]:
 
         for entry in log:
             p = entry.get("payload", {})
-            outcome = p.get("outcome", "")
+            outcome = p.get("outcome") or ""
             # Only process trade closes — skip heartbeats, signal entries, and progress events
             outcome_up = outcome.upper()
             if not outcome or outcome_up in ("HEARTBEAT", ""):
