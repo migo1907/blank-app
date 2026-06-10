@@ -9906,7 +9906,7 @@
   {
     "symbol": "XAUUSD",
     "direction": "SHORT",
-    "trigger": "",
+    "trigger": "BOS",
     "entry_price": 4187.86,
     "exit_price": 4199.65,
     "outcome": "LOSS",
@@ -9943,8 +9943,8 @@
     "f23_rsiacc": -0.5388,
     "f24_fvgq": 0.0,
     "f25_tod": 0.2756,
-    "id": "bf3be691",
+    "id": "e9b0f4db",
     "pool": "XAUUSD_2M",
-    "created_at": "2026-06-10T01:08:02.999370+00:00"
+    "created_at": "2026-06-10T01:08:01.459683+00:00"
   }
 ]
