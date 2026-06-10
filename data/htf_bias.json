@@ -1,13 +1,4 @@
 {
-  "SPX500_240": {
-    "direction": "SHORT",
-    "timeframe": "240",
-    "symbol": "SPX500",
-    "trigger": "BOS",
-    "ml_score": 0.5,
-    "stored_at": "2026-06-09T17:00:08.304010+00:00",
-    "expires_at": "2026-06-10T01:00:08.304024+00:00"
-  },
   "AAPL_240": {
     "direction": "SHORT",
     "timeframe": "240",
