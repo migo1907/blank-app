@@ -2082,7 +2082,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:LONG GBM:LONG | agree\u00d71.00 | regime:NORMAL(NORMAL)\u00d71.00 | sess:NEW_YORK\u00d71.10 | confluence\u00d70.55 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-1.00) | news:neutral(+0.179) | macro:NEUTRAL(-0.139) | combined:+0.116 \u2192 conf:0.070 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-10T17:48:57.311253+00:00",
     "created_at": "2026-06-10T17:18:59.132015+00:00",
     "id": 101
