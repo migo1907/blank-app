@@ -169,23 +169,5 @@
     "ml_score": 0.25,
     "stored_at": "2026-06-10T17:30:03.370960+00:00",
     "expires_at": "2026-06-11T01:30:03.370985+00:00"
-  },
-  "SPY_240": {
-    "direction": "SHORT",
-    "timeframe": "240",
-    "symbol": "SPY",
-    "trigger": "OB",
-    "ml_score": 0.375,
-    "stored_at": "2026-06-10T17:30:04.368828+00:00",
-    "expires_at": "2026-06-11T01:30:04.368860+00:00"
-  },
-  "QQQ_240": {
-    "direction": "SHORT",
-    "timeframe": "240",
-    "symbol": "QQQ",
-    "trigger": "OB",
-    "ml_score": 0.25,
-    "stored_at": "2026-06-10T17:30:05.591051+00:00",
-    "expires_at": "2026-06-11T01:30:05.591072+00:00"
   }
 }
