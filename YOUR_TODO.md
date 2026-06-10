@@ -5,23 +5,39 @@
 
 ## 🔴 URGENT — System Won't Work Without These
 
+- [ ] **ROTATE your `FINNHUB_KEY` immediately — it was exposed in a shared log file**
+  - Go to https://finnhub.io → Dashboard → API Keys → delete the old key → create a new one
+  - Update the new key in Railway → Variables → `FINNHUB_KEY = <new key>`
+  - **Why:** The old key (`d0ecck9r01q...`) appeared in full in the Railway CSV logs you sent. Anyone who read that file can use your quota.
+
+- [ ] **Fix `FJ_EMAIL` and `FJ_PASSWORD` in Railway — FinancialJuice login is failing**
+  - Log shows: `Auto-login failed — no .ASPXAUTH cookie received`
+  - In Railway → Variables → check `FJ_EMAIL` and `FJ_PASSWORD` are correct
+  - These are your FinancialJuice.com login credentials
+  - **Why:** Without login, FJ premium breaking news feed falls back to public RSS only — fewer high-impact events detected.
+
 - [ ] **Set `HF_TOKEN` in Railway environment variables**
   - Get a free read token: https://huggingface.co/settings/tokens
-  - Accept the model terms first: https://huggingface.co/Prior-Labs/tabpfn_3
-  - In Railway → your service → Variables → add `HF_TOKEN = hf_xxxx`
-  - **Why:** Unlocks TabPFN v2 as a 4th independent signal. Works even on pools with only 10 trades. Currently silently disabled without this key.
+  - In Railway → Variables → add `HF_TOKEN = hf_xxxx`
+  - **Why:** Unlocks TabPFN v2 as a 4th independent ML signal (works even on pools with only 10 trades). Currently disabled — will be re-enabled once the token is set.
 
-- [ ] **Set `FRED_API_KEY` in Railway (if not already set)**
-  - Free key: https://fred.stlouisfed.org/docs/api/api_key.html
-  - **Why:** Powers macro intelligence (real yields, DXY, breakeven inflation). Without it, the macro_bias component is always 0.
-
-- [ ] **Set `FINNHUB_KEY` in Railway (if not already set)**
-  - Free key: https://finnhub.io → Dashboard → API Keys
-  - **Why:** Powers live news feed + economic calendar (NFP/CPI/FOMC warnings). Without it, news scoring falls back to RSS-only.
+- [ ] **Upgrade Finnhub plan OR accept calendar-only limitation**
+  - Log shows: `finnhub calendar fetch failed: 403 Forbidden`
+  - The free Finnhub tier does NOT include the economic calendar endpoint
+  - Options:
+    - **Free:** Accept it — news feed still works, just no NFP/CPI/FOMC forward warnings
+    - **Paid:** Upgrade at finnhub.io to get calendar access (gives 90-min advance warning before high-impact events)
+  - Tell me which you choose and I'll adjust the code accordingly
 
 ---
 
 ## 🟡 HIGH PRIORITY — Do This Week
+
+- [ ] **Verify Railway deployed the latest fix (build was crashing)**
+  - Open Railway → your service → Deployments
+  - Confirm the most recent deployment shows "Deployment successful" (not FAILED)
+  - The fix pins Python to 3.13.13 — the build was failing because mise couldn't find 3.13.14
+  - If still FAILED: take a screenshot and send it to me
 
 - [ ] **Run Pine Script historical replay for thin pools**
   - Open TradingView → your `f25 Migo VS Market Sniper Pro` strategy
@@ -59,8 +75,8 @@
 
 - [ ] **Check Railway health endpoint after next deploy**
   - URL: https://blank-app-production-a8bd.up.railway.app/health?secret=gold2026
-  - Now returns full ML state: per-pool trained/threshold/retrain count + joint model status
-  - **Your job:** Confirm it shows `"joint_gold_trained": true` and `"tabpfn_available": true` (after HF_TOKEN is set)
+  - Returns full ML state: per-pool trained/threshold/retrain count + joint model status
+  - **Your job:** Confirm it shows `"joint_gold_trained": true`
 
 ---
 
@@ -91,6 +107,8 @@
 - [x] `isTF30` bucket implemented (30M has dedicated ATR multipliers)
 - [x] TVC:GOLD data source set (spot gold, ~$1-3 from ICMARKETS)
 - [x] Daily levels GitHub Actions job set (07:50 UTC Mon-Fri)
+- [x] `FRED_API_KEY` set in Railway — confirmed working in logs (`live.fred: true`, real yield + dollar + breakeven all loading)
+- [x] `FINNHUB_KEY` set in Railway — confirmed working for news feed (free tier only; calendar needs paid plan — see MEDIUM item above)
 
 ---
 
