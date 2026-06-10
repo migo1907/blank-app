@@ -10302,7 +10302,7 @@
   {
     "symbol": "XAUUSD",
     "direction": "SHORT",
-    "trigger": "",
+    "trigger": "OB",
     "entry_price": 4178.6,
     "exit_price": 4174.32,
     "outcome": "PARTIAL",
@@ -10311,7 +10311,7 @@
     "tp_stage": "SL_TP2",
     "timeframe": "2",
     "pnl_pct": 0.1024,
-    "ml_bull_score": 0.25,
+    "ml_bull_score": 0.125,
     "regime": "NORMAL",
     "session": "ASIAN",
     "f1_rsi": -0.1322,
@@ -10339,8 +10339,8 @@
     "f23_rsiacc": -0.0464,
     "f24_fvgq": 0.0,
     "f25_tod": 0.9063,
-    "id": "7e26473a",
+    "id": "ca33f9be",
     "pool": "XAUUSD_2M",
-    "created_at": "2026-06-10T04:46:04.596910+00:00"
+    "created_at": "2026-06-10T04:46:05.356303+00:00"
   }
 ]
