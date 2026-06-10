@@ -1,27 +1,5 @@
 [
   {
-    "symbol": "QQQ",
-    "pool": "STOCKS_QQQ_30M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "news_score": -0.0406,
-    "macro_bias": -0.5096,
-    "macro_label": "BEARISH",
-    "combined_score": -0.0858,
-    "session": "NYSE_AFTERNOON",
-    "regime": "NORMAL",
-    "regime_label": "NORMAL",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d71.41 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.22) | news:neutral(-0.041) | macro:BEARISH(-0.510) | combined:-0.086 \u2192 conf:0.160 \u26a1 WAR/CONFLICT",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-09T18:11:55.527337+00:00",
-    "created_at": "2026-06-09T17:41:55.872067+00:00",
-    "id": 101
-  },
-  {
     "symbol": "XAUUSD",
     "pool": "XAUUSD_2M",
     "direction": "NEUTRAL",
@@ -2183,6 +2161,28 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-10T00:52:12.040655+00:00",
     "created_at": "2026-06-10T00:22:12.580499+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "XAUUSD",
+    "pool": "XAUUSD_2M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.75,
+    "rf_score": 0.4251,
+    "gbm_score": 0.2226,
+    "news_score": 0.1185,
+    "macro_bias": -0.1388,
+    "macro_label": "NEUTRAL",
+    "combined_score": 0.0149,
+    "session": "ASIAN",
+    "regime": "TRENDING_BEAR",
+    "regime_label": "PULLBACK_LONG",
+    "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:TRENDING_BEAR(PULLBACK_LONG)\u00d70.95 | sess:ASIAN\u00d70.85 | confluence\u00d70.59 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-1.00) | news:neutral(+0.118) | macro:NEUTRAL(-0.139) | combined:+0.015 \u2192 conf:0.007 \u26a1 CPI",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-10T01:06:45.025087+00:00",
+    "created_at": "2026-06-10T00:36:45.548626+00:00",
     "id": 101
   }
 ]
