@@ -349,50 +349,88 @@ def _fj_auto_login() -> bool:
 
     print(f"[fj] Auto-login: attempting login for {email}…")
     login_url = "https://www.financialjuice.com/account/login"
+    _UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 
     try:
         with httpx.Client(timeout=15, follow_redirects=True) as client:
-            # Step 1: GET login page to obtain ASP.NET form tokens
-            r0 = client.get(
-                login_url,
-                headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"},
-            )
-            # Extract __RequestVerificationToken if present
+            # Step 1: GET login page to obtain ASP.NET form tokens + session cookie
+            r0 = client.get(login_url, headers={"User-Agent": _UA})
+            # Extract __RequestVerificationToken (multiple possible formats)
             rvt = ""
             try:
-                import re
-                match = re.search(r'__RequestVerificationToken[^>]+value="([^"]+)"', r0.text)
-                if match:
-                    rvt = match.group(1)
+                import re as _re
+                for pattern in [
+                    r'__RequestVerificationToken[^>]+value="([^"]+)"',
+                    r'name="__RequestVerificationToken"\s+value="([^"]+)"',
+                    r'"__RequestVerificationToken":"([^"]+)"',
+                ]:
+                    match = _re.search(pattern, r0.text)
+                    if match:
+                        rvt = match.group(1)
+                        break
             except Exception:
                 pass
 
-            # Step 2: POST credentials
-            form_data = {
-                "Email":    email,
-                "Password": password,
-                "RememberMe": "true",
-            }
+            # Extract all hidden input fields (ASP.NET forms often have multiple)
+            hidden_fields: dict[str, str] = {}
+            try:
+                for m in _re.finditer(r'<input[^>]+type=["\']hidden["\'][^>]*>', r0.text, _re.IGNORECASE):
+                    tag = m.group(0)
+                    name_m  = _re.search(r'name=["\']([^"\']+)["\']', tag)
+                    value_m = _re.search(r'value=["\']([^"\']*)["\']', tag)
+                    if name_m:
+                        hidden_fields[name_m.group(1)] = value_m.group(1) if value_m else ""
+            except Exception:
+                pass
+
+            # Step 2: POST credentials — try lowercase field names (modern ASP.NET Identity)
+            # then fall back to PascalCase (classic Forms Auth)
+            form_data = {**hidden_fields, "RememberMe": "true"}
             if rvt:
                 form_data["__RequestVerificationToken"] = rvt
+
+            # Try lowercase first (ASP.NET Core Identity default)
+            form_data["email"]    = email
+            form_data["password"] = password
 
             r1 = client.post(
                 login_url,
                 data=form_data,
                 headers={
-                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-                    "Referer":    login_url,
+                    "User-Agent":   _UA,
+                    "Referer":      login_url,
                     "Content-Type": "application/x-www-form-urlencoded",
+                    "Accept":       "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                    "Accept-Language": "en-US,en;q=0.5",
+                    "Origin":       "https://www.financialjuice.com",
                 },
             )
 
-        # Check cookies from the client jar (follow_redirects means final cookies are in jar)
+            # If lowercase didn't work, try PascalCase
+            cookies_check = dict(client.cookies)
+            if not cookies_check.get(".ASPXAUTH"):
+                form_data2 = {**hidden_fields, "RememberMe": "true",
+                              "Email": email, "Password": password}
+                if rvt:
+                    form_data2["__RequestVerificationToken"] = rvt
+                r1 = client.post(
+                    login_url, data=form_data2,
+                    headers={"User-Agent": _UA, "Referer": login_url,
+                             "Content-Type": "application/x-www-form-urlencoded",
+                             "Origin": "https://www.financialjuice.com"},
+                )
+
+        # Check cookies from the client jar
         cookies = dict(client.cookies)
         auth_cookie   = cookies.get(".ASPXAUTH", "")
         aspnet_cookie = cookies.get("ASP.NET_SessionId", "")
 
         if not auth_cookie:
-            print(f"[fj] Auto-login failed — no .ASPXAUTH cookie received (HTTP {r1.status_code}).")
+            # Log first 300 chars of response to help diagnose form changes
+            snippet = (r1.text or "")[:300].replace("\n", " ")
+            print(f"[fj] Auto-login failed — no .ASPXAUTH cookie (HTTP {r1.status_code}). "
+                  f"hidden_fields={list(hidden_fields.keys())} rvt={'yes' if rvt else 'no'} "
+                  f"response_snippet={snippet!r}")
             return False
 
         payload = {
