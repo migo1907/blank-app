@@ -168,20 +168,14 @@ def _fetch_asset(name: str, prefetched: dict) -> tuple[dict | None, int, str]:
         print(f"[daily] {name}: using pre-fetched TradingView data.")
         return prefetched[name], decimals, label
 
-    # Source 2: TradingView live
+    # Source 2: TradingView live (tvdatafeed) — same ICMARKETS/AMEX/NASDAQ feed.
+    # No Yahoo fallback: all brief prices must come from TradingView only.
     levels = _fetch_levels_tv(sym, exchange, decimals)
     if levels:
         print(f"[daily] {name}: TradingView live ({exchange}) OK.")
         return levels, decimals, label
 
-    # Source 3: yfinance
-    for yf_ticker in SYMBOLS_YF_FALLBACK.get(name, []):
-        levels = _fetch_levels_yf(yf_ticker, decimals)
-        if levels:
-            print(f"[daily] {name}: yfinance fallback ({yf_ticker}) OK.")
-            return levels, decimals, label
-
-    print(f"[daily] {name}: all sources failed — skipping.")
+    print(f"[daily] {name}: TradingView sources failed — skipping (no non-TV fallback).")
     return None, decimals, label
 
 
