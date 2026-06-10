@@ -13470,7 +13470,7 @@
   {
     "symbol": "XAUUSD",
     "direction": "SHORT",
-    "trigger": "",
+    "trigger": "BOS",
     "entry_price": 4089.78,
     "exit_price": 4090.1,
     "outcome": "PARTIAL",
@@ -13507,8 +13507,8 @@
     "f23_rsiacc": -0.1427,
     "f24_fvgq": 0.0,
     "f25_tod": -0.9537,
-    "id": "2cac1681",
+    "id": "5bd8284d",
     "pool": "XAUUSD_2M",
-    "created_at": "2026-06-10T19:24:05.725665+00:00"
+    "created_at": "2026-06-10T19:24:03.819580+00:00"
   }
 ]
