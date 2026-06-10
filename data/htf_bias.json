@@ -48,10 +48,10 @@
     "direction": "LONG",
     "timeframe": "30",
     "symbol": "IBKR",
-    "trigger": "FVG",
-    "ml_score": 0.5,
-    "stored_at": "2026-06-10T14:30:10.367904+00:00",
-    "expires_at": "2026-06-10T16:30:10.367922+00:00"
+    "trigger": "OB",
+    "ml_score": 0.75,
+    "stored_at": "2026-06-10T17:00:18.050797+00:00",
+    "expires_at": "2026-06-10T19:00:18.050821+00:00"
   },
   "BLNK_30": {
     "direction": "LONG",
