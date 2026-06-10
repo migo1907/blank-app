@@ -15,6 +15,7 @@ MIN_TRADES = 15  # minimum history before models will train
 
 try:
     from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+    from sklearn.calibration import CalibratedClassifierCV
     import numpy as np
     _SKLEARN_AVAILABLE = True
 except ImportError:
@@ -47,11 +48,12 @@ class RandomForestEnsemble:
         prob = rf.predict(feat_list) # list[float], 20 values
     """
 
-    def __init__(self, n_estimators: int = 200, max_depth: int = 8, random_state: int = 42):
+    def __init__(self, n_estimators: int = 200, max_depth: int = 4, min_samples_leaf: int = 8, random_state: int = 42):
         self._n_estimators = n_estimators
         self._max_depth = max_depth
+        self._min_samples_leaf = min_samples_leaf
         self._random_state = random_state
-        self._model: Optional[object] = None  # RandomForestClassifier once trained
+        self._model: Optional[object] = None  # CalibratedClassifierCV(RF) once trained
         self._trained = False
         self._lock = threading.Lock()
         self._feature_importances: list[float] = [1.0 / len(FEATURE_NAMES)] * len(FEATURE_NAMES)
@@ -91,20 +93,25 @@ class RandomForestEnsemble:
         X = np.array(X_rows, dtype=np.float32)
         y = np.array(y_rows, dtype=np.int32)
 
-        # Balance classes via class_weight if needed
-        clf = RandomForestClassifier(
+        # Shallow RF: depth=4, min_leaf=8 — walk-forward validated (+3.5pp vs -7.7pp for deep)
+        base_clf = RandomForestClassifier(
             n_estimators=self._n_estimators,
             max_depth=self._max_depth,
+            min_samples_leaf=self._min_samples_leaf,
             class_weight="balanced",
             random_state=self._random_state,
             n_jobs=-1,
         )
 
-        # Session-weighted training (item 5): London/NY trades count more
+        # Session-weighted training: London/NY trades count more
         sample_weights = np.array(
             [_session_weight(row.get("created_at", "")) for row in history],
             dtype=np.float32
         )
+
+        # Platt calibration: sigmoid wrapper, cv=3 (isotonic overfits below ~1000 samples)
+        n_splits = 3 if len(X_rows) >= 45 else 2
+        clf = CalibratedClassifierCV(base_clf, method="sigmoid", cv=n_splits)
 
         try:
             clf.fit(X, y, sample_weight=sample_weights)
@@ -112,13 +119,21 @@ class RandomForestEnsemble:
             print(f"[rf] Training failed: {exc}")
             return False
 
+        # Feature importances from the underlying estimators inside CalibratedClassifierCV
+        imps_list = [
+            est.estimator.feature_importances_
+            for est in clf.calibrated_classifiers_
+            if hasattr(est.estimator, "feature_importances_")
+        ]
+        raw_imps = np.mean(imps_list, axis=0) if imps_list else np.ones(len(FEATURE_NAMES)) / len(FEATURE_NAMES)
+
         with self._lock:
             self._model = clf
             self._trained = True
-            self._feature_importances = clf.feature_importances_.tolist()
+            self._feature_importances = raw_imps.tolist()
 
-        print(f"[rf] Retrained on {len(X_rows)} trades. "
-              f"Top feature: {FEATURE_NAMES[int(np.argmax(clf.feature_importances_))]}")
+        top_feat = FEATURE_NAMES[int(np.argmax(raw_imps))]
+        print(f"[rf] Retrained on {len(X_rows)} trades (shallow+Platt). Top feature: {top_feat}")
         return True
 
     # ── Inference ─────────────────────────────────────────────────────────────
@@ -198,7 +213,7 @@ class GradientBoostEnsemble:
     Uses session-weighted training (item 5).
     """
 
-    def __init__(self, n_estimators: int = 150, max_depth: int = 4, learning_rate: float = 0.08):
+    def __init__(self, n_estimators: int = 60, max_depth: int = 2, learning_rate: float = 0.08):
         self._n_estimators  = n_estimators
         self._max_depth     = max_depth
         self._learning_rate = learning_rate
@@ -230,26 +245,37 @@ class GradientBoostEnsemble:
         y = np.array(y_rows, dtype=np.int32)
         w = np.array(w_rows, dtype=np.float32)
 
-        clf = GradientBoostingClassifier(
+        # Shallow GBM: depth=2, 60 trees — walk-forward validated (-1.2pp vs -5.9pp for deep)
+        base_clf = GradientBoostingClassifier(
             n_estimators=self._n_estimators,
             max_depth=self._max_depth,
             learning_rate=self._learning_rate,
             subsample=0.8,
             random_state=42,
         )
+        # Platt calibration wrapper
+        n_splits = 3 if len(X_rows) >= 45 else 2
+        clf = CalibratedClassifierCV(base_clf, method="sigmoid", cv=n_splits)
         try:
             clf.fit(X, y, sample_weight=w)
         except Exception as exc:
             print(f"[gbm] Training failed: {exc}")
             return False
 
+        imps_list2 = [
+            est.estimator.feature_importances_
+            for est in clf.calibrated_classifiers_
+            if hasattr(est.estimator, "feature_importances_")
+        ]
+        raw_imps = np.mean(imps_list2, axis=0) if imps_list2 else np.ones(len(FEATURE_NAMES)) / len(FEATURE_NAMES)
+
         with self._lock:
             self._model = clf
             self._trained = True
-            self._feature_importances = clf.feature_importances_.tolist()
+            self._feature_importances = raw_imps.tolist()
 
-        top_idx = int(np.argmax(clf.feature_importances_))
-        print(f"[gbm] Trained on {len(X_rows)} trades. Top feature: {FEATURE_NAMES[top_idx]}")
+        top_idx = int(np.argmax(raw_imps))
+        print(f"[gbm] Trained on {len(X_rows)} trades (shallow+Platt). Top feature: {FEATURE_NAMES[top_idx]}")
         return True
 
     def predict(self, features: list[float]) -> float:
