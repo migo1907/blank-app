@@ -562,7 +562,7 @@ def repair_missing_trades() -> list[str]:
                 continue
             if p.get("trade_id") == "heartbeat":
                 continue
-            if outcome_up in ("TP1_HIT", "TP2_HIT", "PROGRESS"):
+            if outcome_up in ("TP2_HIT", "TP3_HIT", "PROGRESS"):
                 continue
             # Skip if no exit price (signal entry, not a close)
             if not p.get("exit_price"):
@@ -596,9 +596,10 @@ def repair_missing_trades() -> list[str]:
             raw_pct = (exit_px - entry_px) / max(entry_px, 0.0001) * 100
             pnl_pct = raw_pct if direction == "LONG" else -raw_pct
 
-            # Normalize outcome
+            # Normalize outcome — TP1_HIT is a closed WIN; TP2/TP3 are addons (skip)
             norm = outcome_up.strip()
-            if norm in ("WIN", "TP3", "TP2", "TP1"):           norm = "WIN"
+            if norm == "TP2_HIT" or norm == "TP3_HIT":         continue
+            if norm in ("WIN", "TP1_HIT", "TP3", "TP2", "TP1"): norm = "WIN"
             elif norm in ("LOSS", "SL"):                        norm = "LOSS"
             elif norm in ("PARTIAL", "SL_TP1", "SL_TP2",
                           "SL_TP3", "TP1_SL", "TP2_SL"):       norm = "PARTIAL"

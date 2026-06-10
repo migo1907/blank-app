@@ -444,10 +444,15 @@ async def test_telegram(secret: str = ""):
 
 
 def _normalize_outcome(raw: str) -> str:
-    """Map Pine Script outcome strings to internal WIN/LOSS/PARTIAL/HEARTBEAT/PROGRESS."""
+    """Map Pine Script outcome strings to internal WIN/LOSS/PARTIAL/HEARTBEAT/PROGRESS.
+
+    TP1_HIT = trade closed at first target → WIN.
+    TP2_HIT / TP3_HIT = addon score on an already-open trade → PROGRESS (no new DB record).
+    """
     v = raw.upper().strip()
     if v == "HEARTBEAT":                          return "HEARTBEAT"
-    if v in ("TP1_HIT", "TP2_HIT"):              return "PROGRESS"
+    if v == "TP1_HIT":                            return "WIN"
+    if v in ("TP2_HIT", "TP3_HIT"):              return "PROGRESS"
     if v in ("WIN", "TP3", "TP2", "TP1"):         return "WIN"
     if v in ("LOSS", "SL"):                        return "LOSS"
     if v in ("PARTIAL", "SL_TP1", "SL_TP2",
