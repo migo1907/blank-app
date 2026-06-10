@@ -1,27 +1,5 @@
 [
   {
-    "symbol": "SPY",
-    "pool": "STOCKS_INDEX_30M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "news_score": 0.2123,
-    "macro_bias": -0.1581,
-    "macro_label": "BEARISH",
-    "combined_score": 0.0369,
-    "session": "CLOSED",
-    "regime": "NORMAL",
-    "regime_label": "NORMAL",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.89 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.32) | news:bullish(+0.212) | macro:BEARISH(-0.158) | combined:+0.037 \u2192 conf:0.024 \u26a1 WAR/CONFLICT",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-10T02:36:50.579054+00:00",
-    "created_at": "2026-06-10T02:06:53.788217+00:00",
-    "id": 101
-  },
-  {
     "symbol": "QQQ",
     "pool": "STOCKS_QQQ_30M",
     "direction": "NEUTRAL",
@@ -2193,6 +2171,28 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-10T10:52:05.694544+00:00",
     "created_at": "2026-06-10T10:22:06.207873+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "XAUUSD",
+    "pool": "XAUUSD_2M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.331,
+    "gbm_score": 0.3015,
+    "news_score": 0.1806,
+    "macro_bias": -0.1388,
+    "macro_label": "NEUTRAL",
+    "combined_score": -0.0787,
+    "session": "LONDON",
+    "regime": "RANGING",
+    "regime_label": "RANGING",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:RANGING(RANGING)\u00d70.82 | sess:LONDON\u00d71.15 | confluence\u00d70.94 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-1.00) | news:neutral(+0.181) | macro:NEUTRAL(-0.139) | combined:-0.079 \u2192 conf:0.083 \u26a1 CPI",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-10T11:03:23.493177+00:00",
+    "created_at": "2026-06-10T10:33:25.287625+00:00",
     "id": 101
   }
 ]
