@@ -2012,7 +2012,7 @@
     "regime": "RANGING",
     "regime_label": "RANGING",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:RANGING(RANGING)\u00d70.82 | sess:ASIAN\u00d70.85 | confluence\u00d71.07 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-1.00) | news:bullish(+0.295) | macro:NEUTRAL(-0.139) | combined:-0.272 \u2192 conf:0.243 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-10T03:52:09.859639+00:00",
     "created_at": "2026-06-10T03:22:11.519139+00:00",
     "id": 101
@@ -2034,7 +2034,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.89 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.32) | news:bullish(+0.295) | macro:BEARISH(-0.158) | combined:+0.075 \u2192 conf:0.048 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-10T03:52:13.712943+00:00",
     "created_at": "2026-06-10T03:22:14.281040+00:00",
     "id": 101
@@ -2056,7 +2056,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.98 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.27) | news:bullish(+0.295) | macro:BEARISH(-0.158) | combined:+0.075 \u2192 conf:0.053 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-10T03:52:16.245616+00:00",
     "created_at": "2026-06-10T03:22:16.896109+00:00",
     "id": 101
@@ -2078,7 +2078,7 @@
     "regime": "RANGING",
     "regime_label": "RANGING",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:RANGING(RANGING)\u00d70.82 | sess:ASIAN\u00d70.85 | confluence\u00d71.07 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-1.00) | news:bullish(+0.262) | macro:NEUTRAL(-0.139) | combined:-0.212 \u2192 conf:0.189 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-10T04:06:44.743329+00:00",
     "created_at": "2026-06-10T03:36:45.336334+00:00",
     "id": 101
