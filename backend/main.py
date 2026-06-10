@@ -589,17 +589,13 @@ async def signal_entry(payload: SignalEntryPayload):
         print(f"[signal-entry] Missing entry_price for {sym} {payload.direction} — skipping Telegram")
         return {"status": "ok", "routed_to": "suppressed", "reason": "no_entry_price"}
 
-    # Option B — backend ML gate (see /webhook). Suppress silently if below threshold.
+    # Backend ML quality grade — annotate-only (see /webhook): never suppress,
+    # tag the entry with P(TP1+) so the trader decides.
     from signal_engine import score_entry_gate
     from db import symbol_to_pool
     _gate = score_entry_gate(symbol_to_pool(sym, tf), payload.direction)
-    if not _gate["pass"]:
-        print(f"[signal-entry] ML GATE REJECT {payload.direction} {sym} TF={tf} "
-              f"score={_gate['score']} components={_gate['components']}")
-        return {"status": "ok", "routed_to": "ml-gate-rejected",
-                "ml_gate_score": _gate["score"], "reason": _gate["reason"]}
-    print(f"[signal-entry] ML GATE PASS {payload.direction} {sym} TF={tf} "
-          f"score={_gate['score']} ({_gate['reason']})")
+    print(f"[signal-entry] ML QUALITY {payload.direction} {sym} TF={tf} "
+          f"score={_gate['score']} ({_gate['reason']}) components={_gate['components']}")
 
     bias        = get_active_bias(sym, payload.direction)
     contra_bias = get_active_bias(sym, "SHORT" if payload.direction == "LONG" else "LONG")
@@ -618,6 +614,8 @@ async def signal_entry(payload: SignalEntryPayload):
         "sl":          payload.sl or 0.0,
         "ml_score":    payload.ml_score,
         "tier":        payload.tier or "MED",
+        "quality_score":  _gate["score"],
+        "quality_reason": _gate["reason"],
         "news_score":  get_latest_news_sentiment(),
         "velocity":    get_latest_velocity().get("label", "NORMAL"),
         "event":       get_latest_event().get("event_type", ""),
@@ -674,18 +672,16 @@ async def unified_webhook(payload: UnifiedPayload):
             print(f"[webhook] Missing entry_price for {sym} {payload.direction} — skipping Telegram")
             return {"status": "ok", "routed_to": "suppressed", "reason": "no_entry_price"}
 
-        # Option B — backend ML gate. Re-score the Pine-fired entry with the
-        # trained, persistent KNN+RF+GBM. Suppress silently if below threshold.
+        # Backend ML quality grade — annotate-only mode. Re-score the Pine-fired
+        # entry with the trained KNN+RF+GBM (P of reaching TP1+), but never
+        # suppress: every entry reaches Telegram tagged with its grade so the
+        # trader decides. (Switched from silent suppression: the models are
+        # young and suppression was wrongly blocking some winners.)
         from signal_engine import score_entry_gate
         from db import symbol_to_pool
         _gate = score_entry_gate(symbol_to_pool(sym, tf), payload.direction)
-        if not _gate["pass"]:
-            print(f"[webhook] ML GATE REJECT {payload.direction} {sym} TF={tf} "
-                  f"score={_gate['score']} components={_gate['components']}")
-            return {"status": "ok", "routed_to": "ml-gate-rejected",
-                    "ml_gate_score": _gate["score"], "reason": _gate["reason"]}
-        print(f"[webhook] ML GATE PASS {payload.direction} {sym} TF={tf} "
-              f"score={_gate['score']} ({_gate['reason']})")
+        print(f"[webhook] ML QUALITY {payload.direction} {sym} TF={tf} "
+              f"score={_gate['score']} ({_gate['reason']}) components={_gate['components']}")
 
         bias        = get_active_bias(sym, payload.direction)
         contra_bias = get_active_bias(sym, "SHORT" if payload.direction == "LONG" else "LONG")
@@ -704,6 +700,8 @@ async def unified_webhook(payload: UnifiedPayload):
             "sl":          payload.sl or 0.0,
             "ml_score":    payload.ml_score,
             "tier":        payload.tier or "MED",
+            "quality_score":  _gate["score"],
+            "quality_reason": _gate["reason"],
             "news_score":  get_latest_news_sentiment(),
             "velocity":    get_latest_velocity().get("label", "NORMAL"),
             "event":       get_latest_event().get("event_type", ""),

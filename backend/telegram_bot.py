@@ -71,11 +71,24 @@ async def send_entry_signal(s: dict) -> bool:
     tf_display   = tf_label_map.get(str(tf), f"{tf}M")
     htf_badge    = " 🏔 HTF" if htf_context == "htf_direct" else ""
 
+    # Backend ML quality grade — P(reach TP1+) from KNN+RF+GBM (annotate-only).
+    q_score  = s.get("quality_score")
+    q_reason = s.get("quality_reason", "")
+    if q_reason in ("no_features_cached", "cold_start_bypass") or q_score is None:
+        quality_line = "🧠 ML Quality: — (model warming up)\n"
+    elif q_score >= 0.55:
+        quality_line = f"🧠 ML Quality: 🔥 STRONG ({q_score*100:.0f}%)\n"
+    elif q_score >= 0.40:
+        quality_line = f"🧠 ML Quality: ✅ FAIR ({q_score*100:.0f}%)\n"
+    else:
+        quality_line = f"🧠 ML Quality: ⚠️ WEAK ({q_score*100:.0f}%) — similar setups mostly stopped out\n"
+
     msg = (
         f"{dir_emoji} <b>{direction} SIGNAL{htf_badge}</b> — {asset_emoji} {symbol_clean}\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
         f"⏱ Timeframe: {tf_display}\n"
-        f"Strength:  {strength_str}\n\n"
+        f"Strength:  {strength_str}\n"
+        f"{quality_line}\n"
         f"📍 Entry:  {entry:.2f}\n"
         f"🎯 TP1:    {tp1:.2f}\n"
         f"🎯 TP2:    {tp2:.2f}\n"
