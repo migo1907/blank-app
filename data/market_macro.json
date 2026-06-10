@@ -1,13 +1,13 @@
 {
-  "bias": -0.1388,
+  "bias": -0.0721,
   "label": "NEUTRAL",
   "components": {
-    "real_yield": -0.1333,
+    "real_yield": 0.0667,
     "dollar": -0.403,
     "breakeven": -0.1333,
     "cot": 0.5
   },
-  "real_yield": 2.21,
+  "real_yield": 2.2,
   "dollar": 120.0831,
   "breakeven": 2.33,
   "cot": {
@@ -20,14 +20,14 @@
   },
   "gld": {
     "date": "2026-06-10",
-    "price": 374.73,
+    "price": 374.58,
     "price_prev": 390.78,
-    "price_change": -16.05,
+    "price_change": -16.2,
     "tonnes": null,
-    "tonnes_change": -16.05,
+    "tonnes_change": -16.2,
     "source": "yfinance_proxy"
   },
-  "updated_at": "2026-06-10T20:00:30.548777+00:00",
+  "updated_at": "2026-06-10T20:37:58.360920+00:00",
   "sources_live": {
     "fred": true,
     "cot": true,
