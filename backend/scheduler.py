@@ -16,6 +16,7 @@ _last_sent_direction_qqq: str = "NEUTRAL"
 _startup_cycle: bool = True  # suppress alert on first cycle after restart
 _webhook_errors:  int = 0   # count of failed trade webhooks since last hourly check
 _webhook_ok:      int = 0   # count of successful trade webhooks since last hourly check
+_intel_active:    bool = False  # True while market is in an elevated-activity regime (alert already sent)
 
 _SEEN_HEADLINES_PATH = "data/seen_headlines.json"
 _SEEN_HEADLINES_MAX  = 500
@@ -44,6 +45,44 @@ def _live_macro_label() -> str:
         return get_macro_bias().get("label", "n/a") or "n/a"
     except Exception:
         return "n/a"
+
+
+_INTEL_HOT_VELOCITY = {"HIGH VELOCITY", "ELEVATED"}
+
+
+def _evaluate_intel_triggers(velocity: dict, event: dict, gold_signal: dict, gold_flipped: bool) -> list[str]:
+    """
+    Build the list of trigger reasons for a Market Intelligence alert.
+    Empty list = no elevated activity, no alert. Covers all four triggers:
+    velocity spike, imminent high-impact event, ML flip on rising flow,
+    and fast sentiment acceleration (regime shift).
+    """
+    reasons: list[str] = []
+    vlabel = velocity.get("label", "NORMAL")
+    vdir   = velocity.get("direction", "")
+    accel  = velocity.get("acceleration", 0.0) or 0.0
+    vol    = velocity.get("volume", 0) or 0
+
+    # 1. Velocity spike — news flow entered an elevated state
+    if vlabel in _INTEL_HOT_VELOCITY:
+        reasons.append(f"{vlabel} news flow{(' · ' + vdir) if vdir else ''}")
+
+    # 2. Imminent high-impact event (NFP/CPI/FOMC within ~90 min)
+    if event.get("detected") and event.get("urgency", 0.0) >= 0.85:
+        mins  = event.get("minutes_until")
+        etype = event.get("event_type") or "High-impact event"
+        when  = f" in {mins} min" if isinstance(mins, (int, float)) else ""
+        reasons.append(f"{etype}{when} — volatility expected, de-risk")
+
+    # 3. ML direction flip while news flow is hot — the move is news-backed
+    if gold_flipped and vlabel in _INTEL_HOT_VELOCITY:
+        reasons.append(f"ML direction flip → {gold_signal.get('direction','')} on rising flow")
+
+    # 4. Regime shift — sentiment accelerating fast on real volume
+    if accel >= 0.20 and vol >= 3:
+        reasons.append(f"Sentiment accelerating fast (Δ{accel:.2f}) — regime shifting")
+
+    return reasons
 
 
 def get_latest_news_sentiment() -> float:
@@ -244,6 +283,9 @@ async def _news_signal_cycle() -> None:
         else:
             print(f"[scheduler] XAUUSD: {new_dir} conf={new_conf:.2f} — no flip, not sending.")
 
+        _neutral_sig = {"direction": "NEUTRAL", "confidence": 0.0}
+        spy_signal = dict(_neutral_sig)
+        qqq_signal = dict(_neutral_sig)
         try:
             spy_signal = generate_signal(
                 current_features=get_latest_features("STOCKS_INDEX_30M"),
@@ -305,6 +347,29 @@ async def _news_signal_cycle() -> None:
                 print(f"[scheduler] QQQ: {qqq_dir} conf={qqq_conf:.2f} — no flip, not sending.")
         except Exception as e:
             print(f"[scheduler] QQQ signal error: {e}")
+
+        # ── Market Intelligence alert — fires on STATE CHANGE into an elevated regime ──
+        # (velocity spike / imminent event / ML flip on flow / fast acceleration).
+        # Fires once per episode; re-arms only after conditions fully clear.
+        global _intel_active
+        try:
+            intel_reasons = _evaluate_intel_triggers(
+                _latest_velocity, _latest_event, signal, direction_changed
+            )
+            if intel_reasons and not _intel_active and not _startup_cycle:
+                from telegram_bot import send_market_intelligence
+                sent_intel = await send_market_intelligence(
+                    intel_reasons, _latest_velocity, _latest_event,
+                    signal, spy_signal, qqq_signal,
+                )
+                if sent_intel:
+                    _intel_active = True
+                    print(f"[scheduler] Market Intelligence alert sent — {len(intel_reasons)} trigger(s): {intel_reasons}")
+            elif not intel_reasons and _intel_active:
+                _intel_active = False
+                print("[scheduler] Market Intelligence: conditions cleared — re-armed.")
+        except Exception as e:
+            print(f"[scheduler] Market Intelligence alert error: {e}")
 
         _startup_cycle = False  # first cycle complete — normal firing from here on
         asyncio.create_task(_write_health_status(signal, _latest_news_agg, _latest_velocity, len(fj_breaking), _equity_macro))
