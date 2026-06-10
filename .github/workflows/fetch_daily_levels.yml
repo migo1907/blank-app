@@ -80,53 +80,99 @@ jobs:
                   time.sleep(1.5 * (i + 1))
               return None
 
-          def fetch_gold(tv_symbol, decimals):
-              """XAUUSD — IC Markets spot. 24h market, so 'close' is the live spot price."""
-              d = _scanner_get(tv_symbol, "close,High.1,Low.1,close.1")
-              if not d:
+          def tv_price(tv_symbols, price_fields):
+              """
+              Live price from TradingView scanner. Tries each symbol, then each field
+              in priority order. Returns (price, 'SYMBOL field') or (None, None).
+              """
+              for sym in tv_symbols:
+                  d = _scanner_get(sym, ",".join(price_fields))
+                  if not d:
+                      continue
+                  for f in price_fields:
+                      v = d.get(f)
+                      if v is not None:
+                          print(f"[action] TV price {sym}: {f}={round(float(v),2)}")
+                          return float(v), f"{sym} {f}"
+                  print(f"[action] TV price {sym}: no usable field in {price_fields} — {d}")
+              return None, None
+
+          def yahoo_prevday(ticker, decimals):
+              """
+              Previous COMPLETED daily H/L/C from Yahoo (spot tickers, e.g. XAU=X).
+              Skips today's in-progress bar so pivots use the last finished session.
+              """
+              try:
+                  url = f"https://query1.finance.yahoo.com/v8/finance/chart/{quote(ticker)}?range=7d&interval=1d"
+                  resp = requests.get(url, timeout=10, headers={"User-Agent": UA})
+                  res = resp.json().get("chart", {}).get("result")
+                  if not res:
+                      print(f"[action] Yahoo {ticker}: no chart result")
+                      return None
+                  r0 = res[0]
+                  ts = r0.get("timestamp", []) or []
+                  q  = r0["indicators"]["quote"][0]
+                  today = datetime.now(timezone.utc).date()
+                  bars = []
+                  for i, t in enumerate(ts):
+                      h, l, c = q["high"][i], q["low"][i], q["close"][i]
+                      if None in (h, l, c):
+                          continue
+                      d = datetime.fromtimestamp(t, timezone.utc).date()
+                      if d >= today:   # skip today's partial bar
+                          continue
+                      bars.append((h, l, c))
+                  if not bars:
+                      print(f"[action] Yahoo {ticker}: no completed prior bar")
+                      return None
+                  h, l, c = bars[-1]
+                  print(f"[action] Yahoo {ticker}: prev H/L/C {round(h,2)}/{round(l,2)}/{round(c,2)}")
+                  return float(h), float(l), float(c)
+              except Exception as e:
+                  print(f"[action] Yahoo {ticker}: {e}")
                   return None
-              current, ph, pl, pc = d.get("close"), d.get("High.1"), d.get("Low.1"), d.get("close.1")
-              if None in (current, ph, pl, pc):
-                  print(f"[action] {tv_symbol}: missing fields — {d}")
+
+          def build_levels(tv_symbols, price_fields, yahoo_ticker, decimals):
+              """Live price from TradingView + prev-day H/L/C from Yahoo spot → pivots."""
+              price, psrc = tv_price(tv_symbols, price_fields)
+              if price is None:
                   return None
-              lv = calc_pivots(float(ph), float(pl), float(pc), float(current), decimals)
-              lv["price_source"] = "ICMARKETS spot"
-              print(f"[action] {tv_symbol}: OK — IC spot {round(current,2)}")
+              prev = yahoo_prevday(yahoo_ticker, decimals)
+              if prev is None:
+                  return None
+              ph, pl, pc = prev
+              lv = calc_pivots(ph, pl, pc, price, decimals)
+              lv["price_source"] = psrc
               return lv
 
-          def fetch_equity(tv_symbol, decimals):
-              """SPY/QQQ — prefer premarket price; pivots from prior regular session H/L/C."""
-              d = _scanner_get(tv_symbol, "close,premarket_close,High.1,Low.1,close.1")
-              if not d:
-                  return None
-              pm = d.get("premarket_close")
-              rc = d.get("close")
-              current = pm if pm is not None else rc
-              src     = "premarket" if pm is not None else "regular close"
-              ph, pl, pc = d.get("High.1"), d.get("Low.1"), d.get("close.1")
-              if None in (current, ph, pl, pc):
-                  print(f"[action] {tv_symbol}: missing fields — {d}")
-                  return None
-              lv = calc_pivots(float(ph), float(pl), float(pc), float(current), decimals)
-              lv["price_source"] = src
-              print(f"[action] {tv_symbol}: OK — {src} {round(float(current),2)}")
-              return lv
-
-          # All prices from TradingView only — no Yahoo/GC fallback.
-          #   XAUUSD → IC Markets spot   |   SPY/QQQ → premarket
+          # Price = TradingView (gold spot symbol chain; SPY/QQQ premarket).
+          # Pivots = Yahoo previous-day H/L/C using SPOT tickers (XAU=X, not GC futures).
           assets = {
-              "XAUUSD": ("ICMARKETS:XAUUSD", 2, fetch_gold),
-              "SPY":    ("AMEX:SPY",         2, fetch_equity),
-              "QQQ":    ("NASDAQ:QQQ",       2, fetch_equity),
+              "XAUUSD": {
+                  "tv": ["TVC:GOLD", "OANDA:XAUUSD", "FX_IDC:XAUUSD", "FOREXCOM:XAUUSD", "ICMARKETS:XAUUSD"],
+                  "fields": ["close"],
+                  "yahoo": "XAU=X", "dec": 2,
+              },
+              "SPY": {
+                  "tv": ["AMEX:SPY"],
+                  "fields": ["premarket_close", "close"],
+                  "yahoo": "SPY", "dec": 2,
+              },
+              "QQQ": {
+                  "tv": ["NASDAQ:QQQ"],
+                  "fields": ["premarket_close", "close"],
+                  "yahoo": "QQQ", "dec": 2,
+              },
           }
 
           result = {"fetched_at": datetime.now(timezone.utc).isoformat(), "assets": {}}
-          for name, (tv_sym, decimals, fn) in assets.items():
-              levels = fn(tv_sym, decimals)
+          for name, cfg in assets.items():
+              levels = build_levels(cfg["tv"], cfg["fields"], cfg["yahoo"], cfg["dec"])
               if levels:
                   result["assets"][name] = levels
+                  print(f"[action] {name}: OK — price={levels['current']} ({levels['price_source']})")
               else:
-                  print(f"[action] {name}: TradingView fetch failed — no data this run")
+                  print(f"[action] {name}: fetch failed — no data this run")
 
           import os
           os.makedirs("data", exist_ok=True)
