@@ -1,27 +1,5 @@
 [
   {
-    "symbol": "XAUUSD",
-    "pool": "XAUUSD_2M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.625,
-    "rf_score": 0.3683,
-    "gbm_score": 0.1549,
-    "news_score": 0.2504,
-    "macro_bias": -0.2588,
-    "macro_label": "BEARISH",
-    "combined_score": -0.1656,
-    "session": "NY_LATE",
-    "regime": "NORMAL",
-    "regime_label": "NORMAL",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:NY_LATE\u00d70.90 | confluence\u00d71.00 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-1.00) | news:bullish(+0.250) | macro:BEARISH(-0.259) | combined:-0.166 \u2192 conf:0.179 \u26a1 CPI",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-09T20:51:46.030418+00:00",
-    "created_at": "2026-06-09T20:21:47.900343+00:00",
-    "id": 101
-  },
-  {
     "symbol": "SPY",
     "pool": "STOCKS_INDEX_30M",
     "direction": "NEUTRAL",
@@ -2189,6 +2167,28 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-10T05:06:45.148763+00:00",
     "created_at": "2026-06-10T04:36:45.803260+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "SPY",
+    "pool": "STOCKS_INDEX_30M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "news_score": -0.0194,
+    "macro_bias": -0.1581,
+    "macro_label": "BEARISH",
+    "combined_score": -0.0282,
+    "session": "CLOSED",
+    "regime": "NORMAL",
+    "regime_label": "NORMAL",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.95 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.32) | news:neutral(-0.019) | macro:BEARISH(-0.158) | combined:-0.028 \u2192 conf:0.019 \u26a1 CPI",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-10T05:06:47.662131+00:00",
+    "created_at": "2026-06-10T04:36:49.217257+00:00",
     "id": 101
   }
 ]
