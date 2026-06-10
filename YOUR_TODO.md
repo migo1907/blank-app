@@ -21,13 +21,6 @@
   - In Railway → Variables → add `HF_TOKEN = hf_xxxx`
   - **Why:** Unlocks TabPFN v2 as a 4th independent ML signal (works even on pools with only 10 trades). Currently disabled — will be re-enabled once the token is set.
 
-- [ ] **Upgrade Finnhub plan OR accept calendar-only limitation**
-  - Log shows: `finnhub calendar fetch failed: 403 Forbidden`
-  - The free Finnhub tier does NOT include the economic calendar endpoint
-  - Options:
-    - **Free:** Accept it — news feed still works, just no NFP/CPI/FOMC forward warnings
-    - **Paid:** Upgrade at finnhub.io to get calendar access (gives 90-min advance warning before high-impact events)
-  - Tell me which you choose and I'll adjust the code accordingly
 
 ---
 
@@ -108,7 +101,7 @@
 - [x] TVC:GOLD data source set (spot gold, ~$1-3 from ICMARKETS)
 - [x] Daily levels GitHub Actions job set (07:50 UTC Mon-Fri)
 - [x] `FRED_API_KEY` set in Railway — confirmed working in logs (`live.fred: true`, real yield + dollar + breakeven all loading)
-- [x] `FINNHUB_KEY` set in Railway — confirmed working for news feed (free tier only; calendar needs paid plan — see MEDIUM item above)
+- [x] `FINNHUB_KEY` set in Railway — confirmed working for news feed (free tier, calendar endpoint intentionally skipped)
 
 ---
 
