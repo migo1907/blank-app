@@ -1,27 +1,5 @@
 [
   {
-    "symbol": "XAUUSD",
-    "pool": "XAUUSD_2M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.75,
-    "rf_score": 0.3908,
-    "gbm_score": 0.0804,
-    "news_score": 0.2617,
-    "macro_bias": -0.1388,
-    "macro_label": "NEUTRAL",
-    "combined_score": -0.2118,
-    "session": "ASIAN",
-    "regime": "RANGING",
-    "regime_label": "RANGING",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:RANGING(RANGING)\u00d70.82 | sess:ASIAN\u00d70.85 | confluence\u00d71.07 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-1.00) | news:bullish(+0.262) | macro:NEUTRAL(-0.139) | combined:-0.212 \u2192 conf:0.189 \u26a1 WAR/CONFLICT",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-10T04:06:44.743329+00:00",
-    "created_at": "2026-06-10T03:36:45.336334+00:00",
-    "id": 101
-  },
-  {
     "symbol": "SPY",
     "pool": "STOCKS_INDEX_30M",
     "direction": "NEUTRAL",
@@ -2193,6 +2171,28 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-10T12:03:51.382475+00:00",
     "created_at": "2026-06-10T11:33:51.707945+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "QQQ",
+    "pool": "STOCKS_QQQ_30M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "news_score": 0.2264,
+    "macro_bias": -0.1581,
+    "macro_label": "BEARISH",
+    "combined_score": 0.0518,
+    "session": "PRE_MARKET",
+    "regime": "NORMAL",
+    "regime_label": "NORMAL",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:PRE_MARKET\u00d70.90 | confluence\u00d70.98 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.27) | news:bullish(+0.226) | macro:BEARISH(-0.158) | combined:+0.052 \u2192 conf:0.055 \u26a1 Core Inflation Rate MoM",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-10T12:03:53.182768+00:00",
+    "created_at": "2026-06-10T11:33:53.507365+00:00",
     "id": 101
   }
 ]
