@@ -2950,7 +2950,7 @@
   {
     "symbol": "MU",
     "direction": "LONG",
-    "trigger": "",
+    "trigger": "RSI",
     "entry_price": 910.87,
     "exit_price": 919.98,
     "outcome": "PARTIAL",
@@ -2987,8 +2987,8 @@
     "f23_rsiacc": 0.1447,
     "f24_fvgq": 0.0,
     "f25_tod": -0.9808,
-    "id": "7b68d48b",
+    "id": "6f354557",
     "pool": "STOCKS_MOMENTUM_15M",
-    "created_at": "2026-06-10T14:30:07.304843+00:00"
+    "created_at": "2026-06-10T14:30:05.146957+00:00"
   }
 ]
