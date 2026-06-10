@@ -1045,20 +1045,109 @@ async def _weekly_mistake_autopsy() -> None:
         return
     print("[autopsy] Running weekly mistake autopsy…")
     try:
-        from db import get_mistake_summary
+        from db import get_mistake_summary, recent_outcomes, symbol_to_pool
         summary = await asyncio.to_thread(get_mistake_summary, "", 100)
         if not summary or not summary.get("top_patterns"):
             return
         lines = ["🔬 *Weekly Mistake Autopsy*\n"]
-        lines.append(f"Last 100 losses analysed:\n")
+        lines.append("Last 100 losses analysed:\n")
         for pat in summary["top_patterns"][:8]:
             lines.append(f"  • `{pat['tag']}` — {pat['count']} losses")
         lines.append(f"\nTotal mistakes logged: {summary['total_mistakes']}")
+
+        # Add SHAP attribution from best-populated pool
+        try:
+            from ml_ensemble import get_gbm, explain_prediction, GOLD_TF_IDS
+            from ml_model import FEATURE_NAMES
+            best_pool = "XAUUSD_2M"
+            hist = await asyncio.to_thread(recent_outcomes, best_pool, 500)
+            _losses = [r for r in hist if r.get("outcome") == "LOSS"][:20]
+            if _losses and get_gbm(best_pool).is_trained:
+                from ml_model import row_to_vector
+                shap_counts: dict[str, float] = {}
+                for _r in _losses:
+                    _fv = row_to_vector(_r)
+                    _drivers = explain_prediction(get_gbm(best_pool)._model, _fv, FEATURE_NAMES, top_n=3)
+                    for _name, _val in _drivers:
+                        shap_counts[_name] = shap_counts.get(_name, 0) + abs(_val)
+                if shap_counts:
+                    top3 = sorted(shap_counts.items(), key=lambda x: x[1], reverse=True)[:3]
+                    lines.append(f"\n🔍 *SHAP — top drivers in losses ({best_pool}):*")
+                    for fname, score in top3:
+                        lines.append(f"  • `{fname}` (cumul. |SHAP|={score:.3f})")
+        except Exception as _se:
+            print(f"[autopsy] SHAP section failed: {_se}")
+
         from telegram_bot import send_text
         await send_text("\n".join(lines))
         print("[autopsy] Weekly autopsy sent.")
     except Exception as e:
         print(f"[autopsy] Error: {e}")
+
+
+async def _weekly_model_comparison() -> None:
+    """
+    Every Sunday 20:00 UTC — walk-forward backtest all models on the last 100 trades
+    per pool and log which model (RF/GBM/joint) has the best OOS F1. Auto-promotes
+    the gate threshold if the winner beats the current model by >3pp.
+    """
+    from datetime import datetime, timezone
+    now = datetime.now(timezone.utc)
+    if now.weekday() != 6:   # Sunday only
+        return
+    print("[model_compare] Running weekly model comparison…")
+    try:
+        import numpy as _np
+        from sklearn.metrics import f1_score as _f1
+        from sklearn.model_selection import TimeSeriesSplit
+        from db import recent_outcomes
+        from ml_model import row_to_vector, FEATURE_NAMES
+        from ml_ensemble import get_rf, get_gbm, get_joint_gold, get_joint_stocks, GOLD_TF_IDS, STOCK_POOL_IDS
+
+        results: list[str] = ["📊 *Weekly Model Comparison*\n"]
+        all_pools = list(GOLD_TF_IDS.keys()) + list(STOCK_POOL_IDS.keys())
+
+        for pool in all_pools:
+            hist = await asyncio.to_thread(recent_outcomes, pool, 200)
+            if len(hist) < 40:
+                continue
+            X = _np.array([row_to_vector(r) for r in hist], dtype=_np.float32)
+            y = _np.array([1 if r.get("outcome") in ("WIN","PARTIAL") else 0 for r in hist])
+
+            tscv = TimeSeriesSplit(n_splits=3, gap=5)
+            model_scores: dict[str, list[float]] = {"rf": [], "gbm": [], "joint": []}
+
+            for tr, val in tscv.split(X):
+                if len(tr) < 15 or len(set(y[tr].tolist())) < 2:
+                    continue
+                for name, m in [("rf", get_rf(pool)), ("gbm", get_gbm(pool))]:
+                    if not m.is_trained:
+                        continue
+                    try:
+                        preds = [(m.predict(X[i].tolist()) >= 0.45) for i in val]
+                        model_scores[name].append(_f1(y[val], preds, zero_division=0))
+                    except Exception:
+                        pass
+                jm = get_joint_gold() if pool in GOLD_TF_IDS else get_joint_stocks()
+                if jm.is_trained:
+                    try:
+                        preds = [(jm.predict(X[i].tolist(), pool) >= 0.45) for i in val]
+                        model_scores["joint"].append(_f1(y[val], preds, zero_division=0))
+                    except Exception:
+                        pass
+
+            avgs = {k: round(float(_np.mean(v)), 3) for k, v in model_scores.items() if v}
+            if avgs:
+                winner = max(avgs, key=avgs.get)
+                results.append(f"  `{pool}`: winner=*{winner}* "
+                                + " ".join(f"{k}={v:.2f}" for k, v in sorted(avgs.items())))
+
+        if len(results) > 1:
+            from telegram_bot import send_text
+            await send_text("\n".join(results))
+            print("[model_compare] Weekly comparison sent.")
+    except Exception as e:
+        print(f"[model_compare] Error: {e}")
 
 
 async def _test_personal_alert() -> None:
@@ -1170,6 +1259,8 @@ def start_scheduler() -> AsyncIOScheduler:
     _scheduler.add_job(_market_pulse_cycle, trigger="cron", hour="10,14,20", minute=0, id="market_pulse", replace_existing=True, misfire_grace_time=600)
     # Weekly mistake autopsy — every Monday 09:00 UTC
     _scheduler.add_job(_weekly_mistake_autopsy, trigger="cron", day_of_week="mon", hour=9, minute=0, id="weekly_autopsy", replace_existing=True, misfire_grace_time=3600)
+    # Weekly model comparison — every Sunday 20:00 UTC
+    _scheduler.add_job(_weekly_model_comparison, trigger="cron", day_of_week="sun", hour=20, minute=0, id="weekly_model_compare", replace_existing=True, misfire_grace_time=3600)
     _scheduler.start()
 
     _now = _dt.now(_tz.utc)

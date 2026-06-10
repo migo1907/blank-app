@@ -342,6 +342,97 @@ def test_score_entry_gate_cold_start():
     assert_eq("reason is no_features_cached", result["reason"], "no_features_cached")
 
 
+# ── 11. Regime-aware retrain trigger ─────────────────────────────────────────
+
+def test_should_retrigger_retrain():
+    print("\n[11] should_retrigger_retrain")
+    from signal_engine import should_retrigger_retrain
+
+    # Not enough history (<40 trades) → always False
+    assert_eq("n<40 → False", should_retrigger_retrain("TEST", _make_history(5, 5)), False)
+
+    # Recent WR = 30%, prev WR = 60% → drop = 30pp > 5pp → True
+    recent_losses = [{"outcome": "LOSS",  "direction": "LONG", "session": "london", "trigger": "BOS"}] * 14 + \
+                    [{"outcome": "WIN",   "direction": "LONG", "session": "london", "trigger": "BOS"}] * 6
+    prev_wins     = [{"outcome": "WIN",   "direction": "LONG", "session": "london", "trigger": "BOS"}] * 12 + \
+                    [{"outcome": "LOSS",  "direction": "LONG", "session": "london", "trigger": "BOS"}] * 8
+    history = recent_losses + prev_wins   # most recent first
+    result = should_retrigger_retrain("TEST", history, window=20, drop_pp=5.0)
+    assert_eq("30pp WR drop → True", result, True)
+
+    # Stable WR → no retrigger
+    stable = [{"outcome": "WIN", "direction": "LONG", "session": "london", "trigger": "BOS"}] * 10 + \
+             [{"outcome": "LOSS","direction": "LONG", "session": "london", "trigger": "BOS"}] * 10 + \
+             [{"outcome": "WIN", "direction": "LONG", "session": "london", "trigger": "BOS"}] * 10 + \
+             [{"outcome": "LOSS","direction": "LONG", "session": "london", "trigger": "BOS"}] * 10
+    assert_eq("stable WR → False", should_retrigger_retrain("TEST", stable, window=20, drop_pp=5.0), False)
+
+
+# ── 12. F-beta threshold ──────────────────────────────────────────────────────
+
+def test_fbeta_threshold():
+    print("\n[12] compute_fbeta_threshold")
+    from signal_engine import compute_fbeta_threshold, compute_expectancy_threshold, ML_GATE_THRESHOLD
+    from ml_model import FEATURE_NAMES
+
+    # Below min n (80) → falls back to NP threshold
+    small = _make_history(20, 20)
+    thresh = compute_fbeta_threshold("XAUUSD_2M", small)
+    assert_range("n<80 falls back to NP [0.30,0.65]", thresh, 0.30, 0.65)
+
+    # At n≥80, should return a valid threshold
+    large = _make_history(50, 50)  # 100 trades
+    thresh2 = compute_fbeta_threshold("XAUUSD_2M", large)
+    assert_range("n≥80 returns [0.30,0.65]", thresh2, 0.30, 0.65)
+
+
+# ── 13. get_ml_health dict ────────────────────────────────────────────────────
+
+def test_get_ml_health():
+    print("\n[13] get_ml_health")
+    from signal_engine import get_ml_health
+    health = get_ml_health()
+    assert_true("has joint_gold_trained key", "joint_gold_trained" in health)
+    assert_true("has joint_stocks_trained key", "joint_stocks_trained" in health)
+    assert_true("has optuna_available key", "optuna_available" in health)
+    assert_true("has shap_available key", "shap_available" in health)
+    assert_true("has pools key", "pools" in health)
+    assert_true("pools is dict", isinstance(health["pools"], dict))
+    # Every gold pool must appear
+    from ml_ensemble import GOLD_TF_IDS
+    for pool in GOLD_TF_IDS:
+        assert_true(f"pool {pool} in health", pool in health["pools"])
+    # Each pool entry has required keys
+    first_pool = next(iter(health["pools"].values()))
+    for key in ("rf_trained", "gbm_trained", "threshold", "retrain_count", "last_retrain"):
+        assert_true(f"pool has {key}", key in first_pool)
+
+
+# ── 14. SHAP explain_prediction ──────────────────────────────────────────────
+
+def test_explain_prediction():
+    print("\n[14] explain_prediction")
+    from ml_ensemble import explain_prediction, GradientBoostEnsemble, FEATURE_NAMES
+
+    history = _make_history(60, 60)
+    gbm = GradientBoostEnsemble()
+    gbm.train(history)
+
+    feat = [0.5] * len(FEATURE_NAMES)
+    # predict returns float, model._model is the fitted CalibratedClassifierCV
+    if gbm._model is not None:
+        drivers = explain_prediction(gbm._model, feat, FEATURE_NAMES, top_n=3)
+        assert_true("returns list", isinstance(drivers, list))
+        # May return empty if SHAP unavailable — that's valid
+        if drivers:
+            assert_eq("top_n=3 returns 3 drivers", len(drivers), 3)
+            for name, val in drivers:
+                assert_true("driver name is string", isinstance(name, str))
+                assert_true("driver val is float", isinstance(val, float))
+        else:
+            print("  INFO  SHAP not available — explain_prediction returned []")
+
+
 # ── Runner ────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
@@ -356,6 +447,10 @@ if __name__ == "__main__":
         test_tabpfn_ensemble,
         test_warm_start_transfer,
         test_score_entry_gate_cold_start,
+        test_should_retrigger_retrain,
+        test_fbeta_threshold,
+        test_get_ml_health,
+        test_explain_prediction,
     ]
     failed = []
     for t in tests:

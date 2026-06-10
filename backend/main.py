@@ -79,6 +79,19 @@ async def lifespan(app: FastAPI):
         else:
             print(f"[startup] {_pool}: {len(_hist)} trades — RF/GBM will train when data grows.")
 
+    print("[startup] Priming joint models (gold + stocks)…")
+    from ml_ensemble import get_joint_gold, get_joint_stocks, GOLD_TF_IDS, STOCK_POOL_IDS
+    _gold_hists = {p: recent_outcomes(p, 500) for p in GOLD_TF_IDS}
+    _gold_hists = {p: h for p, h in _gold_hists.items() if h}
+    if _gold_hists:
+        get_joint_gold().train(_gold_hists)
+        print(f"[startup] JointGoldGBM primed on {sum(len(h) for h in _gold_hists.values())} gold trades")
+    _stock_hists = {p: recent_outcomes(p, 500) for p in STOCK_POOL_IDS}
+    _stock_hists = {p: h for p, h in _stock_hists.items() if h}
+    if _stock_hists:
+        get_joint_stocks().train(_stock_hists)
+        print(f"[startup] JointStocksGBM primed on {sum(len(h) for h in _stock_hists.values())} stock trades")
+
     print("[startup] Resyncing pool win/loss counters…")
     from db import resync_pool_counters
     for _pool in ["XAUUSD_2M", "XAUUSD_5M", "XAUUSD_30M", "XAUUSD_1H",
@@ -88,6 +101,18 @@ async def lifespan(app: FastAPI):
                   "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",      "STOCKS_QQQ_4H",
                   "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",   "STOCKS_SPX500_4H"]:
         resync_pool_counters(_pool)
+
+    print("[startup] Verifying data branch is writable…")
+    try:
+        from db import _get_file, _put_file
+        _hc_data, _hc_sha = _get_file("data/health.json")
+        if not isinstance(_hc_data, dict):
+            _hc_data = {}
+        _hc_data["startup_at"] = datetime.now(timezone.utc).isoformat()
+        _put_file("data/health.json", _hc_data, _hc_sha, "chore: startup health check")
+        print("[startup] Data branch writable ✓")
+    except Exception as _e:
+        print(f"[startup] ⚠ DATA BRANCH NOT WRITABLE: {_e}. Check GITHUB_TOKEN scope.")
 
     print("[startup] Loading feature cache from GitHub…")
     from signal_engine import load_feature_cache
@@ -380,7 +405,18 @@ async def health():
         start_scheduler()
         asyncio.create_task(_news_signal_cycle())
 
-    return {"status": "ok", "version": "3.1.0-25F", "scheduler": "running" if scheduler_ok else "restarted"}
+    try:
+        from signal_engine import get_ml_health
+        ml_health = await asyncio.to_thread(get_ml_health)
+    except Exception as _e:
+        ml_health = {"error": str(_e)}
+
+    return {
+        "status": "ok",
+        "version": "5.0.0-25F",
+        "scheduler": "running" if scheduler_ok else "restarted",
+        "ml": ml_health,
+    }
 
 
 @app.get("/test-personal-alert")
@@ -546,6 +582,7 @@ async def trade_outcome(payload: TradeOutcomePayload):
             from signal_engine import (
                 invalidate_history_cache, refresh_pool_models,
                 refresh_joint_models, record_oob_prediction,
+                should_retrigger_retrain,
             )
             invalidate_history_cache(pool)
             history = await asyncio.to_thread(recent_outcomes, pool, 500)
@@ -555,10 +592,15 @@ async def trade_outcome(payload: TradeOutcomePayload):
             _actual_win = outcome_row.get("outcome") in ("WIN", "PARTIAL")
             record_oob_prediction(pool, float(_prev_score), bool(_actual_win))
 
-            if len(history) >= 50:
+            # Retrain when: (a) pool first reaches 50 trades, OR
+            #               (b) regime shift detected (WR dropped >5pp in last 20 vs prev 20)
+            _needs_retrain = (len(history) >= 50 and
+                              (len(history) % 10 == 0 or  # normal cadence every 10 new trades
+                               should_retrigger_retrain(pool, history)))
+            if _needs_retrain:
                 await asyncio.to_thread(get_rf(pool).retrain, history)
                 await asyncio.to_thread(get_gbm(pool).train, history)
-                # Update expectancy threshold + champion-challenger check
+                # Update threshold (F-beta≥80 trades, NP otherwise) + champion-challenger check
                 await asyncio.to_thread(refresh_pool_models, pool, history)
 
             # Retrain joint models (combines all related pools — most valuable for thin pools)

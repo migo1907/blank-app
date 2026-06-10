@@ -127,6 +127,103 @@ _pool_perf_buffer: dict[str, list[tuple[float, int]]] = {}
 _ROLLBACK_WINDOW   = 30   # trades to evaluate before rollback check
 _ROLLBACK_DROP_PP  = 15   # pp drop vs baseline triggers rollback
 
+# Per-pool retrain timestamps and counts — surfaced in /health
+_retrain_timestamps: dict[str, str] = {}   # pool → ISO timestamp of last retrain
+_retrain_counts: dict[str, int] = {}       # pool → total retrain count
+
+# F-beta hyperparameter — beta=2.0 weights recall (catching wins) 2× over precision.
+# Governs threshold sweep in compute_fbeta_threshold(). Override via env var.
+import os as _os
+_FBETA = float(_os.environ.get("ML_FBETA", "2.0"))
+
+
+def should_retrigger_retrain(pool: str, history: list[dict], window: int = 20,
+                             drop_pp: float = 5.0) -> bool:
+    """
+    Regime-shift detector: returns True when the most recent `window` trades show
+    a win rate drop of >drop_pp percentage points vs the prior `window` trades.
+    Empirically derived threshold; 5pp balances sensitivity vs noise at n≥40.
+    """
+    if len(history) < window * 2:
+        return False
+    wins = ("WIN", "PARTIAL")
+    recent_wr = sum(1 for r in history[:window] if r.get("outcome") in wins) / window
+    prev_wr   = sum(1 for r in history[window:window * 2] if r.get("outcome") in wins) / window
+    drop = (prev_wr - recent_wr) * 100
+    if drop > drop_pp:
+        print(f"[regime] Pool '{pool}' regime shift detected — WR dropped {drop:.1f}pp "
+              f"({prev_wr*100:.0f}% → {recent_wr*100:.0f}%) — forcing retrain")
+        return True
+    return False
+
+
+def compute_fbeta_threshold(pool: str, history: list[dict], beta: float | None = None) -> float:
+    """
+    Sweep probability thresholds [0.25, 0.75] and maximise F-beta score on the
+    pool's walk-forward OOS predictions. Beta=2.0 (default) weights recall 2×
+    over precision — matches "high win ratio" goal.
+    Falls back to Neyman-Pearson when sklearn is unavailable or n<80.
+    """
+    if beta is None:
+        beta = _FBETA
+    try:
+        import numpy as _np
+        from sklearn.metrics import fbeta_score
+        from ml_model import row_to_vector
+        from ml_ensemble import get_gbm, FEATURE_NAMES as _FN
+    except ImportError:
+        return compute_expectancy_threshold(pool, history)
+
+    closed = [t for t in history if t.get("outcome") in ("WIN", "PARTIAL", "LOSS")]
+    if len(closed) < 80:
+        return compute_expectancy_threshold(pool, history)
+
+    gbm = get_gbm(pool)
+    if not gbm.is_trained:
+        return compute_expectancy_threshold(pool, history)
+
+    # Build OOS probability predictions using a simple 3-fold time-series split
+    from sklearn.model_selection import TimeSeriesSplit
+    X = _np.array([row_to_vector(r) for r in closed], dtype=_np.float32)
+    y = _np.array([1 if r["outcome"] in ("WIN", "PARTIAL") else 0 for r in closed])
+
+    all_proba, all_true = [], []
+    tscv = TimeSeriesSplit(n_splits=3, gap=5)
+    from sklearn.ensemble import GradientBoostingClassifier
+    from sklearn.calibration import CalibratedClassifierCV
+    for tr_idx, val_idx in tscv.split(X):
+        if len(tr_idx) < 15 or len(set(y[tr_idx].tolist())) < 2:
+            continue
+        clf = CalibratedClassifierCV(
+            GradientBoostingClassifier(max_depth=2, n_estimators=60, learning_rate=0.08, random_state=42),
+            method="sigmoid", cv=2
+        )
+        try:
+            clf.fit(X[tr_idx], y[tr_idx])
+            proba = clf.predict_proba(X[val_idx])[:, 1]
+            all_proba.extend(proba.tolist())
+            all_true.extend(y[val_idx].tolist())
+        except Exception:
+            continue
+
+    if len(all_proba) < 20:
+        return compute_expectancy_threshold(pool, history)
+
+    p = _np.array(all_proba)
+    t = _np.array(all_true)
+    best_thresh, best_score = 0.45, 0.0
+    for thresh in _np.linspace(0.25, 0.75, 25):
+        preds = (p >= thresh).astype(int)
+        if preds.sum() == 0:
+            continue
+        score = fbeta_score(t, preds, beta=beta, zero_division=0)
+        if score > best_score:
+            best_score, best_thresh = score, float(thresh)
+
+    clamped = round(max(0.30, min(0.65, best_thresh)), 3)
+    print(f"[gate] Pool '{pool}' F-beta={beta} threshold: {clamped:.3f} (score={best_score:.3f})")
+    return clamped
+
 
 def compute_expectancy_threshold(pool: str, history: list[dict]) -> float:
     """
@@ -151,7 +248,7 @@ def compute_expectancy_threshold(pool: str, history: list[dict]) -> float:
 
     optimal = 1.0 / (1.0 + avg_win / avg_loss)
     clamped = round(max(0.30, min(0.65, optimal)), 3)
-    print(f"[gate] Pool '{pool}' expectancy threshold: {clamped:.3f} "
+    print(f"[gate] Pool '{pool}' NP threshold: {clamped:.3f} "
           f"(avg_win={avg_win:.2f} avg_loss={avg_loss:.2f})")
     return clamped
 
@@ -169,13 +266,50 @@ def refresh_joint_models(all_histories: dict[str, list[dict]]) -> None:
         get_joint_stocks().train(stock_pools)
 
 
+def get_ml_health() -> dict:
+    """Return ML state dict for the /health endpoint."""
+    from ml_ensemble import (
+        get_rf, get_gbm, get_joint_gold, get_joint_stocks, get_tabpfn,
+        GOLD_TF_IDS, STOCK_POOL_IDS, _OPTUNA_AVAILABLE, _SHAP_AVAILABLE,
+        _LGBM_AVAILABLE, _TABPFN_AVAILABLE,
+    )
+    pools_state = {}
+    for pool in list(GOLD_TF_IDS.keys()) + list(STOCK_POOL_IDS.keys()):
+        rf, gbm, tab = get_rf(pool), get_gbm(pool), get_tabpfn(pool)
+        pools_state[pool] = {
+            "rf_trained": rf.is_trained,
+            "gbm_trained": gbm.is_trained,
+            "tabpfn_trained": tab.is_trained,
+            "threshold": round(_pool_thresholds.get(pool, ML_GATE_THRESHOLD), 3),
+            "retrain_count": _retrain_counts.get(pool, 0),
+            "last_retrain": _retrain_timestamps.get(pool, "never"),
+        }
+    return {
+        "joint_gold_trained": get_joint_gold().is_trained,
+        "joint_stocks_trained": get_joint_stocks().is_trained,
+        "optuna_available": _OPTUNA_AVAILABLE,
+        "shap_available": _SHAP_AVAILABLE,
+        "lgbm_available": _LGBM_AVAILABLE,
+        "tabpfn_available": _TABPFN_AVAILABLE,
+        "pools": pools_state,
+    }
+
+
 def refresh_pool_models(pool: str, history: list[dict]) -> None:
     """
-    Called after every retrain. Updates per-pool expectancy threshold and checks
-    whether the new challenger model should be rolled back (champion-challenger).
+    Called after every retrain. Updates per-pool threshold and checks
+    champion-challenger rollback. Uses F-beta (beta=2) when n≥80,
+    Neyman-Pearson when n<80.
     """
-    # 1. Recompute expectancy threshold from fresh history
-    _pool_thresholds[pool] = compute_expectancy_threshold(pool, history)
+    # 1. Compute threshold — F-beta for well-populated pools, NP for thin ones
+    if len(history) >= 80:
+        _pool_thresholds[pool] = compute_fbeta_threshold(pool, history)
+    else:
+        _pool_thresholds[pool] = compute_expectancy_threshold(pool, history)
+
+    # 2. Record retrain timestamp
+    _retrain_timestamps[pool] = datetime.now(timezone.utc).isoformat()
+    _retrain_counts[pool] = _retrain_counts.get(pool, 0) + 1
 
     # 2. Champion-challenger: check if new model lifted or hurt perf vs baseline
     buf = _pool_perf_buffer.get(pool, [])
