@@ -2128,7 +2128,7 @@
   {
     "symbol": "UPST",
     "direction": "LONG",
-    "trigger": "",
+    "trigger": "OB",
     "entry_price": 31.88,
     "exit_price": 30.64,
     "outcome": "LOSS",
@@ -2165,8 +2165,8 @@
     "f23_rsiacc": 0.1756,
     "f24_fvgq": 0.0,
     "f25_tod": -0.3827,
-    "id": "39a91a7f",
+    "id": "77c3936d",
     "pool": "STOCKS_MOMENTUM_30M",
-    "created_at": "2026-06-10T18:00:06.484316+00:00"
+    "created_at": "2026-06-10T18:00:06.102489+00:00"
   }
 ]
