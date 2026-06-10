@@ -1864,7 +1864,7 @@
   {
     "symbol": "SMCI",
     "direction": "SHORT",
-    "trigger": "FVG",
+    "trigger": "",
     "entry_price": 39.56,
     "exit_price": 36.5,
     "outcome": "PARTIAL",
@@ -1901,8 +1901,8 @@
     "f23_rsiacc": -0.2781,
     "f24_fvgq": 0.0,
     "f25_tod": -0.7934,
-    "id": "c69b4778",
+    "id": "e74b1d06",
     "pool": "STOCKS_MOMENTUM_30M",
-    "created_at": "2026-06-10T14:00:04.698060+00:00"
+    "created_at": "2026-06-10T14:00:06.733896+00:00"
   }
 ]
