@@ -1,27 +1,5 @@
 [
   {
-    "symbol": "XAUUSD",
-    "pool": "XAUUSD_2M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5435,
-    "gbm_score": 0.6805,
-    "news_score": 0.1786,
-    "macro_bias": -0.1388,
-    "macro_label": "NEUTRAL",
-    "combined_score": 0.1158,
-    "session": "NEW_YORK",
-    "regime": "NORMAL",
-    "regime_label": "NORMAL",
-    "reasoning": "KNN:SHORT RF:LONG GBM:LONG | agree\u00d71.00 | regime:NORMAL(NORMAL)\u00d71.00 | sess:NEW_YORK\u00d71.10 | confluence\u00d70.55 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-1.00) | news:neutral(+0.179) | macro:NEUTRAL(-0.139) | combined:+0.116 \u2192 conf:0.070 \u26a1 CPI",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-10T17:48:57.311253+00:00",
-    "created_at": "2026-06-10T17:18:59.132015+00:00",
-    "id": 101
-  },
-  {
     "symbol": "SPY",
     "pool": "STOCKS_INDEX_30M",
     "direction": "NEUTRAL",
@@ -2193,6 +2171,28 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-11T00:16:14.336837+00:00",
     "created_at": "2026-06-10T23:46:15.980858+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "QQQ",
+    "pool": "STOCKS_QQQ_30M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "news_score": 0.216,
+    "macro_bias": 0.0298,
+    "macro_label": "NEUTRAL",
+    "combined_score": 0.0543,
+    "session": "CLOSED",
+    "regime": "NORMAL",
+    "regime_label": "NORMAL",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.77 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.42) | news:bullish(+0.216) | macro:NEUTRAL(+0.030) | combined:+0.054 \u2192 conf:0.030 \u26a1 CPI",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-11T00:16:17.892649+00:00",
+    "created_at": "2026-06-10T23:46:19.430758+00:00",
     "id": 101
   }
 ]
