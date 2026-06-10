@@ -57,10 +57,10 @@
     "direction": "LONG",
     "timeframe": "30",
     "symbol": "BLNK",
-    "trigger": "RSI",
-    "ml_score": 0.125,
-    "stored_at": "2026-06-10T17:31:00.831321+00:00",
-    "expires_at": "2026-06-10T19:31:00.831347+00:00"
+    "trigger": "FVG",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-10T14:31:00.877658+00:00",
+    "expires_at": "2026-06-10T16:31:00.877671+00:00"
   },
   "GOOGL_30": {
     "direction": "SHORT",
@@ -205,14 +205,5 @@
     "ml_score": 0.625,
     "stored_at": "2026-06-10T17:31:00.784174+00:00",
     "expires_at": "2026-06-11T01:31:00.784197+00:00"
-  },
-  "RR_30": {
-    "direction": "SHORT",
-    "timeframe": "30",
-    "symbol": "RR",
-    "trigger": "FVG",
-    "ml_score": 0.375,
-    "stored_at": "2026-06-10T17:31:01.647970+00:00",
-    "expires_at": "2026-06-10T19:31:01.647986+00:00"
   }
 }
