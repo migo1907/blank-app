@@ -285,8 +285,8 @@ def test_tabpfn_ensemble():
     # Good history
     history = _make_history(25, 25)
     ok2 = tab.fit(history)
-    from ml_ensemble import _TABPFN_AVAILABLE as _tfav
-    if not _tfav:
+    # In CI / this environment, HF auth may fail — check instance flag
+    if tab._auth_failed:
         print("  SKIP  TabPFN model download requires HF_TOKEN — skipping inference tests")
         return
     assert_true("fit with 50 trades succeeds", ok2)

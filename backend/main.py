@@ -618,11 +618,15 @@ async def signal_entry(payload: SignalEntryPayload):
         print(f"[signal-entry] Missing entry_price for {sym} {payload.direction} — skipping Telegram")
         return {"status": "ok", "routed_to": "suppressed", "reason": "no_entry_price"}
 
-    # Backend ML quality grade — annotate-only (see /webhook): never suppress,
+    # Backend ML quality grade — annotate-only: never suppress,
     # tag the entry with P(TP1+) so the trader decides.
     from signal_engine import score_entry_gate
     from db import symbol_to_pool
-    _gate = score_entry_gate(symbol_to_pool(sym, tf), payload.direction)
+    try:
+        _gate = score_entry_gate(symbol_to_pool(sym, tf), payload.direction)
+    except Exception as _ge:
+        print(f"[signal-entry] gate error (non-fatal): {_ge}")
+        _gate = {"pass": True, "score": 0.5, "reason": "gate_error", "components": {}}
     print(f"[signal-entry] ML QUALITY {payload.direction} {sym} TF={tf} "
           f"score={_gate['score']} ({_gate['reason']}) components={_gate['components']}")
 
@@ -708,7 +712,11 @@ async def unified_webhook(payload: UnifiedPayload):
         # young and suppression was wrongly blocking some winners.)
         from signal_engine import score_entry_gate
         from db import symbol_to_pool
-        _gate = score_entry_gate(symbol_to_pool(sym, tf), payload.direction)
+        try:
+            _gate = score_entry_gate(symbol_to_pool(sym, tf), payload.direction)
+        except Exception as _ge:
+            print(f"[webhook] gate error (non-fatal): {_ge}")
+            _gate = {"pass": True, "score": 0.5, "reason": "gate_error", "components": {}}
         print(f"[webhook] ML QUALITY {payload.direction} {sym} TF={tf} "
               f"score={_gate['score']} ({_gate['reason']}) components={_gate['components']}")
 

@@ -457,8 +457,11 @@ class JointGoldGBM:
             return 0.5
         X = np.array([features[:len(FEATURE_NAMES)] + [float(tf_id)]], dtype=np.float32)
         try:
+            import warnings
             with self._lock:
-                proba = self._model.predict_proba(X)[0]
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore", UserWarning)
+                    proba = self._model.predict_proba(X)[0]
             classes = list(self._model.classes_)
             win_idx = classes.index(1) if 1 in classes else -1
             return float(proba[win_idx]) if win_idx >= 0 else 0.5
@@ -537,8 +540,11 @@ class JointStocksGBM:
         cluster_id, tf_id = ids
         X = np.array([features[:len(FEATURE_NAMES)] + [float(cluster_id), float(tf_id)]], dtype=np.float32)
         try:
+            import warnings
             with self._lock:
-                proba = self._model.predict_proba(X)[0]
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore", UserWarning)
+                    proba = self._model.predict_proba(X)[0]
             classes = list(self._model.classes_)
             win_idx = classes.index(1) if 1 in classes else -1
             return float(proba[win_idx]) if win_idx >= 0 else 0.5
@@ -579,16 +585,18 @@ class TabPFNEnsemble:
     """
     TabPFN v2 in-context classifier. fit() stores the training context;
     predict() performs inference. Re-fit only when history length changes.
+    Auth failures are remembered per-instance so we don't retry endlessly.
     """
 
     def __init__(self):
         self._clf = None
         self._trained = False
         self._last_n = 0
+        self._auth_failed = False  # set True on HF auth error — stops retries
         self._lock = threading.Lock()
 
     def fit(self, history: list[dict]) -> bool:
-        if not _TABPFN_AVAILABLE:
+        if not _TABPFN_AVAILABLE or self._auth_failed:
             return False
         if len(history) < 10:
             return False
@@ -611,8 +619,7 @@ class TabPFNEnsemble:
         except Exception as exc:
             err_str = str(exc)
             if "gated" in err_str or "authentication" in err_str or "HuggingFace" in err_str:
-                import ml_ensemble as _self
-                _self._TABPFN_AVAILABLE = False
+                self._auth_failed = True
                 print("[tabpfn] Disabled: HuggingFace auth required (set HF_TOKEN env var to enable)")
             else:
                 print(f"[tabpfn] fit failed: {exc}")
@@ -626,7 +633,9 @@ class TabPFNEnsemble:
         return True
 
     def fit_if_stale(self, history: list[dict]) -> bool:
-        """Re-fit only when history has grown (avoids redundant inference overhead)."""
+        """Re-fit only when history has grown; never retry after auth failure."""
+        if self._auth_failed:
+            return False
         if len(history) != self._last_n:
             return self.fit(history)
         return self._trained
@@ -728,3 +737,125 @@ def train_with_warm_start(
     except Exception as exc:
         print(f"[warm_start] Transfer failed: {exc}")
         return None
+
+
+# ── Optuna Bayesian HPO (v4) ─────────────────────────────────────────────────
+# Runs only when pool n≥80. Uses TimeSeriesSplit (no shuffle) to avoid lookahead.
+# Caches best params per pool — re-tunes every 50 new trades.
+
+try:
+    import optuna as _optuna
+    _optuna.logging.set_verbosity(_optuna.logging.WARNING)
+    _OPTUNA_AVAILABLE = True
+except ImportError:
+    _OPTUNA_AVAILABLE = False
+
+_hpo_cache: dict[str, dict] = {}   # pool → {params, trained_at_n}
+_HPO_RETUNE_EVERY = 50             # re-run HPO when pool grows by this many trades
+
+
+def tune_gbm_hyperparams(pool: str, X: "np.ndarray", y: "np.ndarray",
+                         n_trials: int = 60) -> dict:
+    """
+    Bayesian HPO for LightGBM using Optuna TPE sampler + TimeSeriesSplit CV.
+    Returns best params dict. Falls back to defaults if optuna/lgbm unavailable.
+    Purged walk-forward CV (gap=5) prevents lookahead leakage.
+    """
+    defaults = {
+        "n_estimators": 80, "max_depth": 3, "learning_rate": 0.08,
+        "num_leaves": 7, "subsample": 0.8,
+    }
+    if not _OPTUNA_AVAILABLE or not _LGBM_AVAILABLE:
+        return defaults
+    if len(X) < 80:
+        return defaults
+
+    # Check cache — skip re-tuning if pool hasn't grown enough
+    cached = _hpo_cache.get(pool)
+    if cached and abs(len(X) - cached["trained_at_n"]) < _HPO_RETUNE_EVERY:
+        return cached["params"]
+
+    from sklearn.model_selection import TimeSeriesSplit
+
+    def _objective(trial):
+        params = {
+            "n_estimators":  trial.suggest_int("n_estimators", 40, 120),
+            "max_depth":     trial.suggest_int("max_depth", 2, 4),
+            "learning_rate": trial.suggest_float("learning_rate", 0.03, 0.20, log=True),
+            "num_leaves":    trial.suggest_int("num_leaves", 4, 15),
+            "subsample":     trial.suggest_float("subsample", 0.6, 1.0),
+            "colsample_bytree": trial.suggest_float("colsample_bytree", 0.6, 1.0),
+        }
+        clf = _lgb.LGBMClassifier(
+            **params, class_weight="balanced", random_state=42, verbose=-1
+        )
+        tscv = TimeSeriesSplit(n_splits=3, gap=5)
+        scores = []
+        for tr_idx, val_idx in tscv.split(X):
+            X_tr, X_val = X[tr_idx], X[val_idx]
+            y_tr, y_val = y[tr_idx], y[val_idx]
+            if len(set(y_tr.tolist())) < 2:
+                continue
+            clf.fit(X_tr, y_tr)
+            preds = clf.predict(X_val)
+            from sklearn.metrics import f1_score
+            scores.append(f1_score(y_val, preds, zero_division=0))
+        return float(np.mean(scores)) if scores else 0.0
+
+    study = _optuna.create_study(
+        direction="maximize",
+        sampler=_optuna.samplers.TPESampler(seed=42),
+        pruner=_optuna.pruners.MedianPruner(n_startup_trials=10),
+    )
+    try:
+        study.optimize(_objective, n_trials=n_trials, n_jobs=1, show_progress_bar=False)
+        best = study.best_params
+    except Exception as exc:
+        print(f"[hpo] Optuna failed for pool '{pool}': {exc}")
+        best = defaults
+
+    _hpo_cache[pool] = {"params": best, "trained_at_n": len(X)}
+    print(f"[hpo] Pool '{pool}' best params: {best} (F1={study.best_value:.3f})")
+    return best
+
+
+# ── SHAP TreeSHAP feature attribution (v4) ───────────────────────────────────
+# Per-trade explanation: which F1–F25 features drove the signal.
+# Uses TreeSHAP (O(TL) exact) — fast enough for real-time with top-8 features.
+
+try:
+    import shap as _shap
+    _SHAP_AVAILABLE = True
+except ImportError:
+    _SHAP_AVAILABLE = False
+
+
+def explain_prediction(model, features: list[float], feature_names: list[str],
+                       top_n: int = 3) -> list[tuple[str, float]]:
+    """
+    Return top_n (feature_name, shap_value) pairs that most influenced the prediction.
+    Works with any sklearn-compatible tree model (RF, GBM, LightGBM).
+    Returns empty list if SHAP unavailable or model not fitted.
+    """
+    if not _SHAP_AVAILABLE or model is None:
+        return []
+    try:
+        X = np.array([features[:len(feature_names)]], dtype=np.float32)
+        # CalibratedClassifierCV wraps the base estimator — unwrap for TreeExplainer
+        base_model = model
+        if hasattr(model, "calibrated_classifiers_"):
+            inner = model.calibrated_classifiers_[0]
+            if hasattr(inner, "estimator"):
+                base_model = inner.estimator
+        explainer = _shap.TreeExplainer(base_model, feature_perturbation="tree_path_dependent")
+        shap_vals = explainer.shap_values(X, check_additivity=False)
+        # For binary classification shap_values may be a list [class0, class1]
+        if isinstance(shap_vals, list) and len(shap_vals) == 2:
+            sv = shap_vals[1][0]   # class=WIN shap values
+        else:
+            sv = shap_vals[0] if shap_vals.ndim == 2 else shap_vals
+        pairs = sorted(zip(feature_names, sv.tolist()), key=lambda x: abs(x[1]), reverse=True)
+        return [(name, round(float(val), 4)) for name, val in pairs[:top_n]]
+    except Exception as exc:
+        print(f"[shap] explain_prediction failed: {exc}")
+        return []

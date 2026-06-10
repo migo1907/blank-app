@@ -20,7 +20,7 @@ from datetime import datetime, timezone, timedelta
 from ml_model import get_model, Features
 from ml_ensemble import (
     get_rf, get_gbm, get_joint_gold, get_joint_stocks, get_tabpfn,
-    GOLD_TF_IDS, STOCK_POOL_IDS,
+    GOLD_TF_IDS, STOCK_POOL_IDS, explain_prediction,
 )
 from db import recent_outcomes, recent_news, insert_signal, expire_old_signals
 
@@ -188,11 +188,12 @@ def refresh_pool_models(pool: str, history: list[dict]) -> None:
         bot_rate = sum(label for _, label in sorted_buf[:half]) / max(half, 1)
         lift_pp = (top_rate - bot_rate) * 100
         if lift_pp < -_ROLLBACK_DROP_PP:
-            from ml_ensemble import get_rf, get_gbm
             rf_ok  = get_rf(pool).rollback()
             gbm_ok = get_gbm(pool).rollback()
             if rf_ok or gbm_ok:
                 print(f"[champion] Pool '{pool}' rolled back — challenger lift {lift_pp:.1f}pp below threshold")
+            else:
+                print(f"[champion] Pool '{pool}' rollback failed (no prev) — lift={lift_pp:.1f}pp MONITOR CLOSELY")
         _pool_perf_buffer[pool] = []  # reset after evaluation
 
 # Short-TTL in-memory cache for pool trade history. recent_outcomes() hits GitHub
@@ -353,9 +354,17 @@ def score_entry_gate(pool: str, direction: str) -> dict:
     threshold = _pool_thresholds.get(pool, ML_GATE_THRESHOLD)
     passed    = score >= threshold
     reason    = "approved" if passed else "rejected_low_confidence"
+
+    # SHAP attribution — top-3 features driving the GBM signal (best explainer for tree models)
+    shap_drivers: list[tuple[str, float]] = []
+    from ml_model import FEATURE_NAMES as _FN
+    if gbm.is_trained and gbm._model is not None:
+        shap_drivers = explain_prediction(gbm._model, feat_list, _FN, top_n=3)
+
     return {
         "pass": passed, "score": round(score, 4), "reason": reason,
         "components": components, "threshold": threshold,
+        "shap_drivers": shap_drivers,
     }
 
 
