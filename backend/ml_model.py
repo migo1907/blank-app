@@ -217,22 +217,34 @@ class AdaptiveKNN:
 
     # ── Adaptive weight update ────────────────────────────────
 
-    def update_on_outcome(self, features: Features, direction: str, outcome: str, tp_stage: str = "") -> None:
+    def update_on_outcome(self, features: Features, direction: str, outcome: str, tp_stage: str = "", pnl: float | None = None) -> None:
         """
         Call after each trade closes.
         outcome : 'WIN' | 'LOSS' | 'PARTIAL' (PARTIAL kept for backward compat)
         tp_stage: 'TP3' | 'SL_TP2' | 'SL_TP1' | 'SL' — determines reward size for WIN outcomes.
+        pnl     : realized signed move (price points, + = favorable). When provided, a
+                  partial that actually closed negative is re-classified as a LOSS.
 
-        Scoring logic (user-defined):
+        Scoring logic:
           TP3        → full win   (1.0×)
           SL_TP2     → medium win (0.7×)  reached TP2, trail stopped — still profitable
-          SL_TP1     → low win    (0.4×)  reached TP1, trail stopped — break-even or small profit
+          SL_TP1     → low win    (0.4×)  reached TP1, trail stopped — usually small profit
           LOSS / SL  → full penalty
+
+        Per-pool self-correction: SL_TP1 is profitable on most pools (stocks, 30M) but
+        a verified net LOSS on the fast gold scalp pools (XAUUSD 2M/5M, avg −0.9/−1.2).
+        When the realized pnl is known and ≤ 0 we penalize instead of rewarding, so the
+        model learns the truth for each pool rather than a blanket "SL_TP1 = win" prior.
         """
         feat_list = features.as_list()
         is_long = direction == "LONG"
 
-        if outcome in ("WIN", "PARTIAL"):
+        # Re-classify a "won" partial that actually closed flat/negative as a loss.
+        effective = outcome
+        if outcome in ("WIN", "PARTIAL") and pnl is not None and pnl <= 0.0:
+            effective = "LOSS"
+
+        if effective in ("WIN", "PARTIAL"):
             self._total_wins += 1
             # Grade reward by how far price traveled
             if tp_stage == "SL_TP1":
@@ -246,7 +258,7 @@ class AdaptiveKNN:
                 sign = 1.0 if (fv >= 0 and is_long) or (fv < 0 and not is_long) else -1.0
                 self._weights[i] = _clamp(self._weights[i] + sign * delta)
 
-        elif outcome == "LOSS":
+        elif effective == "LOSS":
             self._total_losses += 1
             delta = self.learn_rate * self.loss_penalty
             for i, fv in enumerate(feat_list):

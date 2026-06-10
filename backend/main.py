@@ -486,15 +486,17 @@ async def trade_outcome(payload: TradeOutcomePayload):
             f25=payload.f25,
         )
 
+        # Signed realized move (favorable = positive). Lets the KNN re-classify a
+        # partial that actually closed negative (e.g. SL_TP1 on gold scalps) as a loss.
+        raw_pct = (payload.exit_price - payload.entry_price) / max(payload.entry_price, 0.0001) * 100
+        pnl_pct = raw_pct if payload.direction == "LONG" else -raw_pct
+
         ml_label = payload.ml_outcome or payload.outcome
         _is_dup = _outcome_is_duplicate(sym, payload.direction, payload.entry_price, payload.exit_price, payload.timeframe or "")
         if not _is_dup:
-            model.update_on_outcome(features, payload.direction, ml_label, tp_stage=payload.tp_stage or "")
+            model.update_on_outcome(features, payload.direction, ml_label, tp_stage=payload.tp_stage or "", pnl=pnl_pct)
         else:
             print(f"[trade-outcome] Duplicate within {_OUTCOME_DEDUP_TTL}s — skipping weight update for {sym} {payload.direction} entry={payload.entry_price}")
-
-        raw_pct = (payload.exit_price - payload.entry_price) / max(payload.entry_price, 0.0001) * 100
-        pnl_pct = raw_pct if payload.direction == "LONG" else -raw_pct
 
         from signal_engine import _detect_regime, _session_multiplier
         _is_stock_pool = not pool.startswith("XAUUSD")
@@ -764,13 +766,8 @@ async def unified_webhook(payload: UnifiedPayload):
                 f21=payload.f21, f22=payload.f22, f23=payload.f23, f24=payload.f24,
                 f25=payload.f25,
             )
-            ml_label = payload.ml_outcome or payload.outcome
-            _is_dup2 = _outcome_is_duplicate(sym2, payload.direction, payload.entry_price or 0.0, payload.exit_price or 0.0, payload.timeframe or "")
-            if not _is_dup2:
-                model.update_on_outcome(features, payload.direction, ml_label, tp_stage=payload.tp_stage or "")
-            else:
-                print(f"[webhook] Duplicate within {_OUTCOME_DEDUP_TTL}s — skipping weight update for {sym2} {payload.direction} entry={payload.entry_price}")
-
+            # Signed realized move (favorable = positive) — lets the KNN re-classify a
+            # partial that actually closed negative (e.g. SL_TP1 on gold scalps) as a loss.
             entry = payload.entry_price or 0.0
             exit_ = payload.exit_price or 0.0
             if entry and exit_:
@@ -778,6 +775,14 @@ async def unified_webhook(payload: UnifiedPayload):
                 pnl_pct = raw_pct if payload.direction == "LONG" else -raw_pct
             else:
                 pnl_pct = 0.0
+
+            ml_label = payload.ml_outcome or payload.outcome
+            _pnl_for_ml = pnl_pct if (entry and exit_) else None  # don't reclassify on missing prices
+            _is_dup2 = _outcome_is_duplicate(sym2, payload.direction, payload.entry_price or 0.0, payload.exit_price or 0.0, payload.timeframe or "")
+            if not _is_dup2:
+                model.update_on_outcome(features, payload.direction, ml_label, tp_stage=payload.tp_stage or "", pnl=_pnl_for_ml)
+            else:
+                print(f"[webhook] Duplicate within {_OUTCOME_DEDUP_TTL}s — skipping weight update for {sym2} {payload.direction} entry={payload.entry_price}")
 
             from signal_engine import _detect_regime, _session_multiplier
             _is_stock_pool2 = not pool.startswith("XAUUSD")

@@ -916,6 +916,17 @@ async def _daily_trade_count_report() -> None:
         now_utc = datetime.now(timezone.utc)
         date_str = now_utc.strftime("%d %b %Y")
 
+        def _realized_pct(t: dict) -> float | None:
+            """Signed realized move as % (favorable = positive), or None if no prices."""
+            try:
+                e = float(t.get("entry_price")); x = float(t.get("exit_price"))
+            except (TypeError, ValueError):
+                return None
+            if not e:
+                return None
+            raw = (x - e) / e * 100
+            return raw if t.get("direction") == "LONG" else -raw
+
         def _stats(trades: list[dict]) -> tuple[int, int, int, int]:
             """Return (total, tp_wins, sl_hits, partials)."""
             tp  = sum(1 for t in trades if t.get("outcome") == "WIN")
@@ -923,14 +934,28 @@ async def _daily_trade_count_report() -> None:
             par = sum(1 for t in trades if t.get("outcome") == "PARTIAL")
             return len(trades), tp, sl, par
 
-        def _wr_line(total: int, tp: int, sl: int, par: int) -> str:
-            effective_wins = tp + par  # TP1/TP2 hit = counted as win
-            wr = effective_wins / total * 100 if total else 0.0
-            return (
+        def _wr_line(total: int, tp: int, sl: int, par: int, trades: list[dict] | None = None) -> str:
+            # "Reached TP1+" = hit at least the first target (TP win or any partial).
+            # This is the honest hit-rate; the headline WIN count only counts full TP3.
+            reached_tp1 = tp + par
+            hit_rate = reached_tp1 / total * 100 if total else 0.0
+            line = (
                 f"Signals: <b>{total}</b>  |  "
                 f"✅ TP: {tp}  🔶 Partial: {par}  ❌ SL: {sl}\n"
-                f"Win ratio (TP+Partial): <b>{wr:.0f}%</b>"
+                f"Reached TP1+: <b>{hit_rate:.0f}%</b>"
             )
+            # Net-positive rate + expectancy from realized price (catches SL_TP1 partials
+            # that actually closed red on the fast gold scalps).
+            if trades:
+                moves = [m for m in (_realized_pct(t) for t in trades) if m is not None]
+                if moves:
+                    net_pos = sum(1 for m in moves if m > 0) / len(moves) * 100
+                    expectancy = sum(moves) / len(moves)
+                    line += (
+                        f"\nNet positive: <b>{net_pos:.0f}%</b>  |  "
+                        f"Expectancy: <b>{expectancy:+.2f}%</b>/trade"
+                    )
+            return line
 
         # ── Overall ──────────────────────────────────────────────────────────
         tot, tp, sl, par = _stats(today_all)
@@ -946,27 +971,27 @@ async def _daily_trade_count_report() -> None:
         if not today_all:
             lines.append("No closed trades recorded today.")
         else:
-            lines.append(_wr_line(tot, tp, sl, par))
+            lines.append(_wr_line(tot, tp, sl, par, today_all))
 
             if gold_trades:
                 g_tot, g_tp, g_sl, g_par = _stats(gold_trades)
                 lines.append(f"\n🥇 <b>XAUUSD</b> ({g_tot} trades)")
-                lines.append(_wr_line(g_tot, g_tp, g_sl, g_par))
+                lines.append(_wr_line(g_tot, g_tp, g_sl, g_par, gold_trades))
 
             if spy_trades:
                 s_tot, s_tp, s_sl, s_par = _stats(spy_trades)
                 lines.append(f"\n📊 <b>SPY</b> ({s_tot} trades)")
-                lines.append(_wr_line(s_tot, s_tp, s_sl, s_par))
+                lines.append(_wr_line(s_tot, s_tp, s_sl, s_par, spy_trades))
 
             if qqq_trades:
                 q_tot, q_tp, q_sl, q_par = _stats(qqq_trades)
                 lines.append(f"\n📊 <b>QQQ</b> ({q_tot} trades)")
-                lines.append(_wr_line(q_tot, q_tp, q_sl, q_par))
+                lines.append(_wr_line(q_tot, q_tp, q_sl, q_par, qqq_trades))
 
             if other_trades:
                 o_tot, o_tp, o_sl, o_par = _stats(other_trades)
                 lines.append(f"\n📈 <b>Stocks</b> ({o_tot} trades)")
-                lines.append(_wr_line(o_tot, o_tp, o_sl, o_par))
+                lines.append(_wr_line(o_tot, o_tp, o_sl, o_par, other_trades))
 
         msg = (
             f"📊 <b>DAILY PERFORMANCE REPORT — {date_str}</b>\n"
