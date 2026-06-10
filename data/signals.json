@@ -2016,7 +2016,7 @@
     "regime": "VOLATILE",
     "regime_label": "VOLATILE",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:VOLATILE(VOLATILE)\u00d70.92 | sess:LONDON\u00d71.15 | confluence\u00d70.94 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-0.84) | news:neutral(+0.107) | macro:NEUTRAL(-0.139) | combined:-0.417 \u2192 conf:0.495 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-10T13:12:46.313502+00:00",
     "created_at": "2026-06-10T12:42:47.872157+00:00",
     "id": 101
@@ -2038,7 +2038,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:PRE_MARKET\u00d70.90 | confluence\u00d70.89 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.32) | news:neutral(+0.107) | macro:BEARISH(-0.158) | combined:+0.001 \u2192 conf:0.001 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-10T13:12:49.640075+00:00",
     "created_at": "2026-06-10T12:42:49.949376+00:00",
     "id": 101
@@ -2060,7 +2060,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:PRE_MARKET\u00d70.90 | confluence\u00d70.98 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.27) | news:neutral(+0.107) | macro:BEARISH(-0.158) | combined:+0.001 \u2192 conf:0.001 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-10T13:12:51.949018+00:00",
     "created_at": "2026-06-10T12:42:52.341016+00:00",
     "id": 101
