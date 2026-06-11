@@ -114,8 +114,8 @@ def test_symbol_to_pool():
 def test_normalize_outcome():
     print("\n[2] _normalize_outcome")
 
-    # Progress — no DB write (Pine Script sends TP1_HIT/TP2_HIT, never literal "PROGRESS")
-    assert_eq("TP1_HIT",  _normalize_outcome("TP1_HIT"),  "PROGRESS")
+    # TP1_HIT = WIN (TP1 acts as a full win); TP2_HIT/TP3_HIT = PROGRESS (addon score, no DB write)
+    assert_eq("TP1_HIT",  _normalize_outcome("TP1_HIT"),  "WIN")
     assert_eq("TP2_HIT",  _normalize_outcome("TP2_HIT"),  "PROGRESS")
 
     # WIN variants
