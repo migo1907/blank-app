@@ -378,5 +378,24 @@
       "trigger:",
       "atr:LOW"
     ]
+  },
+  {
+    "id": "7433eac3",
+    "pool": "XAUUSD_2M",
+    "symbol": "XAUUSD",
+    "direction": "LONG",
+    "trigger": "",
+    "session": "LONDON_OPEN",
+    "regime": "TRENDING_BEAR",
+    "pnl_pct": -0.0923,
+    "atr_level": "LOW",
+    "created_at": "2026-06-11T07:36:03.617532+00:00",
+    "cause_tags": [
+      "LONDON_OPEN",
+      "TRENDING_BEAR",
+      "LONG",
+      "trigger:",
+      "atr:LOW"
+    ]
   }
 ]
