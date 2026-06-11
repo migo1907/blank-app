@@ -1225,6 +1225,227 @@ async def _market_pulse_cycle() -> None:
         print(f"[pulse] Market pulse error: {e}")
 
 
+async def _full_system_inspection():
+    """
+    Deep system inspection — runs every 6 hours per system_directive.FULL_INSPECTION_HOURS.
+    Tests every component, auto-fixes issues, logs a structured health report.
+    Protocol: detect → test → fix → verify → report. Never fixes blindly.
+    """
+    from datetime import datetime, timezone
+    from system_directive import (MIN_TRADES_FOR_ML, REGIME_SHIFT_WINDOW,
+                                   REGIME_SHIFT_DROP_PP, get_directive_summary)
+    started_at = datetime.now(timezone.utc)
+    print(f"[inspection] ═══ Full system inspection started at {started_at.strftime('%H:%M UTC')} ═══")
+
+    report: dict = {
+        "started_at":   started_at.isoformat(),
+        "checks":       [],
+        "fixes_applied": [],
+        "warnings":     [],
+        "errors":       [],
+    }
+
+    def _ok(msg: str):
+        report["checks"].append(f"✅ {msg}")
+        print(f"[inspection] ✅ {msg}")
+
+    def _warn(msg: str):
+        report["warnings"].append(f"⚠️ {msg}")
+        print(f"[inspection] ⚠️  {msg}")
+
+    def _err(msg: str):
+        report["errors"].append(f"❌ {msg}")
+        print(f"[inspection] ❌ {msg}")
+
+    def _fix(msg: str):
+        report["fixes_applied"].append(f"🔧 {msg}")
+        print(f"[inspection] 🔧 {msg}")
+
+    ALL_POOLS = [
+        "XAUUSD_2M", "XAUUSD_5M", "XAUUSD_30M", "XAUUSD_1H",
+        "STOCKS_MOMENTUM_15M", "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_4H",
+        "STOCKS_QUALITY_15M",  "STOCKS_QUALITY_30M",  "STOCKS_QUALITY_4H",
+        "STOCKS_INDEX_15M",    "STOCKS_INDEX_30M",    "STOCKS_INDEX_4H",
+        "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",      "STOCKS_QQQ_4H",
+        "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",   "STOCKS_SPX500_4H",
+    ]
+
+    # ── 1. Import health: verify all core modules load without error ──────────
+    core_modules = ["ml_model", "ml_ensemble", "signal_engine", "db",
+                    "market_macro", "news_fetcher", "telegram_bot"]
+    for mod in core_modules:
+        try:
+            __import__(mod)
+            _ok(f"Module {mod} imports cleanly")
+        except Exception as exc:
+            _err(f"Module {mod} import failed: {exc}")
+
+    # ── 2. Optional deps availability ─────────────────────────────────────────
+    try:
+        from ml_ensemble import _LGBM_AVAILABLE, _OPTUNA_AVAILABLE, _SHAP_AVAILABLE, _SKLEARN_AVAILABLE
+        if _SKLEARN_AVAILABLE: _ok("scikit-learn available")
+        else:                   _err("scikit-learn NOT available — RF/GBM disabled")
+        if _LGBM_AVAILABLE:     _ok("LightGBM available — joint models active")
+        else:                   _warn("LightGBM not available — joint models using sklearn fallback")
+        if _OPTUNA_AVAILABLE:   _ok("Optuna available — Bayesian HPO active")
+        else:                   _warn("Optuna not available — HPO disabled (fixed hyperparams)")
+        if _SHAP_AVAILABLE:     _ok("SHAP available — loss attribution active")
+        else:                   _warn("SHAP not available — loss autopsy uses feature importance fallback")
+    except Exception as exc:
+        _err(f"Dep check failed: {exc}")
+
+    # ── 3. Pool data integrity ─────────────────────────────────────────────────
+    from db import recent_outcomes, resync_pool_counters
+    pool_sizes: dict[str, int] = {}
+    for pool in ALL_POOLS:
+        try:
+            hist = await asyncio.to_thread(recent_outcomes, pool, 500)
+            n = len(hist)
+            pool_sizes[pool] = n
+            if n == 0:
+                _warn(f"{pool}: 0 trades — pool empty")
+            elif n < MIN_TRADES_FOR_ML:
+                _warn(f"{pool}: {n} trades (need {MIN_TRADES_FOR_ML} for ML)")
+            else:
+                _ok(f"{pool}: {n} trades")
+
+            # Detect corrupted records (missing required fields)
+            if hist:
+                bad = [i for i, r in enumerate(hist[:20])
+                       if not r.get("outcome") or not r.get("direction")]
+                if bad:
+                    _warn(f"{pool}: {len(bad)} corrupted records in last 20 (missing outcome/direction)")
+        except Exception as exc:
+            _err(f"{pool} data read failed: {exc}")
+
+    # ── 4. Model training status ───────────────────────────────────────────────
+    from ml_ensemble import get_rf, get_gbm
+    for pool in ALL_POOLS:
+        n = pool_sizes.get(pool, 0)
+        if n < MIN_TRADES_FOR_ML:
+            continue
+        try:
+            rf  = get_rf(pool)
+            gbm = get_gbm(pool)
+            if not rf.is_trained:
+                _warn(f"{pool}: RF not trained despite n={n} — attempting retrain")
+                hist = await asyncio.to_thread(recent_outcomes, pool, 500)
+                ok_rf = await asyncio.to_thread(rf.retrain, hist)
+                if ok_rf: _fix(f"{pool}: RF retrained on {n} trades")
+                else:     _err(f"{pool}: RF retrain failed")
+            else:
+                _ok(f"{pool}: RF trained")
+            if not gbm.is_trained:
+                _warn(f"{pool}: GBM not trained despite n={n} — attempting retrain")
+                hist = await asyncio.to_thread(recent_outcomes, pool, 500)
+                ok_gbm = await asyncio.to_thread(gbm.train, hist)
+                if ok_gbm: _fix(f"{pool}: GBM retrained on {n} trades")
+                else:       _err(f"{pool}: GBM retrain failed")
+            else:
+                _ok(f"{pool}: GBM trained")
+        except Exception as exc:
+            _err(f"{pool} model check failed: {exc}")
+
+    # ── 5. Win-rate sanity check — detect regime shifts ───────────────────────
+    for pool in ALL_POOLS:
+        n = pool_sizes.get(pool, 0)
+        if n < REGIME_SHIFT_WINDOW * 2:
+            continue
+        try:
+            hist = await asyncio.to_thread(recent_outcomes, pool, 500)
+            wins_recent = sum(1 for r in hist[:REGIME_SHIFT_WINDOW]
+                              if r.get("outcome") in ("WIN", "PARTIAL"))
+            wins_prior  = sum(1 for r in hist[REGIME_SHIFT_WINDOW:REGIME_SHIFT_WINDOW*2]
+                              if r.get("outcome") in ("WIN", "PARTIAL"))
+            wr_recent = wins_recent / REGIME_SHIFT_WINDOW * 100
+            wr_prior  = wins_prior  / REGIME_SHIFT_WINDOW * 100
+            drop = wr_prior - wr_recent
+            if drop > REGIME_SHIFT_DROP_PP:
+                _warn(f"{pool}: regime shift detected — WR dropped {drop:.1f}pp "
+                      f"({wr_prior:.0f}%→{wr_recent:.0f}%) in last {REGIME_SHIFT_WINDOW} trades")
+            else:
+                _ok(f"{pool}: WR stable ({wr_recent:.0f}% recent vs {wr_prior:.0f}% prior)")
+        except Exception as exc:
+            _warn(f"{pool} WR check failed: {exc}")
+
+    # ── 6. Feature cache freshness ─────────────────────────────────────────────
+    try:
+        from signal_engine import _latest_features
+        cached_pools = [p for p, f in _latest_features.items() if f is not None]
+        if len(cached_pools) >= 3:
+            _ok(f"Feature cache: {len(cached_pools)} pools have live features")
+        else:
+            _warn(f"Feature cache thin: only {len(cached_pools)} pools cached — "
+                  f"heartbeats may not be arriving")
+    except Exception as exc:
+        _warn(f"Feature cache check failed: {exc}")
+
+    # ── 7. Data branch write test ──────────────────────────────────────────────
+    try:
+        from db import _get_file, _put_file
+        d, sha = await asyncio.to_thread(_get_file, "data/health.json")
+        if not isinstance(d, dict):
+            d = {}
+        d["last_inspection"] = started_at.isoformat()
+        d["inspection_checks"] = len(report["checks"])
+        d["inspection_fixes"]  = len(report["fixes_applied"])
+        d["inspection_warnings"] = len(report["warnings"])
+        await asyncio.to_thread(_put_file, "data/health.json", d, sha,
+                                "chore: inspection health update")
+        _ok("Data branch writable")
+    except Exception as exc:
+        _err(f"Data branch write failed: {exc}")
+
+    # ── 8. Scheduler jobs alive check ─────────────────────────────────────────
+    try:
+        if _scheduler and _scheduler.running:
+            job_ids = {j.id for j in _scheduler.get_jobs()}
+            required = {"news_signal_cycle", "breaking_news_cycle",
+                        "hourly_system_check", "macro_refresh_cycle",
+                        "full_system_inspection"}
+            missing = required - job_ids
+            if missing:
+                _warn(f"Scheduler jobs missing: {missing}")
+            else:
+                _ok(f"All {len(required)} required scheduler jobs alive")
+        else:
+            _err("Scheduler is not running!")
+    except Exception as exc:
+        _warn(f"Scheduler job check failed: {exc}")
+
+    # ── 9. Counter resync ─────────────────────────────────────────────────────
+    try:
+        for pool in ALL_POOLS:
+            await asyncio.to_thread(resync_pool_counters, pool)
+        _fix("Win/loss counters resynced for all pools")
+    except Exception as exc:
+        _warn(f"Counter resync failed: {exc}")
+
+    # ── Summary ────────────────────────────────────────────────────────────────
+    elapsed = (datetime.now(timezone.utc) - started_at).total_seconds()
+    n_ok    = len(report["checks"])
+    n_warn  = len(report["warnings"])
+    n_err   = len(report["errors"])
+    n_fix   = len(report["fixes_applied"])
+
+    summary = (f"[inspection] ═══ Complete in {elapsed:.0f}s — "
+               f"✅{n_ok} ok  ⚠️{n_warn} warn  ❌{n_err} err  🔧{n_fix} fixed ═══")
+    print(summary)
+
+    # Send Telegram alert only if there are errors or fixes were applied
+    if n_err > 0 or n_fix > 0:
+        lines = []
+        if report["fixes_applied"]: lines += report["fixes_applied"][:5]
+        if report["errors"]:        lines += report["errors"][:5]
+        if report["warnings"][:3]:  lines += report["warnings"][:3]
+        body  = "\n".join(lines)
+        await send_critical_alert(
+            f"System Inspection: {n_fix} fix(es), {n_err} error(s)",
+            body,
+            f"Full report: {n_ok} ok / {n_warn} warn / {n_err} err / {n_fix} fixed in {elapsed:.0f}s",
+        )
+
+
 def start_scheduler() -> AsyncIOScheduler:
     global _scheduler
     _load_seen_headlines()
@@ -1261,6 +1482,11 @@ def start_scheduler() -> AsyncIOScheduler:
     _scheduler.add_job(_weekly_mistake_autopsy, trigger="cron", day_of_week="mon", hour=9, minute=0, id="weekly_autopsy", replace_existing=True, misfire_grace_time=3600)
     # Weekly model comparison — every Sunday 20:00 UTC
     _scheduler.add_job(_weekly_model_comparison, trigger="cron", day_of_week="sun", hour=20, minute=0, id="weekly_model_compare", replace_existing=True, misfire_grace_time=3600)
+    # Full system inspection — every 6 hours (system_directive.FULL_INSPECTION_HOURS)
+    from system_directive import FULL_INSPECTION_HOURS
+    _scheduler.add_job(_full_system_inspection, trigger="interval", hours=FULL_INSPECTION_HOURS,
+                       id="full_system_inspection", replace_existing=True, misfire_grace_time=3600,
+                       start_date=_dt.now(_tz.utc) + _td(minutes=10))
     _scheduler.start()
 
     _now = _dt.now(_tz.utc)

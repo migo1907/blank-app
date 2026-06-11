@@ -414,11 +414,18 @@ async def health():
     except Exception as _e:
         ml_health = {"error": str(_e)}
 
+    try:
+        from system_directive import get_directive_summary
+        directive = get_directive_summary()
+    except Exception:
+        directive = {}
+
     return {
-        "status": "ok",
-        "version": "5.0.0-25F",
+        "status":    "ok",
+        "version":   "5.1.0-25F",
         "scheduler": "running" if scheduler_ok else "restarted",
-        "ml": ml_health,
+        "ml":        ml_health,
+        "directive": directive,
     }
 
 
