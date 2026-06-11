@@ -179,23 +179,25 @@ Always maintain human control:
 
 > ⚠️ **Note:** Backtest data (6,653 trades) was injected then removed — only 25 clean live trades remain in base XAUUSD pool. All pool-specific files reset to 0. 6 TradingView alerts now live as of June 4.
 
-### Pool-by-Pool Progress (as of June 4, 2026)
+### Pool-by-Pool Progress (as of June 11, 2026 — live counts from data branch)
 
-| Pool | Trades | Target | Remaining | Rate/day | ETA | Status |
-|------|--------|--------|-----------|----------|-----|--------|
-| XAUUSD (base fallback) | 25 | 150 | 125 | ~8-10 | ~June 18 | 🟡 Live only |
-| XAUUSD_2M | 0 | 150 | 150 | ~3-5 | ~July 20 | 🔵 Alert live |
-| XAUUSD_5M | 0 | 150 | 150 | ~2-4 | ~Aug 1 | 🔵 Alert live |
-| XAUUSD_30M | 0 | 150 | 150 | ~1-2 | ~Sep 15 | 🔵 Alert live |
-| XAUUSD_1H | 0 | 150 | 150 | ~0-1 | ~Nov 1 | 🔵 Alert live |
-| STOCKS_MOMENTUM_30M | 0 | 50 | 50 | ~1-2 | ~Aug 15 | 🔵 Alert live |
-| STOCKS_MOMENTUM_4H | 0 | 50 | 50 | ~0-1 | ~Sep 15 | 🔵 Alert live |
-| STOCKS_QUALITY_30M | 0 | 50 | 50 | ~1-2 | ~Aug 15 | ⏳ No alert yet |
-| STOCKS_QUALITY_4H | 0 | 50 | 50 | ~0-1 | ~Sep 15 | ⏳ No alert yet |
-| STOCKS_INDEX_30M | 0 | 50 | 50 | ~1-2 | ~Aug 15 | ⏳ No alert yet |
-| STOCKS_INDEX_4H | 0 | 50 | 50 | ~0-1 | ~Sep 15 | ⏳ No alert yet |
+| Pool | Trades | Target | Remaining | Status |
+|------|--------|--------|-----------|--------|
+| XAUUSD (base fallback) | 109 | 150 | 41 | 🟢 Nearly done |
+| XAUUSD_2M | 386 | 150 | ✅ **TARGET HIT** | 🟢 Models trained, 52% WR last 50 |
+| XAUUSD_5M | 105 | 150 | 45 | 🟢 On track |
+| XAUUSD_30M | 11 | 150 | 139 | 🔵 Building |
+| XAUUSD_1H | 2 | 150 | 148 | 🔵 Building |
+| STOCKS_MOMENTUM_15M | 84 | 50 | ✅ **TARGET HIT** | 🟢 |
+| STOCKS_MOMENTUM_30M | 53 | 50 | ✅ **TARGET HIT** | 🟢 |
+| STOCKS_MOMENTUM_4H | 8 | 50 | 42 | 🔵 Building |
+| STOCKS_QUALITY_15M | 40 | 50 | 10 | 🟢 Nearly done |
+| STOCKS_QUALITY_30M | 25 | 50 | 25 | 🔵 Building |
+| STOCKS_QUALITY_4H | 5 | 50 | 45 | 🔵 Building |
+| STOCKS_INDEX/SPX500/QQQ pools | 1–8 each | 50 | — | 🔵 Building |
 
-> 6 active alerts: XAUUSD 2M/5M/30M/1H + 2 stocks (30M/4H). Stocks category routing depends on which ticker the alert fires on.
+> XAUUSD_2M WR trajectory: first 50 trades = 34% → last 50 trades = **52%**. The learning loop is working.
+> Known bleed: OVERLAP session (13–17 UTC) ran 21% WR over 42 trades — session bleed guard added June 11.
 
 ### Phase Milestones
 
@@ -267,9 +269,10 @@ Phase 4:  ⏳ Earliest Feb–Mar 2027 (gated by 58%+ WR over 200 consecutive tra
 | Item | Description | Phase |
 |------|-------------|-------|
 | **F19 replacement** | RSI Divergence never fires — replace with Stochastic RSI or Volume Profile distance | Phase 1 exit |
-| **Heartbeat alert** | TradingView Pine Script fires F1–F25 every 15min even with no trade signal — keeps feature cache fresh between webhooks | Phase 1 |
+| ~~Heartbeat alert~~ | ✅ Done — fires F1–F26 every bar close, keeps feature cache fresh | Done June 8 |
+| ~~F26 Stochastic~~ | ✅ Done June 11 — Pine + backend at 26 features (alerts need re-creation on TradingView) | Done |
+| ~~News calendar integration~~ | ✅ Done — Finnhub economic calendar, de-risk alert fires up to 90min before NFP/CPI/FOMC | Done (Phase 2D partial) |
 | **Breaking news Telegram** | Currently disabled (`BREAKING_NEWS_TELEGRAM=false`) — enable when user ready | Anytime |
-| **News calendar integration** | Block/reduce signals 5–30min before high-impact events (FOMC, NFP, CPI) | Phase 2D |
 | **Hidden Markov Model (HMM)** | Replace simple ADX regime detection with probabilistic regime transition model — detects regime shifts before they complete | Phase 2A |
 | **Full MTF stack** | Replace single F16 (1H) with 1H + 4H + Daily all scored — signal requires 2 of 3 TF agreement | Phase 2B |
 | **ATR position sizing** | Dynamic SL/TP based on current volatility — wider market = wider SL, smaller size | Phase 2C |

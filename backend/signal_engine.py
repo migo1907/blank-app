@@ -485,6 +485,19 @@ def score_entry_gate(pool: str, direction: str) -> dict:
         return {"pass": True, "score": 0.5, "reason": "cold_start_bypass", "components": {}}
 
     score     = sum(components.values()) / len(components)
+
+    # Session bleed guard — data-driven, self-healing. If the current session's
+    # historical WR in this pool is <30% over n>=30 trades, scale the score down.
+    # (June 11 audit: OVERLAP session ran 21% WR over 42 trades on XAUUSD_2M.)
+    _, cur_session = _session_multiplier(datetime.now(timezone.utc), pool in STOCK_POOL_IDS)
+    sess_rows = [t for t in history if t.get("session") == cur_session
+                 and t.get("outcome") in ("WIN", "PARTIAL", "LOSS")]
+    if len(sess_rows) >= 30:
+        sess_wr = sum(1 for t in sess_rows if t["outcome"] in ("WIN", "PARTIAL")) / len(sess_rows)
+        if sess_wr < 0.30:
+            score *= 0.85
+            components["session_guard"] = round(sess_wr, 3)
+
     threshold = _pool_thresholds.get(pool, ML_GATE_THRESHOLD)
     passed    = score >= threshold
     reason    = "approved" if passed else "rejected_low_confidence"

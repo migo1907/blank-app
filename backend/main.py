@@ -428,7 +428,7 @@ async def health():
 
     return {
         "status":    "ok",
-        "version":   "5.1.0-25F",
+        "version":   "5.2.0-26F",
         "scheduler": "running" if scheduler_ok else "restarted",
         "ml":        ml_health,
         "directive": directive,

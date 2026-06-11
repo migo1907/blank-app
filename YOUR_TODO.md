@@ -1,14 +1,20 @@
 # Your Action List — Things Only You Can Do
-*Last updated: 2026-06-10 | Keep this file open — add to it, cross off when done*
+*Last updated: 2026-06-11 | Keep this file open — add to it, cross off when done*
 
 ---
 
 ## 🔴 URGENT — System Won't Work Without These
 
-- [ ] **ROTATE your `FINNHUB_KEY` immediately — it was exposed in a shared log file**
-  - Go to https://finnhub.io → Dashboard → API Keys → delete the old key → create a new one
-  - Update the new key in Railway → Variables → `FINNHUB_KEY = <new key>`
-  - **Why:** The old key (`d0ecck9r01q...`) appeared in full in the Railway CSV logs you sent. Anyone who read that file can use your quota.
+- [ ] **RE-CREATE your TradingView alerts — f26 is NOT arriving**
+  - The Pine Script editor was updated to the f26 version, but TradingView alerts
+    snapshot the script at creation time. The live heartbeats still send only f1–f25.
+  - You have **14 alerts total: 7 signal alerts + 7 heartbeat alerts** — every one of
+    them must be deleted and re-created from the updated f26 script
+    (same webhook URL: `/webhook`, same condition type as before)
+  - **Tip:** re-create them one chart at a time so no pool goes dark for long
+  - **Verify:** after re-creating, the dashboard table should show the "Stoch:" value,
+    and `data/feature_cache.json` on the data branch will include an `f26` key
+    (I will verify this from my side once you say it's done)
 
 - [ ] **Fix `FJ_EMAIL` and `FJ_PASSWORD` in Railway — FinancialJuice login is failing**
   - Log shows: `Auto-login failed — no .ASPXAUTH cookie received`
@@ -75,11 +81,6 @@
 
 ## 🔵 LOWER PRIORITY — When You Have Time
 
-- [ ] **Add Phase 2 feature F26: Stochastic (%K/%D)**
-  - Requires Pine Script update: add `stoch(close, high, low, 14)` → send as `f26_stoch_k` and `f26_stoch_d`
-  - Then tell me and I'll expand the `Features` dataclass + retrain all models on 26 features
-  - **Why:** Stochastic oscillator adds momentum confirmation orthogonal to RSI
-
 - [ ] **Test the `/daily-brief` endpoint manually**
   - URL: https://blank-app-production-a8bd.up.railway.app/daily-brief?secret=gold2026
   - Confirm the format is still useful and the levels look correct
@@ -102,6 +103,10 @@
 - [x] Daily levels GitHub Actions job set (07:50 UTC Mon-Fri)
 - [x] `FRED_API_KEY` set in Railway — confirmed working in logs (`live.fred: true`, real yield + dollar + breakeven all loading)
 - [x] `FINNHUB_KEY` set in Railway — confirmed working for news feed (free tier, calendar endpoint intentionally skipped)
+- [x] `FINNHUB_KEY` rotated 2026-06-11 after log exposure
+- [x] F26 Stochastic implemented backend-side (Pine + backend + tests, merged via PR #13) — pending alert re-creation on TradingView
+- [x] Stale CPI/NFP de-risk alert fix (24h→4h keyword window) — PR #14
+- [x] TimeSeriesSplit calibration CV + MIN_TRADES 30 — no more look-ahead bias in RF/GBM
 
 ---
 
