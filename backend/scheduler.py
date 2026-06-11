@@ -325,6 +325,17 @@ async def _news_signal_cycle() -> None:
                 if sent_spy:
                     _last_sent_direction_spy = spy_dir
                     print(f"[scheduler] SPY direction → {spy_dir} conf={spy_conf:.2f} — signal sent.")
+                # Phase 2C — SPX 0-1DTE options layer (paper): translate the SPY
+                # directional flip into an SPX long CALL/PUT recommendation.
+                try:
+                    from options_engine import build_spx_recommendation, format_telegram, append_paper_trade
+                    rec = await asyncio.to_thread(build_spx_recommendation, spy_dir, spy_conf)
+                    if rec:
+                        from telegram_bot import send_text
+                        await send_text(format_telegram(rec))
+                        await asyncio.to_thread(append_paper_trade, rec)
+                except Exception as _opt_err:
+                    print(f"[options] recommendation failed: {_opt_err}")
             else:
                 print(f"[scheduler] SPY: {spy_dir} conf={spy_conf:.2f} — no flip, not sending.")
         except Exception as e:
@@ -1434,6 +1445,27 @@ async def _full_system_inspection():
     return report
 
 
+async def _options_iv_record_cycle() -> None:
+    """Daily SPX ATM IV snapshot — builds the 60-session IV Rank history."""
+    try:
+        from options_engine import record_daily_iv
+        await asyncio.to_thread(record_daily_iv)
+    except Exception as e:
+        print(f"[options] IV record cycle failed: {e}")
+
+
+async def _options_paper_manage_cycle() -> None:
+    """Hourly during RTH: enforce TP/SL/time exits on open paper option trades."""
+    try:
+        from options_engine import manage_paper_positions
+        closed = await asyncio.to_thread(manage_paper_positions)
+        for line in closed:
+            from telegram_bot import send_text
+            await send_text(f"📄 <b>SPX PAPER CLOSED</b>\n{line}")
+    except Exception as e:
+        print(f"[options] paper manage cycle failed: {e}")
+
+
 def start_scheduler() -> AsyncIOScheduler:
     global _scheduler
     _load_seen_headlines()
@@ -1465,6 +1497,12 @@ def start_scheduler() -> AsyncIOScheduler:
     _scheduler.add_job(_weekly_mistake_autopsy, trigger="cron", day_of_week="mon", hour=9, minute=0, id="weekly_autopsy", replace_existing=True, misfire_grace_time=3600)
     # Weekly model comparison — every Sunday 20:00 UTC
     _scheduler.add_job(_weekly_model_comparison, trigger="cron", day_of_week="sun", hour=20, minute=0, id="weekly_model_compare", replace_existing=True, misfire_grace_time=3600)
+    # Phase 2C — SPX options: record ATM IV once per session (15:45 ET, after the
+    # bulk of the day's IV is realized) + manage open paper positions hourly.
+    _scheduler.add_job(_options_iv_record_cycle, trigger="cron", day_of_week="mon-fri", hour=15, minute=45,
+                       timezone=_ny_tz, id="options_iv_record", replace_existing=True, misfire_grace_time=3600)
+    _scheduler.add_job(_options_paper_manage_cycle, trigger="cron", day_of_week="mon-fri", hour="10-16", minute=5,
+                       timezone=_ny_tz, id="options_paper_manage", replace_existing=True, misfire_grace_time=600)
     # Full system inspection — every 6 hours (system_directive.FULL_INSPECTION_HOURS)
     from system_directive import FULL_INSPECTION_HOURS
     _scheduler.add_job(_full_system_inspection, trigger="interval", hours=FULL_INSPECTION_HOURS,
