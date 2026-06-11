@@ -1404,12 +1404,13 @@ async def _full_system_inspection():
 
     # Send Telegram alert only if there are errors or fixes were applied
     if n_err > 0 or n_fix > 0:
+        from telegram_bot import send_critical_alert as _send_crit
         lines = []
         if report["fixes_applied"]: lines += report["fixes_applied"][:5]
         if report["errors"]:        lines += report["errors"][:5]
         if report["warnings"][:3]:  lines += report["warnings"][:3]
         body  = "\n".join(lines)
-        await send_critical_alert(
+        await _send_crit(
             f"System Inspection: {n_fix} fix(es), {n_err} error(s)",
             body,
             f"Full report: {n_ok} ok / {n_warn} warn / {n_err} err / {n_fix} fixed in {elapsed:.0f}s",
