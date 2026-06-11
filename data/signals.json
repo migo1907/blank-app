@@ -1,27 +1,5 @@
 [
   {
-    "symbol": "QQQ",
-    "pool": "STOCKS_QQQ_30M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "news_score": 0.1213,
-    "macro_bias": 0.0298,
-    "macro_label": "NEUTRAL",
-    "combined_score": 0.0325,
-    "session": "NYSE_AFTERNOON",
-    "regime": "NORMAL",
-    "regime_label": "NORMAL",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d70.89 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.03) | news:neutral(+0.121) | macro:NEUTRAL(+0.030) | combined:+0.032 \u2192 conf:0.038 \u26a1 CPI",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-11T17:08:18.028731+00:00",
-    "created_at": "2026-06-11T16:38:18.366493+00:00",
-    "id": 101
-  },
-  {
     "symbol": "XAUUSD",
     "pool": "XAUUSD_2M",
     "direction": "NEUTRAL",
@@ -2058,7 +2036,7 @@
     "regime": "TRENDING_BULL",
     "regime_label": "PULLBACK_SHORT",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(PULLBACK_SHORT)\u00d70.80 | sess:CLOSED\u00d70.60 | confluence\u00d70.76 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+0.60) | news:neutral(+0.025) | macro:BEARISH(-0.152) | combined:-0.017 \u2192 conf:0.007 \u26a1 CPI",
-    "status": "EXPIRED",
+    "status": "ACTIVE",
     "expires_at": "2026-06-11T23:21:11.237740+00:00",
     "created_at": "2026-06-11T22:51:12.595376+00:00",
     "id": 101
@@ -2193,6 +2171,28 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-11T23:51:10.111545+00:00",
     "created_at": "2026-06-11T23:21:10.602929+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "XAUUSD",
+    "pool": "XAUUSD_2M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.375,
+    "rf_score": 0.3244,
+    "gbm_score": 0.3367,
+    "news_score": 0.1309,
+    "macro_bias": -0.1566,
+    "macro_label": "BEARISH",
+    "combined_score": -0.0606,
+    "session": "OFF",
+    "regime": "NORMAL",
+    "regime_label": "NORMAL",
+    "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:NORMAL(NORMAL)\u00d71.00 | sess:OFF\u00d70.65 | confluence\u00d71.33 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.39) | news:neutral(+0.131) | macro:BEARISH(-0.157) | combined:-0.061 \u2192 conf:0.053 \u26a1 CPI",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-12T00:06:04.847293+00:00",
+    "created_at": "2026-06-11T23:36:06.473329+00:00",
     "id": 101
   }
 ]
