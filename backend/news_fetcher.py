@@ -425,6 +425,31 @@ def _fj_auto_login() -> bool:
                 },
             )
 
+            # Step 2b: WebForms LinkButtons submit via __doPostBack — if the plain
+            # POST didn't authenticate, retry with __EVENTTARGET set to the login
+            # button extracted from the page's doPostBack call.
+            if ".ASPXAUTH" not in dict(client.cookies):
+                btn_m = (_re.search(r"__doPostBack\('([^']*loginForm1[^']*)'", r0.text)
+                         or _re.search(r"__doPostBack\('([^']*[Ll]ogin[^']*)'", r0.text))
+                if btn_m:
+                    form_data["__EVENTTARGET"]   = btn_m.group(1)
+                    form_data["__EVENTARGUMENT"] = ""
+                    # postback target replaces the submit button — remove submit values
+                    for k in [k for k in form_data if "btn" in k.lower() and k != "__EVENTTARGET"]:
+                        form_data.pop(k, None)
+                    print(f"[fj] Auto-login: retrying via __EVENTTARGET={btn_m.group(1)!r}")
+                    r1 = client.post(
+                        login_url, data=form_data,
+                        headers={
+                            "User-Agent":    _UA,
+                            "Referer":       login_url,
+                            "Content-Type":  "application/x-www-form-urlencoded",
+                            "Accept":        "text/html,application/xhtml+xml,*/*;q=0.8",
+                            "Origin":        "https://www.financialjuice.com",
+                            "Cache-Control": "no-cache",
+                        },
+                    )
+
         cookies = dict(client.cookies)
         auth_cookie   = cookies.get(".ASPXAUTH", "")
         aspnet_cookie = cookies.get("ASP.NET_SessionId", "")
