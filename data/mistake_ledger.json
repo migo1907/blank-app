@@ -226,5 +226,24 @@
       "trigger:",
       "atr:LOW"
     ]
+  },
+  {
+    "id": "3ed6fbcb",
+    "pool": "XAUUSD_2M",
+    "symbol": "XAUUSD",
+    "direction": "LONG",
+    "trigger": "",
+    "session": "ASIAN",
+    "regime": "TRENDING_BEAR",
+    "pnl_pct": -0.1286,
+    "atr_level": "LOW",
+    "created_at": "2026-06-11T03:34:09.663901+00:00",
+    "cause_tags": [
+      "ASIAN",
+      "TRENDING_BEAR",
+      "LONG",
+      "trigger:",
+      "atr:LOW"
+    ]
   }
 ]
