@@ -1,25 +1,5 @@
 [
   {
-    "symbol": "XAUUSD",
-    "pool": "XAUUSD_2M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "news_score": -0.2013,
-    "combined_score": 0.0,
-    "session": "NY_LATE",
-    "regime": "TRENDING_BEAR",
-    "regime_label": "TRENDING_BEAR",
-    "reasoning": "News CONFLICTED \u2014 low conviction",
-    "status": "NEUTRAL",
-    "expires_at": "2026-06-10T20:59:54.421248+00:00",
-    "created_at": "2026-06-10T20:29:54.446376+00:00",
-    "id": 101
-  },
-  {
     "symbol": "SPY",
     "pool": "STOCKS_INDEX_30M",
     "direction": "NEUTRAL",
@@ -2195,6 +2175,28 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-11T04:11:43.512182+00:00",
     "created_at": "2026-06-11T03:41:44.111099+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "QQQ",
+    "pool": "STOCKS_QQQ_30M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "news_score": 0.0986,
+    "macro_bias": 0.0298,
+    "macro_label": "NEUTRAL",
+    "combined_score": 0.0272,
+    "session": "CLOSED",
+    "regime": "NORMAL",
+    "regime_label": "NORMAL",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.77 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.42) | news:neutral(+0.099) | macro:NEUTRAL(+0.030) | combined:+0.027 \u2192 conf:0.015 \u26a1 CPI",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-11T04:11:47.031684+00:00",
+    "created_at": "2026-06-11T03:41:47.733855+00:00",
     "id": 101
   }
 ]
