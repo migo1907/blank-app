@@ -1796,7 +1796,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:OVERLAP\u00d71.30 | confluence\u00d70.84 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+0.72) | news:bullish(+0.213) | macro:NEUTRAL(-0.032) | combined:-0.229 \u2192 conf:0.301 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-11T16:16:19.101575+00:00",
     "created_at": "2026-06-11T15:46:19.677177+00:00",
     "id": 101
@@ -1818,7 +1818,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:NYSE_OPEN\u00d71.25 | confluence\u00d70.76 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.09) | news:bullish(+0.213) | macro:NEUTRAL(+0.030) | combined:+0.054 \u2192 conf:0.061 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-11T16:16:21.873021+00:00",
     "created_at": "2026-06-11T15:46:22.299035+00:00",
     "id": 101
@@ -1840,7 +1840,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:NYSE_OPEN\u00d71.25 | confluence\u00d70.83 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.07) | news:bullish(+0.213) | macro:NEUTRAL(+0.030) | combined:+0.054 \u2192 conf:0.067 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-11T16:16:24.503945+00:00",
     "created_at": "2026-06-11T15:46:24.841518+00:00",
     "id": 101
@@ -1862,7 +1862,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:OVERLAP\u00d71.30 | confluence\u00d70.84 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+0.70) | news:bullish(+0.235) | macro:NEUTRAL(-0.032) | combined:-0.297 \u2192 conf:0.390 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-11T16:19:39.354613+00:00",
     "created_at": "2026-06-11T15:49:39.951913+00:00",
     "id": 101
@@ -1884,7 +1884,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:NYSE_OPEN\u00d71.25 | confluence\u00d70.76 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.09) | news:bullish(+0.235) | macro:NEUTRAL(+0.030) | combined:+0.059 \u2192 conf:0.067 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-11T16:19:41.909777+00:00",
     "created_at": "2026-06-11T15:49:42.285462+00:00",
     "id": 101
@@ -1906,7 +1906,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:NYSE_OPEN\u00d71.25 | confluence\u00d70.83 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.07) | news:bullish(+0.235) | macro:NEUTRAL(+0.030) | combined:+0.059 \u2192 conf:0.073 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-11T16:19:44.274986+00:00",
     "created_at": "2026-06-11T15:49:44.765466+00:00",
     "id": 101
