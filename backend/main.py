@@ -1066,6 +1066,15 @@ async def signal_now(secret: str = ""):
     return {"status": "signal cycle triggered"}
 
 
+@app.get("/inspect")
+async def inspect_now(secret: str = ""):
+    """Run the full system inspection on demand and return the structured report."""
+    _validate_secret(secret)
+    from scheduler import _full_system_inspection
+    report = await _full_system_inspection()
+    return report
+
+
 @app.get("/daily-brief")
 async def daily_brief_now(secret: str = ""):
     """Trigger daily market brief for SPY/QQQ/XAUUSD immediately and send to Telegram."""

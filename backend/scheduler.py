@@ -1416,6 +1416,10 @@ async def _full_system_inspection():
             f"Full report: {n_ok} ok / {n_warn} warn / {n_err} err / {n_fix} fixed in {elapsed:.0f}s",
         )
 
+    report["elapsed_seconds"] = round(elapsed, 1)
+    report["summary"] = f"{n_ok} ok / {n_warn} warn / {n_err} err / {n_fix} fixed"
+    return report
+
 
 def start_scheduler() -> AsyncIOScheduler:
     global _scheduler
