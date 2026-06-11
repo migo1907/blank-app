@@ -1882,7 +1882,7 @@
     "regime": "RANGING",
     "regime_label": "RANGING",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:RANGING(RANGING)\u00d70.82 | sess:LONDON\u00d71.15 | confluence\u00d70.94 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+0.99) | news:neutral(+0.159) | macro:NEUTRAL(-0.032) | combined:+0.046 \u2192 conf:0.041 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-11T11:45:32.175893+00:00",
     "created_at": "2026-06-11T11:15:33.692215+00:00",
     "id": 101
@@ -1904,7 +1904,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:PRE_MARKET\u00d70.90 | confluence\u00d70.70 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.48) | news:neutral(+0.159) | macro:NEUTRAL(+0.030) | combined:+0.041 \u2192 conf:0.031 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-11T11:45:35.407947+00:00",
     "created_at": "2026-06-11T11:15:35.709427+00:00",
     "id": 101
@@ -1926,7 +1926,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:PRE_MARKET\u00d70.90 | confluence\u00d70.77 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.42) | news:neutral(+0.159) | macro:NEUTRAL(+0.030) | combined:+0.041 \u2192 conf:0.034 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-11T11:45:37.289305+00:00",
     "created_at": "2026-06-11T11:15:37.645275+00:00",
     "id": 101
@@ -1948,7 +1948,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:NORMAL(NORMAL)\u00d71.00 | sess:LONDON\u00d71.15 | confluence\u00d70.80 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+0.85) | news:neutral(+0.073) | macro:NEUTRAL(-0.032) | combined:+0.026 \u2192 conf:0.024 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-11T11:49:02.900408+00:00",
     "created_at": "2026-06-11T11:19:03.386448+00:00",
     "id": 101
@@ -1970,7 +1970,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:PRE_MARKET\u00d70.90 | confluence\u00d70.70 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.48) | news:neutral(+0.073) | macro:NEUTRAL(+0.030) | combined:+0.021 \u2192 conf:0.016 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-11T11:49:05.308797+00:00",
     "created_at": "2026-06-11T11:19:05.659677+00:00",
     "id": 101
@@ -1992,7 +1992,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:PRE_MARKET\u00d70.90 | confluence\u00d70.77 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.42) | news:neutral(+0.073) | macro:NEUTRAL(+0.030) | combined:+0.021 \u2192 conf:0.018 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-11T11:49:07.872223+00:00",
     "created_at": "2026-06-11T11:19:08.275214+00:00",
     "id": 101
@@ -2014,7 +2014,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:NORMAL(NORMAL)\u00d71.00 | sess:LONDON\u00d71.15 | confluence\u00d70.80 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.51) | news:neutral(+0.077) | macro:NEUTRAL(-0.032) | combined:+0.089 \u2192 conf:0.082 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-11T11:53:23.111157+00:00",
     "created_at": "2026-06-11T11:23:23.548759+00:00",
     "id": 101
@@ -2036,7 +2036,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:PRE_MARKET\u00d70.90 | confluence\u00d70.70 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.48) | news:neutral(+0.077) | macro:NEUTRAL(+0.030) | combined:+0.022 \u2192 conf:0.017 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-11T11:53:25.589905+00:00",
     "created_at": "2026-06-11T11:23:25.939642+00:00",
     "id": 101
@@ -2058,7 +2058,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:PRE_MARKET\u00d70.90 | confluence\u00d70.77 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.42) | news:neutral(+0.077) | macro:NEUTRAL(+0.030) | combined:+0.022 \u2192 conf:0.018 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-11T11:53:27.847953+00:00",
     "created_at": "2026-06-11T11:23:28.207791+00:00",
     "id": 101
