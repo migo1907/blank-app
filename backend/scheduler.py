@@ -67,12 +67,15 @@ def _evaluate_intel_triggers(velocity: dict, event: dict, gold_signal: dict, gol
     if vlabel in _INTEL_HOT_VELOCITY:
         reasons.append(f"{vlabel} news flow{(' · ' + vdir) if vdir else ''}")
 
-    # 2. Imminent high-impact event (NFP/CPI/FOMC within ~90 min)
-    if event.get("detected") and event.get("urgency", 0.0) >= 0.85:
-        mins  = event.get("minutes_until")
+    # 2. Imminent high-impact event (NFP/CPI/FOMC within ~90 min).
+    # Only fire on SCHEDULED calendar events (minutes_until present) — reactive
+    # keyword matches keep flagging "CPI" from analysis headlines for hours
+    # AFTER the release, which is noise, not a de-risk warning.
+    mins = event.get("minutes_until")
+    if (event.get("detected") and event.get("urgency", 0.0) >= 0.85
+            and isinstance(mins, (int, float)) and 0 <= mins <= 90):
         etype = event.get("event_type") or "High-impact event"
-        when  = f" in {mins} min" if isinstance(mins, (int, float)) else ""
-        reasons.append(f"{etype}{when} — volatility expected, de-risk")
+        reasons.append(f"{etype} in {int(mins)} min — volatility expected, de-risk")
 
     # 3. ML direction flip while news flow is hot — the move is news-backed
     if gold_flipped and vlabel in _INTEL_HOT_VELOCITY:
