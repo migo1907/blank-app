@@ -381,9 +381,11 @@ def _fj_auto_login() -> bool:
                     continue
                 t = t_m.group(1).lower()
                 n = n_m.group(1)
-                if t == "email" or (t == "text" and "mail" in n.lower()):
-                    email_field = n
-                elif t == "password":
+                # Skip forgot-password form fields — only want the sign-in email field
+                if "forgot" not in n.lower():
+                    if t == "email" or (t == "text" and "mail" in n.lower()):
+                        email_field = n
+                if t == "password" and "forgot" not in n.lower():
                     password_field = n
 
             # Fallback to common names if not found in page
@@ -715,7 +717,9 @@ def fetch_upcoming_events(hours_ahead: int = 24) -> dict:
             resp.raise_for_status()
             events = resp.json().get("economicCalendar", []) or []
     except Exception as e:
-        print(f"[finnhub] calendar fetch failed: {e}")
+        # 403 = paid-only endpoint on free Finnhub tier — suppress noisy log
+        if "403" not in str(e):
+            print(f"[finnhub] calendar fetch failed: {e}")
         return {"detected": False, "scheduled": []}
 
     upcoming = []
