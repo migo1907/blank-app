@@ -169,5 +169,41 @@
     "ml_score": 0.375,
     "stored_at": "2026-06-11T19:30:12.194200+00:00",
     "expires_at": "2026-06-11T21:30:12.194212+00:00"
+  },
+  "NVDA_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "NVDA",
+    "trigger": "FVG",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-11T20:00:04.534994+00:00",
+    "expires_at": "2026-06-11T22:00:04.535012+00:00"
+  },
+  "ADBE_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "ADBE",
+    "trigger": "BOS",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-11T20:00:05.236398+00:00",
+    "expires_at": "2026-06-11T22:00:05.236411+00:00"
+  },
+  "MSTR_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "MSTR",
+    "trigger": "FVG",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-11T20:00:05.861367+00:00",
+    "expires_at": "2026-06-11T22:00:05.861379+00:00"
+  },
+  "SOXL_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "SOXL",
+    "trigger": "BOS",
+    "ml_score": 0.875,
+    "stored_at": "2026-06-11T20:00:06.009732+00:00",
+    "expires_at": "2026-06-11T22:00:06.009744+00:00"
   }
 }
