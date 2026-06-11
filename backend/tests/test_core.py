@@ -148,9 +148,9 @@ def test_normalize_outcome():
 def test_feature_names():
     print("\n[3] FEATURE_NAMES")
 
-    assert_eq("count is 25", len(FEATURE_NAMES), 25)
-    assert_eq("first is f1_rsi",  FEATURE_NAMES[0],  "f1_rsi")
-    assert_eq("last is f25_tod",  FEATURE_NAMES[24], "f25_tod")
+    assert_eq("count is 26", len(FEATURE_NAMES), 26)
+    assert_eq("first is f1_rsi",   FEATURE_NAMES[0],  "f1_rsi")
+    assert_eq("last is f26_stoch", FEATURE_NAMES[25], "f26_stoch")
 
     # All must use named format (underscore), not compact (f1, f2...)
     for name in FEATURE_NAMES:
@@ -161,7 +161,7 @@ def test_feature_names():
         )
 
     # No duplicates
-    assert_eq("no duplicates", len(set(FEATURE_NAMES)), 25)
+    assert_eq("no duplicates", len(set(FEATURE_NAMES)), 26)
 
     # Spot-check key features referenced in signal logic
     assert_true("f2_adx present",   "f2_adx"   in FEATURE_NAMES)
@@ -327,23 +327,23 @@ def test_row_to_vector():
     # Named keys read directly
     named_row = {name: float(i) for i, name in enumerate(FEATURE_NAMES, start=1)}
     vec = row_to_vector(named_row)
-    assert_eq("named vec length", len(vec), 25)
+    assert_eq("named vec length", len(vec), 26)
     assert_eq("named f1_rsi → 1.0", vec[0], 1.0)
-    assert_eq("named f25_tod → 25.0", vec[24], 25.0)
+    assert_eq("named f26_stoch → 26.0", vec[25], 26.0)
 
-    # Legacy compact keys (f1..f25) fall back correctly
-    compact_row = {f"f{i}": float(i) * 0.1 for i in range(1, 26)}
+    # Legacy compact keys (f1..f26) fall back correctly
+    compact_row = {f"f{i}": float(i) * 0.1 for i in range(1, 27)}
     vec2 = row_to_vector(compact_row)
-    assert_eq("compact vec length", len(vec2), 25)
+    assert_eq("compact vec length", len(vec2), 26)
     assert_eq("compact f1 → 0.1", round(vec2[0], 4), 0.1)
-    assert_eq("compact f25 → 2.5", round(vec2[24], 4), 2.5)
+    assert_eq("compact f26 → 2.6", round(vec2[25], 4), 2.6)
 
     # Named takes precedence over compact when both present
     mixed = {"f1_rsi": 9.0, "f1": 1.0}
     assert_eq("named wins over compact", row_to_vector(mixed)[0], 9.0)
 
     # Missing keys default to 0.0 (no crash)
-    assert_eq("empty row → zeros", row_to_vector({}), [0.0] * 25)
+    assert_eq("empty row → zeros", row_to_vector({}), [0.0] * 26)
 
 
 # ── Runner ────────────────────────────────────────────────────────────────────

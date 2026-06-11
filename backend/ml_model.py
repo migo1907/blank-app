@@ -38,9 +38,10 @@ FEATURE_NAMES = [
     "f23_rsiacc",  # RSI Acceleration
     "f24_fvgq",    # FVG Quality (post-sweep)
     "f25_tod",     # Time-of-Day sine
+    "f26_stoch",   # Stochastic %K normalised
 ]
 
-N_FEATURES = 25
+N_FEATURES = 26
 
 
 def row_to_vector(row: dict) -> list[float]:
@@ -86,6 +87,7 @@ class Features:
     f23: float = 0.0   # RSI Acceleration
     f24: float = 0.0   # FVG Quality (post-sweep)
     f25: float = 0.0   # Time-of-Day sine
+    f26: float = 0.0   # Stochastic %K normalised
 
     def as_list(self) -> list[float]:
         return [
@@ -94,11 +96,12 @@ class Features:
             self.f11, self.f12, self.f13, self.f14, self.f15,
             self.f16, self.f17, self.f18, self.f19, self.f20,
             self.f21, self.f22, self.f23, self.f24, self.f25,
+            self.f26,
         ]
 
     @classmethod
     def from_payload(cls, payload: dict) -> "Features":
-        """Build Features from a webhook payload dict (f1..f25 keys)."""
+        """Build Features from a webhook payload dict (f1..f26 keys)."""
         return cls(
             f1=float(payload.get("f1", 0.0)),
             f2=float(payload.get("f2", 0.0)),
@@ -125,6 +128,7 @@ class Features:
             f23=float(payload.get("f23", 0.0)),
             f24=float(payload.get("f24", 0.0)),
             f25=float(payload.get("f25", 0.0)),
+            f26=float(payload.get("f26", 0.0)),
         )
 
     def as_db_dict(self) -> dict:

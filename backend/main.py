@@ -279,7 +279,7 @@ class TradeOutcomePayload(BaseModel):
     f13: float = 0.0; f14: float = 0.0; f15: float = 0.0; f16: float = 0.0
     f17: float = 0.0; f18: float = 0.0; f19: float = 0.0; f20: float = 0.0
     f21: float = 0.0; f22: float = 0.0; f23: float = 0.0; f24: float = 0.0
-    f25: float = 0.0
+    f25: float = 0.0; f26: float = 0.0
 
     model_config = {"extra": "ignore"}
 
@@ -295,7 +295,7 @@ class TradeOutcomePayload(BaseModel):
             "ml_score", "mfe", "entry_price", "exit_price",
             "f1","f2","f3","f4","f5","f6","f7","f8","f9","f10",
             "f11","f12","f13","f14","f15","f16","f17","f18","f19","f20",
-            "f21","f22","f23","f24","f25",
+            "f21","f22","f23","f24","f25","f26",
         }
         for k in float_fields:
             if k in values and values[k] is None:
@@ -364,7 +364,7 @@ class UnifiedPayload(BaseModel):
     f13: float = 0.0; f14: float = 0.0; f15: float = 0.0; f16: float = 0.0
     f17: float = 0.0; f18: float = 0.0; f19: float = 0.0; f20: float = 0.0
     f21: float = 0.0; f22: float = 0.0; f23: float = 0.0; f24: float = 0.0
-    f25: float = 0.0
+    f25: float = 0.0; f26: float = 0.0
 
     model_config = {"extra": "ignore"}
 
@@ -381,7 +381,7 @@ class UnifiedPayload(BaseModel):
             "ml_score", "mfe",
             "f1","f2","f3","f4","f5","f6","f7","f8","f9","f10",
             "f11","f12","f13","f14","f15","f16","f17","f18","f19","f20",
-            "f21","f22","f23","f24","f25",
+            "f21","f22","f23","f24","f25","f26",
         }
         for k in float_fields:
             if k in values and values[k] is None:
@@ -501,7 +501,7 @@ async def trade_outcome(payload: TradeOutcomePayload):
             f13=payload.f13, f14=payload.f14, f15=payload.f15, f16=payload.f16,
             f17=payload.f17, f18=payload.f18, f19=payload.f19, f20=payload.f20,
             f21=payload.f21, f22=payload.f22, f23=payload.f23, f24=payload.f24,
-            f25=payload.f25,
+            f25=payload.f25, f26=payload.f26,
         )
         # Update in-memory cache immediately, persist to GitHub in background
         from signal_engine import _latest_features
@@ -559,7 +559,7 @@ async def trade_outcome(payload: TradeOutcomePayload):
             f13=payload.f13, f14=payload.f14, f15=payload.f15, f16=payload.f16,
             f17=payload.f17, f18=payload.f18, f19=payload.f19, f20=payload.f20,
             f21=payload.f21, f22=payload.f22, f23=payload.f23, f24=payload.f24,
-            f25=payload.f25,
+            f25=payload.f25, f26=payload.f26,
         )
 
         # Signed realized move (favorable = positive). Lets the KNN re-classify a
@@ -857,7 +857,7 @@ async def unified_webhook(payload: UnifiedPayload):
             f13=payload.f13, f14=payload.f14, f15=payload.f15, f16=payload.f16,
             f17=payload.f17, f18=payload.f18, f19=payload.f19, f20=payload.f20,
             f21=payload.f21, f22=payload.f22, f23=payload.f23, f24=payload.f24,
-            f25=payload.f25,
+            f25=payload.f25, f26=payload.f26,
         )
         from signal_engine import _latest_features
         _latest_features[pool] = features
