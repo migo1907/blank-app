@@ -508,7 +508,7 @@ async def _hourly_system_check() -> None:
         if _scheduler and _scheduler.running:
             jobs = _scheduler.get_jobs()
             job_ids = [j.id for j in jobs]
-            expected = {"news_signal_cycle", "breaking_news_cycle", "hourly_system_check", "macro_refresh_cycle", "daily_market_brief", "stocks_session_report", "daily_trade_count_report", "fj_session_refresh", "market_pulse"}
+            expected = {"news_signal_cycle", "breaking_news_cycle", "hourly_system_check", "macro_refresh_cycle", "daily_trade_count_report", "fj_session_refresh", "market_pulse"}
             missing = expected - set(job_ids)
             if not missing:
                 ok.append(f"Scheduler — {len(jobs)} jobs running ✅")
@@ -863,9 +863,9 @@ async def _hourly_system_check() -> None:
 
 async def _daily_trade_count_report() -> None:
     """
-    Daily performance summary at 21:15 UTC (after US session close).
-    Shows signals fired today, TP wins, SL hits, win ratio — consolidated across all pools,
-    with a per-symbol breakdown for XAUUSD vs each stock symbol.
+    RULE: One daily performance report, fired once after NY session closes (16:15 ET).
+    Consolidated across all pools — XAUUSD + all stocks.
+    No other daily brief fires; this is the only end-of-day message.
     """
     from datetime import datetime, timezone, date
     if datetime.now(timezone.utc).weekday() >= 5:
@@ -1004,37 +1004,6 @@ async def _daily_trade_count_report() -> None:
         print(f"[daily_report] Performance report sent — {tot} trades today, TP={tp} SL={sl} P={par}.")
     except Exception as e:
         print(f"[daily_report] Error: {e}")
-
-
-async def _stocks_session_report() -> None:
-    from datetime import datetime, timezone
-    if datetime.now(timezone.utc).weekday() >= 5:
-        return
-    print("[scheduler] Generating stocks session report…")
-    try:
-        from telegram_bot import send_stocks_session_report
-        await send_stocks_session_report()
-    except Exception as e:
-        print(f"[session_report] Error: {e}")
-
-
-async def _daily_market_brief() -> None:
-    from datetime import datetime, timezone
-    now = datetime.now(timezone.utc)
-    if now.weekday() >= 5:
-        return
-    print("[daily] Generating daily market brief…")
-    try:
-        from daily_analysis import generate_daily_brief
-        from telegram_bot import send_text
-        msg = await asyncio.to_thread(generate_daily_brief)
-        if msg:
-            await send_text(msg)
-            print("[daily] Daily brief sent to Telegram.")
-        else:
-            print("[daily] Brief generation returned None — skipped.")
-    except Exception as e:
-        print(f"[daily] Brief error: {e}")
 
 
 async def _weekly_mistake_autopsy() -> None:
@@ -1464,16 +1433,11 @@ def start_scheduler() -> AsyncIOScheduler:
     _scheduler.add_job(_hourly_system_check, trigger="interval", hours=1, id="hourly_system_check", replace_existing=True)
     _scheduler.add_job(_macro_refresh_cycle, trigger="interval", hours=1, id="macro_refresh_cycle", replace_existing=True,
                        start_date=_dt.now(_tz.utc) + _td(seconds=20))
-    # Daily brief at 12:00 UTC (4:00 PM Dubai) — inside US premarket so SPY/QQQ show
-    # live premarket prices; levels are pre-fetched at 11:50 UTC by GitHub Actions.
-    _scheduler.add_job(_daily_market_brief, trigger="cron", hour=12, minute=0, id="daily_market_brief", replace_existing=True, misfire_grace_time=3600)
-    # NY-close reports are pinned to America/New_York (16:0x ET) so they auto-adjust
-    # for DST. Previously hardcoded to 21:0x UTC, which fired an hour late all summer
-    # (EDT close is 20:00 UTC, not 21:00).
+    # ONE daily performance report — fires at 16:15 ET (after NY session close).
+    # DST-safe via America/New_York so it always fires 15 min after market close.
     from zoneinfo import ZoneInfo
     _ny_tz = ZoneInfo("America/New_York")
-    _scheduler.add_job(_stocks_session_report, trigger="cron", hour=16, minute=5, timezone=_ny_tz, id="stocks_session_report", replace_existing=True, misfire_grace_time=3600)
-    _scheduler.add_job(_daily_trade_count_report, trigger="cron", hour=16, minute=1, timezone=_ny_tz, id="daily_trade_count_report", replace_existing=True, misfire_grace_time=3600)
+    _scheduler.add_job(_daily_trade_count_report, trigger="cron", hour=16, minute=15, timezone=_ny_tz, id="daily_trade_count_report", replace_existing=True, misfire_grace_time=3600)
     # Proactively renew the FinancialJuice session twice daily so the cookie never lapses.
     _scheduler.add_job(_fj_session_refresh_cycle, trigger="cron", hour="5,17", minute=30, id="fj_session_refresh", replace_existing=True, misfire_grace_time=3600)
     # Market pulse — direction summary at London open (10:00), NY open (14:00), NY close (20:00) UTC.
@@ -1496,21 +1460,15 @@ def start_scheduler() -> AsyncIOScheduler:
     _scheduler.add_job(_fj_session_refresh_cycle, trigger="date", run_date=_now + _td(seconds=60),
                        id="fj_session_refresh_boot", replace_existing=True)
 
-    # Startup catch-up: fire daily brief only if redeployed within 1h of the 12:00 UTC slot
-    if _now.weekday() < 5 and 12 <= _now.hour < 13:
-        print("[scheduler] Startup catch-up: firing missed 12:00 UTC daily brief.")
-        _scheduler.add_job(_daily_market_brief, trigger="date", run_date=_now + _td(seconds=30),
-                           id="daily_brief_catchup", replace_existing=True)
-
-    # Startup catch-up: fire daily performance report only if we missed the 16:01 ET
-    # cron today (boot after NY close). Uses NY time so it tracks DST automatically.
+    # Startup catch-up: fire daily performance report if we missed the 16:15 ET cron
+    # (e.g. redeployed after NY close). Uses NY time so it tracks DST automatically.
     _now_ny = _now.astimezone(_ny_tz)
-    if _now_ny.weekday() < 5 and _now_ny.hour >= 16 and (_now_ny.hour, _now_ny.minute) >= (16, 1):
+    if _now_ny.weekday() < 5 and (_now_ny.hour, _now_ny.minute) >= (16, 15):
         print("[scheduler] Startup catch-up: firing daily performance report on boot.")
         _scheduler.add_job(_daily_trade_count_report, trigger="date", run_date=_now + _td(seconds=45),
                            id="daily_report_catchup", replace_existing=True)
 
-    print(f"[scheduler] Started — signal every {interval} min, breaking news every 2 min (Telegram paused), system check every 60 min, daily brief at 12:00 UTC.")
+    print(f"[scheduler] Started — signal every {interval} min, breaking news every 2 min, system check every 60 min, daily performance report at 16:15 ET.")
     return _scheduler
 
 
