@@ -8,10 +8,13 @@
 - [ ] **RE-CREATE your TradingView alerts — f26 is NOT arriving**
   - The Pine Script editor was updated to the f26 version, but TradingView alerts
     snapshot the script at creation time. The live heartbeats still send only f1–f25.
-  - Delete each of the 6 alerts and re-create them from the updated f26 script
-    (same webhook URL: `/webhook`, same message: `{{strategy.order.alert_message}}` / alert() payload)
+  - You have **14 alerts total: 7 signal alerts + 7 heartbeat alerts** — every one of
+    them must be deleted and re-created from the updated f26 script
+    (same webhook URL: `/webhook`, same condition type as before)
+  - **Tip:** re-create them one chart at a time so no pool goes dark for long
   - **Verify:** after re-creating, the dashboard table should show the "Stoch:" value,
-    and `data/feature_cache.json` on the data branch will include an `f26` key.
+    and `data/feature_cache.json` on the data branch will include an `f26` key
+    (I will verify this from my side once you say it's done)
 
 - [ ] **Fix `FJ_EMAIL` and `FJ_PASSWORD` in Railway — FinancialJuice login is failing**
   - Log shows: `Auto-login failed — no .ASPXAUTH cookie received`

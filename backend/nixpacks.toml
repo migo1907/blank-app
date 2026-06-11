@@ -1,5 +1,8 @@
 [phases.setup]
 nixPkgs = ["python313", "gcc"]
+# libgomp1: required by lightgbm at import time — without it the joint
+# gold/stock models silently stay disabled (lgbm_available: false in /health)
+aptPkgs = ["libgomp1"]
 
 [start]
 cmd = "uvicorn main:app --host 0.0.0.0 --port $PORT"
