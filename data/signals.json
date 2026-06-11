@@ -2062,7 +2062,7 @@
     "regime": "TRENDING_BEAR",
     "regime_label": "TREND_FOLLOW",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BEAR(TREND_FOLLOW)\u00d71.15 | sess:ASIAN\u00d70.85 | confluence\u00d70.90 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+0.94) | news:bullish(+0.311) | macro:NEUTRAL(-0.032) | combined:-0.049 \u2192 conf:0.052 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-11T04:56:58.261753+00:00",
     "created_at": "2026-06-11T04:26:58.933688+00:00",
     "id": 101
