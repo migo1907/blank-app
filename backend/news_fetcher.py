@@ -381,12 +381,17 @@ def _fj_auto_login() -> bool:
                     continue
                 t = t_m.group(1).lower()
                 n = n_m.group(1)
-                # Skip forgot-password form fields — only want the sign-in email field
-                if "forgot" not in n.lower():
+                # FJ login page has multiple forms — prefer loginForm1 fields,
+                # skip GooglePlusLogin and forgotpasswordform fields
+                skip = any(x in n.lower() for x in ("forgot", "googleplus", "signup"))
+                is_login = "loginform1" in n.lower()
+                if not skip or is_login:
                     if t == "email" or (t == "text" and "mail" in n.lower()):
-                        email_field = n
-                if t == "password" and "forgot" not in n.lower():
-                    password_field = n
+                        if not email_field or is_login:
+                            email_field = n
+                    if t == "password":
+                        if not password_field or is_login:
+                            password_field = n
 
             # Fallback to common names if not found in page
             email_field    = email_field    or "Email"
@@ -394,7 +399,8 @@ def _fj_auto_login() -> bool:
 
             form_data[email_field]    = email
             form_data[password_field] = password
-            form_data["RememberMe"]   = "true"
+            # Ensure the loginForm1 RememberMe checkbox is checked
+            form_data["ctl00$SignInSignUp$loginForm1$cbRemmebrMe"] = "on"
 
             # Also try setting the submit button value (ASP.NET WebForms often requires it)
             for m in _re.finditer(r'<input([^>]+)>', r0.text, _re.IGNORECASE):
