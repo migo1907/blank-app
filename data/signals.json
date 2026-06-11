@@ -2080,7 +2080,7 @@
     "regime": "TRENDING_BEAR",
     "regime_label": "TREND_FOLLOW",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BEAR(TREND_FOLLOW)\u00d71.15 | sess:OFF\u00d70.65 | confluence\u00d71.41 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.06) | news:neutral(+0.084) | macro:BEARISH(-0.157) | combined:-0.147 \u2192 conf:0.186 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-11T23:51:03.847506+00:00",
     "created_at": "2026-06-11T23:21:05.472400+00:00",
     "id": 101
