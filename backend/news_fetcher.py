@@ -735,7 +735,7 @@ def fetch_upcoming_events(hours_ahead: int = 24) -> dict:
         except Exception:
             continue
         mins = (ts - now).total_seconds() / 60.0
-        if mins < -120 or mins > hours_ahead * 60:  # past >2h or beyond window
+        if mins < -30 or mins > hours_ahead * 60:  # past >30min or beyond window
             continue
         etype, urg = matched if matched else (ev.get("event", "EVENT"), 0.85)
         upcoming.append({
@@ -774,7 +774,7 @@ def detect_high_impact_event(articles: list[dict]) -> dict:
     fresh = [
         a for a in articles
         if a.get("published_at") is None  # no timestamp → assume fresh (FJ items)
-        or (now - a["published_at"]).total_seconds() < 86400  # < 24 hours
+        or (now - a["published_at"]).total_seconds() < 14400  # < 4 hours (post-event analysis beyond 4h is stale)
     ]
     all_text  = " ".join(a["title"] for a in fresh).upper()
     triggered = []
