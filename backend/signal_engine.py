@@ -59,7 +59,7 @@ def update_latest_features(pool: str, features: Features) -> None:
                         "f16": _feat.f16, "f17": _feat.f17, "f18": _feat.f18,
                         "f19": _feat.f19, "f20": _feat.f20, "f21": _feat.f21,
                         "f22": _feat.f22, "f23": _feat.f23, "f24": _feat.f24,
-                        "f25": _feat.f25,
+                        "f25": _feat.f25, "f26": _feat.f26,
                         "timestamp": datetime.now(_tz.utc).isoformat(),
                     }
                 _put_file(_FEATURE_CACHE_PATH, payload, sha,
