@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-06-11T20:18:37.456772+00:00",
+  "checked_at": "2026-06-11T22:21:44.367107+00:00",
   "health": {
     "status_code": 200,
     "data": {
@@ -186,33 +186,33 @@
         "weights": {
           "w1": 0.2,
           "w2": 0.2,
-          "w3": 1.3118,
+          "w3": 1.2918,
           "w4": 0.2,
           "w5": 0.2,
           "w6": 3.0,
           "w7": 0.2,
-          "w8": 0.3827,
-          "w9": 0.2,
+          "w8": 0.4027,
+          "w9": 0.22,
           "w10": 0.7827,
           "w11": 0.2,
           "w12": 1.6483,
-          "w13": 1.9483,
+          "w13": 1.9283,
           "w14": 1.3978,
           "w15": 1.1868,
-          "w16": 0.4717,
+          "w16": 0.4517,
           "w17": 0.3212,
-          "w18": 0.21,
+          "w18": 0.2,
           "w19": 1.4493,
-          "w20": 0.2152,
+          "w20": 0.2352,
           "w21": 0.3892,
           "w22": 0.2,
           "w23": 0.2,
-          "w24": 1.4093,
-          "w25": 1.1532,
-          "w26": 0.8855
+          "w24": 1.4293,
+          "w25": 1.1332,
+          "w26": 0.8655
         },
-        "win_rate": 38.9,
-        "total_trades": 414,
+        "win_rate": 38.7,
+        "total_trades": 416,
         "top_features": [
           {
             "name": "WillR",
@@ -220,7 +220,7 @@
           },
           {
             "name": "P/D",
-            "weight": 1.9483
+            "weight": 1.9283
           },
           {
             "name": "Liq",
@@ -232,37 +232,36 @@
         "trained": true,
         "top_features": [
           {
-            "name": "f2_adx",
-            "importance": 0.2484
+            "name": "f3_atr",
+            "importance": 0.2731
           },
           {
             "name": "f6_willr",
-            "importance": 0.2403
+            "importance": 0.2519
           },
           {
             "name": "f8_ema_dist",
-            "importance": 0.239
+            "importance": 0.1938
           }
         ]
       },
-      "news_sentiment": 0.1063,
+      "news_sentiment": 0.1384,
       "news_velocity": {
-        "multiplier": 0.6,
-        "volume": 38,
-        "consistency": 0.209,
-        "acceleration": 0.019,
+        "multiplier": 0.8,
+        "volume": 30,
+        "consistency": 0.389,
+        "acceleration": 0.079,
         "direction": "BULLISH",
-        "label": "CONFLICTED",
-        "high_count": 7,
-        "total_count": 45
+        "label": "LOW",
+        "high_count": 6,
+        "total_count": 46
       },
       "high_impact_event": {
         "detected": true,
         "event_type": "CPI",
         "urgency": 0.9,
         "headlines": [
-          "Treasury yields steady as investors monitor inflation data, U.S. strikes in Iran",
-          "Gold rebounds from six-month low; US inflation data in focus - Reuters"
+          "Treasury yields steady as investors monitor inflation data, U.S. strikes in Iran"
         ],
         "all_events": [
           "CPI",
@@ -272,6 +271,16 @@
       },
       "recent_news_count": 200,
       "recent_trades": [
+        {
+          "direction": "SHORT",
+          "outcome": "LOSS",
+          "created_at": "2026-06-11T22:06:13.779329+00:00"
+        },
+        {
+          "direction": "SHORT",
+          "outcome": "PARTIAL",
+          "created_at": "2026-06-11T22:04:02.964587+00:00"
+        },
         {
           "direction": "LONG",
           "outcome": "LOSS",
@@ -311,16 +320,6 @@
           "direction": "LONG",
           "outcome": "LOSS",
           "created_at": "2026-06-11T18:56:05.612939+00:00"
-        },
-        {
-          "direction": "LONG",
-          "outcome": "PARTIAL",
-          "created_at": "2026-06-11T18:50:06.941148+00:00"
-        },
-        {
-          "direction": "LONG",
-          "outcome": "WIN",
-          "created_at": "2026-06-11T18:46:07.228044+00:00"
         }
       ]
     }
@@ -332,34 +331,34 @@
       "weights": {
         "w1": 0.2,
         "w2": 0.2,
-        "w3": 1.3118,
+        "w3": 1.2918,
         "w4": 0.2,
         "w5": 0.2,
         "w6": 3.0,
         "w7": 0.2,
-        "w8": 0.3827,
-        "w9": 0.2,
+        "w8": 0.4027,
+        "w9": 0.22,
         "w10": 0.7827,
         "w11": 0.2,
         "w12": 1.6483,
-        "w13": 1.9483,
+        "w13": 1.9283,
         "w14": 1.3978,
         "w15": 1.1868,
-        "w16": 0.4717,
+        "w16": 0.4517,
         "w17": 0.3212,
-        "w18": 0.21,
+        "w18": 0.2,
         "w19": 1.4493,
-        "w20": 0.2152,
+        "w20": 0.2352,
         "w21": 0.3892,
         "w22": 0.2,
         "w23": 0.2,
-        "w24": 1.4093,
-        "w25": 1.1532,
-        "w26": 0.8855
+        "w24": 1.4293,
+        "w25": 1.1332,
+        "w26": 0.8655
       },
       "total_wins": 161,
-      "total_losses": 253,
-      "win_rate": 38.9,
+      "total_losses": 255,
+      "win_rate": 38.7,
       "top_features": [
         {
           "name": "WillR",
@@ -367,7 +366,7 @@
         },
         {
           "name": "P/D",
-          "weight": 1.9483
+          "weight": 1.9283
         },
         {
           "name": "Liq",
