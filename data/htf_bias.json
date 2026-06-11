@@ -151,5 +151,14 @@
     "ml_score": 0.625,
     "stored_at": "2026-06-11T19:00:00.930147+00:00",
     "expires_at": "2026-06-11T21:00:00.930165+00:00"
+  },
+  "GOOGL_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "GOOGL",
+    "trigger": "FVG",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-11T19:30:03.127718+00:00",
+    "expires_at": "2026-06-11T21:30:03.127739+00:00"
   }
 }
