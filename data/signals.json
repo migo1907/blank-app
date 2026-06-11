@@ -1,27 +1,5 @@
 [
   {
-    "symbol": "XAUUSD",
-    "pool": "XAUUSD_2M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.625,
-    "rf_score": 0.3397,
-    "gbm_score": 0.3558,
-    "news_score": 0.2506,
-    "macro_bias": -0.0321,
-    "macro_label": "NEUTRAL",
-    "combined_score": 0.0347,
-    "session": "OVERLAP",
-    "regime": "NORMAL",
-    "regime_label": "NORMAL",
-    "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:NORMAL(NORMAL)\u00d71.00 | sess:OVERLAP\u00d71.30 | confluence\u00d70.83 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.14) | news:bullish(+0.251) | macro:NEUTRAL(-0.032) | combined:+0.035 \u2192 conf:0.037 \u26a1 CPI",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-11T14:34:35.163790+00:00",
-    "created_at": "2026-06-11T14:04:36.662560+00:00",
-    "id": 101
-  },
-  {
     "symbol": "SPY",
     "pool": "STOCKS_INDEX_30M",
     "direction": "NEUTRAL",
@@ -2195,6 +2173,28 @@
     "status": "NEUTRAL",
     "expires_at": "2026-06-11T19:51:05.419344+00:00",
     "created_at": "2026-06-11T19:21:05.495089+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "SPY",
+    "pool": "STOCKS_INDEX_30M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "news_score": 0.0721,
+    "macro_bias": 0.0298,
+    "macro_label": "NEUTRAL",
+    "combined_score": 0.0211,
+    "session": "NYSE_AFTERNOON",
+    "regime": "NORMAL",
+    "regime_label": "NORMAL",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d71.08 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.42) | news:neutral(+0.072) | macro:NEUTRAL(+0.030) | combined:+0.021 \u2192 conf:0.030 \u26a1 CPI",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-11T19:51:07.452264+00:00",
+    "created_at": "2026-06-11T19:21:07.779199+00:00",
     "id": 101
   }
 ]
