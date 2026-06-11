@@ -276,17 +276,14 @@ def build_spx_recommendation(direction: str, confidence: float,
 
 
 def format_telegram(rec: dict) -> str:
-    size_note = " | ⚠️ VIX>25 — HALF SIZE" if rec.get("half_size") else ""
-    ivr = f"{rec['iv_rank']:.0f}" if rec.get("iv_rank") is not None else "n/a"
+    size_note = "\n⚠️ VIX>25 — HALF SIZE" if rec.get("half_size") else ""
     return (
         f"🎯 <b>SPX {rec['dte']}DTE — {rec['type']} {int(rec['strike'])}</b> (Δ{rec['delta']:+.2f})\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
         f"📄 PAPER | conf {rec['confidence']:.2f} | spot {rec['spot']:.0f}\n"
         f"💵 entry ≈ ${rec['entry_premium']:.2f} (delayed — check live on TV)\n"
         f"🎯 TP ${rec['tp_premium']:.2f} (+100%)  🛑 SL ${rec['sl_premium']:.2f} (-50%)\n"
-        f"⏰ hard exit: {rec['hard_exit']}\n"
-        f"📊 IVR {ivr} | VIX {rec.get('vix','?')} ({rec.get('vix_ratio','?')}){size_note}\n"
-        f"📈 TV: <code>{rec['tv_symbol']}</code>"
+        f"⏰ hard exit: {rec['hard_exit']}{size_note}"
     )
 
 
