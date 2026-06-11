@@ -307,7 +307,7 @@ def test_agreement_multiplier():
 def test_ml_thresholds():
     print("\n[9] ML thresholds")
 
-    assert_eq("MIN_TRADES = 15", MIN_TRADES, 15)
+    assert_eq("MIN_TRADES = 30", MIN_TRADES, 30)
 
     from signal_engine import MIN_CONFIDENCE, MIN_CONFIDENCE_STOCKS, ML_GATE_THRESHOLD
     assert_true("MIN_CONFIDENCE gold ≥ 0.50",   MIN_CONFIDENCE        >= 0.50)
