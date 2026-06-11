@@ -49,9 +49,9 @@
     "timeframe": "30",
     "symbol": "ADBE",
     "trigger": "BOS",
-    "ml_score": 0.5,
-    "stored_at": "2026-06-11T14:30:15.755921+00:00",
-    "expires_at": "2026-06-11T16:30:15.755935+00:00"
+    "ml_score": 0.625,
+    "stored_at": "2026-06-11T14:00:26.261588+00:00",
+    "expires_at": "2026-06-11T16:00:26.261603+00:00"
   },
   "SOXL_30": {
     "direction": "LONG",
@@ -79,14 +79,5 @@
     "ml_score": 0.5,
     "stored_at": "2026-06-11T14:30:15.352783+00:00",
     "expires_at": "2026-06-11T16:30:15.352797+00:00"
-  },
-  "META_30": {
-    "direction": "SHORT",
-    "timeframe": "30",
-    "symbol": "META",
-    "trigger": "BOS",
-    "ml_score": 0.5,
-    "stored_at": "2026-06-11T14:30:15.757394+00:00",
-    "expires_at": "2026-06-11T16:30:15.757401+00:00"
   }
 }
