@@ -84,6 +84,49 @@ When VIX spikes → stock signals get size reduction
 
 ---
 
+## PHASE 2C — SPX500 Options Layer (calls/puts only, long premium)
+**Goal:** Translate existing SPX500 directional signals into option trade recommendations — direction → CALL/PUT, with strike, expiry, and time-stop. No spreads, no selling premium.
+
+**What already exists (reuse, don't rebuild):**
+- STOCKS_SPX500 pools (15M/30M/4H) produce LONG/SHORT signals through the full ML gate
+- JointStocksGBM covers SPX while per-pool models wait for 50+ trades
+- Economic calendar (Finnhub) + geopolitical shock detection — critical for options (IV crush around events)
+- Telegram delivery + data-branch persistence patterns
+
+### Stage A — Data & Translation (paper only, ~1-2 weeks dev)
+| Task | Method |
+|------|--------|
+| **VIX feed** | yfinance `^VIX` + term structure (VIX/VIX3M ratio) — refresh hourly in market_macro. VIX > 25 = reduce size; VIX/VIX3M > 1 (backwardation) = panic regime, no long calls |
+| **Options chain source** | yfinance SPY/SPX options (free, 15-min delayed — fine for signals). Fallback: CBOE delayed CSV. Fetch on signal only, not continuously |
+| **IV Rank filter** | Store daily ATM IV in data branch → IV Rank = percentile over trailing 60 sessions. **Rule: only buy premium when IV Rank < 50** — buying expensive vol is the #1 retail option killer |
+| **Signal → contract translator** (`options_engine.py`) | direction LONG→CALL, SHORT→PUT. Strike: delta 0.40 (slightly OTM — best gamma/cost balance for directional bets). Expiry by pool TF: 15M signal → 0-1 DTE; 30M → nearest weekly (3-7 DTE); 4H → 2-3 weeks |
+| **Expected-move check** | Straddle price at ATM = market's expected move. Only take the trade if the signal's TP1 target (ATR-based) ≥ 0.8× expected move — otherwise the option can't pay for its theta |
+| **Event filter** | No new long premium within 24h before FOMC/CPI/NFP (IV crush after print kills the trade even when direction is right). Reuse `_check_scheduled_events` |
+| **Time stop, not price stop** | Long options: exit at 50% premium loss OR 2× premium gain OR fixed time stop (0DTE: 2h, weekly: 2 days, monthly: 5 days). Never hold 0DTE past 15:30 ET |
+| **Paper ledger** | `data/options_paper_SPX.json` — entry premium, strike, delta, IV at entry, exit premium, Greeks snapshot. Same schema discipline as trade_history |
+| **Telegram format** | `🎯 SPX OPTIONS — CALL 6080 (Δ0.41) exp Jun-13 @ $12.40 | IVR 32 | TP $24.80 / SL $6.20 / time-stop 2d` |
+
+### Stage B — ML & Validation (needs 50+ paper option trades, ~4-6 weeks data)
+| Task | Method |
+|------|--------|
+| Label option outcomes | WIN = ≥50% premium gain, LOSS = stopped, separate from underlying WIN/LOSS — an option can lose while direction was right (theta/IV) |
+| New features for option gate | f27_ivrank, f28_vix_regime, f29_term_structure, f30_dte — train a dedicated small GBM: "given the directional signal fired, will the OPTION pay?" |
+| Theta-adjusted Kelly sizing | Position size = ¼ Kelly on option win-rate × payoff ratio, capped at 2% account risk per trade |
+| Walk-forward validation | Same champion-challenger pattern as pools — never deploy an option gate that hasn't beaten "take every signal" out-of-sample |
+
+### Stage C — Execution (Phase 4 territory, only after Stage B proves edge)
+- Broker API: Tradier (cheapest API access, sandbox first) or IBKR
+- Hard limits: max 3 open contracts, max 5% account in premium, kill-switch env var
+
+**Prerequisites before Stage A is worth starting:**
+1. ⚠️ STOCKS_SPX500 pools are thin (8/8/3 trades) — the directional signal itself needs ~30+ trades to be trustworthy. Options amplify both edge AND noise.
+2. Decide instrument: **SPY options** (cheap, liquid, $1-wide strikes — recommended for paper) vs SPX (cash-settled, 10× size, better tax treatment but $5-wide strikes)
+
+**Exit criteria for Stage A → B:** 50 paper option trades logged with full IV/Greeks data
+**Exit criteria for Stage B → C:** option-gate WR ≥ 55% AND profit factor ≥ 1.5 over 50+ out-of-sample paper trades
+
+---
+
 ## PHASE 3 — Semi-Autonomous: Signal Validation Layer
 **Goal:** System validates its own signals before sending them
 
