@@ -1,27 +1,5 @@
 [
   {
-    "symbol": "SPY",
-    "pool": "STOCKS_INDEX_30M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "news_score": 0.231,
-    "macro_bias": 0.0298,
-    "macro_label": "NEUTRAL",
-    "combined_score": 0.0578,
-    "session": "PRE_MARKET",
-    "regime": "NORMAL",
-    "regime_label": "NORMAL",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:PRE_MARKET\u00d70.90 | confluence\u00d70.70 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.48) | news:bullish(+0.231) | macro:NEUTRAL(+0.030) | combined:+0.058 \u2192 conf:0.044 \u26a1 CPI",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-11T11:30:38.593508+00:00",
-    "created_at": "2026-06-11T11:00:38.972152+00:00",
-    "id": 101
-  },
-  {
     "symbol": "QQQ",
     "pool": "STOCKS_QQQ_30M",
     "direction": "NEUTRAL",
@@ -2195,6 +2173,28 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-11T16:19:41.909777+00:00",
     "created_at": "2026-06-11T15:49:42.285462+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "QQQ",
+    "pool": "STOCKS_QQQ_30M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "news_score": 0.2348,
+    "macro_bias": 0.0298,
+    "macro_label": "NEUTRAL",
+    "combined_score": 0.0587,
+    "session": "NYSE_OPEN",
+    "regime": "NORMAL",
+    "regime_label": "NORMAL",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:NYSE_OPEN\u00d71.25 | confluence\u00d70.83 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.07) | news:bullish(+0.235) | macro:NEUTRAL(+0.030) | combined:+0.059 \u2192 conf:0.073 \u26a1 CPI",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-11T16:19:44.274986+00:00",
+    "created_at": "2026-06-11T15:49:44.765466+00:00",
     "id": 101
   }
 ]
