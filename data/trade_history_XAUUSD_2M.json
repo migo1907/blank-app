@@ -15714,7 +15714,7 @@
   {
     "symbol": "XAUUSD",
     "direction": "LONG",
-    "trigger": "RSI",
+    "trigger": "",
     "entry_price": 4088.43,
     "exit_price": 4083.95,
     "outcome": "LOSS",
@@ -15723,7 +15723,7 @@
     "tp_stage": "SL",
     "timeframe": "2",
     "pnl_pct": -0.1096,
-    "ml_bull_score": 0.375,
+    "ml_bull_score": 0.25,
     "regime": "TRENDING_BEAR",
     "session": "ASIAN",
     "f1_rsi": 0.0394,
@@ -15751,8 +15751,8 @@
     "f23_rsiacc": 0.3897,
     "f24_fvgq": 0.0,
     "f25_tod": 0.9976,
-    "id": "d5c87fc8",
+    "id": "b054385a",
     "pool": "XAUUSD_2M",
-    "created_at": "2026-06-11T06:20:05.823266+00:00"
+    "created_at": "2026-06-11T06:20:03.807889+00:00"
   }
 ]
