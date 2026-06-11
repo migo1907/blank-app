@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-06-11T22:21:44.367107+00:00",
+  "checked_at": "2026-06-11T23:59:42.298184+00:00",
   "health": {
     "status_code": 200,
     "data": {
@@ -186,33 +186,33 @@
         "weights": {
           "w1": 0.2,
           "w2": 0.2,
-          "w3": 1.2918,
+          "w3": 1.2818,
           "w4": 0.2,
-          "w5": 0.2,
+          "w5": 0.22,
           "w6": 3.0,
           "w7": 0.2,
-          "w8": 0.4027,
-          "w9": 0.22,
-          "w10": 0.7827,
+          "w8": 0.3327,
+          "w9": 0.2,
+          "w10": 0.6927,
           "w11": 0.2,
-          "w12": 1.6483,
-          "w13": 1.9283,
-          "w14": 1.3978,
-          "w15": 1.1868,
-          "w16": 0.4517,
-          "w17": 0.3212,
+          "w12": 1.5983,
+          "w13": 1.9783,
+          "w14": 1.3278,
+          "w15": 1.2568,
+          "w16": 0.5217,
+          "w17": 0.2712,
           "w18": 0.2,
-          "w19": 1.4493,
-          "w20": 0.2352,
-          "w21": 0.3892,
+          "w19": 1.3993,
+          "w20": 0.2,
+          "w21": 0.3192,
           "w22": 0.2,
           "w23": 0.2,
-          "w24": 1.4293,
-          "w25": 1.1332,
-          "w26": 0.8655
+          "w24": 1.3593,
+          "w25": 1.2032,
+          "w26": 0.7955
         },
-        "win_rate": 38.7,
-        "total_trades": 416,
+        "win_rate": 37.7,
+        "total_trades": 427,
         "top_features": [
           {
             "name": "WillR",
@@ -220,11 +220,11 @@
           },
           {
             "name": "P/D",
-            "weight": 1.9283
+            "weight": 1.9783
           },
           {
             "name": "Liq",
-            "weight": 1.6483
+            "weight": 1.5983
           }
         ]
       },
@@ -232,29 +232,29 @@
         "trained": true,
         "top_features": [
           {
-            "name": "f3_atr",
-            "importance": 0.2731
+            "name": "f2_adx",
+            "importance": 0.3201
           },
           {
             "name": "f6_willr",
-            "importance": 0.2519
+            "importance": 0.2997
           },
           {
             "name": "f8_ema_dist",
-            "importance": 0.1938
+            "importance": 0.2461
           }
         ]
       },
-      "news_sentiment": 0.1384,
+      "news_sentiment": 0.0936,
       "news_velocity": {
-        "multiplier": 0.8,
-        "volume": 30,
-        "consistency": 0.389,
-        "acceleration": 0.079,
+        "multiplier": 0.6,
+        "volume": 33,
+        "consistency": 0.222,
+        "acceleration": 0.042,
         "direction": "BULLISH",
-        "label": "LOW",
-        "high_count": 6,
-        "total_count": 46
+        "label": "CONFLICTED",
+        "high_count": 7,
+        "total_count": 47
       },
       "high_impact_event": {
         "detected": true,
@@ -272,54 +272,54 @@
       "recent_news_count": 200,
       "recent_trades": [
         {
+          "direction": "LONG",
+          "outcome": "LOSS",
+          "created_at": "2026-06-11T23:48:01.968679+00:00"
+        },
+        {
+          "direction": "LONG",
+          "outcome": "LOSS",
+          "created_at": "2026-06-11T23:42:03.612800+00:00"
+        },
+        {
+          "direction": "SHORT",
+          "outcome": "PARTIAL",
+          "created_at": "2026-06-11T23:32:02.501874+00:00"
+        },
+        {
+          "direction": "SHORT",
+          "outcome": "WIN",
+          "created_at": "2026-06-11T23:24:05.150320+00:00"
+        },
+        {
           "direction": "SHORT",
           "outcome": "LOSS",
-          "created_at": "2026-06-11T22:06:13.779329+00:00"
-        },
-        {
-          "direction": "SHORT",
-          "outcome": "PARTIAL",
-          "created_at": "2026-06-11T22:04:02.964587+00:00"
+          "created_at": "2026-06-11T23:10:04.130729+00:00"
         },
         {
           "direction": "LONG",
           "outcome": "LOSS",
-          "created_at": "2026-06-11T19:40:12.685507+00:00"
-        },
-        {
-          "direction": "LONG",
-          "outcome": "WIN",
-          "created_at": "2026-06-11T19:36:07.366447+00:00"
-        },
-        {
-          "direction": "LONG",
-          "outcome": "PARTIAL",
-          "created_at": "2026-06-11T19:32:12.597484+00:00"
-        },
-        {
-          "direction": "LONG",
-          "outcome": "WIN",
-          "created_at": "2026-06-11T19:32:07.436885+00:00"
-        },
-        {
-          "direction": "LONG",
-          "outcome": "WIN",
-          "created_at": "2026-06-11T19:18:03.337194+00:00"
-        },
-        {
-          "direction": "LONG",
-          "outcome": "PARTIAL",
-          "created_at": "2026-06-11T19:14:17.330833+00:00"
-        },
-        {
-          "direction": "LONG",
-          "outcome": "WIN",
-          "created_at": "2026-06-11T19:14:03.496808+00:00"
+          "created_at": "2026-06-11T23:02:02.664825+00:00"
         },
         {
           "direction": "LONG",
           "outcome": "LOSS",
-          "created_at": "2026-06-11T18:56:05.612939+00:00"
+          "created_at": "2026-06-11T22:50:01.886979+00:00"
+        },
+        {
+          "direction": "LONG",
+          "outcome": "LOSS",
+          "created_at": "2026-06-11T22:48:02.260398+00:00"
+        },
+        {
+          "direction": "LONG",
+          "outcome": "PARTIAL",
+          "created_at": "2026-06-11T22:46:01.892664+00:00"
+        },
+        {
+          "direction": "LONG",
+          "outcome": "PARTIAL",
+          "created_at": "2026-06-11T22:44:02.217069+00:00"
         }
       ]
     }
@@ -331,34 +331,34 @@
       "weights": {
         "w1": 0.2,
         "w2": 0.2,
-        "w3": 1.2918,
+        "w3": 1.2818,
         "w4": 0.2,
-        "w5": 0.2,
+        "w5": 0.22,
         "w6": 3.0,
         "w7": 0.2,
-        "w8": 0.4027,
-        "w9": 0.22,
-        "w10": 0.7827,
+        "w8": 0.3327,
+        "w9": 0.2,
+        "w10": 0.6927,
         "w11": 0.2,
-        "w12": 1.6483,
-        "w13": 1.9283,
-        "w14": 1.3978,
-        "w15": 1.1868,
-        "w16": 0.4517,
-        "w17": 0.3212,
+        "w12": 1.5983,
+        "w13": 1.9783,
+        "w14": 1.3278,
+        "w15": 1.2568,
+        "w16": 0.5217,
+        "w17": 0.2712,
         "w18": 0.2,
-        "w19": 1.4493,
-        "w20": 0.2352,
-        "w21": 0.3892,
+        "w19": 1.3993,
+        "w20": 0.2,
+        "w21": 0.3192,
         "w22": 0.2,
         "w23": 0.2,
-        "w24": 1.4293,
-        "w25": 1.1332,
-        "w26": 0.8655
+        "w24": 1.3593,
+        "w25": 1.2032,
+        "w26": 0.7955
       },
       "total_wins": 161,
-      "total_losses": 255,
-      "win_rate": 38.7,
+      "total_losses": 266,
+      "win_rate": 37.7,
       "top_features": [
         {
           "name": "WillR",
@@ -366,11 +366,11 @@
         },
         {
           "name": "P/D",
-          "weight": 1.9283
+          "weight": 1.9783
         },
         {
           "name": "Liq",
-          "weight": 1.6483
+          "weight": 1.5983
         }
       ]
     }
