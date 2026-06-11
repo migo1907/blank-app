@@ -1,27 +1,5 @@
 [
   {
-    "symbol": "SPY",
-    "pool": "STOCKS_INDEX_30M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "news_score": -0.0567,
-    "macro_bias": 0.0298,
-    "macro_label": "NEUTRAL",
-    "combined_score": -0.0086,
-    "session": "NYSE_OPEN",
-    "regime": "NORMAL",
-    "regime_label": "NORMAL",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:NYSE_OPEN\u00d71.25 | confluence\u00d71.12 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.04) | news:neutral(-0.057) | macro:NEUTRAL(+0.030) | combined:-0.009 \u2192 conf:0.014 \u26a1 CPI",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-11T14:53:02.111878+00:00",
-    "created_at": "2026-06-11T14:23:02.531567+00:00",
-    "id": 101
-  },
-  {
     "symbol": "QQQ",
     "pool": "STOCKS_QQQ_30M",
     "direction": "NEUTRAL",
@@ -2195,6 +2173,28 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-11T20:21:21.851637+00:00",
     "created_at": "2026-06-11T19:51:22.165278+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "QQQ",
+    "pool": "STOCKS_QQQ_30M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "news_score": 0.081,
+    "macro_bias": 0.0298,
+    "macro_label": "NEUTRAL",
+    "combined_score": 0.0232,
+    "session": "NYSE_AFTERNOON",
+    "regime": "TRENDING_BULL",
+    "regime_label": "TREND_FOLLOW",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(TREND_FOLLOW)\u00d71.15 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d71.27 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+0.61) | news:neutral(+0.081) | macro:NEUTRAL(+0.030) | combined:+0.023 \u2192 conf:0.045 \u26a1 WAR/CONFLICT",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-11T20:21:23.861749+00:00",
+    "created_at": "2026-06-11T19:51:24.202981+00:00",
     "id": 101
   }
 ]
