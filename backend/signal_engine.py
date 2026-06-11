@@ -2,7 +2,7 @@
 XAU/USD Signal Engine — Market-Aware Intelligence Layer
 
 Scoring pipeline:
-  1. KNN similarity (adaptive weights on 21 features)
+  1. KNN similarity (adaptive weights on 25 features F1–F25)
   2. Random Forest ensemble (pattern recognition)
   3. Gradient Boosting ensemble — XGBoost equivalent (item 2)
   4. News sentiment + velocity
@@ -18,52 +18,60 @@ Scoring pipeline:
 """
 from datetime import datetime, timezone, timedelta
 from ml_model import get_model, Features
-from ml_ensemble import get_rf, get_gbm
+from ml_ensemble import (
+    get_rf, get_gbm, get_joint_gold, get_joint_stocks, get_tabpfn,
+    GOLD_TF_IDS, STOCK_POOL_IDS, explain_prediction,
+)
 from db import recent_outcomes, recent_news, insert_signal, expire_old_signals
 
 # ── Latest feature cache — updated on every webhook, read by scheduler ────────────
 # Persisted to GitHub data branch so it survives Railway restarts.
 # Keyed by pool name — scheduler passes real market state to generate_signal().
+import threading as _threading
 _latest_features: dict[str, Features] = {}
 _FEATURE_CACHE_PATH = "data/feature_cache.json"
+_feature_cache_lock = _threading.Lock()
 
 
 def update_latest_features(pool: str, features: Features) -> None:
     """Cache latest features in memory and persist to GitHub data branch."""
     _latest_features[pool] = features
+    # Serialize GitHub writes — concurrent heartbeats race on the same SHA
+    if not _feature_cache_lock.acquire(blocking=False):
+        return  # another thread is already writing; in-memory is updated, skip duplicate write
     try:
         from db import _get_file, _put_file
         from datetime import datetime, timezone as _tz
-        existing, sha = _get_file(_FEATURE_CACHE_PATH)
-        payload = existing if isinstance(existing, dict) else {}
-        payload[pool] = {
-            "f1":  features.f1,  "f2":  features.f2,  "f3":  features.f3,
-            "f4":  features.f4,  "f5":  features.f5,  "f6":  features.f6,
-            "f7":  features.f7,  "f8":  features.f8,  "f9":  features.f9,
-            "f10": features.f10, "f11": features.f11, "f12": features.f12,
-            "f13": features.f13, "f14": features.f14, "f15": features.f15,
-            "f16": features.f16, "f17": features.f17, "f18": features.f18,
-            "f19": features.f19, "f20": features.f20, "f21": features.f21,
-            "f22": features.f22, "f23": features.f23, "f24": features.f24,
-            "f25": features.f25,
-            "updated_at": datetime.now(_tz.utc).isoformat(),
-        }
-        for attempt in range(2):
+        for attempt in range(3):
             try:
+                existing, sha = _get_file(_FEATURE_CACHE_PATH)
+                # Merge valid in-memory pools — exclude empty-string pool (XAUUSD_4H etc.)
+                payload = {k: v for k, v in (existing if isinstance(existing, dict) else {}).items() if k}
+                for _pool, _feat in _latest_features.items():
+                    if not _pool:
+                        continue  # skip unmapped pools
+                    payload[_pool] = {
+                        "f1":  _feat.f1,  "f2":  _feat.f2,  "f3":  _feat.f3,
+                        "f4":  _feat.f4,  "f5":  _feat.f5,  "f6":  _feat.f6,
+                        "f7":  _feat.f7,  "f8":  _feat.f8,  "f9":  _feat.f9,
+                        "f10": _feat.f10, "f11": _feat.f11, "f12": _feat.f12,
+                        "f13": _feat.f13, "f14": _feat.f14, "f15": _feat.f15,
+                        "f16": _feat.f16, "f17": _feat.f17, "f18": _feat.f18,
+                        "f19": _feat.f19, "f20": _feat.f20, "f21": _feat.f21,
+                        "f22": _feat.f22, "f23": _feat.f23, "f24": _feat.f24,
+                        "f25": _feat.f25,
+                        "timestamp": datetime.now(_tz.utc).isoformat(),
+                    }
                 _put_file(_FEATURE_CACHE_PATH, payload, sha,
-                          f"chore: update feature cache for {pool}")
+                          f"chore: update feature cache ({len(payload)} pools)")
                 break
             except Exception as put_err:
-                if attempt == 0 and "409" in str(put_err):
-                    # SHA stale — re-fetch and retry once
-                    existing2, sha = _get_file(_FEATURE_CACHE_PATH)
-                    if isinstance(existing2, dict):
-                        existing2.update(payload)
-                        payload = existing2
-                else:
-                    raise put_err
-    except Exception as e:
-        print(f"[features] Cache persist failed: {e}")
+                if attempt < 2 and "409" in str(put_err):
+                    continue  # SHA stale — re-fetch on next iteration
+                print(f"[features] Cache persist failed: {put_err}")
+                break
+    finally:
+        _feature_cache_lock.release()
 
 
 def load_feature_cache() -> None:
@@ -109,6 +117,219 @@ import os as _os
 # Lenient default — only blocks entries the trained models actively distrust.
 ML_GATE_THRESHOLD = float(_os.environ.get("ML_GATE_THRESHOLD", "0.45"))
 
+# Per-pool expectancy thresholds — computed from trade history, updated after each retrain.
+# Key: pool name, Value: optimal threshold in [0.30, 0.65]. Falls back to ML_GATE_THRESHOLD.
+_pool_thresholds: dict[str, float] = {}
+
+# Per-pool rolling performance tracker for champion-challenger.
+# Stores (predicted_prob, actual_label) for the last 30 OOS predictions.
+_pool_perf_buffer: dict[str, list[tuple[float, int]]] = {}
+_ROLLBACK_WINDOW   = 30   # trades to evaluate before rollback check
+_ROLLBACK_DROP_PP  = 15   # pp drop vs baseline triggers rollback
+
+# Per-pool retrain timestamps and counts — surfaced in /health
+_retrain_timestamps: dict[str, str] = {}   # pool → ISO timestamp of last retrain
+_retrain_counts: dict[str, int] = {}       # pool → total retrain count
+
+# F-beta hyperparameter — beta=2.0 weights recall (catching wins) 2× over precision.
+# Governs threshold sweep in compute_fbeta_threshold(). Override via env var.
+import os as _os
+_FBETA = float(_os.environ.get("ML_FBETA", "2.0"))
+
+
+def should_retrigger_retrain(pool: str, history: list[dict], window: int = 20,
+                             drop_pp: float = 5.0) -> bool:
+    """
+    Regime-shift detector: returns True when the most recent `window` trades show
+    a win rate drop of >drop_pp percentage points vs the prior `window` trades.
+    Empirically derived threshold; 5pp balances sensitivity vs noise at n≥40.
+    """
+    if len(history) < window * 2:
+        return False
+    wins = ("WIN", "PARTIAL")
+    recent_wr = sum(1 for r in history[:window] if r.get("outcome") in wins) / window
+    prev_wr   = sum(1 for r in history[window:window * 2] if r.get("outcome") in wins) / window
+    drop = (prev_wr - recent_wr) * 100
+    if drop > drop_pp:
+        print(f"[regime] Pool '{pool}' regime shift detected — WR dropped {drop:.1f}pp "
+              f"({prev_wr*100:.0f}% → {recent_wr*100:.0f}%) — forcing retrain")
+        return True
+    return False
+
+
+def compute_fbeta_threshold(pool: str, history: list[dict], beta: float | None = None) -> float:
+    """
+    Sweep probability thresholds [0.25, 0.75] and maximise F-beta score on the
+    pool's walk-forward OOS predictions. Beta=2.0 (default) weights recall 2×
+    over precision — matches "high win ratio" goal.
+    Falls back to Neyman-Pearson when sklearn is unavailable or n<80.
+    """
+    if beta is None:
+        beta = _FBETA
+    try:
+        import numpy as _np
+        from sklearn.metrics import fbeta_score
+        from ml_model import row_to_vector
+        from ml_ensemble import get_gbm, FEATURE_NAMES as _FN
+    except ImportError:
+        return compute_expectancy_threshold(pool, history)
+
+    closed = [t for t in history if t.get("outcome") in ("WIN", "PARTIAL", "LOSS")]
+    if len(closed) < 80:
+        return compute_expectancy_threshold(pool, history)
+
+    gbm = get_gbm(pool)
+    if not gbm.is_trained:
+        return compute_expectancy_threshold(pool, history)
+
+    # Build OOS probability predictions using a simple 3-fold time-series split
+    from sklearn.model_selection import TimeSeriesSplit
+    X = _np.array([row_to_vector(r) for r in closed], dtype=_np.float32)
+    y = _np.array([1 if r["outcome"] in ("WIN", "PARTIAL") else 0 for r in closed])
+
+    all_proba, all_true = [], []
+    tscv = TimeSeriesSplit(n_splits=3, gap=5)
+    from sklearn.ensemble import GradientBoostingClassifier
+    from sklearn.calibration import CalibratedClassifierCV
+    for tr_idx, val_idx in tscv.split(X):
+        if len(tr_idx) < 15 or len(set(y[tr_idx].tolist())) < 2:
+            continue
+        clf = CalibratedClassifierCV(
+            GradientBoostingClassifier(max_depth=2, n_estimators=60, learning_rate=0.08, random_state=42),
+            method="sigmoid", cv=2
+        )
+        try:
+            clf.fit(X[tr_idx], y[tr_idx])
+            proba = clf.predict_proba(X[val_idx])[:, 1]
+            all_proba.extend(proba.tolist())
+            all_true.extend(y[val_idx].tolist())
+        except Exception:
+            continue
+
+    if len(all_proba) < 20:
+        return compute_expectancy_threshold(pool, history)
+
+    p = _np.array(all_proba)
+    t = _np.array(all_true)
+    best_thresh, best_score = 0.45, 0.0
+    for thresh in _np.linspace(0.25, 0.75, 25):
+        preds = (p >= thresh).astype(int)
+        if preds.sum() == 0:
+            continue
+        score = fbeta_score(t, preds, beta=beta, zero_division=0)
+        if score > best_score:
+            best_score, best_thresh = score, float(thresh)
+
+    clamped = round(max(0.30, min(0.65, best_thresh)), 3)
+    print(f"[gate] Pool '{pool}' F-beta={beta} threshold: {clamped:.3f} (score={best_score:.3f})")
+    return clamped
+
+
+def compute_expectancy_threshold(pool: str, history: list[dict]) -> float:
+    """
+    Compute optimal classification threshold to maximize E[PnL] = WR × avg_win − (1−WR) × avg_loss.
+    Uses the Neyman-Pearson closed-form: thresh = 1 / (1 + avg_win / avg_loss).
+    Falls back to ML_GATE_THRESHOLD when data is insufficient (<30 closed trades).
+    """
+    closed = [t for t in history if t.get("pnl_pct") is not None and t.get("outcome") in ("WIN", "PARTIAL", "LOSS")]
+    if len(closed) < 30:
+        return ML_GATE_THRESHOLD
+
+    wins_pnl   = [float(t["pnl_pct"]) for t in closed if t["outcome"] in ("WIN", "PARTIAL") and float(t["pnl_pct"]) > 0]
+    losses_pnl = [abs(float(t["pnl_pct"])) for t in closed if t["outcome"] == "LOSS"]
+
+    if not wins_pnl or not losses_pnl:
+        return ML_GATE_THRESHOLD
+
+    avg_win  = sum(wins_pnl)  / len(wins_pnl)
+    avg_loss = sum(losses_pnl) / len(losses_pnl)
+    if avg_loss < 0.001:
+        return ML_GATE_THRESHOLD
+
+    optimal = 1.0 / (1.0 + avg_win / avg_loss)
+    clamped = round(max(0.30, min(0.65, optimal)), 3)
+    print(f"[gate] Pool '{pool}' NP threshold: {clamped:.3f} "
+          f"(avg_win={avg_win:.2f} avg_loss={avg_loss:.2f})")
+    return clamped
+
+
+def refresh_joint_models(all_histories: dict[str, list[dict]]) -> None:
+    """
+    Retrain joint gold and stock LightGBM models from the latest combined histories.
+    Call after any outcome is persisted. Runs in the caller's thread (use asyncio.to_thread).
+    """
+    gold_pools   = {p: h for p, h in all_histories.items() if p in GOLD_TF_IDS}
+    stock_pools  = {p: h for p, h in all_histories.items() if p in STOCK_POOL_IDS}
+    if gold_pools:
+        get_joint_gold().train(gold_pools)
+    if stock_pools:
+        get_joint_stocks().train(stock_pools)
+
+
+def get_ml_health() -> dict:
+    """Return ML state dict for the /health endpoint."""
+    from ml_ensemble import (
+        get_rf, get_gbm, get_joint_gold, get_joint_stocks, get_tabpfn,
+        GOLD_TF_IDS, STOCK_POOL_IDS, _OPTUNA_AVAILABLE, _SHAP_AVAILABLE,
+        _LGBM_AVAILABLE, _TABPFN_AVAILABLE,
+    )
+    pools_state = {}
+    for pool in list(GOLD_TF_IDS.keys()) + list(STOCK_POOL_IDS.keys()):
+        rf, gbm, tab = get_rf(pool), get_gbm(pool), get_tabpfn(pool)
+        pools_state[pool] = {
+            "rf_trained": rf.is_trained,
+            "gbm_trained": gbm.is_trained,
+            "tabpfn_trained": tab.is_trained,
+            "threshold": round(_pool_thresholds.get(pool, ML_GATE_THRESHOLD), 3),
+            "retrain_count": _retrain_counts.get(pool, 0),
+            "last_retrain": _retrain_timestamps.get(pool, "never"),
+        }
+    return {
+        "joint_gold_trained": get_joint_gold().is_trained,
+        "joint_stocks_trained": get_joint_stocks().is_trained,
+        "optuna_available": _OPTUNA_AVAILABLE,
+        "shap_available": _SHAP_AVAILABLE,
+        "lgbm_available": _LGBM_AVAILABLE,
+        "tabpfn_available": _TABPFN_AVAILABLE,
+        "pools": pools_state,
+    }
+
+
+def refresh_pool_models(pool: str, history: list[dict]) -> None:
+    """
+    Called after every retrain. Updates per-pool threshold and checks
+    champion-challenger rollback. Uses F-beta (beta=2) when n≥80,
+    Neyman-Pearson when n<80.
+    """
+    # 1. Compute threshold — F-beta for well-populated pools, NP for thin ones
+    if len(history) >= 80:
+        _pool_thresholds[pool] = compute_fbeta_threshold(pool, history)
+    else:
+        _pool_thresholds[pool] = compute_expectancy_threshold(pool, history)
+
+    # 2. Record retrain timestamp
+    _retrain_timestamps[pool] = datetime.now(timezone.utc).isoformat()
+    _retrain_counts[pool] = _retrain_counts.get(pool, 0) + 1
+
+    # 2. Champion-challenger: check if new model lifted or hurt perf vs baseline
+    buf = _pool_perf_buffer.get(pool, [])
+    if len(buf) >= _ROLLBACK_WINDOW:
+        base_rate = sum(label for _, label in buf) / len(buf)
+        # Lift = hit rate in top-half predictions vs bottom-half
+        sorted_buf = sorted(buf, key=lambda x: x[0])
+        half = len(sorted_buf) // 2
+        top_rate = sum(label for _, label in sorted_buf[half:]) / max(half, 1)
+        bot_rate = sum(label for _, label in sorted_buf[:half]) / max(half, 1)
+        lift_pp = (top_rate - bot_rate) * 100
+        if lift_pp < -_ROLLBACK_DROP_PP:
+            rf_ok  = get_rf(pool).rollback()
+            gbm_ok = get_gbm(pool).rollback()
+            if rf_ok or gbm_ok:
+                print(f"[champion] Pool '{pool}' rolled back — challenger lift {lift_pp:.1f}pp below threshold")
+            else:
+                print(f"[champion] Pool '{pool}' rollback failed (no prev) — lift={lift_pp:.1f}pp MONITOR CLOSELY")
+        _pool_perf_buffer[pool] = []  # reset after evaluation
+
 # Short-TTL in-memory cache for pool trade history. recent_outcomes() hits GitHub
 # on every call (db._get_file has no caching), so without this a burst of entries
 # during an active session would each trigger a full history fetch — latency +
@@ -132,6 +353,55 @@ def _cached_history(pool: str, limit: int = 500) -> list[dict]:
 def invalidate_history_cache(pool: str) -> None:
     """Call after inserting a new outcome so the gate sees it on the next entry."""
     _history_cache.pop(pool, None)
+
+
+def record_oob_prediction(pool: str, score: float, actual_win: bool) -> None:
+    """Record an OOS (out-of-bag) prediction for champion-challenger tracking."""
+    buf = _pool_perf_buffer.setdefault(pool, [])
+    buf.append((score, int(actual_win)))
+    if len(buf) > _ROLLBACK_WINDOW * 2:
+        _pool_perf_buffer[pool] = buf[-_ROLLBACK_WINDOW:]
+
+
+def _memory_features(history: list[dict], direction: str, n: int = 10) -> list[float]:
+    """
+    Compute 5 mistake-memory features from the last N closed trades (no leakage —
+    all trades in `history` predate the current entry).
+
+    Returns [overall_tp1_rate, same_dir_rate, same_sess_rate, same_trig_rate, loss_streak_norm]
+    Each in [0, 1]. Defaults to 0.5 for rates when no matching history exists.
+    """
+    if not history:
+        return [0.5, 0.5, 0.5, 0.5, 0.0]
+
+    # history[0] = most recent; take last n in chronological order
+    recent = list(reversed(history[:n]))
+
+    def _rate(filt):
+        sub = [1 if r.get("outcome") in ("WIN", "PARTIAL") else 0
+               for r in recent if filt(r)]
+        return sum(sub) / len(sub) if sub else 0.5
+
+    now_h = datetime.now(timezone.utc).hour
+    cur_sess = (
+        "london" if 7 <= now_h < 13 else
+        "ny"     if 13 <= now_h < 20 else
+        "asian"
+    )
+
+    overall   = _rate(lambda r: True)
+    same_dir  = _rate(lambda r: r.get("direction") == direction)
+    same_sess = _rate(lambda r: r.get("session", "").lower() in cur_sess or cur_sess in r.get("session", "").lower())
+    same_trig = _rate(lambda r: bool(r.get("trigger")))  # same trigger bucket
+
+    streak = 0
+    for r in reversed(recent):
+        if r.get("outcome") == "LOSS":
+            streak += 1
+        else:
+            break
+
+    return [overall, same_dir, same_sess, same_trig, min(streak, 8) / 8.0]
 
 
 def score_entry_gate(pool: str, direction: str) -> dict:
@@ -161,30 +431,75 @@ def score_entry_gate(pool: str, direction: str) -> dict:
     gbm = get_gbm(pool)
 
     feat_list   = features.as_list()
+    # Append 5 memory features — validated empirically (+23pp on STOCKS_MOMENTUM_15M)
+    mem_feats   = _memory_features(history, direction)
+    feat_mem    = feat_list + mem_feats
+
     is_long     = direction == "LONG"
     components: dict[str, float] = {}
 
-    # KNN — bull/bear probability, aligned to the trade direction.
+    # KNN — bull/bear probability, aligned to the trade direction (uses 25 Pine features only).
     if len(history) >= knn.k:
         bull, bear = knn.predict(features, history)
         components["knn"] = bull if is_long else bear
 
-    # RF — P(win) for this setup (direction-agnostic; trained on win/loss labels).
+    # RF — P(win); uses 25 Pine features (calibrated shallow model ignores memory extension).
     if rf.is_trained:
         components["rf"] = rf.predict(feat_list)
 
-    # GBM — P(win) for this setup.
+    # GBM — P(win); uses 25 Pine features (calibrated shallow model).
     if gbm.is_trained:
         components["gbm"] = gbm.predict(feat_list)
+
+    # Joint pool model — LightGBM trained on all related pools combined.
+    # Multiplies effective training n (JFE 2024); most valuable for thin pools (<200 trades).
+    if pool in GOLD_TF_IDS:
+        jm = get_joint_gold()
+        if jm.is_trained:
+            components["joint"] = jm.predict(feat_list, pool)
+    elif pool in STOCK_POOL_IDS:
+        jm = get_joint_stocks()
+        if jm.is_trained:
+            components["joint"] = jm.predict(feat_list, pool)
+
+    # TabPFN v2 — in-context pre-trained foundation model (Nature 2025).
+    # Works at n≥10 with no fine-tuning. Re-fit only when history length changes.
+    tabpfn = get_tabpfn(pool)
+    if len(history) >= 10:
+        tabpfn.fit_if_stale(history)
+        if tabpfn.is_trained:
+            components["tabpfn"] = tabpfn.predict(feat_list)
+
+    # Memory score: simple average of the 5 memory features mapped to win probability.
+    # overall_rate and same_dir_rate are direct hit-rate estimates from recent history.
+    if len(history) >= 10:
+        mem_score = (mem_feats[0] * 0.4 + mem_feats[1] * 0.4 +
+                     mem_feats[2] * 0.1 + mem_feats[3] * 0.1)
+        # De-weight when on a loss streak (streak_norm > 0.5 = 4+ consecutive losses)
+        if mem_feats[4] > 0.5:
+            mem_score *= 0.6
+        components["memory"] = mem_score
 
     if not components:
         # Nothing trained yet → bypass so the pool can mature.
         return {"pass": True, "score": 0.5, "reason": "cold_start_bypass", "components": {}}
 
-    score   = sum(components.values()) / len(components)
-    passed  = score >= ML_GATE_THRESHOLD
-    reason  = "approved" if passed else "rejected_low_confidence"
-    return {"pass": passed, "score": round(score, 4), "reason": reason, "components": components}
+    score     = sum(components.values()) / len(components)
+    threshold = _pool_thresholds.get(pool, ML_GATE_THRESHOLD)
+    passed    = score >= threshold
+    reason    = "approved" if passed else "rejected_low_confidence"
+
+    # SHAP attribution — top-3 features driving the GBM signal (best explainer for tree models)
+    shap_drivers: list[tuple[str, float]] = []
+    from ml_model import FEATURE_NAMES as _FN
+    if gbm.is_trained and gbm._model is not None:
+        shap_drivers = explain_prediction(gbm._model, feat_list, _FN, top_n=3)
+
+    return {
+        "pass": passed, "score": round(score, 4), "reason": reason,
+        "components": components, "threshold": threshold,
+        "shap_drivers": shap_drivers,
+    }
 
 
 # ── Base weights ────────────────────────────────────────────────────────────────
@@ -416,6 +731,7 @@ def generate_signal(
     symbol: str = "XAUUSD",
     trigger: str = "",
     pool: str | None = None,
+    macro_bias: dict | None = None,
 ) -> dict:
     from db import symbol_to_pool
     pool     = pool or symbol_to_pool(symbol)
@@ -460,10 +776,15 @@ def generate_signal(
     event    = high_impact_event or {"detected": False, "urgency": 0.0}
 
     if v_label == "CONFLICTED":
-        # Bypass if all 3 ML models unanimously agree on direction (Option F)
-        all_agree = (knn_dir == rf_dir == gbm_dir)
-        if not all_agree:
-            return _neutral_signal(symbol, now, model, rf, "News velocity CONFLICTED", news_agg, pool, current_features, is_stock=is_stock)
+        # Option B: high-conviction ML signal overrides noisy news immediately.
+        # ml_conf_proxy ≥ 0.65 OR unanimous model agreement → send instantly.
+        # Only suppress low-conviction disagreeing signals — genuine noise.
+        ml_strength    = (abs(knn_directional) + abs(rf_directional) + abs(gbm_directional)) / 3.0
+        ml_conf_proxy  = 0.5 + ml_strength * 0.5
+        high_conviction = ml_conf_proxy >= 0.65
+        all_agree       = (knn_dir == rf_dir == gbm_dir)
+        if not high_conviction and not all_agree:
+            return _neutral_signal(symbol, now, model, rf, "News CONFLICTED — low conviction", news_agg, pool, current_features, is_stock=is_stock)
 
     if event.get("detected") and event.get("urgency", 0) >= 0.9:
         v_mult = min(v_mult * 1.5, 3.0)
@@ -477,12 +798,21 @@ def generate_signal(
     w_gbm  = w_gbm_base           / total_w
     w_news = effective_news_weight / total_w
 
+    # ── Macro bias — real yields, dollar, breakeven; equities also use nominal yield ──
+    macro_val   = 0.0
+    macro_label = "n/a"
+    if isinstance(macro_bias, dict):
+        macro_val   = float(macro_bias.get("bias", 0.0) or 0.0)
+        macro_label = macro_bias.get("label", "NEUTRAL")
+    w_macro = (0.15 if is_stock else 0.20) if macro_val != 0.0 else 0.0
+
     # ── Raw combined score ─────────────────────────────────────────────────────────────
     combined_score = (
         w_knn  * knn_directional +
         w_rf   * rf_directional  +
         w_gbm  * gbm_directional +
-        w_news * news_agg
+        w_news * news_agg        +
+        w_macro * macro_val
     )
     direction_raw = "LONG" if combined_score > 0 else "SHORT"
     ml_score_out  = bull_score if direction_raw == "LONG" else bear_score
@@ -531,7 +861,8 @@ def generate_signal(
         f"rapid×{rapid_mult:.2f} | "
         f"vwap:{vwap_ctx}({vwap_dist:+.2f}) | "
         f"news:{news_desc}({news_agg:+.3f}) | "
-        f"combined:{combined_score:+.3f} → conf:{conf_str}"
+        + (f"macro:{macro_label}({macro_val:+.3f}) | " if w_macro > 0 else "")
+        + f"combined:{combined_score:+.3f} → conf:{conf_str}"
     )
     if event.get("detected"):
         reasoning += f" ⚡ {event['event_type']}"
@@ -547,6 +878,8 @@ def generate_signal(
         "rf_score":       round(rf_win_prob, 4),
         "gbm_score":      round(gbm_win_prob, 4),
         "news_score":     round(news_agg, 4),
+        "macro_bias":     round(macro_val, 4),
+        "macro_label":    macro_label,
         "combined_score": round(combined_score, 4),
         "session":        session_name,
         "regime":         regime,

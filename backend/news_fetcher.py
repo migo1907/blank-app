@@ -8,7 +8,7 @@ import time
 import httpx
 import anthropic
 import xml.etree.ElementTree as ET
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 # Rate-limit guard: minimum seconds between FJ RSS fetches
 _FJ_RSS_MIN_INTERVAL = 30.0
@@ -193,9 +193,17 @@ def fetch_rss_headlines() -> list[dict]:
                     seen.add(key)
                     articles.append(item)
 
+        # Realistic browser headers — some feeds (e.g. FXStreet) sit behind
+        # Cloudflare and 403 a bare bot User-Agent.
+        _rss_headers = {
+            "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                           "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"),
+            "Accept": "application/rss+xml,application/xml;q=0.9,text/html;q=0.8,*/*;q=0.7",
+            "Accept-Language": "en-US,en;q=0.9",
+        }
         for source_name, url in RSS_FEEDS:
             try:
-                resp = client.get(url, headers={"User-Agent": "Mozilla/5.0 (compatible; MigoSniperBot/1.0)"})
+                resp = client.get(url, headers=_rss_headers)
                 if resp.status_code == 200:
                     items = _parse_rss(resp.text, source_name)
                     for item in items[:15]:
@@ -328,8 +336,8 @@ def _fj_save_session(resp_headers: dict) -> None:
 def _fj_auto_login() -> bool:
     """
     Log in to FinancialJuice using FJ_EMAIL + FJ_PASSWORD env vars.
-    Extracts the fresh .ASPXAUTH + ASP.NET_SessionId cookies and saves them
-    to GitHub data branch so all future calls use the new session.
+    FJ uses classic ASP.NET WebForms — scrapes all hidden inputs + email/password
+    field names from the login page before posting.
     Returns True on success, False on failure.
     """
     global _fj_cookie_cache
@@ -339,52 +347,84 @@ def _fj_auto_login() -> bool:
         print("[fj] Auto-login skipped — FJ_EMAIL or FJ_PASSWORD not set.")
         return False
 
+    import re as _re
     print(f"[fj] Auto-login: attempting login for {email}…")
     login_url = "https://www.financialjuice.com/account/login"
+    _UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+           "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
 
     try:
         with httpx.Client(timeout=15, follow_redirects=True) as client:
-            # Step 1: GET login page to obtain ASP.NET form tokens
-            r0 = client.get(
-                login_url,
-                headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"},
-            )
-            # Extract __RequestVerificationToken if present
-            rvt = ""
-            try:
-                import re
-                match = re.search(r'__RequestVerificationToken[^>]+value="([^"]+)"', r0.text)
-                if match:
-                    rvt = match.group(1)
-            except Exception:
-                pass
+            # Step 1: GET login page — scrape all form inputs
+            r0 = client.get(login_url, headers={"User-Agent": _UA,
+                                                 "Accept": "text/html,*/*"})
+
+            # Collect every hidden input field (captures __VIEWSTATE, __EVENTVALIDATION etc.)
+            form_data: dict[str, str] = {}
+            for m in _re.finditer(r'<input([^>]+)>', r0.text, _re.IGNORECASE):
+                tag = m.group(1)
+                t_m = _re.search(r'type=["\']([^"\']+)["\']', tag, _re.I)
+                n_m = _re.search(r'name=["\']([^"\']+)["\']', tag, _re.I)
+                v_m = _re.search(r'value=["\']([^"\']*)["\']', tag, _re.I)
+                if n_m:
+                    t = (t_m.group(1).lower() if t_m else "text")
+                    if t in ("hidden", "submit", "checkbox"):
+                        form_data[n_m.group(1)] = v_m.group(1) if v_m else ""
+
+            # Find email and password field names dynamically (type=email/password/text)
+            email_field = password_field = ""
+            for m in _re.finditer(r'<input([^>]+)>', r0.text, _re.IGNORECASE):
+                tag = m.group(1)
+                t_m = _re.search(r'type=["\']([^"\']+)["\']', tag, _re.I)
+                n_m = _re.search(r'name=["\']([^"\']+)["\']', tag, _re.I)
+                if not t_m or not n_m:
+                    continue
+                t = t_m.group(1).lower()
+                n = n_m.group(1)
+                if t == "email" or (t == "text" and "mail" in n.lower()):
+                    email_field = n
+                elif t == "password":
+                    password_field = n
+
+            # Fallback to common names if not found in page
+            email_field    = email_field    or "Email"
+            password_field = password_field or "Password"
+
+            form_data[email_field]    = email
+            form_data[password_field] = password
+            form_data["RememberMe"]   = "true"
+
+            # Also try setting the submit button value (ASP.NET WebForms often requires it)
+            for m in _re.finditer(r'<input([^>]+)>', r0.text, _re.IGNORECASE):
+                tag = m.group(1)
+                t_m = _re.search(r'type=["\']submit["\']', tag, _re.I)
+                n_m = _re.search(r'name=["\']([^"\']+)["\']', tag, _re.I)
+                v_m = _re.search(r'value=["\']([^"\']*)["\']', tag, _re.I)
+                if t_m and n_m:
+                    form_data[n_m.group(1)] = v_m.group(1) if v_m else "Login"
 
             # Step 2: POST credentials
-            form_data = {
-                "Email":    email,
-                "Password": password,
-                "RememberMe": "true",
-            }
-            if rvt:
-                form_data["__RequestVerificationToken"] = rvt
-
             r1 = client.post(
-                login_url,
-                data=form_data,
+                login_url, data=form_data,
                 headers={
-                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-                    "Referer":    login_url,
-                    "Content-Type": "application/x-www-form-urlencoded",
+                    "User-Agent":    _UA,
+                    "Referer":       login_url,
+                    "Content-Type":  "application/x-www-form-urlencoded",
+                    "Accept":        "text/html,application/xhtml+xml,*/*;q=0.8",
+                    "Origin":        "https://www.financialjuice.com",
+                    "Cache-Control": "no-cache",
                 },
             )
 
-        # Check cookies from the client jar (follow_redirects means final cookies are in jar)
         cookies = dict(client.cookies)
         auth_cookie   = cookies.get(".ASPXAUTH", "")
         aspnet_cookie = cookies.get("ASP.NET_SessionId", "")
 
         if not auth_cookie:
-            print(f"[fj] Auto-login failed — no .ASPXAUTH cookie received (HTTP {r1.status_code}).")
+            snippet = (r1.text or "")[:200].replace("\n", " ")
+            print(f"[fj] Auto-login failed (HTTP {r1.status_code}). "
+                  f"email_field={email_field!r} pw_field={password_field!r} "
+                  f"hidden={list(form_data.keys())[:6]} snippet={snippet!r}")
             return False
 
         payload = {
@@ -553,26 +593,78 @@ def fetch_breaking_news() -> list[dict]:
     return breaking[:10]
 
 
+FINNHUB_KEY = os.environ.get("FINNHUB_KEY", "") or os.environ.get("FINNHUB_API_KEY", "")
+
+# Finnhub forex/market news categories relevant to gold
+_FINNHUB_NEWS_URL     = "https://finnhub.io/api/v1/news"
+_FINNHUB_CALENDAR_URL = "https://finnhub.io/api/v1/calendar/economic"
+
+
 def fetch_newsapi_headlines(max_articles: int = 20) -> list[dict]:
-    """Fetch gold-relevant headlines from NewsAPI."""
-    if not NEWSAPI_KEY:
-        return []
+    """
+    Fetch gold-relevant market headlines from Finnhub (free tier, cloud-friendly).
+
+    Replaces NewsAPI.org, whose free tier blocks requests from cloud servers
+    (HTTP 426) and delays articles 24h — making it useless from Railway. Finnhub's
+    free tier allows 60 req/min and works server-side.
+    Falls back to NewsAPI only if FINNHUB_KEY is unset and NEWSAPI_KEY is present.
+    """
+    if not FINNHUB_KEY:
+        return _fetch_newsapi_legacy(max_articles)
 
     articles = []
     seen     = set()
+    try:
+        with httpx.Client(timeout=15) as client:
+            for category in ("forex", "general"):
+                try:
+                    resp = client.get(_FINNHUB_NEWS_URL, params={
+                        "category": category, "token": FINNHUB_KEY,
+                    })
+                    resp.raise_for_status()
+                    for art in resp.json():
+                        title = (art.get("headline", "") or "").strip()
+                        key   = title[:60].lower()
+                        if not title or key in seen or len(title) <= 20:
+                            continue
+                        # Keep only gold/macro-relevant headlines
+                        if not _is_relevant(title):
+                            continue
+                        seen.add(key)
+                        articles.append({
+                            "title":  title,
+                            "source": art.get("source", "Finnhub"),
+                            "url":    art.get("url", ""),
+                        })
+                except Exception as e:
+                    print(f"[finnhub] news category '{category}' failed: {e}")
+    except Exception as e:
+        print(f"[finnhub] news fetch failed: {e}")
 
+    return articles[:max_articles]
+
+
+def _is_relevant(title: str) -> bool:
+    """Lightweight gold/macro relevance filter for general-category headlines."""
+    t = title.lower()
+    kw = ("gold", "xau", "fed", "powell", "inflation", "cpi", "rate", "yield",
+          "dollar", "treasury", "fomc", "payroll", "nfp", "geopolit", "war",
+          "tariff", "recession", "safe haven", "bullion", "precious metal")
+    return any(k in t for k in kw)
+
+
+def _fetch_newsapi_legacy(max_articles: int = 20) -> list[dict]:
+    """Legacy NewsAPI fallback — only used if FINNHUB_KEY is unset. Likely no-op on cloud."""
+    if not NEWSAPI_KEY:
+        return []
+    articles, seen = [], set()
     with httpx.Client(timeout=15) as client:
         for query in NEWSAPI_QUERIES[:4]:
             try:
                 resp = client.get(
                     "https://newsapi.org/v2/everything",
-                    params={
-                        "q":        query,
-                        "language": "en",
-                        "sortBy":   "publishedAt",
-                        "pageSize": 6,
-                        "apiKey":   NEWSAPI_KEY,
-                    },
+                    params={"q": query, "language": "en", "sortBy": "publishedAt",
+                            "pageSize": 6, "apiKey": NEWSAPI_KEY},
                 )
                 resp.raise_for_status()
                 for art in resp.json().get("articles", []):
@@ -587,8 +679,86 @@ def fetch_newsapi_headlines(max_articles: int = 20) -> list[dict]:
                         })
             except Exception:
                 pass
-
     return articles[:max_articles]
+
+
+def fetch_upcoming_events(hours_ahead: int = 24) -> dict:
+    """
+    Fetch SCHEDULED high-impact US economic events from Finnhub's economic calendar.
+    Unlike headline keyword-matching (which only fires AFTER an event), this gives
+    forward awareness so the system can de-risk BEFORE NFP/CPI/FOMC releases.
+
+    Returns {"detected": bool, "event_type": str, "urgency": float,
+             "minutes_until": int, "scheduled": [...]}.
+    """
+    if not FINNHUB_KEY:
+        return {"detected": False, "scheduled": []}
+
+    now   = datetime.now(timezone.utc)
+    today = now.date().isoformat()
+    until = (now + timedelta(days=2)).date().isoformat()
+
+    # High-impact event keywords → (canonical type, urgency)
+    sched_map = {
+        "non-farm": ("NFP", 1.0), "nonfarm": ("NFP", 1.0), "payroll": ("NFP", 1.0),
+        "cpi": ("CPI", 0.9), "consumer price": ("CPI", 0.9),
+        "fomc": ("FOMC", 1.0), "fed interest rate": ("FOMC", 1.0),
+        "interest rate decision": ("FOMC", 1.0), "federal funds": ("FOMC", 1.0),
+        "gdp": ("GDP", 0.7), "ppi": ("PPI", 0.7), "pce": ("PCE", 0.8),
+        "unemployment": ("JOBS", 0.7), "powell": ("FED_SPEAK", 0.8),
+    }
+    try:
+        with httpx.Client(timeout=15) as client:
+            resp = client.get(_FINNHUB_CALENDAR_URL, params={
+                "from": today, "to": until, "token": FINNHUB_KEY,
+            })
+            resp.raise_for_status()
+            events = resp.json().get("economicCalendar", []) or []
+    except Exception as e:
+        print(f"[finnhub] calendar fetch failed: {e}")
+        return {"detected": False, "scheduled": []}
+
+    upcoming = []
+    for ev in events:
+        if (ev.get("country") or "").upper() not in ("US", "USA"):
+            continue
+        impact = (ev.get("impact") or "").lower()
+        name   = (ev.get("event") or "").lower()
+        matched = next((v for k, v in sched_map.items() if k in name), None)
+        if matched is None and impact != "high":
+            continue
+        # Parse "YYYY-MM-DD HH:MM:SS" (UTC)
+        try:
+            ts = datetime.fromisoformat(ev.get("time", "").replace(" ", "T"))
+            if ts.tzinfo is None:
+                ts = ts.replace(tzinfo=timezone.utc)
+        except Exception:
+            continue
+        mins = (ts - now).total_seconds() / 60.0
+        if mins < -120 or mins > hours_ahead * 60:  # past >2h or beyond window
+            continue
+        etype, urg = matched if matched else (ev.get("event", "EVENT"), 0.85)
+        upcoming.append({
+            "event_type":    etype,
+            "name":          ev.get("event", ""),
+            "minutes_until": int(mins),
+            "urgency":       urg,
+            "actual":        ev.get("actual"),
+            "estimate":      ev.get("estimate"),
+            "time":          ev.get("time", ""),
+        })
+
+    upcoming.sort(key=lambda e: abs(e["minutes_until"]))
+    # "Imminent" = a high-urgency event within the next 90 minutes (not yet released)
+    imminent = next((e for e in upcoming
+                     if 0 <= e["minutes_until"] <= 90 and e["urgency"] >= 0.85), None)
+    return {
+        "detected":      imminent is not None,
+        "event_type":    imminent["event_type"] if imminent else "",
+        "urgency":       imminent["urgency"] if imminent else 0.0,
+        "minutes_until": imminent["minutes_until"] if imminent else None,
+        "scheduled":     upcoming[:8],
+    }
 
 
 # ── Breaking news & event detection ──────────────────────────────────────────
@@ -720,33 +890,43 @@ _SCORE_MAX_TOKENS = 4096
 def _score_chunk_with_claude(client, chunk: list[dict]) -> list[dict]:
     """Score one bounded chunk of headlines. Returns a list aligned to `chunk`."""
     numbered = "\n".join(f"{i+1}. {a['title']}" for i, a in enumerate(chunk))
-    try:
-        response = client.messages.create(
-            model="claude-haiku-4-5-20251001",
-            max_tokens=_SCORE_MAX_TOKENS,
-            messages=[{"role": "user", "content": XAU_SENTIMENT_PROMPT.format(headlines=numbered)}],
-        )
-        if not response.content or not response.content[0].text:
-            raise ValueError("Claude returned empty response content")
-        if response.stop_reason == "max_tokens":
-            raise ValueError(f"response truncated at max_tokens for {len(chunk)} headlines")
-        raw = response.content[0].text.strip()
-        if raw.startswith("```"):
-            parts = raw.split("```")
-            raw = parts[1] if len(parts) >= 2 else raw
-            if raw.startswith("json"):
-                raw = raw[4:]
-        import re as _re
-        # Model sometimes wraps the array in prose ("Here are the scores: [...]").
-        # Extract the outermost JSON array so leading/trailing text can't break parsing.
-        first, last = raw.find("["), raw.rfind("]")
-        if first != -1 and last != -1 and last > first:
-            raw = raw[first:last + 1]
-        raw = _re.sub(r",\s*([}\]])", r"\1", raw)  # strip trailing commas
-        return json.loads(raw)
-    except Exception as e:
-        print(f"[news] Claude chunk scoring failed ({len(chunk)} headlines): {e}")
-        return [{"score": 0.0, "impact": "LOW", "keywords": []}] * len(chunk)
+    import re as _re
+    _zero = [{"score": 0.0, "impact": "LOW", "keywords": []}] * len(chunk)
+
+    for attempt in range(3):
+        try:
+            response = client.messages.create(
+                model="claude-haiku-4-5-20251001",
+                max_tokens=_SCORE_MAX_TOKENS,
+                messages=[{"role": "user", "content": XAU_SENTIMENT_PROMPT.format(headlines=numbered)}],
+            )
+            if not response.content or not response.content[0].text:
+                raise ValueError("Claude returned empty response content")
+            if response.stop_reason == "max_tokens":
+                raise ValueError(f"response truncated at max_tokens for {len(chunk)} headlines")
+            raw = response.content[0].text.strip()
+            if raw.startswith("```"):
+                parts = raw.split("```")
+                raw = parts[1] if len(parts) >= 2 else raw
+                if raw.startswith("json"):
+                    raw = raw[4:]
+            first, last = raw.find("["), raw.rfind("]")
+            if first != -1 and last != -1 and last > first:
+                raw = raw[first:last + 1]
+            raw = _re.sub(r",\s*([}\]])", r"\1", raw)
+            return json.loads(raw)
+        except Exception as e:
+            err_str = str(e)
+            # Transient: rate limit (429) or overload (529) — retry with backoff
+            is_transient = any(code in err_str for code in ("429", "529", "529", "overloaded", "rate_limit", "RateLimitError", "OverloadedError"))
+            if is_transient and attempt < 2:
+                wait = 2 ** (attempt + 1)  # 2s, 4s
+                print(f"[news] Claude transient error (attempt {attempt+1}/3), retrying in {wait}s: {e}")
+                time.sleep(wait)
+                continue
+            print(f"[news] Claude chunk scoring failed after {attempt+1} attempt(s) ({len(chunk)} headlines): {e}")
+            return _zero
+    return _zero
 
 
 def score_headlines_with_claude(articles: list[dict]) -> list[dict]:
@@ -843,10 +1023,28 @@ def run_news_cycle(previous_agg: float = 0.0) -> tuple[list[dict], float, dict, 
     velocity = calculate_velocity(scored, previous_agg)
     event    = detect_high_impact_event(unique)
 
+    # Forward-looking scheduled-event awareness (Finnhub calendar). An imminent
+    # high-impact release (NFP/CPI/FOMC within 90min) overrides reactive keyword
+    # detection so the system can de-risk BEFORE the print, not after.
+    try:
+        sched = fetch_upcoming_events()
+        event["scheduled"] = sched.get("scheduled", [])
+        if sched.get("detected"):
+            event["detected"]      = True
+            event["event_type"]    = sched["event_type"]
+            event["urgency"]       = max(event.get("urgency", 0.0), sched["urgency"])
+            event["minutes_until"] = sched.get("minutes_until")
+            event["upcoming"]      = True
+    except Exception as e:
+        print(f"[news] scheduled-event check failed (non-fatal): {e}")
+
+    sched_note = ""
+    if event.get("upcoming"):
+        sched_note = f" | ⏰ {event['event_type']} in {event.get('minutes_until')}min"
     print(
         f"[news] Sentiment: {agg:+.3f} | "
         f"Velocity: {velocity['label']} x{velocity['multiplier']} | "
         f"Event: {event.get('event_type') or 'none'} | "
-        f"FJ Breaking: {len(fj_breaking)}"
+        f"FJ Breaking: {len(fj_breaking)}{sched_note}"
     )
     return scored, agg, velocity, event, fj_breaking

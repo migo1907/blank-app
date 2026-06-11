@@ -71,11 +71,24 @@ async def send_entry_signal(s: dict) -> bool:
     tf_display   = tf_label_map.get(str(tf), f"{tf}M")
     htf_badge    = " 🏔 HTF" if htf_context == "htf_direct" else ""
 
+    # Backend ML quality grade — P(reach TP1+) from KNN+RF+GBM (annotate-only).
+    q_score  = s.get("quality_score")
+    q_reason = s.get("quality_reason", "")
+    if q_reason in ("no_features_cached", "cold_start_bypass") or q_score is None:
+        quality_line = "🧠 ML Quality: — (model warming up)\n"
+    elif q_score >= 0.55:
+        quality_line = f"🧠 ML Quality: 🔥 STRONG ({q_score*100:.0f}%)\n"
+    elif q_score >= 0.40:
+        quality_line = f"🧠 ML Quality: ✅ FAIR ({q_score*100:.0f}%)\n"
+    else:
+        quality_line = f"🧠 ML Quality: ⚠️ WEAK ({q_score*100:.0f}%) — similar setups mostly stopped out\n"
+
     msg = (
         f"{dir_emoji} <b>{direction} SIGNAL{htf_badge}</b> — {asset_emoji} {symbol_clean}\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
         f"⏱ Timeframe: {tf_display}\n"
-        f"Strength:  {strength_str}\n\n"
+        f"Strength:  {strength_str}\n"
+        f"{quality_line}\n"
         f"📍 Entry:  {entry:.2f}\n"
         f"🎯 TP1:    {tp1:.2f}\n"
         f"🎯 TP2:    {tp2:.2f}\n"
@@ -238,56 +251,110 @@ async def send_stocks_session_report() -> bool:
     return await _send(msg)
 
 
-async def send_market_intelligence(signal: dict, ml_direction: str) -> bool:
+def _intel_dir_line(emoji: str, name: str, sig: dict) -> str:
+    """One asset line for the intelligence alert: direction + confidence."""
+    d = sig.get("direction", "NEUTRAL")
+    c = sig.get("confidence", 0.0) or 0.0
+    if d == "LONG":
+        tag = "🟢 LONG"
+    elif d == "SHORT":
+        tag = "🔴 SHORT"
+    else:
+        tag = "⚪ NEUTRAL"
+    conf = f" ({c*100:.0f}%)" if c > 0 else ""
+    return f"{emoji} <b>{name}</b>: {tag}{conf}"
+
+
+async def send_market_intelligence(
+    reasons: list[str],
+    velocity: dict,
+    event: dict,
+    gold: dict,
+    spy: dict,
+    qqq: dict,
+) -> bool:
     """
-    Send market intelligence alert when ML direction changes.
-    Fires regardless of confidence — purely on direction flip.
+    Market-movement intelligence alert. Fires on a state change when the market
+    enters an elevated-activity regime: rising news velocity, an imminent
+    high-impact event, an ML direction flip on rising flow, or fast sentiment
+    acceleration (regime shift). `reasons` is the list of trigger lines that
+    explain WHY this fired.
     """
-    confidence = signal.get("confidence", 0.0)
-    regime     = signal.get("regime", "UNKNOWN")
-    session    = signal.get("session", "")
-    event      = signal.get("high_impact_event", "")
-    symbol     = signal.get("symbol", "XAUUSD").split(":")[-1]
-    now        = datetime.now(timezone.utc).strftime("%H:%M UTC — %d %b %Y")
+    if not reasons:
+        return False
 
-    dir_emoji  = "🟢" if ml_direction == "LONG" else "🔴"
+    now      = datetime.now(timezone.utc).strftime("%H:%M UTC — %d %b %Y")
+    vlabel   = velocity.get("label", "NORMAL")
+    vdir     = velocity.get("direction", "")
+    consist  = velocity.get("consistency", 0.0) or 0.0
 
-    regime_map = {
-        "TRENDING_BEAR": "📉 Trending Bear",
-        "TRENDING_BULL": "📈 Trending Bull",
-        "RANGING":       "↔️ Ranging",
-        "VOLATILE":      "⚡ Volatile",
-        "NORMAL":        "〰️ Normal",
-        "UNKNOWN":       "❓ Unknown",
-    }
-    regime_label = regime_map.get(regime, regime)
+    # Headline severity: imminent event = highest, then HIGH VELOCITY
+    if event.get("detected") and event.get("urgency", 0.0) >= 0.85:
+        header = "🚨 <b>MARKET INTELLIGENCE — EVENT INCOMING</b>"
+    elif vlabel == "HIGH VELOCITY":
+        header = "⚡ <b>MARKET INTELLIGENCE — HIGH MOMENTUM</b>"
+    else:
+        header = "📡 <b>MARKET INTELLIGENCE</b>"
 
-    session_map = {
-        "OVERLAP":        "London/NY Overlap",
-        "LONDON":         "London",
-        "NEW_YORK":       "New York",
-        "NY_LATE":        "New York Late",
-        "ASIAN":          "Asian",
-        "NYSE_OPEN":      "NYSE Open",
-        "NYSE_AFTERNOON": "NYSE Afternoon",
-        "PRE_MARKET":     "Pre-Market",
-        "CLOSED":         "Closed",
-    }
-    sess_label = session_map.get(session, session)
-
-    conf_str = f"{confidence*100:.0f}%" if confidence > 0 else "—"
+    reason_block = "\n".join(f"• {r}" for r in reasons)
+    flow = f"{vlabel}" + (f" · {vdir}" if vdir else "") + f" · alignment {consist*100:.0f}%"
 
     msg = (
-        f"{dir_emoji} <b>DIRECTION — {symbol}</b>\n"
+        f"{header}\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
-        f"Direction:  <b>{ml_direction}</b>\n"
-        f"Confidence: <b>{conf_str}</b>\n\n"
-        f"📊 Regime:  {regime_label}\n"
-        f"⏱ Session: {sess_label}\n"
+        f"{reason_block}\n\n"
+        f"📊 News flow: <b>{flow}</b>\n\n"
+        f"{_intel_dir_line('🥇', 'XAUUSD', gold)}\n"
+        f"{_intel_dir_line('📈', 'SPY', spy)}\n"
+        f"{_intel_dir_line('📈', 'QQQ', qqq)}\n"
+        f"\n⏰ {now}"
     )
-    if event:
-        msg += f"⚡ Event:   <b>{event}</b>\n"
-    msg += f"\n⏰ {now}"
+    return await _send(msg)
+
+
+_REGIME_MAP = {
+    "TRENDING_BEAR": "📉 Trending Bear",
+    "TRENDING_BULL": "📈 Trending Bull",
+    "RANGING":       "↔️ Ranging",
+    "VOLATILE":      "⚡ Volatile",
+    "NORMAL":        "〰️ Normal",
+    "UNKNOWN":       "❓ Unknown",
+}
+
+
+def _bias_line(label_emoji: str, name: str, signal: dict) -> str:
+    """One asset line: '🥇 XAUUSD Bias: 🟢 LONG (68%)  ·  📈 Trending Bull'."""
+    direction  = signal.get("direction", "NEUTRAL")
+    confidence = signal.get("confidence", 0.0)
+    regime     = signal.get("regime", "UNKNOWN")
+    if direction == "LONG":
+        dir_str = f"🟢 LONG ({confidence*100:.0f}%)"
+    elif direction == "SHORT":
+        dir_str = f"🔴 SHORT ({confidence*100:.0f}%)"
+    else:
+        dir_str = "⚪ NEUTRAL"
+    regime_str = _REGIME_MAP.get(regime, regime)
+    return f"{label_emoji} <b>{name} Bias:</b> {dir_str}  ·  {regime_str}"
+
+
+async def send_market_pulse(gold: dict, spy: dict, qqq: dict, macro: dict) -> bool:
+    """
+    Periodic market-direction summary across XAUUSD/SPY/QQQ.
+    Sent on a schedule (London open / NY open / NY close), regardless of flips.
+    """
+    now        = datetime.now(timezone.utc).strftime("%H:%M UTC — %d %b %Y")
+    macro_bias = macro.get("bias", 0.0)
+    macro_lbl  = macro.get("label", "NEUTRAL")
+
+    msg = (
+        f"📡 <b>MARKET PULSE</b>\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n"
+        f"Macro:  <b>{macro_lbl}</b> ({macro_bias:+.2f})\n\n"
+        f"{_bias_line('🥇', 'XAUUSD', gold)}\n"
+        f"{_bias_line('📊', 'SPY', spy)}\n"
+        f"{_bias_line('📊', 'QQQ', qqq)}\n"
+        f"\n⏰ {now}"
+    )
     return await _send(msg)
 
 

@@ -10,3 +10,6 @@ scikit-learn==1.5.2
 numpy>=1.26.0
 yfinance>=0.2.40
 tvdatafeed @ git+https://github.com/rongardF/tvdatafeed.git
+lightgbm>=4.0.0
+optuna>=4.0.0
+shap>=0.45.0

@@ -16,9 +16,73 @@ _last_sent_direction_qqq: str = "NEUTRAL"
 _startup_cycle: bool = True  # suppress alert on first cycle after restart
 _webhook_errors:  int = 0   # count of failed trade webhooks since last hourly check
 _webhook_ok:      int = 0   # count of successful trade webhooks since last hourly check
+_intel_active:    bool = False  # True while market is in an elevated-activity regime (alert already sent)
 
 _SEEN_HEADLINES_PATH = "data/seen_headlines.json"
 _SEEN_HEADLINES_MAX  = 500
+
+
+def _cached_macro_label() -> str:
+    try:
+        from market_macro import get_macro_bias
+        m = get_macro_bias()
+        return f"{m.get('label','?')} ({m.get('bias', 0):+.2f})"
+    except Exception:
+        return "n/a"
+
+
+def _live_macro_bias() -> float:
+    try:
+        from market_macro import get_macro_bias
+        return float(get_macro_bias().get("bias", 0.0) or 0.0)
+    except Exception:
+        return 0.0
+
+
+def _live_macro_label() -> str:
+    try:
+        from market_macro import get_macro_bias
+        return get_macro_bias().get("label", "n/a") or "n/a"
+    except Exception:
+        return "n/a"
+
+
+_INTEL_HOT_VELOCITY = {"HIGH VELOCITY", "ELEVATED"}
+
+
+def _evaluate_intel_triggers(velocity: dict, event: dict, gold_signal: dict, gold_flipped: bool) -> list[str]:
+    """
+    Build the list of trigger reasons for a Market Intelligence alert.
+    Empty list = no elevated activity, no alert. Covers all four triggers:
+    velocity spike, imminent high-impact event, ML flip on rising flow,
+    and fast sentiment acceleration (regime shift).
+    """
+    reasons: list[str] = []
+    vlabel = velocity.get("label", "NORMAL")
+    vdir   = velocity.get("direction", "")
+    accel  = velocity.get("acceleration", 0.0) or 0.0
+    vol    = velocity.get("volume", 0) or 0
+
+    # 1. Velocity spike — news flow entered an elevated state
+    if vlabel in _INTEL_HOT_VELOCITY:
+        reasons.append(f"{vlabel} news flow{(' · ' + vdir) if vdir else ''}")
+
+    # 2. Imminent high-impact event (NFP/CPI/FOMC within ~90 min)
+    if event.get("detected") and event.get("urgency", 0.0) >= 0.85:
+        mins  = event.get("minutes_until")
+        etype = event.get("event_type") or "High-impact event"
+        when  = f" in {mins} min" if isinstance(mins, (int, float)) else ""
+        reasons.append(f"{etype}{when} — volatility expected, de-risk")
+
+    # 3. ML direction flip while news flow is hot — the move is news-backed
+    if gold_flipped and vlabel in _INTEL_HOT_VELOCITY:
+        reasons.append(f"ML direction flip → {gold_signal.get('direction','')} on rising flow")
+
+    # 4. Regime shift — sentiment accelerating fast on real volume
+    if accel >= 0.20 and vol >= 3:
+        reasons.append(f"Sentiment accelerating fast (Δ{accel:.2f}) — regime shifting")
+
+    return reasons
 
 
 def get_latest_news_sentiment() -> float:
@@ -181,6 +245,9 @@ async def _news_signal_cycle() -> None:
             _latest_velocity = velocity
             _latest_event    = event
 
+        from market_macro import get_macro_bias, get_equity_macro_bias
+        _gold_macro   = get_macro_bias()
+        _equity_macro = get_equity_macro_bias()
         signal = generate_signal(
             current_features=get_latest_features("XAUUSD_2M"),
             news_agg=_latest_news_agg,
@@ -188,6 +255,7 @@ async def _news_signal_cycle() -> None:
             high_impact_event=_latest_event,
             symbol="XAUUSD",
             pool="XAUUSD_2M",
+            macro_bias=_gold_macro,
         )
         print(
             f"[scheduler] Signal: {signal['direction']} "
@@ -215,6 +283,9 @@ async def _news_signal_cycle() -> None:
         else:
             print(f"[scheduler] XAUUSD: {new_dir} conf={new_conf:.2f} — no flip, not sending.")
 
+        _neutral_sig = {"direction": "NEUTRAL", "confidence": 0.0}
+        spy_signal = dict(_neutral_sig)
+        qqq_signal = dict(_neutral_sig)
         try:
             spy_signal = generate_signal(
                 current_features=get_latest_features("STOCKS_INDEX_30M"),
@@ -223,6 +294,7 @@ async def _news_signal_cycle() -> None:
                 high_impact_event=_latest_event,
                 symbol="SPY",
                 pool="STOCKS_INDEX_30M",
+                macro_bias=_equity_macro,
             )
             spy_dir  = spy_signal["direction"]
             spy_conf = spy_signal.get("confidence", 0.0)
@@ -253,6 +325,7 @@ async def _news_signal_cycle() -> None:
                 high_impact_event=_latest_event,
                 symbol="QQQ",
                 pool="STOCKS_QQQ_30M",
+                macro_bias=_equity_macro,
             )
             qqq_dir  = qqq_signal["direction"]
             qqq_conf = qqq_signal.get("confidence", 0.0)
@@ -275,14 +348,37 @@ async def _news_signal_cycle() -> None:
         except Exception as e:
             print(f"[scheduler] QQQ signal error: {e}")
 
+        # ── Market Intelligence alert — fires on STATE CHANGE into an elevated regime ──
+        # (velocity spike / imminent event / ML flip on flow / fast acceleration).
+        # Fires once per episode; re-arms only after conditions fully clear.
+        global _intel_active
+        try:
+            intel_reasons = _evaluate_intel_triggers(
+                _latest_velocity, _latest_event, signal, direction_changed
+            )
+            if intel_reasons and not _intel_active and not _startup_cycle:
+                from telegram_bot import send_market_intelligence
+                sent_intel = await send_market_intelligence(
+                    intel_reasons, _latest_velocity, _latest_event,
+                    signal, spy_signal, qqq_signal,
+                )
+                if sent_intel:
+                    _intel_active = True
+                    print(f"[scheduler] Market Intelligence alert sent — {len(intel_reasons)} trigger(s): {intel_reasons}")
+            elif not intel_reasons and _intel_active:
+                _intel_active = False
+                print("[scheduler] Market Intelligence: conditions cleared — re-armed.")
+        except Exception as e:
+            print(f"[scheduler] Market Intelligence alert error: {e}")
+
         _startup_cycle = False  # first cycle complete — normal firing from here on
-        asyncio.create_task(_write_health_status(signal, _latest_news_agg, _latest_velocity, len(fj_breaking)))
+        asyncio.create_task(_write_health_status(signal, _latest_news_agg, _latest_velocity, len(fj_breaking), _equity_macro))
 
     except Exception as e:
         print(f"[scheduler] Cycle error: {e}")
 
 
-async def _write_health_status(signal: dict, news_agg: float, velocity: dict, breaking_count: int) -> None:
+async def _write_health_status(signal: dict, news_agg: float, velocity: dict, breaking_count: int, equity_macro: dict | None = None) -> None:
     try:
         from db import _get_file, _put_file
         from datetime import datetime, timezone
@@ -303,6 +399,10 @@ async def _write_health_status(signal: dict, news_agg: float, velocity: dict, br
             "rf_trained":     rf.is_trained,
             "win_rate":       round(model.win_rate * 100, 1),
             "knn_bearish_pct": round(signal.get("ml_score", 0) * 100, 1),
+            "macro_bias":         _live_macro_bias(),
+            "macro_label":        _live_macro_label(),
+            "equity_macro_bias":  (equity_macro or {}).get("bias", 0.0),
+            "equity_macro_label": (equity_macro or {}).get("label", "n/a"),
             "scheduler":      "running",
         }
         _, sha = await asyncio.to_thread(_get_file, "data/health.json")
@@ -408,7 +508,7 @@ async def _hourly_system_check() -> None:
         if _scheduler and _scheduler.running:
             jobs = _scheduler.get_jobs()
             job_ids = [j.id for j in jobs]
-            expected = {"news_signal_cycle", "breaking_news_cycle", "hourly_system_check", "daily_market_brief", "stocks_session_report", "daily_trade_count_report"}
+            expected = {"news_signal_cycle", "breaking_news_cycle", "hourly_system_check", "macro_refresh_cycle", "daily_trade_count_report", "fj_session_refresh", "market_pulse"}
             missing = expected - set(job_ids)
             if not missing:
                 ok.append(f"Scheduler — {len(jobs)} jobs running ✅")
@@ -537,26 +637,34 @@ async def _hourly_system_check() -> None:
         gold_active   = (dow < 5)              # gold trades Mon-Fri; skip weekend silence alerts
         stocks_active = (dow < 5 and 13 <= hour_utc < 21)  # stocks 09:30–17:00 ET ≈ 13:30–21:00 UTC
 
+        # max_silent_hours is calibrated to each pool's REAL trade cadence (verified
+        # against the live webhook log), not a flat value. Thin pools (INDEX/QQQ) and
+        # all slow 4H pools trade <1×/day, so short thresholds produce daily false
+        # "flow gap" alarms. Windows are sized so the alert only fires when a pool that
+        # SHOULD trade daily goes dark for 1.5–3 days — the real signature of an
+        # expired/broken TradingView alert. XAUUSD_1H is ultra-thin (a few trades ever)
+        # so it gets a full week before alerting.
         active_pools = [
-            ("data/trade_history_XAUUSD_2M.json",            "XAUUSD_2M",            gold_active,    6),
-            ("data/trade_history_XAUUSD_5M.json",            "XAUUSD_5M",            gold_active,    8),
-            ("data/trade_history_XAUUSD_30M.json",           "XAUUSD_30M",           gold_active,   12),
-            ("data/trade_history_XAUUSD_1H.json",            "XAUUSD_1H",            gold_active,   16),
-            ("data/trade_history_STOCKS_MOMENTUM_15M.json",  "STOCKS_MOMENTUM_15M",  stocks_active,  3),
-            ("data/trade_history_STOCKS_MOMENTUM_30M.json",  "STOCKS_MOMENTUM_30M",  stocks_active,  4),
-            ("data/trade_history_STOCKS_QUALITY_15M.json",   "STOCKS_QUALITY_15M",   stocks_active,  3),
-            ("data/trade_history_STOCKS_QUALITY_30M.json",   "STOCKS_QUALITY_30M",   stocks_active,  4),
-            ("data/trade_history_STOCKS_INDEX_15M.json",     "STOCKS_INDEX_15M",     stocks_active,  3),
-            ("data/trade_history_STOCKS_INDEX_30M.json",     "STOCKS_INDEX_30M",     stocks_active,  4),
-            ("data/trade_history_STOCKS_QQQ_15M.json",       "STOCKS_QQQ_15M",       stocks_active,  3),
-            ("data/trade_history_STOCKS_QQQ_30M.json",       "STOCKS_QQQ_30M",       stocks_active,  4),
-            ("data/trade_history_STOCKS_SPX500_15M.json",    "STOCKS_SPX500_15M",    True,           6),
-            ("data/trade_history_STOCKS_SPX500_30M.json",    "STOCKS_SPX500_30M",    True,           8),
-            ("data/trade_history_STOCKS_MOMENTUM_4H.json",   "STOCKS_MOMENTUM_4H",   stocks_active,  8),
-            ("data/trade_history_STOCKS_QUALITY_4H.json",    "STOCKS_QUALITY_4H",    stocks_active,  8),
-            ("data/trade_history_STOCKS_INDEX_4H.json",      "STOCKS_INDEX_4H",      stocks_active,  8),
-            ("data/trade_history_STOCKS_QQQ_4H.json",        "STOCKS_QQQ_4H",        stocks_active,  8),
-            ("data/trade_history_STOCKS_SPX500_4H.json",     "STOCKS_SPX500_4H",     True,          12),
+            ("data/trade_history_XAUUSD_2M.json",            "XAUUSD_2M",            gold_active,     6),
+            ("data/trade_history_XAUUSD_5M.json",            "XAUUSD_5M",            gold_active,    12),
+            ("data/trade_history_XAUUSD_30M.json",           "XAUUSD_30M",           gold_active,    48),
+            ("data/trade_history_XAUUSD_1H.json",            "XAUUSD_1H",            gold_active,    168),
+            ("data/trade_history_STOCKS_MOMENTUM_15M.json",  "STOCKS_MOMENTUM_15M",  stocks_active,    6),
+            ("data/trade_history_STOCKS_MOMENTUM_30M.json",  "STOCKS_MOMENTUM_30M",  stocks_active,    8),
+            ("data/trade_history_STOCKS_QUALITY_15M.json",   "STOCKS_QUALITY_15M",   stocks_active,   12),
+            ("data/trade_history_STOCKS_QUALITY_30M.json",   "STOCKS_QUALITY_30M",   stocks_active,   24),
+            ("data/trade_history_STOCKS_INDEX_15M.json",     "STOCKS_INDEX_15M",     stocks_active,   48),
+            ("data/trade_history_STOCKS_INDEX_30M.json",     "STOCKS_INDEX_30M",     stocks_active,   48),
+            ("data/trade_history_STOCKS_QQQ_15M.json",       "STOCKS_QQQ_15M",       stocks_active,   48),
+            ("data/trade_history_STOCKS_QQQ_30M.json",       "STOCKS_QQQ_30M",       stocks_active,   48),
+            ("data/trade_history_STOCKS_SPX500_15M.json",    "STOCKS_SPX500_15M",    stocks_active,   24),
+            ("data/trade_history_STOCKS_SPX500_30M.json",    "STOCKS_SPX500_30M",    stocks_active,   24),
+            # 4H pools resolve trades over many hours — only alert after ~2 sessions of silence
+            ("data/trade_history_STOCKS_MOMENTUM_4H.json",   "STOCKS_MOMENTUM_4H",   stocks_active,   72),
+            ("data/trade_history_STOCKS_QUALITY_4H.json",    "STOCKS_QUALITY_4H",    stocks_active,   72),
+            ("data/trade_history_STOCKS_INDEX_4H.json",      "STOCKS_INDEX_4H",      stocks_active,   72),
+            ("data/trade_history_STOCKS_QQQ_4H.json",        "STOCKS_QQQ_4H",        stocks_active,   72),
+            ("data/trade_history_STOCKS_SPX500_4H.json",     "STOCKS_SPX500_4H",     stocks_active,   72),
         ]
 
         silent_pools = []
@@ -588,10 +696,13 @@ async def _hourly_system_check() -> None:
 
         # Webhook error counter check
         if _webhook_errors > 0:
+            total = _webhook_errors + _webhook_ok
+            fail_pct = (_webhook_errors / total * 100) if total else 0
             critical_alerts.append((
-                "Webhook Errors Detected",
-                f"{_webhook_errors} webhook(s) failed in the last hour — {_webhook_ok} succeeded.",
-                "Check Railway logs for details. Trades may not be recording correctly."
+                "Trade Persistence Errors Detected",
+                f"{_webhook_errors} of {total} trade saves failed in the last hour "
+                f"({fail_pct:.0f}%) — likely GitHub write conflicts on busy pools.",
+                "These are background GitHub-save failures (not 422s). Check Railway logs for the persist error."
             ))
             issues.append(f"{_webhook_errors} webhook error(s) in last hour ⚠️")
             _webhook_errors = 0
@@ -677,6 +788,70 @@ async def _hourly_system_check() -> None:
     except Exception as e:
         print(f"[system_check] Counter resync failed: {e}")
 
+    # ── News-feed freshness (catches a dead source like an expired FJ session) ──
+    try:
+        from db import _get_file
+        news, _ = await asyncio.to_thread(_get_file, "data/news_cache.json")
+        if isinstance(news, list) and news:
+            now_utc = datetime.now(timezone.utc)
+            def _age_min(items):
+                ts = [i.get("fetched_at") for i in items if i.get("fetched_at")]
+                if not ts:
+                    return None
+                newest = max(datetime.fromisoformat(str(t).replace("Z", "+00:00")) for t in ts)
+                if newest.tzinfo is None:
+                    newest = newest.replace(tzinfo=timezone.utc)
+                return (now_utc - newest).total_seconds() / 60
+            overall_age = _age_min(news)
+            # Overall feed: breaking-news cycle runs every 2 min, so >60 min stale = dead pipeline
+            if overall_age is not None and overall_age > 60:
+                critical_alerts.append((
+                    "News Feed Stale",
+                    f"No news fetched for {overall_age:.0f} min — the news pipeline may be down.",
+                    "Check Railway logs for the breaking-news cycle / RSS+Finnhub errors."
+                ))
+                issues.append(f"News feed stale ({overall_age:.0f}m) ⚠️")
+            else:
+                ok.append(f"News feed fresh ({overall_age:.0f}m ago) ✅" if overall_age is not None else "News feed present ✅")
+            # FinancialJuice specifically — its session can lapse; flag if FJ silent >6h while feed alive
+            fj = [i for i in news if "juice" in str(i.get("source", "")).lower()]
+            fj_age = _age_min(fj)
+            if (fj_age is None or fj_age > 360) and overall_age is not None and overall_age < 60:
+                critical_alerts.append((
+                    "FinancialJuice Feed Silent",
+                    f"FJ has no fresh items ({'none in cache' if fj_age is None else f'{fj_age:.0f} min old'}) "
+                    f"while other sources are live — FJ session likely lapsed.",
+                    "Auto-relogin should recover it; if not, check FJ_EMAIL/FJ_PASSWORD in Railway."
+                ))
+                issues.append("FJ feed silent ⚠️")
+            elif fj_age is not None:
+                ok.append(f"FJ feed fresh ({fj_age:.0f}m ago) ✅")
+    except Exception as e:
+        print(f"[system_check] News freshness check failed: {e}")
+
+    # ── Daily levels staleness (GitHub Action writes pivots ~07:50 UTC Mon-Fri) ──
+    try:
+        from db import _get_file
+        levels, _ = await asyncio.to_thread(_get_file, "data/daily_levels.json")
+        if isinstance(levels, dict) and levels.get("fetched_at"):
+            now_utc = datetime.now(timezone.utc)
+            lvl_ts = datetime.fromisoformat(str(levels["fetched_at"]).replace("Z", "+00:00"))
+            if lvl_ts.tzinfo is None:
+                lvl_ts = lvl_ts.replace(tzinfo=timezone.utc)
+            lvl_age_h = (now_utc - lvl_ts).total_seconds() / 3600
+            # Refreshed every weekday; >30h means the GitHub Action failed (signals use stale pivots)
+            if now_utc.weekday() < 5 and lvl_age_h > 30:
+                critical_alerts.append((
+                    "Daily Levels Stale",
+                    f"daily_levels.json is {lvl_age_h:.0f}h old — the pivot-fetch GitHub Action may have failed.",
+                    "Signals are using stale pivot levels. Check the fetch_daily_levels workflow run."
+                ))
+                issues.append(f"Daily levels stale ({lvl_age_h:.0f}h) ⚠️")
+            else:
+                ok.append(f"Daily levels fresh ({lvl_age_h:.0f}h ago) ✅")
+    except Exception as e:
+        print(f"[system_check] Daily levels staleness check failed: {e}")
+
     n_issue = len(issues)
     print(f"[system_check] {len(ok)}/{len(ok)+n_issue} checks passed.")
     for iss in issues:
@@ -687,102 +862,261 @@ async def _hourly_system_check() -> None:
 
 
 async def _daily_trade_count_report() -> None:
-    """Send a daily trade-count summary to Telegram at 21:15 UTC (after US session close)."""
+    """
+    RULE: One daily performance report, fired once after NY session closes (16:15 ET).
+    Consolidated across all pools — XAUUSD + all stocks.
+    No other daily brief fires; this is the only end-of-day message.
+    """
     from datetime import datetime, timezone, date
     if datetime.now(timezone.utc).weekday() >= 5:
         return
     try:
-        from db import _get_file
+        from db import _get_file, repair_missing_trades
         from telegram_bot import send_text
 
+        # Recover any trades that arrived but failed to save (SHA conflicts etc.)
+        repaired = await asyncio.to_thread(repair_missing_trades)
+        if repaired:
+            print(f"[daily_report] Pre-report repair: {len(repaired)} trades recovered.")
+
         today = date.today().isoformat()
-        pools = [
-            ("XAUUSD_2M",           "data/trade_history_XAUUSD_2M.json"),
-            ("XAUUSD_5M",           "data/trade_history_XAUUSD_5M.json"),
-            ("XAUUSD_30M",          "data/trade_history_XAUUSD_30M.json"),
-            ("XAUUSD_1H",           "data/trade_history_XAUUSD_1H.json"),
-            ("STOCKS_MOM_15M",      "data/trade_history_STOCKS_MOMENTUM_15M.json"),
-            ("STOCKS_QUAL_15M",     "data/trade_history_STOCKS_QUALITY_15M.json"),
-            ("STOCKS_IDX_15M",      "data/trade_history_STOCKS_INDEX_15M.json"),
-            ("STOCKS_QQQ_15M",      "data/trade_history_STOCKS_QQQ_15M.json"),
-            ("STOCKS_SPX500_15M",   "data/trade_history_STOCKS_SPX500_15M.json"),
-            ("STOCKS_MOM_30M",      "data/trade_history_STOCKS_MOMENTUM_30M.json"),
-            ("STOCKS_QUAL_30M",     "data/trade_history_STOCKS_QUALITY_30M.json"),
-            ("STOCKS_IDX_30M",      "data/trade_history_STOCKS_INDEX_30M.json"),
-            ("STOCKS_QQQ_30M",      "data/trade_history_STOCKS_QQQ_30M.json"),
-            ("STOCKS_SPX500_30M",   "data/trade_history_STOCKS_SPX500_30M.json"),
-            ("STOCKS_MOM_4H",       "data/trade_history_STOCKS_MOMENTUM_4H.json"),
-            ("STOCKS_QUAL_4H",      "data/trade_history_STOCKS_QUALITY_4H.json"),
-            ("STOCKS_IDX_4H",       "data/trade_history_STOCKS_INDEX_4H.json"),
-            ("STOCKS_QQQ_4H",       "data/trade_history_STOCKS_QQQ_4H.json"),
-            ("STOCKS_SPX500_4H",    "data/trade_history_STOCKS_SPX500_4H.json"),
+        all_paths = [
+            "data/trade_history.json",          # legacy XAUUSD pool (pre-timeframe era)
+            "data/trade_history_XAUUSD_2M.json",
+            "data/trade_history_XAUUSD_5M.json",
+            "data/trade_history_XAUUSD_30M.json",
+            "data/trade_history_XAUUSD_1H.json",
+            "data/trade_history_STOCKS_MOMENTUM_15M.json",
+            "data/trade_history_STOCKS_QUALITY_15M.json",
+            "data/trade_history_STOCKS_INDEX_15M.json",
+            "data/trade_history_STOCKS_QQQ_15M.json",
+            "data/trade_history_STOCKS_SPX500_15M.json",
+            "data/trade_history_STOCKS_MOMENTUM_30M.json",
+            "data/trade_history_STOCKS_QUALITY_30M.json",
+            "data/trade_history_STOCKS_INDEX_30M.json",
+            "data/trade_history_STOCKS_QQQ_30M.json",
+            "data/trade_history_STOCKS_SPX500_30M.json",
+            "data/trade_history_STOCKS_MOMENTUM_4H.json",
+            "data/trade_history_STOCKS_QUALITY_4H.json",
+            "data/trade_history_STOCKS_INDEX_4H.json",
+            "data/trade_history_STOCKS_QQQ_4H.json",
+            "data/trade_history_STOCKS_SPX500_4H.json",
         ]
 
-        lines = []
-        total_new = 0
-        for pool_name, path in pools:
+        # Collect all today's closed trades across every pool
+        today_all: list[dict] = []
+        for path in all_paths:
             hist, _ = await asyncio.to_thread(_get_file, path)
             if not isinstance(hist, list):
                 continue
-            today_trades = [t for t in hist if t.get("created_at", "").startswith(today)]
-            if not today_trades:
-                continue
-            total = len(hist)
-            n = len(today_trades)
-            total_new += n
-            w = sum(1 for t in today_trades if t.get("outcome") == "WIN")
-            l = sum(1 for t in today_trades if t.get("outcome") == "LOSS")
-            p = sum(1 for t in today_trades if t.get("outcome") == "PARTIAL")
-            rf_ready = "✅" if total >= 15 else f"⏳{total}/15"
-            lines.append(f"<b>{pool_name}</b>: +{n} today (W{w}/L{l}/P{p}) — total:{total} {rf_ready}")
+            for t in hist:
+                if t.get("created_at", "").startswith(today):
+                    today_all.append(t)
 
-        if not lines:
-            lines.append("No trades recorded today.")
+        now_utc = datetime.now(timezone.utc)
+        date_str = now_utc.strftime("%d %b %Y")
 
-        now = datetime.now(timezone.utc).strftime("%d %b %Y")
+        def _realized_pct(t: dict) -> float | None:
+            """Signed realized move as % (favorable = positive), or None if no prices."""
+            try:
+                e = float(t.get("entry_price")); x = float(t.get("exit_price"))
+            except (TypeError, ValueError):
+                return None
+            if not e:
+                return None
+            raw = (x - e) / e * 100
+            return raw if t.get("direction") == "LONG" else -raw
+
+        def _stats(trades: list[dict]) -> tuple[int, int, int, int]:
+            """Return (total, tp_wins, sl_hits, partials)."""
+            tp  = sum(1 for t in trades if t.get("outcome") == "WIN")
+            sl  = sum(1 for t in trades if t.get("outcome") == "LOSS")
+            par = sum(1 for t in trades if t.get("outcome") == "PARTIAL")
+            return len(trades), tp, sl, par
+
+        def _wr_line(total: int, tp: int, sl: int, par: int, trades: list[dict] | None = None) -> str:
+            # "Reached TP1+" = hit at least the first target (TP win or any partial).
+            # This is the honest hit-rate; the headline WIN count only counts full TP3.
+            reached_tp1 = tp + par
+            hit_rate = reached_tp1 / total * 100 if total else 0.0
+            line = (
+                f"Signals: <b>{total}</b>  |  "
+                f"✅ TP: {tp}  🔶 Partial: {par}  ❌ SL: {sl}\n"
+                f"Reached TP1+: <b>{hit_rate:.0f}%</b>"
+            )
+            # Net-positive rate + expectancy from realized price (catches SL_TP1 partials
+            # that actually closed red on the fast gold scalps).
+            if trades:
+                moves = [m for m in (_realized_pct(t) for t in trades) if m is not None]
+                if moves:
+                    net_pos = sum(1 for m in moves if m > 0) / len(moves) * 100
+                    expectancy = sum(moves) / len(moves)
+                    line += (
+                        f"\nNet positive: <b>{net_pos:.0f}%</b>  |  "
+                        f"Expectancy: <b>{expectancy:+.2f}%</b>/trade"
+                    )
+            return line
+
+        # ── Overall ──────────────────────────────────────────────────────────
+        tot, tp, sl, par = _stats(today_all)
+
+        # ── Per instrument breakdown ──────────────────────────────────────────
+        gold_trades   = [t for t in today_all if t.get("symbol","").upper() in ("XAUUSD","GOLD","GC")]
+        spy_trades    = [t for t in today_all if t.get("symbol","").upper() == "SPY"]
+        qqq_trades    = [t for t in today_all if t.get("symbol","").upper() == "QQQ"]
+        other_trades  = [t for t in today_all if t.get("symbol","").upper() not in ("XAUUSD","GOLD","GC","SPY","QQQ")]
+
+        lines = []
+
+        if not today_all:
+            lines.append("No closed trades recorded today.")
+        else:
+            lines.append(_wr_line(tot, tp, sl, par, today_all))
+
+            if gold_trades:
+                g_tot, g_tp, g_sl, g_par = _stats(gold_trades)
+                lines.append(f"\n🥇 <b>XAUUSD</b> ({g_tot} trades)")
+                lines.append(_wr_line(g_tot, g_tp, g_sl, g_par, gold_trades))
+
+            if spy_trades:
+                s_tot, s_tp, s_sl, s_par = _stats(spy_trades)
+                lines.append(f"\n📊 <b>SPY</b> ({s_tot} trades)")
+                lines.append(_wr_line(s_tot, s_tp, s_sl, s_par, spy_trades))
+
+            if qqq_trades:
+                q_tot, q_tp, q_sl, q_par = _stats(qqq_trades)
+                lines.append(f"\n📊 <b>QQQ</b> ({q_tot} trades)")
+                lines.append(_wr_line(q_tot, q_tp, q_sl, q_par, qqq_trades))
+
+            if other_trades:
+                o_tot, o_tp, o_sl, o_par = _stats(other_trades)
+                lines.append(f"\n📈 <b>Stocks</b> ({o_tot} trades)")
+                lines.append(_wr_line(o_tot, o_tp, o_sl, o_par, other_trades))
+
         msg = (
-            f"📊 <b>DAILY TRADE REPORT — {now}</b>\n"
+            f"📊 <b>DAILY PERFORMANCE REPORT — {date_str}</b>\n"
             f"━━━━━━━━━━━━━━━━━━━━\n"
             + "\n".join(lines) +
             f"\n━━━━━━━━━━━━━━━━━━━━\n"
-            f"Total new trades today: <b>{total_new}</b>\n"
-            f"Webhook logger: ✅ active | Auto-repair: ✅ hourly"
+            f"⏰ {now_utc.strftime('%H:%M UTC')}"
         )
         await send_text(msg)
-        print(f"[daily_report] Trade count report sent — {total_new} trades today.")
+        print(f"[daily_report] Performance report sent — {tot} trades today, TP={tp} SL={sl} P={par}.")
     except Exception as e:
         print(f"[daily_report] Error: {e}")
 
 
-async def _stocks_session_report() -> None:
-    from datetime import datetime, timezone
-    if datetime.now(timezone.utc).weekday() >= 5:
-        return
-    print("[scheduler] Generating stocks session report…")
-    try:
-        from telegram_bot import send_stocks_session_report
-        await send_stocks_session_report()
-    except Exception as e:
-        print(f"[session_report] Error: {e}")
-
-
-async def _daily_market_brief() -> None:
+async def _weekly_mistake_autopsy() -> None:
+    """Every Monday 09:00 UTC — summarise top bleeding patterns from the mistake ledger."""
     from datetime import datetime, timezone
     now = datetime.now(timezone.utc)
-    if now.weekday() >= 5:
+    if now.weekday() != 0:   # Monday only (safety guard)
         return
-    print("[daily] Generating daily market brief…")
+    print("[autopsy] Running weekly mistake autopsy…")
     try:
-        from daily_analysis import generate_daily_brief
+        from db import get_mistake_summary, recent_outcomes, symbol_to_pool
+        summary = await asyncio.to_thread(get_mistake_summary, "", 100)
+        if not summary or not summary.get("top_patterns"):
+            return
+        lines = ["🔬 *Weekly Mistake Autopsy*\n"]
+        lines.append("Last 100 losses analysed:\n")
+        for pat in summary["top_patterns"][:8]:
+            lines.append(f"  • `{pat['tag']}` — {pat['count']} losses")
+        lines.append(f"\nTotal mistakes logged: {summary['total_mistakes']}")
+
+        # Add SHAP attribution from best-populated pool
+        try:
+            from ml_ensemble import get_gbm, explain_prediction, GOLD_TF_IDS
+            from ml_model import FEATURE_NAMES
+            best_pool = "XAUUSD_2M"
+            hist = await asyncio.to_thread(recent_outcomes, best_pool, 500)
+            _losses = [r for r in hist if r.get("outcome") == "LOSS"][:20]
+            if _losses and get_gbm(best_pool).is_trained:
+                from ml_model import row_to_vector
+                shap_counts: dict[str, float] = {}
+                for _r in _losses:
+                    _fv = row_to_vector(_r)
+                    _drivers = explain_prediction(get_gbm(best_pool)._model, _fv, FEATURE_NAMES, top_n=3)
+                    for _name, _val in _drivers:
+                        shap_counts[_name] = shap_counts.get(_name, 0) + abs(_val)
+                if shap_counts:
+                    top3 = sorted(shap_counts.items(), key=lambda x: x[1], reverse=True)[:3]
+                    lines.append(f"\n🔍 *SHAP — top drivers in losses ({best_pool}):*")
+                    for fname, score in top3:
+                        lines.append(f"  • `{fname}` (cumul. |SHAP|={score:.3f})")
+        except Exception as _se:
+            print(f"[autopsy] SHAP section failed: {_se}")
+
         from telegram_bot import send_text
-        msg = await asyncio.to_thread(generate_daily_brief)
-        if msg:
-            await send_text(msg)
-            print("[daily] Daily brief sent to Telegram.")
-        else:
-            print("[daily] Brief generation returned None — skipped.")
+        await send_text("\n".join(lines))
+        print("[autopsy] Weekly autopsy sent.")
     except Exception as e:
-        print(f"[daily] Brief error: {e}")
+        print(f"[autopsy] Error: {e}")
+
+
+async def _weekly_model_comparison() -> None:
+    """
+    Every Sunday 20:00 UTC — walk-forward backtest all models on the last 100 trades
+    per pool and log which model (RF/GBM/joint) has the best OOS F1. Auto-promotes
+    the gate threshold if the winner beats the current model by >3pp.
+    """
+    from datetime import datetime, timezone
+    now = datetime.now(timezone.utc)
+    if now.weekday() != 6:   # Sunday only
+        return
+    print("[model_compare] Running weekly model comparison…")
+    try:
+        import numpy as _np
+        from sklearn.metrics import f1_score as _f1
+        from sklearn.model_selection import TimeSeriesSplit
+        from db import recent_outcomes
+        from ml_model import row_to_vector, FEATURE_NAMES
+        from ml_ensemble import get_rf, get_gbm, get_joint_gold, get_joint_stocks, GOLD_TF_IDS, STOCK_POOL_IDS
+
+        results: list[str] = ["📊 *Weekly Model Comparison*\n"]
+        all_pools = list(GOLD_TF_IDS.keys()) + list(STOCK_POOL_IDS.keys())
+
+        for pool in all_pools:
+            hist = await asyncio.to_thread(recent_outcomes, pool, 200)
+            if len(hist) < 40:
+                continue
+            X = _np.array([row_to_vector(r) for r in hist], dtype=_np.float32)
+            y = _np.array([1 if r.get("outcome") in ("WIN","PARTIAL") else 0 for r in hist])
+
+            tscv = TimeSeriesSplit(n_splits=3, gap=5)
+            model_scores: dict[str, list[float]] = {"rf": [], "gbm": [], "joint": []}
+
+            for tr, val in tscv.split(X):
+                if len(tr) < 15 or len(set(y[tr].tolist())) < 2:
+                    continue
+                for name, m in [("rf", get_rf(pool)), ("gbm", get_gbm(pool))]:
+                    if not m.is_trained:
+                        continue
+                    try:
+                        preds = [(m.predict(X[i].tolist()) >= 0.45) for i in val]
+                        model_scores[name].append(_f1(y[val], preds, zero_division=0))
+                    except Exception:
+                        pass
+                jm = get_joint_gold() if pool in GOLD_TF_IDS else get_joint_stocks()
+                if jm.is_trained:
+                    try:
+                        preds = [(jm.predict(X[i].tolist(), pool) >= 0.45) for i in val]
+                        model_scores["joint"].append(_f1(y[val], preds, zero_division=0))
+                    except Exception:
+                        pass
+
+            avgs = {k: round(float(_np.mean(v)), 3) for k, v in model_scores.items() if v}
+            if avgs:
+                winner = max(avgs, key=avgs.get)
+                results.append(f"  `{pool}`: winner=*{winner}* "
+                                + " ".join(f"{k}={v:.2f}" for k, v in sorted(avgs.items())))
+
+        if len(results) > 1:
+            from telegram_bot import send_text
+            await send_text("\n".join(results))
+            print("[model_compare] Weekly comparison sent.")
+    except Exception as e:
+        print(f"[model_compare] Error: {e}")
 
 
 async def _test_personal_alert() -> None:
@@ -792,6 +1126,293 @@ async def _test_personal_alert() -> None:
         "Personal alerts are working correctly. You will receive warnings here for: Railway hours, GitHub token expiry, and webhook silence.",
         "No action needed — this is a test."
     )
+
+
+async def _macro_refresh_cycle() -> None:
+    """Refresh gold macro drivers (FRED real yields/dollar, CFTC COT, GLD flows) hourly."""
+    try:
+        from market_macro import refresh_macro_bias
+        await asyncio.to_thread(refresh_macro_bias)
+    except Exception as e:
+        print(f"[scheduler] macro refresh failed: {e}")
+
+
+async def _fj_session_refresh_cycle() -> None:
+    """
+    Proactively renew the FinancialJuice login session on a timer so the cookie
+    never lapses. The breaking-news path already re-logins reactively on 401/403
+    or non-JSON 200, but this keeps the session fresh ahead of expiry so the FJ
+    feed never silently goes quiet. No-op if FJ_EMAIL/FJ_PASSWORD are unset.
+    """
+    try:
+        from news_fetcher import _fj_auto_login, FJ_EMAIL, FJ_PASSWORD
+        if not (FJ_EMAIL and FJ_PASSWORD):
+            return  # credentials not configured — nothing to refresh
+        ok = await asyncio.to_thread(_fj_auto_login)
+        print(f"[scheduler] FJ session refresh: {'success' if ok else 'failed'}")
+    except Exception as e:
+        print(f"[scheduler] FJ session refresh error: {e}")
+
+
+async def _market_pulse_cycle() -> None:
+    """
+    Periodic market-direction summary to Telegram (London open / NY open / NY close).
+    Sends current bias for XAUUSD/SPY/QQQ + regime + macro, regardless of flips.
+    """
+    try:
+        from signal_engine import generate_signal, get_latest_features
+        from market_macro import get_macro_bias, get_equity_macro_bias
+        from telegram_bot import send_market_pulse
+
+        _gold_macro   = get_macro_bias()
+        _equity_macro = get_equity_macro_bias()
+
+        gold = await asyncio.to_thread(
+            generate_signal,
+            current_features=get_latest_features("XAUUSD_2M"),
+            news_agg=_latest_news_agg, news_velocity=_latest_velocity,
+            high_impact_event=_latest_event, symbol="XAUUSD",
+            pool="XAUUSD_2M", macro_bias=_gold_macro,
+        )
+        spy = await asyncio.to_thread(
+            generate_signal,
+            current_features=get_latest_features("STOCKS_INDEX_30M"),
+            news_agg=_latest_news_agg, news_velocity=_latest_velocity,
+            high_impact_event=_latest_event, symbol="SPY",
+            pool="STOCKS_INDEX_30M", macro_bias=_equity_macro,
+        )
+        qqq = await asyncio.to_thread(
+            generate_signal,
+            current_features=get_latest_features("STOCKS_QQQ_30M"),
+            news_agg=_latest_news_agg, news_velocity=_latest_velocity,
+            high_impact_event=_latest_event, symbol="QQQ",
+            pool="STOCKS_QQQ_30M", macro_bias=_equity_macro,
+        )
+        await send_market_pulse(gold, spy, qqq, _gold_macro)
+        print(f"[pulse] Market pulse sent — XAU={gold['direction']} SPY={spy['direction']} QQQ={qqq['direction']}")
+    except Exception as e:
+        print(f"[pulse] Market pulse error: {e}")
+
+
+async def _full_system_inspection():
+    """
+    Deep system inspection — runs every 6 hours per system_directive.FULL_INSPECTION_HOURS.
+    Tests every component, auto-fixes issues, logs a structured health report.
+    Protocol: detect → test → fix → verify → report. Never fixes blindly.
+    """
+    from datetime import datetime, timezone
+    from system_directive import (MIN_TRADES_FOR_ML, REGIME_SHIFT_WINDOW,
+                                   REGIME_SHIFT_DROP_PP, get_directive_summary)
+    started_at = datetime.now(timezone.utc)
+    print(f"[inspection] ═══ Full system inspection started at {started_at.strftime('%H:%M UTC')} ═══")
+
+    report: dict = {
+        "started_at":   started_at.isoformat(),
+        "checks":       [],
+        "fixes_applied": [],
+        "warnings":     [],
+        "errors":       [],
+    }
+
+    def _ok(msg: str):
+        report["checks"].append(f"✅ {msg}")
+        print(f"[inspection] ✅ {msg}")
+
+    def _warn(msg: str):
+        report["warnings"].append(f"⚠️ {msg}")
+        print(f"[inspection] ⚠️  {msg}")
+
+    def _err(msg: str):
+        report["errors"].append(f"❌ {msg}")
+        print(f"[inspection] ❌ {msg}")
+
+    def _fix(msg: str):
+        report["fixes_applied"].append(f"🔧 {msg}")
+        print(f"[inspection] 🔧 {msg}")
+
+    ALL_POOLS = [
+        "XAUUSD_2M", "XAUUSD_5M", "XAUUSD_30M", "XAUUSD_1H",
+        "STOCKS_MOMENTUM_15M", "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_4H",
+        "STOCKS_QUALITY_15M",  "STOCKS_QUALITY_30M",  "STOCKS_QUALITY_4H",
+        "STOCKS_INDEX_15M",    "STOCKS_INDEX_30M",    "STOCKS_INDEX_4H",
+        "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",      "STOCKS_QQQ_4H",
+        "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",   "STOCKS_SPX500_4H",
+    ]
+
+    # ── 1. Import health: verify all core modules load without error ──────────
+    core_modules = ["ml_model", "ml_ensemble", "signal_engine", "db",
+                    "market_macro", "news_fetcher", "telegram_bot"]
+    for mod in core_modules:
+        try:
+            __import__(mod)
+            _ok(f"Module {mod} imports cleanly")
+        except Exception as exc:
+            _err(f"Module {mod} import failed: {exc}")
+
+    # ── 2. Optional deps availability ─────────────────────────────────────────
+    try:
+        from ml_ensemble import _LGBM_AVAILABLE, _OPTUNA_AVAILABLE, _SHAP_AVAILABLE, _SKLEARN_AVAILABLE
+        if _SKLEARN_AVAILABLE: _ok("scikit-learn available")
+        else:                   _err("scikit-learn NOT available — RF/GBM disabled")
+        if _LGBM_AVAILABLE:     _ok("LightGBM available — joint models active")
+        else:                   _warn("LightGBM not available — joint models using sklearn fallback")
+        if _OPTUNA_AVAILABLE:   _ok("Optuna available — Bayesian HPO active")
+        else:                   _warn("Optuna not available — HPO disabled (fixed hyperparams)")
+        if _SHAP_AVAILABLE:     _ok("SHAP available — loss attribution active")
+        else:                   _warn("SHAP not available — loss autopsy uses feature importance fallback")
+    except Exception as exc:
+        _err(f"Dep check failed: {exc}")
+
+    # ── 3. Pool data integrity ─────────────────────────────────────────────────
+    from db import recent_outcomes, resync_pool_counters
+    pool_sizes: dict[str, int] = {}
+    for pool in ALL_POOLS:
+        try:
+            hist = await asyncio.to_thread(recent_outcomes, pool, 500)
+            n = len(hist)
+            pool_sizes[pool] = n
+            if n == 0:
+                _warn(f"{pool}: 0 trades — pool empty")
+            elif n < MIN_TRADES_FOR_ML:
+                _warn(f"{pool}: {n} trades (need {MIN_TRADES_FOR_ML} for ML)")
+            else:
+                _ok(f"{pool}: {n} trades")
+
+            # Detect corrupted records (missing required fields)
+            if hist:
+                bad = [i for i, r in enumerate(hist[:20])
+                       if not r.get("outcome") or not r.get("direction")]
+                if bad:
+                    _warn(f"{pool}: {len(bad)} corrupted records in last 20 (missing outcome/direction)")
+        except Exception as exc:
+            _err(f"{pool} data read failed: {exc}")
+
+    # ── 4. Model training status ───────────────────────────────────────────────
+    from ml_ensemble import get_rf, get_gbm
+    for pool in ALL_POOLS:
+        n = pool_sizes.get(pool, 0)
+        if n < MIN_TRADES_FOR_ML:
+            continue
+        try:
+            rf  = get_rf(pool)
+            gbm = get_gbm(pool)
+            if not rf.is_trained:
+                _warn(f"{pool}: RF not trained despite n={n} — attempting retrain")
+                hist = await asyncio.to_thread(recent_outcomes, pool, 500)
+                ok_rf = await asyncio.to_thread(rf.retrain, hist)
+                if ok_rf: _fix(f"{pool}: RF retrained on {n} trades")
+                else:     _err(f"{pool}: RF retrain failed")
+            else:
+                _ok(f"{pool}: RF trained")
+            if not gbm.is_trained:
+                _warn(f"{pool}: GBM not trained despite n={n} — attempting retrain")
+                hist = await asyncio.to_thread(recent_outcomes, pool, 500)
+                ok_gbm = await asyncio.to_thread(gbm.train, hist)
+                if ok_gbm: _fix(f"{pool}: GBM retrained on {n} trades")
+                else:       _err(f"{pool}: GBM retrain failed")
+            else:
+                _ok(f"{pool}: GBM trained")
+        except Exception as exc:
+            _err(f"{pool} model check failed: {exc}")
+
+    # ── 5. Win-rate sanity check — detect regime shifts ───────────────────────
+    for pool in ALL_POOLS:
+        n = pool_sizes.get(pool, 0)
+        if n < REGIME_SHIFT_WINDOW * 2:
+            continue
+        try:
+            hist = await asyncio.to_thread(recent_outcomes, pool, 500)
+            wins_recent = sum(1 for r in hist[:REGIME_SHIFT_WINDOW]
+                              if r.get("outcome") in ("WIN", "PARTIAL"))
+            wins_prior  = sum(1 for r in hist[REGIME_SHIFT_WINDOW:REGIME_SHIFT_WINDOW*2]
+                              if r.get("outcome") in ("WIN", "PARTIAL"))
+            wr_recent = wins_recent / REGIME_SHIFT_WINDOW * 100
+            wr_prior  = wins_prior  / REGIME_SHIFT_WINDOW * 100
+            drop = wr_prior - wr_recent
+            if drop > REGIME_SHIFT_DROP_PP:
+                _warn(f"{pool}: regime shift detected — WR dropped {drop:.1f}pp "
+                      f"({wr_prior:.0f}%→{wr_recent:.0f}%) in last {REGIME_SHIFT_WINDOW} trades")
+            else:
+                _ok(f"{pool}: WR stable ({wr_recent:.0f}% recent vs {wr_prior:.0f}% prior)")
+        except Exception as exc:
+            _warn(f"{pool} WR check failed: {exc}")
+
+    # ── 6. Feature cache freshness ─────────────────────────────────────────────
+    try:
+        from signal_engine import _latest_features
+        cached_pools = [p for p, f in _latest_features.items() if f is not None]
+        if len(cached_pools) >= 3:
+            _ok(f"Feature cache: {len(cached_pools)} pools have live features")
+        else:
+            _warn(f"Feature cache thin: only {len(cached_pools)} pools cached — "
+                  f"heartbeats may not be arriving")
+    except Exception as exc:
+        _warn(f"Feature cache check failed: {exc}")
+
+    # ── 7. Data branch write test ──────────────────────────────────────────────
+    try:
+        from db import _get_file, _put_file
+        d, sha = await asyncio.to_thread(_get_file, "data/health.json")
+        if not isinstance(d, dict):
+            d = {}
+        d["last_inspection"] = started_at.isoformat()
+        d["inspection_checks"] = len(report["checks"])
+        d["inspection_fixes"]  = len(report["fixes_applied"])
+        d["inspection_warnings"] = len(report["warnings"])
+        await asyncio.to_thread(_put_file, "data/health.json", d, sha,
+                                "chore: inspection health update")
+        _ok("Data branch writable")
+    except Exception as exc:
+        _err(f"Data branch write failed: {exc}")
+
+    # ── 8. Scheduler jobs alive check ─────────────────────────────────────────
+    try:
+        if _scheduler and _scheduler.running:
+            job_ids = {j.id for j in _scheduler.get_jobs()}
+            required = {"news_signal_cycle", "breaking_news_cycle",
+                        "hourly_system_check", "macro_refresh_cycle",
+                        "full_system_inspection"}
+            missing = required - job_ids
+            if missing:
+                _warn(f"Scheduler jobs missing: {missing}")
+            else:
+                _ok(f"All {len(required)} required scheduler jobs alive")
+        else:
+            _err("Scheduler is not running!")
+    except Exception as exc:
+        _warn(f"Scheduler job check failed: {exc}")
+
+    # ── 9. Counter resync ─────────────────────────────────────────────────────
+    try:
+        for pool in ALL_POOLS:
+            await asyncio.to_thread(resync_pool_counters, pool)
+        _fix("Win/loss counters resynced for all pools")
+    except Exception as exc:
+        _warn(f"Counter resync failed: {exc}")
+
+    # ── Summary ────────────────────────────────────────────────────────────────
+    elapsed = (datetime.now(timezone.utc) - started_at).total_seconds()
+    n_ok    = len(report["checks"])
+    n_warn  = len(report["warnings"])
+    n_err   = len(report["errors"])
+    n_fix   = len(report["fixes_applied"])
+
+    summary = (f"[inspection] ═══ Complete in {elapsed:.0f}s — "
+               f"✅{n_ok} ok  ⚠️{n_warn} warn  ❌{n_err} err  🔧{n_fix} fixed ═══")
+    print(summary)
+
+    # Send Telegram alert only if there are errors or fixes were applied
+    if n_err > 0 or n_fix > 0:
+        lines = []
+        if report["fixes_applied"]: lines += report["fixes_applied"][:5]
+        if report["errors"]:        lines += report["errors"][:5]
+        if report["warnings"][:3]:  lines += report["warnings"][:3]
+        body  = "\n".join(lines)
+        await send_critical_alert(
+            f"System Inspection: {n_fix} fix(es), {n_err} error(s)",
+            body,
+            f"Full report: {n_ok} ok / {n_warn} warn / {n_err} err / {n_fix} fixed in {elapsed:.0f}s",
+        )
 
 
 def start_scheduler() -> AsyncIOScheduler:
@@ -810,11 +1431,44 @@ def start_scheduler() -> AsyncIOScheduler:
     _scheduler.add_job(_breaking_news_cycle, trigger="interval", minutes=2, id="breaking_news_cycle", replace_existing=True,
                        start_date=_dt.now(_tz.utc) + _td(seconds=90))
     _scheduler.add_job(_hourly_system_check, trigger="interval", hours=1, id="hourly_system_check", replace_existing=True)
-    _scheduler.add_job(_daily_market_brief, trigger="cron", hour=8, minute=0, id="daily_market_brief", replace_existing=True, misfire_grace_time=600)
-    _scheduler.add_job(_stocks_session_report, trigger="cron", hour=21, minute=5, id="stocks_session_report", replace_existing=True, misfire_grace_time=600)
-    _scheduler.add_job(_daily_trade_count_report, trigger="cron", hour=21, minute=15, id="daily_trade_count_report", replace_existing=True, misfire_grace_time=600)
+    _scheduler.add_job(_macro_refresh_cycle, trigger="interval", hours=1, id="macro_refresh_cycle", replace_existing=True,
+                       start_date=_dt.now(_tz.utc) + _td(seconds=20))
+    # ONE daily performance report — fires at 16:15 ET (after NY session close).
+    # DST-safe via America/New_York so it always fires 15 min after market close.
+    from zoneinfo import ZoneInfo
+    _ny_tz = ZoneInfo("America/New_York")
+    _scheduler.add_job(_daily_trade_count_report, trigger="cron", hour=16, minute=15, timezone=_ny_tz, id="daily_trade_count_report", replace_existing=True, misfire_grace_time=3600)
+    # Proactively renew the FinancialJuice session twice daily so the cookie never lapses.
+    _scheduler.add_job(_fj_session_refresh_cycle, trigger="cron", hour="5,17", minute=30, id="fj_session_refresh", replace_existing=True, misfire_grace_time=3600)
+    # Market pulse — direction summary at London open (10:00), NY open (14:00), NY close (20:00) UTC.
+    _scheduler.add_job(_market_pulse_cycle, trigger="cron", hour="10,14,20", minute=0, id="market_pulse", replace_existing=True, misfire_grace_time=600)
+    # Weekly mistake autopsy — every Monday 09:00 UTC
+    _scheduler.add_job(_weekly_mistake_autopsy, trigger="cron", day_of_week="mon", hour=9, minute=0, id="weekly_autopsy", replace_existing=True, misfire_grace_time=3600)
+    # Weekly model comparison — every Sunday 20:00 UTC
+    _scheduler.add_job(_weekly_model_comparison, trigger="cron", day_of_week="sun", hour=20, minute=0, id="weekly_model_compare", replace_existing=True, misfire_grace_time=3600)
+    # Full system inspection — every 6 hours (system_directive.FULL_INSPECTION_HOURS)
+    from system_directive import FULL_INSPECTION_HOURS
+    _scheduler.add_job(_full_system_inspection, trigger="interval", hours=FULL_INSPECTION_HOURS,
+                       id="full_system_inspection", replace_existing=True, misfire_grace_time=3600,
+                       start_date=_dt.now(_tz.utc) + _td(minutes=10))
     _scheduler.start()
-    print(f"[scheduler] Started — signal every {interval} min, breaking news every 2 min (Telegram paused), system check every 60 min, daily brief at 08:00 UTC.")
+
+    _now = _dt.now(_tz.utc)
+
+    # Startup: refresh the FJ session shortly after boot so every deploy starts
+    # with a fresh login cookie instead of waiting for the next cron window.
+    _scheduler.add_job(_fj_session_refresh_cycle, trigger="date", run_date=_now + _td(seconds=60),
+                       id="fj_session_refresh_boot", replace_existing=True)
+
+    # Startup catch-up: fire daily performance report if we missed the 16:15 ET cron
+    # (e.g. redeployed after NY close). Uses NY time so it tracks DST automatically.
+    _now_ny = _now.astimezone(_ny_tz)
+    if _now_ny.weekday() < 5 and (_now_ny.hour, _now_ny.minute) >= (16, 15):
+        print("[scheduler] Startup catch-up: firing daily performance report on boot.")
+        _scheduler.add_job(_daily_trade_count_report, trigger="date", run_date=_now + _td(seconds=45),
+                           id="daily_report_catchup", replace_existing=True)
+
+    print(f"[scheduler] Started — signal every {interval} min, breaking news every 2 min, system check every 60 min, daily performance report at 16:15 ET.")
     return _scheduler
 
 

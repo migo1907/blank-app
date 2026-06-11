@@ -168,20 +168,14 @@ def _fetch_asset(name: str, prefetched: dict) -> tuple[dict | None, int, str]:
         print(f"[daily] {name}: using pre-fetched TradingView data.")
         return prefetched[name], decimals, label
 
-    # Source 2: TradingView live
+    # Source 2: TradingView live (tvdatafeed) — same ICMARKETS/AMEX/NASDAQ feed.
+    # No Yahoo fallback: all brief prices must come from TradingView only.
     levels = _fetch_levels_tv(sym, exchange, decimals)
     if levels:
         print(f"[daily] {name}: TradingView live ({exchange}) OK.")
         return levels, decimals, label
 
-    # Source 3: yfinance
-    for yf_ticker in SYMBOLS_YF_FALLBACK.get(name, []):
-        levels = _fetch_levels_yf(yf_ticker, decimals)
-        if levels:
-            print(f"[daily] {name}: yfinance fallback ({yf_ticker}) OK.")
-            return levels, decimals, label
-
-    print(f"[daily] {name}: all sources failed — skipping.")
+    print(f"[daily] {name}: TradingView sources failed — skipping (no non-TV fallback).")
     return None, decimals, label
 
 
@@ -235,12 +229,19 @@ def generate_daily_brief() -> str | None:
     now      = datetime.now(timezone.utc)
     weekday  = now.strftime("%A")
     date_str = now.strftime("%d %b %Y")
+    # US regular session opens 13:30 UTC; NY close 20:00 UTC
+    if now.hour < 13 or (now.hour == 13 and now.minute < 30):
+        session_label = "Pre-market analysis"
+    elif now.hour < 20:
+        session_label = "Regular session"
+    else:
+        session_label = "After-hours"
 
     msg = (
         f"📅 <b>DAILY MARKET Technical BRIEF — {weekday}, {date_str}</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━\n\n"
         f"{analysis}\n\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
-        f"⏰ {now.strftime('%H:%M UTC')} | Pre-market analysis"
+        f"⏰ {now.strftime('%H:%M UTC')} | {session_label}"
     )
     return msg

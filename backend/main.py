@@ -21,6 +21,12 @@ load_dotenv()
 _outcome_dedup_seen: dict[str, float] = {}   # dedup_key → monotonic seconds
 _OUTCOME_DEDUP_TTL = 30.0  # seconds
 
+# Entry price cache: when Pine Script fires a trade entry, store the entry price so
+# that outcome payloads (TP1_HIT, WIN, LOSS) can recover it if the field is missing/NaN.
+# Key: "SYMBOL|DIRECTION|TF"  Value: (entry_price, tp1, tp2, tp3, sl, monotonic_ts)
+_entry_price_cache: dict[str, tuple] = {}
+_ENTRY_CACHE_TTL = 86400.0  # 24h — covers overnight/multi-day trades
+
 
 def _outcome_is_duplicate(symbol: str, direction: str, entry_price: float, exit_price: float, timeframe: str) -> bool:
     """Returns True if this exact outcome was already processed within TTL window."""
@@ -79,6 +85,22 @@ async def lifespan(app: FastAPI):
         else:
             print(f"[startup] {_pool}: {len(_hist)} trades — RF/GBM will train when data grows.")
 
+    print("[startup] Priming joint models (gold + stocks)…")
+    try:
+        from ml_ensemble import get_joint_gold, get_joint_stocks, GOLD_TF_IDS, STOCK_POOL_IDS
+        _gold_hists = {p: recent_outcomes(p, 500) for p in GOLD_TF_IDS}
+        _gold_hists = {p: h for p, h in _gold_hists.items() if h}
+        if _gold_hists:
+            get_joint_gold().train(_gold_hists)
+            print(f"[startup] JointGoldGBM primed on {sum(len(h) for h in _gold_hists.values())} gold trades")
+        _stock_hists = {p: recent_outcomes(p, 500) for p in STOCK_POOL_IDS}
+        _stock_hists = {p: h for p, h in _stock_hists.items() if h}
+        if _stock_hists:
+            get_joint_stocks().train(_stock_hists)
+            print(f"[startup] JointStocksGBM primed on {sum(len(h) for h in _stock_hists.values())} stock trades")
+    except Exception as _je:
+        print(f"[startup] ⚠ Joint model priming skipped (non-fatal): {_je}")
+
     print("[startup] Resyncing pool win/loss counters…")
     from db import resync_pool_counters
     for _pool in ["XAUUSD_2M", "XAUUSD_5M", "XAUUSD_30M", "XAUUSD_1H",
@@ -89,6 +111,18 @@ async def lifespan(app: FastAPI):
                   "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",   "STOCKS_SPX500_4H"]:
         resync_pool_counters(_pool)
 
+    print("[startup] Verifying data branch is writable…")
+    try:
+        from db import _get_file, _put_file
+        _hc_data, _hc_sha = _get_file("data/health.json")
+        if not isinstance(_hc_data, dict):
+            _hc_data = {}
+        _hc_data["startup_at"] = datetime.now(timezone.utc).isoformat()
+        _put_file("data/health.json", _hc_data, _hc_sha, "chore: startup health check")
+        print("[startup] Data branch writable ✓")
+    except Exception as _e:
+        print(f"[startup] ⚠ DATA BRANCH NOT WRITABLE: {_e}. Check GITHUB_TOKEN scope.")
+
     print("[startup] Loading feature cache from GitHub…")
     from signal_engine import load_feature_cache
     load_feature_cache()
@@ -96,6 +130,10 @@ async def lifespan(app: FastAPI):
     print("[startup] Loading HTF bias store from GitHub…")
     from htf_bias import load_bias_store
     load_bias_store()
+
+    print("[startup] Loading market macro bias from GitHub…")
+    from market_macro import load_macro_bias
+    load_macro_bias()
 
     if not WEBHOOK_SECRET:
         print("[startup] ⚠ WARNING: WEBHOOK_SECRET is not set — all webhook endpoints are open to unauthenticated requests.")
@@ -241,7 +279,7 @@ class TradeOutcomePayload(BaseModel):
     f13: float = 0.0; f14: float = 0.0; f15: float = 0.0; f16: float = 0.0
     f17: float = 0.0; f18: float = 0.0; f19: float = 0.0; f20: float = 0.0
     f21: float = 0.0; f22: float = 0.0; f23: float = 0.0; f24: float = 0.0
-    f25: float = 0.0
+    f25: float = 0.0; f26: float = 0.0
 
     model_config = {"extra": "ignore"}
 
@@ -257,7 +295,7 @@ class TradeOutcomePayload(BaseModel):
             "ml_score", "mfe", "entry_price", "exit_price",
             "f1","f2","f3","f4","f5","f6","f7","f8","f9","f10",
             "f11","f12","f13","f14","f15","f16","f17","f18","f19","f20",
-            "f21","f22","f23","f24","f25",
+            "f21","f22","f23","f24","f25","f26",
         }
         for k in float_fields:
             if k in values and values[k] is None:
@@ -326,7 +364,7 @@ class UnifiedPayload(BaseModel):
     f13: float = 0.0; f14: float = 0.0; f15: float = 0.0; f16: float = 0.0
     f17: float = 0.0; f18: float = 0.0; f19: float = 0.0; f20: float = 0.0
     f21: float = 0.0; f22: float = 0.0; f23: float = 0.0; f24: float = 0.0
-    f25: float = 0.0
+    f25: float = 0.0; f26: float = 0.0
 
     model_config = {"extra": "ignore"}
 
@@ -343,7 +381,7 @@ class UnifiedPayload(BaseModel):
             "ml_score", "mfe",
             "f1","f2","f3","f4","f5","f6","f7","f8","f9","f10",
             "f11","f12","f13","f14","f15","f16","f17","f18","f19","f20",
-            "f21","f22","f23","f24","f25",
+            "f21","f22","f23","f24","f25","f26",
         }
         for k in float_fields:
             if k in values and values[k] is None:
@@ -376,7 +414,25 @@ async def health():
         start_scheduler()
         asyncio.create_task(_news_signal_cycle())
 
-    return {"status": "ok", "version": "3.1.0-25F", "scheduler": "running" if scheduler_ok else "restarted"}
+    try:
+        from signal_engine import get_ml_health
+        ml_health = await asyncio.to_thread(get_ml_health)
+    except Exception as _e:
+        ml_health = {"error": str(_e)}
+
+    try:
+        from system_directive import get_directive_summary
+        directive = get_directive_summary()
+    except Exception:
+        directive = {}
+
+    return {
+        "status":    "ok",
+        "version":   "5.1.0-25F",
+        "scheduler": "running" if scheduler_ok else "restarted",
+        "ml":        ml_health,
+        "directive": directive,
+    }
 
 
 @app.get("/test-personal-alert")
@@ -401,10 +457,15 @@ async def test_telegram(secret: str = ""):
 
 
 def _normalize_outcome(raw: str) -> str:
-    """Map Pine Script outcome strings to internal WIN/LOSS/PARTIAL/HEARTBEAT/PROGRESS."""
+    """Map Pine Script outcome strings to internal WIN/LOSS/PARTIAL/HEARTBEAT/PROGRESS.
+
+    TP1_HIT = trade closed at first target → WIN.
+    TP2_HIT / TP3_HIT = addon score on an already-open trade → PROGRESS (no new DB record).
+    """
     v = raw.upper().strip()
     if v == "HEARTBEAT":                          return "HEARTBEAT"
-    if v in ("TP1_HIT", "TP2_HIT"):              return "PROGRESS"
+    if v == "TP1_HIT":                            return "WIN"
+    if v in ("TP2_HIT", "TP3_HIT"):              return "PROGRESS"
     if v in ("WIN", "TP3", "TP2", "TP1"):         return "WIN"
     if v in ("LOSS", "SL"):                        return "LOSS"
     if v in ("PARTIAL", "SL_TP1", "SL_TP2",
@@ -430,6 +491,9 @@ async def trade_outcome(payload: TradeOutcomePayload):
         from signal_engine import update_latest_features
         sym  = getattr(payload, "symbol", "XAUUSD") or "XAUUSD"
         pool = symbol_to_pool(sym, payload.timeframe or "")
+        if not pool:
+            # Unmapped pool (e.g. XAUUSD 4H) — drop silently, no cache write
+            return {"status": "ok", "outcome": "HEARTBEAT", "pool": "ignored"}
         features = Features(
             f1=payload.f1, f2=payload.f2, f3=payload.f3, f4=payload.f4,
             f5=payload.f5, f6=payload.f6, f7=payload.f7, f8=payload.f8,
@@ -437,7 +501,7 @@ async def trade_outcome(payload: TradeOutcomePayload):
             f13=payload.f13, f14=payload.f14, f15=payload.f15, f16=payload.f16,
             f17=payload.f17, f18=payload.f18, f19=payload.f19, f20=payload.f20,
             f21=payload.f21, f22=payload.f22, f23=payload.f23, f24=payload.f24,
-            f25=payload.f25,
+            f25=payload.f25, f26=payload.f26,
         )
         # Update in-memory cache immediately, persist to GitHub in background
         from signal_engine import _latest_features
@@ -462,8 +526,27 @@ async def trade_outcome(payload: TradeOutcomePayload):
 
     sym  = payload.symbol or "XAUUSD"
 
+    # Recover entry_price from cache if Pine Script sent NaN/0 (NaN is sanitized to 0)
+    import time as _time
+    if not payload.entry_price:
+        _ck = f"{sym.upper()}|{payload.direction}|{payload.timeframe or ''}"
+        _cached = _entry_price_cache.get(_ck)
+        if _cached and (_time.monotonic() - _cached[5]) < _ENTRY_CACHE_TTL:
+            payload.entry_price = _cached[0]
+            # Backfill TP/SL levels if also missing
+            if not payload.tp1: payload.tp1 = _cached[1]
+            if not payload.tp2: payload.tp2 = _cached[2]
+            if not payload.tp3: payload.tp3 = _cached[3]
+            if not payload.sl:  payload.sl  = _cached[4]
+            print(f"[trade-outcome] Recovered entry_price={payload.entry_price} from cache for {sym} {payload.direction}")
+
+    # If exit_price still missing but we have a TP level, use tp1 as exit for TP1 wins
+    if not payload.exit_price and payload.tp1:
+        payload.exit_price = payload.tp1
+        print(f"[trade-outcome] Used tp1={payload.tp1} as exit_price for {sym} {payload.direction}")
+
     if not payload.entry_price or not payload.exit_price:
-        print(f"[trade-outcome] Missing entry/exit price for {sym} {payload.direction} — skipping")
+        print(f"[trade-outcome] Missing entry/exit price for {sym} {payload.direction} — skipping (no cache hit)")
         return {"status": "ok", "skipped": "missing_prices"}
 
     try:
@@ -476,18 +559,20 @@ async def trade_outcome(payload: TradeOutcomePayload):
             f13=payload.f13, f14=payload.f14, f15=payload.f15, f16=payload.f16,
             f17=payload.f17, f18=payload.f18, f19=payload.f19, f20=payload.f20,
             f21=payload.f21, f22=payload.f22, f23=payload.f23, f24=payload.f24,
-            f25=payload.f25,
+            f25=payload.f25, f26=payload.f26,
         )
+
+        # Signed realized move (favorable = positive). Lets the KNN re-classify a
+        # partial that actually closed negative (e.g. SL_TP1 on gold scalps) as a loss.
+        raw_pct = (payload.exit_price - payload.entry_price) / max(payload.entry_price, 0.0001) * 100
+        pnl_pct = raw_pct if payload.direction == "LONG" else -raw_pct
 
         ml_label = payload.ml_outcome or payload.outcome
         _is_dup = _outcome_is_duplicate(sym, payload.direction, payload.entry_price, payload.exit_price, payload.timeframe or "")
         if not _is_dup:
-            model.update_on_outcome(features, payload.direction, ml_label, tp_stage=payload.tp_stage or "")
+            model.update_on_outcome(features, payload.direction, ml_label, tp_stage=payload.tp_stage or "", pnl=pnl_pct)
         else:
             print(f"[trade-outcome] Duplicate within {_OUTCOME_DEDUP_TTL}s — skipping weight update for {sym} {payload.direction} entry={payload.entry_price}")
-
-        raw_pct = (payload.exit_price - payload.entry_price) / max(payload.entry_price, 0.0001) * 100
-        pnl_pct = raw_pct if payload.direction == "LONG" else -raw_pct
 
         from signal_engine import _detect_regime, _session_multiplier
         _is_stock_pool = not pool.startswith("XAUUSD")
@@ -528,12 +613,47 @@ async def trade_outcome(payload: TradeOutcomePayload):
                     else:
                         raise
             await asyncio.to_thread(insert_outcome, outcome_row)
-            from signal_engine import invalidate_history_cache
+
+            # Log to mistake ledger for weekly autopsy
+            if outcome_row.get("outcome") == "LOSS":
+                from db import log_mistake
+                await asyncio.to_thread(log_mistake, outcome_row)
+
+            from signal_engine import (
+                invalidate_history_cache, refresh_pool_models,
+                refresh_joint_models, record_oob_prediction,
+                should_retrigger_retrain,
+            )
             invalidate_history_cache(pool)
             history = await asyncio.to_thread(recent_outcomes, pool, 500)
-            if len(history) >= 50:
+
+            # Record OOS prediction for champion-challenger tracking
+            _prev_score = outcome_row.get("ml_bull_score") or 0.5
+            _actual_win = outcome_row.get("outcome") in ("WIN", "PARTIAL")
+            record_oob_prediction(pool, float(_prev_score), bool(_actual_win))
+
+            # Retrain when: (a) pool first reaches 50 trades, OR
+            #               (b) regime shift detected (WR dropped >5pp in last 20 vs prev 20)
+            _needs_retrain = (len(history) >= 50 and
+                              (len(history) % 10 == 0 or  # normal cadence every 10 new trades
+                               should_retrigger_retrain(pool, history)))
+            if _needs_retrain:
                 await asyncio.to_thread(get_rf(pool).retrain, history)
                 await asyncio.to_thread(get_gbm(pool).train, history)
+                # Update threshold (F-beta≥80 trades, NP otherwise) + champion-challenger check
+                await asyncio.to_thread(refresh_pool_models, pool, history)
+
+            # Retrain joint models (combines all related pools — most valuable for thin pools)
+            from db import symbol_to_pool as _stp
+            from ml_ensemble import GOLD_TF_IDS, STOCK_POOL_IDS
+            _related_pools = list(GOLD_TF_IDS.keys()) if pool in GOLD_TF_IDS else list(STOCK_POOL_IDS.keys())
+            _all_hists = {}
+            for _p in _related_pools:
+                _h = await asyncio.to_thread(recent_outcomes, _p, 500)
+                if _h:
+                    _all_hists[_p] = _h
+            if _all_hists:
+                await asyncio.to_thread(refresh_joint_models, _all_hists)
             from scheduler import record_webhook_ok
             record_webhook_ok()
         except Exception as e:
@@ -580,17 +700,23 @@ async def signal_entry(payload: SignalEntryPayload):
         print(f"[signal-entry] Missing entry_price for {sym} {payload.direction} — skipping Telegram")
         return {"status": "ok", "routed_to": "suppressed", "reason": "no_entry_price"}
 
-    # Option B — backend ML gate (see /webhook). Suppress silently if below threshold.
+    # Cache the entry price so outcome payloads can recover it if missing/NaN
+    import time as _time
+    _cache_key = f"{sym.upper()}|{payload.direction}|{tf}"
+    _entry_price_cache[_cache_key] = (entry, payload.tp1 or 0.0, payload.tp2 or 0.0,
+                                      payload.tp3 or 0.0, payload.sl or 0.0, _time.monotonic())
+
+    # Backend ML quality grade — annotate-only: never suppress,
+    # tag the entry with P(TP1+) so the trader decides.
     from signal_engine import score_entry_gate
     from db import symbol_to_pool
-    _gate = score_entry_gate(symbol_to_pool(sym, tf), payload.direction)
-    if not _gate["pass"]:
-        print(f"[signal-entry] ML GATE REJECT {payload.direction} {sym} TF={tf} "
-              f"score={_gate['score']} components={_gate['components']}")
-        return {"status": "ok", "routed_to": "ml-gate-rejected",
-                "ml_gate_score": _gate["score"], "reason": _gate["reason"]}
-    print(f"[signal-entry] ML GATE PASS {payload.direction} {sym} TF={tf} "
-          f"score={_gate['score']} ({_gate['reason']})")
+    try:
+        _gate = score_entry_gate(symbol_to_pool(sym, tf), payload.direction)
+    except Exception as _ge:
+        print(f"[signal-entry] gate error (non-fatal): {_ge}")
+        _gate = {"pass": True, "score": 0.5, "reason": "gate_error", "components": {}}
+    print(f"[signal-entry] ML QUALITY {payload.direction} {sym} TF={tf} "
+          f"score={_gate['score']} ({_gate['reason']}) components={_gate['components']}")
 
     bias        = get_active_bias(sym, payload.direction)
     contra_bias = get_active_bias(sym, "SHORT" if payload.direction == "LONG" else "LONG")
@@ -609,6 +735,8 @@ async def signal_entry(payload: SignalEntryPayload):
         "sl":          payload.sl or 0.0,
         "ml_score":    payload.ml_score,
         "tier":        payload.tier or "MED",
+        "quality_score":  _gate["score"],
+        "quality_reason": _gate["reason"],
         "news_score":  get_latest_news_sentiment(),
         "velocity":    get_latest_velocity().get("label", "NORMAL"),
         "event":       get_latest_event().get("event_type", ""),
@@ -665,18 +793,26 @@ async def unified_webhook(payload: UnifiedPayload):
             print(f"[webhook] Missing entry_price for {sym} {payload.direction} — skipping Telegram")
             return {"status": "ok", "routed_to": "suppressed", "reason": "no_entry_price"}
 
-        # Option B — backend ML gate. Re-score the Pine-fired entry with the
-        # trained, persistent KNN+RF+GBM. Suppress silently if below threshold.
+        # Cache the entry price so outcome payloads can recover it if missing/NaN
+        import time as _time
+        _cache_key = f"{sym.upper()}|{payload.direction}|{tf}"
+        _entry_price_cache[_cache_key] = (entry, payload.tp1 or 0.0, payload.tp2 or 0.0,
+                                          payload.tp3 or 0.0, payload.sl or 0.0, _time.monotonic())
+
+        # Backend ML quality grade — annotate-only mode. Re-score the Pine-fired
+        # entry with the trained KNN+RF+GBM (P of reaching TP1+), but never
+        # suppress: every entry reaches Telegram tagged with its grade so the
+        # trader decides. (Switched from silent suppression: the models are
+        # young and suppression was wrongly blocking some winners.)
         from signal_engine import score_entry_gate
         from db import symbol_to_pool
-        _gate = score_entry_gate(symbol_to_pool(sym, tf), payload.direction)
-        if not _gate["pass"]:
-            print(f"[webhook] ML GATE REJECT {payload.direction} {sym} TF={tf} "
-                  f"score={_gate['score']} components={_gate['components']}")
-            return {"status": "ok", "routed_to": "ml-gate-rejected",
-                    "ml_gate_score": _gate["score"], "reason": _gate["reason"]}
-        print(f"[webhook] ML GATE PASS {payload.direction} {sym} TF={tf} "
-              f"score={_gate['score']} ({_gate['reason']})")
+        try:
+            _gate = score_entry_gate(symbol_to_pool(sym, tf), payload.direction)
+        except Exception as _ge:
+            print(f"[webhook] gate error (non-fatal): {_ge}")
+            _gate = {"pass": True, "score": 0.5, "reason": "gate_error", "components": {}}
+        print(f"[webhook] ML QUALITY {payload.direction} {sym} TF={tf} "
+              f"score={_gate['score']} ({_gate['reason']}) components={_gate['components']}")
 
         bias        = get_active_bias(sym, payload.direction)
         contra_bias = get_active_bias(sym, "SHORT" if payload.direction == "LONG" else "LONG")
@@ -695,6 +831,8 @@ async def unified_webhook(payload: UnifiedPayload):
             "sl":          payload.sl or 0.0,
             "ml_score":    payload.ml_score,
             "tier":        payload.tier or "MED",
+            "quality_score":  _gate["score"],
+            "quality_reason": _gate["reason"],
             "news_score":  get_latest_news_sentiment(),
             "velocity":    get_latest_velocity().get("label", "NORMAL"),
             "event":       get_latest_event().get("event_type", ""),
@@ -710,6 +848,8 @@ async def unified_webhook(payload: UnifiedPayload):
         from signal_engine import update_latest_features
         sym2 = payload.symbol or "XAUUSD"
         pool = symbol_to_pool(sym2, payload.timeframe or "")
+        if not pool:
+            return {"status": "ok", "outcome": "HEARTBEAT", "pool": "ignored"}
         features = Features(
             f1=payload.f1, f2=payload.f2, f3=payload.f3, f4=payload.f4,
             f5=payload.f5, f6=payload.f6, f7=payload.f7, f8=payload.f8,
@@ -717,7 +857,7 @@ async def unified_webhook(payload: UnifiedPayload):
             f13=payload.f13, f14=payload.f14, f15=payload.f15, f16=payload.f16,
             f17=payload.f17, f18=payload.f18, f19=payload.f19, f20=payload.f20,
             f21=payload.f21, f22=payload.f22, f23=payload.f23, f24=payload.f24,
-            f25=payload.f25,
+            f25=payload.f25, f26=payload.f26,
         )
         from signal_engine import _latest_features
         _latest_features[pool] = features
@@ -743,6 +883,23 @@ async def unified_webhook(payload: UnifiedPayload):
         from ml_ensemble import get_rf, get_gbm
         from db import insert_outcome, recent_outcomes, symbol_to_pool
         sym2 = payload.symbol or "XAUUSD"
+
+        # Recover entry_price from cache if missing/NaN-sanitized-to-zero
+        import time as _time2
+        if not payload.entry_price:
+            _ck2 = f"{sym2.upper()}|{payload.direction}|{payload.timeframe or ''}"
+            _cached2 = _entry_price_cache.get(_ck2)
+            if _cached2 and (_time2.monotonic() - _cached2[5]) < _ENTRY_CACHE_TTL:
+                payload.entry_price = _cached2[0]
+                if not payload.tp1: payload.tp1 = _cached2[1]
+                if not payload.tp2: payload.tp2 = _cached2[2]
+                if not payload.tp3: payload.tp3 = _cached2[3]
+                if not payload.sl:  payload.sl  = _cached2[4]
+                print(f"[webhook] Recovered entry_price={payload.entry_price} from cache for {sym2} {payload.direction}")
+        if not payload.exit_price and payload.tp1:
+            payload.exit_price = payload.tp1
+            print(f"[webhook] Used tp1={payload.tp1} as exit_price for {sym2} {payload.direction}")
+
         try:
             pool     = symbol_to_pool(sym2, payload.timeframe or "")
             model    = get_model(pool)
@@ -755,13 +912,8 @@ async def unified_webhook(payload: UnifiedPayload):
                 f21=payload.f21, f22=payload.f22, f23=payload.f23, f24=payload.f24,
                 f25=payload.f25,
             )
-            ml_label = payload.ml_outcome or payload.outcome
-            _is_dup2 = _outcome_is_duplicate(sym2, payload.direction, payload.entry_price or 0.0, payload.exit_price or 0.0, payload.timeframe or "")
-            if not _is_dup2:
-                model.update_on_outcome(features, payload.direction, ml_label, tp_stage=payload.tp_stage or "")
-            else:
-                print(f"[webhook] Duplicate within {_OUTCOME_DEDUP_TTL}s — skipping weight update for {sym2} {payload.direction} entry={payload.entry_price}")
-
+            # Signed realized move (favorable = positive) — lets the KNN re-classify a
+            # partial that actually closed negative (e.g. SL_TP1 on gold scalps) as a loss.
             entry = payload.entry_price or 0.0
             exit_ = payload.exit_price or 0.0
             if entry and exit_:
@@ -769,6 +921,14 @@ async def unified_webhook(payload: UnifiedPayload):
                 pnl_pct = raw_pct if payload.direction == "LONG" else -raw_pct
             else:
                 pnl_pct = 0.0
+
+            ml_label = payload.ml_outcome or payload.outcome
+            _pnl_for_ml = pnl_pct if (entry and exit_) else None  # don't reclassify on missing prices
+            _is_dup2 = _outcome_is_duplicate(sym2, payload.direction, payload.entry_price or 0.0, payload.exit_price or 0.0, payload.timeframe or "")
+            if not _is_dup2:
+                model.update_on_outcome(features, payload.direction, ml_label, tp_stage=payload.tp_stage or "", pnl=_pnl_for_ml)
+            else:
+                print(f"[webhook] Duplicate within {_OUTCOME_DEDUP_TTL}s — skipping weight update for {sym2} {payload.direction} entry={payload.entry_price}")
 
             from signal_engine import _detect_regime, _session_multiplier
             _is_stock_pool2 = not pool.startswith("XAUUSD")
@@ -810,10 +970,11 @@ async def unified_webhook(payload: UnifiedPayload):
                 await asyncio.to_thread(insert_outcome, outcome_row)
                 from signal_engine import invalidate_history_cache
                 invalidate_history_cache(pool)
-                history = await asyncio.to_thread(recent_outcomes, pool, 500)
-                if len(history) >= 50:
-                    await asyncio.to_thread(get_rf(pool).retrain, history)
-                    await asyncio.to_thread(get_gbm(pool).train, history)
+                # NOTE: RF/GBM retraining is intentionally NOT done here. sklearn fit()
+                # is CPU/GIL-bound; retraining on every outcome stalled the event loop
+                # during trade bursts (e.g. post-CPI) → webhook timeouts. The hourly
+                # system check retrains RF+GBM for every pool, keeping models fresh
+                # without blocking the webhook hot path.
                 from scheduler import record_webhook_ok
                 record_webhook_ok()
             except Exception as e:

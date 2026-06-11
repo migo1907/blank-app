@@ -38,9 +38,26 @@ FEATURE_NAMES = [
     "f23_rsiacc",  # RSI Acceleration
     "f24_fvgq",    # FVG Quality (post-sweep)
     "f25_tod",     # Time-of-Day sine
+    "f26_stoch",   # Stochastic %K normalised
 ]
 
-N_FEATURES = 25
+N_FEATURES = 26
+
+
+def row_to_vector(row: dict) -> list[float]:
+    """
+    Build a 25-element feature vector from a trade-history row.
+    Prefers named keys (f1_rsi..f25_tod); falls back to legacy compact
+    keys (f1..f25) for older/repaired records written before the schema
+    was standardized. Missing values default to 0.0.
+    """
+    vec = []
+    for i, col in enumerate(FEATURE_NAMES, start=1):
+        v = row.get(col)
+        if v is None:
+            v = row.get(f"f{i}", 0.0)
+        vec.append(float(v or 0.0))
+    return vec
 
 
 @dataclass
@@ -70,6 +87,7 @@ class Features:
     f23: float = 0.0   # RSI Acceleration
     f24: float = 0.0   # FVG Quality (post-sweep)
     f25: float = 0.0   # Time-of-Day sine
+    f26: float = 0.0   # Stochastic %K normalised
 
     def as_list(self) -> list[float]:
         return [
@@ -78,11 +96,12 @@ class Features:
             self.f11, self.f12, self.f13, self.f14, self.f15,
             self.f16, self.f17, self.f18, self.f19, self.f20,
             self.f21, self.f22, self.f23, self.f24, self.f25,
+            self.f26,
         ]
 
     @classmethod
     def from_payload(cls, payload: dict) -> "Features":
-        """Build Features from a webhook payload dict (f1..f25 keys)."""
+        """Build Features from a webhook payload dict (f1..f26 keys)."""
         return cls(
             f1=float(payload.get("f1", 0.0)),
             f2=float(payload.get("f2", 0.0)),
@@ -109,6 +128,7 @@ class Features:
             f23=float(payload.get("f23", 0.0)),
             f24=float(payload.get("f24", 0.0)),
             f25=float(payload.get("f25", 0.0)),
+            f26=float(payload.get("f26", 0.0)),
         )
 
     def as_db_dict(self) -> dict:
@@ -176,7 +196,7 @@ class AdaptiveKNN:
         distances: list[tuple[float, int]] = []  # (dist, label: +1 bull / -1 bear)
 
         for row in history:
-            hist_vec = [float(row.get(col, 0.0)) for col in FEATURE_NAMES]
+            hist_vec = row_to_vector(row)
             dist = _lorentzian_dist(current_vec, hist_vec, self._weights)
             # Use ml_outcome if present (e.g. SL_TP1 stored as WIN); fall back to outcome
             outcome   = row.get("ml_outcome") or row.get("outcome", "LOSS")
@@ -201,22 +221,34 @@ class AdaptiveKNN:
 
     # ── Adaptive weight update ────────────────────────────────
 
-    def update_on_outcome(self, features: Features, direction: str, outcome: str, tp_stage: str = "") -> None:
+    def update_on_outcome(self, features: Features, direction: str, outcome: str, tp_stage: str = "", pnl: float | None = None) -> None:
         """
         Call after each trade closes.
         outcome : 'WIN' | 'LOSS' | 'PARTIAL' (PARTIAL kept for backward compat)
         tp_stage: 'TP3' | 'SL_TP2' | 'SL_TP1' | 'SL' — determines reward size for WIN outcomes.
+        pnl     : realized signed move (price points, + = favorable). When provided, a
+                  partial that actually closed negative is re-classified as a LOSS.
 
-        Scoring logic (user-defined):
+        Scoring logic:
           TP3        → full win   (1.0×)
           SL_TP2     → medium win (0.7×)  reached TP2, trail stopped — still profitable
-          SL_TP1     → low win    (0.4×)  reached TP1, trail stopped — break-even or small profit
+          SL_TP1     → low win    (0.4×)  reached TP1, trail stopped — usually small profit
           LOSS / SL  → full penalty
+
+        Per-pool self-correction: SL_TP1 is profitable on most pools (stocks, 30M) but
+        a verified net LOSS on the fast gold scalp pools (XAUUSD 2M/5M, avg −0.9/−1.2).
+        When the realized pnl is known and ≤ 0 we penalize instead of rewarding, so the
+        model learns the truth for each pool rather than a blanket "SL_TP1 = win" prior.
         """
         feat_list = features.as_list()
         is_long = direction == "LONG"
 
-        if outcome in ("WIN", "PARTIAL"):
+        # Re-classify a "won" partial that actually closed flat/negative as a loss.
+        effective = outcome
+        if outcome in ("WIN", "PARTIAL") and pnl is not None and pnl <= 0.0:
+            effective = "LOSS"
+
+        if effective in ("WIN", "PARTIAL"):
             self._total_wins += 1
             # Grade reward by how far price traveled
             if tp_stage == "SL_TP1":
@@ -230,7 +262,7 @@ class AdaptiveKNN:
                 sign = 1.0 if (fv >= 0 and is_long) or (fv < 0 and not is_long) else -1.0
                 self._weights[i] = _clamp(self._weights[i] + sign * delta)
 
-        elif outcome == "LOSS":
+        elif effective == "LOSS":
             self._total_losses += 1
             delta = self.learn_rate * self.loss_penalty
             for i, fv in enumerate(feat_list):

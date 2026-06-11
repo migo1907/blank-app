@@ -94,10 +94,16 @@ def _get_file(path: str) -> tuple[dict | list | None, str | None]:
 
 
 def _put_file(path: str, content: dict | list, sha: str | None, message: str) -> None:
-    """Create or update a file in the repo. Retries on 409 SHA conflict (re-fetches SHA)."""
+    """Create or update a file in the repo. Retries on 409 SHA conflict with
+    jittered backoff (re-fetches SHA each time). Concurrent writes to the same
+    data-branch file are common on the busy pools, so we give the conflict
+    resolution a generous budget instead of dropping the write."""
+    import time as _time, random as _random
     encoded = base64.b64encode(json.dumps(content, indent=2).encode()).decode()
     current_sha = sha
-    for attempt in range(3):
+    MAX_ATTEMPTS = 6
+    for attempt in range(MAX_ATTEMPTS):
+        last = attempt == MAX_ATTEMPTS - 1
         payload: dict = {
             "message": message,
             "content": encoded,
@@ -111,16 +117,17 @@ def _put_file(path: str, content: dict | list, sha: str | None, message: str) ->
                 headers=HEADERS,
                 json=payload,
             )
-        if resp.status_code in (403, 429) and attempt < 2:
+        if resp.status_code in (403, 429) and not last:
             _github_retry_wait(resp)
             continue
-        if resp.status_code == 409 and attempt < 2:
-            # SHA stale — re-fetch and retry
+        if resp.status_code == 409 and not last:
+            # SHA stale (concurrent write) — back off with jitter, re-fetch, retry
+            _time.sleep(0.3 * (attempt + 1) + _random.uniform(0, 0.4))
             _, current_sha = _get_file(path)
             continue
-        if resp.status_code == 422 and attempt < 2:
+        if resp.status_code == 422 and not last:
             # Unprocessable — re-fetch SHA/state and retry after short wait
-            import time as _time; _time.sleep(0.5)
+            _time.sleep(0.5 + _random.uniform(0, 0.3))
             _, current_sha = _get_file(path)
             continue
         resp.raise_for_status()
@@ -165,7 +172,10 @@ def symbol_to_pool(symbol: str, timeframe: str = "") -> str:
     suffix = _tf_suffix(timeframe) if timeframe else ""
 
     if ticker in ("XAUUSD", "GOLD", "GC"):
-        return f"XAUUSD_{suffix}" if suffix else "XAUUSD"
+        # XAUUSD_4H is not a live trading pool — drop heartbeats to prevent orphan cache entries
+        if suffix == "4H":
+            return ""
+        return f"XAUUSD_{suffix}" if suffix else "XAUUSD_2M"
     if ticker in STOCKS_SPX500:
         base = "STOCKS_SPX500"
     elif ticker in STOCKS_QQQ:
@@ -310,6 +320,8 @@ def insert_outcome(outcome: dict) -> None:
 def recent_outcomes(pool: str = "XAUUSD", limit: int = 200) -> list[dict]:
     path = _pool_history_file(pool)
     history, _ = _get_file(path)
+    if not isinstance(history, list):
+        history = []
     if not history:
         return []
     return list(reversed(history))[:limit]
@@ -434,6 +446,82 @@ def log_raw_webhook(payload: dict) -> None:
         print(f"[webhook_log] Failed to log payload: {e}")
 
 
+_MISTAKE_LEDGER_PATH = "data/mistake_ledger.json"
+_MISTAKE_LEDGER_MAX  = 500
+
+
+def log_mistake(trade_row: dict) -> None:
+    """
+    Append a LOSS trade to the mistake ledger with auto-categorized cause tags.
+    Used for weekly autopsy: which session/regime/trigger bleeds most.
+    Non-blocking — never raises.
+    """
+    try:
+        atr = float(trade_row.get("f3_atr") or 0.0)
+        entry = {
+            "id":        trade_row.get("id", ""),
+            "pool":      trade_row.get("pool", ""),
+            "symbol":    trade_row.get("symbol", ""),
+            "direction": trade_row.get("direction", ""),
+            "trigger":   trade_row.get("trigger", ""),
+            "session":   trade_row.get("session", "UNKNOWN"),
+            "regime":    trade_row.get("regime", "UNKNOWN"),
+            "pnl_pct":   trade_row.get("pnl_pct", 0.0),
+            "atr_level": "HIGH" if atr > 0.5 else "LOW",
+            "created_at": trade_row.get("created_at", datetime.now(timezone.utc).isoformat()),
+            "cause_tags": [
+                trade_row.get("session", "UNKNOWN"),
+                trade_row.get("regime", "UNKNOWN"),
+                trade_row.get("direction", ""),
+                f"trigger:{trade_row.get('trigger', 'UNKNOWN')}",
+                f"atr:{'HIGH' if atr > 0.5 else 'LOW'}",
+            ],
+        }
+        for attempt in range(3):
+            ledger, sha = _get_file(_MISTAKE_LEDGER_PATH)
+            if not isinstance(ledger, list):
+                ledger = []
+            ledger.append(entry)
+            if len(ledger) > _MISTAKE_LEDGER_MAX:
+                ledger = ledger[-_MISTAKE_LEDGER_MAX:]
+            try:
+                _put_file(_MISTAKE_LEDGER_PATH, ledger, sha,
+                          f"data: log mistake {entry['pool']} {entry['direction']}")
+                return
+            except Exception as e:
+                if attempt < 2 and "409" in str(e):
+                    continue
+                raise
+    except Exception as e:
+        print(f"[mistake_ledger] Failed to log (non-fatal): {e}")
+
+
+def get_mistake_summary(pool: str = "", last_n: int = 50) -> dict:
+    """
+    Return a summary of recent mistakes: top bleeding patterns by tag.
+    Used by weekly Telegram autopsy.
+    """
+    try:
+        ledger, _ = _get_file(_MISTAKE_LEDGER_PATH)
+        if not isinstance(ledger, list) or not ledger:
+            return {}
+        entries = [e for e in ledger if not pool or e.get("pool") == pool]
+        entries = entries[-last_n:]
+        tag_counts: dict[str, int] = {}
+        for e in entries:
+            for tag in e.get("cause_tags", []):
+                tag_counts[tag] = tag_counts.get(tag, 0) + 1
+        top = sorted(tag_counts.items(), key=lambda x: -x[1])[:10]
+        return {
+            "total_mistakes": len(entries),
+            "pool": pool or "ALL",
+            "top_patterns": [{"tag": t, "count": c} for t, c in top],
+        }
+    except Exception as e:
+        print(f"[mistake_ledger] get_mistake_summary error: {e}")
+        return {}
+
+
 def repair_missing_trades() -> list[str]:
     """
     Read webhook_log.json, compare each logged payload against the pool it belongs to.
@@ -467,14 +555,14 @@ def repair_missing_trades() -> list[str]:
 
         for entry in log:
             p = entry.get("payload", {})
-            outcome = p.get("outcome", "")
+            outcome = p.get("outcome") or ""
             # Only process trade closes — skip heartbeats, signal entries, and progress events
             outcome_up = outcome.upper()
             if not outcome or outcome_up in ("HEARTBEAT", ""):
                 continue
             if p.get("trade_id") == "heartbeat":
                 continue
-            if outcome_up in ("TP1_HIT", "TP2_HIT", "PROGRESS"):
+            if outcome_up in ("TP2_HIT", "TP3_HIT", "PROGRESS"):
                 continue
             # Skip if no exit price (signal entry, not a close)
             if not p.get("exit_price"):
@@ -508,9 +596,10 @@ def repair_missing_trades() -> list[str]:
             raw_pct = (exit_px - entry_px) / max(entry_px, 0.0001) * 100
             pnl_pct = raw_pct if direction == "LONG" else -raw_pct
 
-            # Normalize outcome
+            # Normalize outcome — TP1_HIT is a closed WIN; TP2/TP3 are addons (skip)
             norm = outcome_up.strip()
-            if norm in ("WIN", "TP3", "TP2", "TP1"):           norm = "WIN"
+            if norm == "TP2_HIT" or norm == "TP3_HIT":         continue
+            if norm in ("WIN", "TP1_HIT", "TP3", "TP2", "TP1"): norm = "WIN"
             elif norm in ("LOSS", "SL"):                        norm = "LOSS"
             elif norm in ("PARTIAL", "SL_TP1", "SL_TP2",
                           "SL_TP3", "TP1_SL", "TP2_SL"):       norm = "PARTIAL"
@@ -534,9 +623,11 @@ def repair_missing_trades() -> list[str]:
                 "session":      "UNKNOWN",
                 "_repaired":    True,
             }
-            # Attach features f1-f25
-            for i in range(1, 26):
-                trade_row[f"f{i}"] = float(p.get(f"f{i}", 0) or 0)
+            # Attach features using named keys (f1_rsi, f2_adx, ...) matching FEATURE_NAMES
+            # Payload may use compact keys (f1, f2...) or named keys — try both
+            from ml_model import FEATURE_NAMES
+            for i, col in enumerate(FEATURE_NAMES, start=1):
+                trade_row[col] = float(p.get(col, 0) or p.get(f"f{i}", 0) or 0)
 
             # Batch: accumulate rows per pool, write once per pool at the end
             pool_keys[pool].add(key)

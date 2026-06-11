@@ -2,7 +2,8 @@ name: Fetch Daily TradingView Levels
 
 on:
   schedule:
-    - cron: '50 7 * * 1-5'   # 07:50 UTC Mon-Fri
+    - cron: '50 11 * * 1-5'   # 11:50 UTC Mon-Fri — 10 min before the 12:00 UTC brief,
+                              # inside US premarket (08:00–13:30 UTC) so SPY/QQQ premarket is live
   workflow_dispatch:           # allow manual trigger
 
 jobs:
@@ -26,12 +27,12 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install requests yfinance
+        run: pip install requests
 
       - name: Fetch levels
         run: |
           python3 - <<'EOF'
-          import json, requests
+          import json, time, requests
           from urllib.parse import quote
           from datetime import datetime, timezone
 
@@ -61,82 +62,122 @@ jobs:
                   "expected_range_high": round(max(r2, current + (r1 - pivot)), decimals),
               }
 
-          def fetch_tv_scanner(tv_symbol, decimals):
-              """
-              TradingView public scanner API — same data source as the widget.
-              Returns current price + previous day H/L/C for pivot calculations.
-              tv_symbol examples: 'ICMARKETS:XAUUSD', 'AMEX:SPY', 'NASDAQ:QQQ'
-              """
-              try:
-                  # Fields: current close/high/low + previous day (suffix .1)
-                  fields = "close,high,low,open,change,change_abs,High.1,Low.1,close.1"
-                  url = (
-                      f"https://scanner.tradingview.com/symbol"
-                      f"?symbol={quote(tv_symbol)}&fields={fields}&no_404=1"
-                  )
-                  resp = requests.get(url, timeout=10, headers={"User-Agent": UA, "Origin": "https://www.tradingview.com"})
-                  if resp.status_code != 200:
-                      print(f"[action] TV scanner {tv_symbol}: HTTP {resp.status_code}")
-                      return None
-                  d = resp.json()
-                  current = d.get("close")
-                  ph      = d.get("High.1")
-                  pl      = d.get("Low.1")
-                  pc      = d.get("close.1")
-                  if None in (current, ph, pl, pc):
-                      print(f"[action] TV scanner {tv_symbol}: missing fields — {d}")
-                      return None
-                  print(f"[action] TV scanner {tv_symbol}: OK — price={round(current,2)}")
-                  return calc_pivots(float(ph), float(pl), float(pc), float(current), decimals)
-              except Exception as e:
-                  print(f"[action] TV scanner {tv_symbol}: failed — {e}")
+          def _scanner_get(tv_symbol, fields, attempts=3):
+              """Raw TradingView scanner call with retries. Returns dict or None."""
+              url = (
+                  f"https://scanner.tradingview.com/symbol"
+                  f"?symbol={quote(tv_symbol)}&fields={fields}&no_404=1"
+              )
+              for i in range(attempts):
+                  try:
+                      resp = requests.get(url, timeout=10,
+                                          headers={"User-Agent": UA, "Origin": "https://www.tradingview.com"})
+                      if resp.status_code == 200:
+                          return resp.json()
+                      print(f"[action] TV scanner {tv_symbol}: HTTP {resp.status_code} (try {i+1}/{attempts})")
+                  except Exception as e:
+                      print(f"[action] TV scanner {tv_symbol}: {e} (try {i+1}/{attempts})")
+                  time.sleep(1.5 * (i + 1))
               return None
 
-          def fetch_yahoo_direct(ticker, decimals):
-              """Yahoo Finance v8 API — fallback if TradingView scanner fails."""
+          def tv_price(tv_symbols, price_fields):
+              """
+              Live price from TradingView scanner. Tries each symbol, then each field
+              in priority order. Returns (price, 'SYMBOL field') or (None, None).
+              """
+              for sym in tv_symbols:
+                  d = _scanner_get(sym, ",".join(price_fields))
+                  if not d:
+                      continue
+                  for f in price_fields:
+                      v = d.get(f)
+                      if v is not None:
+                          print(f"[action] TV price {sym}: {f}={round(float(v),2)}")
+                          return float(v), f"{sym} {f}"
+                  print(f"[action] TV price {sym}: no usable field in {price_fields} — {d}")
+              return None, None
+
+          def _yahoo_one(ticker):
+              """Previous COMPLETED daily H/L/C from one Yahoo ticker, or None."""
               try:
-                  url = f"https://query1.finance.yahoo.com/v8/finance/chart/{quote(ticker)}?range=5d&interval=1d"
+                  url = f"https://query1.finance.yahoo.com/v8/finance/chart/{quote(ticker)}?range=7d&interval=1d"
                   resp = requests.get(url, timeout=10, headers={"User-Agent": UA})
-                  data = resp.json()
-                  result = data.get("chart", {}).get("result")
-                  if not result:
-                      err = data.get("chart", {}).get("error", {})
-                      print(f"[action] Yahoo {ticker}: {err.get('description', 'no data')}")
+                  res = resp.json().get("chart", {}).get("result")
+                  if not res:
+                      print(f"[action] Yahoo {ticker}: no chart result")
                       return None
-                  quotes = result[0]["indicators"]["quote"][0]
-                  closes = [c for c in quotes["close"] if c is not None]
-                  highs  = [h for h in quotes["high"]  if h is not None]
-                  lows   = [l for l in quotes["low"]   if l is not None]
-                  if len(closes) >= 2:
-                      print(f"[action] Yahoo {ticker}: OK — price={round(closes[-1],2)}")
-                      return calc_pivots(highs[-2], lows[-2], closes[-2], closes[-1], decimals)
-                  print(f"[action] Yahoo {ticker}: insufficient data ({len(closes)} rows)")
+                  r0 = res[0]
+                  ts = r0.get("timestamp", []) or []
+                  q  = r0["indicators"]["quote"][0]
+                  today = datetime.now(timezone.utc).date()
+                  bars = []
+                  for i, t in enumerate(ts):
+                      h, l, c = q["high"][i], q["low"][i], q["close"][i]
+                      if None in (h, l, c):
+                          continue
+                      d = datetime.fromtimestamp(t, timezone.utc).date()
+                      if d >= today:   # skip today's partial bar
+                          continue
+                      bars.append((h, l, c))
+                  if not bars:
+                      print(f"[action] Yahoo {ticker}: no completed prior bar")
+                      return None
+                  h, l, c = bars[-1]
+                  print(f"[action] Yahoo {ticker}: prev H/L/C {round(h,2)}/{round(l,2)}/{round(c,2)}")
+                  return float(h), float(l), float(c)
               except Exception as e:
-                  print(f"[action] Yahoo {ticker}: failed — {e}")
+                  print(f"[action] Yahoo {ticker}: {e}")
+                  return None
+
+          def yahoo_prevday(tickers, decimals):
+              """Try each Yahoo ticker (spot first) for prior-day H/L/C."""
+              for tk in tickers:
+                  prev = _yahoo_one(tk)
+                  if prev is not None:
+                      return prev
               return None
 
-          # Source priority per asset:
-          #   1. TradingView scanner API (true ICMARKETS/AMEX/NASDAQ prices)
-          #   2. Yahoo Finance fallback
+          def build_levels(tv_symbols, price_fields, yahoo_tickers, decimals):
+              """Live price from TradingView + prev-day H/L/C from Yahoo spot → pivots."""
+              price, psrc = tv_price(tv_symbols, price_fields)
+              if price is None:
+                  return None
+              prev = yahoo_prevday(yahoo_tickers, decimals)
+              if prev is None:
+                  return None
+              ph, pl, pc = prev
+              lv = calc_pivots(ph, pl, pc, price, decimals)
+              lv["price_source"] = psrc
+              return lv
+
+          # Price = TradingView (gold spot symbol chain; SPY/QQQ premarket).
+          # Pivots = Yahoo previous-day H/L/C using SPOT tickers (XAU=X, not GC futures).
           assets = {
-              "XAUUSD": {"tv": ("ICMARKETS:XAUUSD", 2), "yf": ["XAU=X", "GC=F"]},
-              "SPY":    {"tv": ("AMEX:SPY",          2), "yf": ["SPY"]},
-              "QQQ":    {"tv": ("NASDAQ:QQQ",         2), "yf": ["QQQ"]},
+              "XAUUSD": {
+                  "tv": ["TVC:GOLD", "OANDA:XAUUSD", "FX_IDC:XAUUSD", "FOREXCOM:XAUUSD", "ICMARKETS:XAUUSD"],
+                  "fields": ["close"],
+                  "yahoo": ["XAUUSD=X", "XAU=X", "GC=F"], "dec": 2,
+              },
+              "SPY": {
+                  "tv": ["AMEX:SPY"],
+                  "fields": ["premarket_close", "close"],
+                  "yahoo": ["SPY"], "dec": 2,
+              },
+              "QQQ": {
+                  "tv": ["NASDAQ:QQQ"],
+                  "fields": ["premarket_close", "close"],
+                  "yahoo": ["QQQ"], "dec": 2,
+              },
           }
 
           result = {"fetched_at": datetime.now(timezone.utc).isoformat(), "assets": {}}
           for name, cfg in assets.items():
-              tv_sym, decimals = cfg["tv"]
-              levels = fetch_tv_scanner(tv_sym, decimals)
-              if not levels:
-                  for yf_ticker in cfg["yf"]:
-                      levels = fetch_yahoo_direct(yf_ticker, decimals)
-                      if levels:
-                          break
+              levels = build_levels(cfg["tv"], cfg["fields"], cfg["yahoo"], cfg["dec"])
               if levels:
                   result["assets"][name] = levels
+                  print(f"[action] {name}: OK — price={levels['current']} ({levels['price_source']})")
               else:
-                  print(f"[action] {name}: ALL sources failed")
+                  print(f"[action] {name}: fetch failed — no data this run")
 
           import os
           os.makedirs("data", exist_ok=True)
@@ -151,5 +192,17 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/daily_levels.json
-          git diff --cached --quiet || git commit -m "chore: daily TradingView levels $(date -u +'%Y-%m-%d %H:%M UTC')"
-          git push
+          git diff --cached --quiet && { echo "No changes to commit."; exit 0; }
+          git commit -m "chore: daily TradingView levels $(date -u +'%Y-%m-%d %H:%M UTC')"
+          # Railway writes to the data branch concurrently — rebase + retry on rejection.
+          for attempt in 1 2 3 4 5; do
+            if git push; then
+              echo "Pushed on attempt $attempt."
+              exit 0
+            fi
+            echo "Push rejected (attempt $attempt) — rebasing on latest data branch."
+            git pull --rebase --autostash origin data || true
+            sleep $((attempt * 2))
+          done
+          echo "ERROR: could not push daily_levels.json after 5 attempts."
+          exit 1
