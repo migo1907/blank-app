@@ -99,7 +99,7 @@ When VIX spikes → stock signals get size reduction
 | Task | Method |
 |------|--------|
 | **VIX feed** | yfinance `^VIX` + VIX/VIX3M term structure — refresh hourly in market_macro. VIX > 25 = half size; backwardation (VIX/VIX3M > 1) = no trades, gamma too violent for long premium |
-| **Options chain source** | yfinance `^SPX` options (free, 15-min delayed — fine for paper). Fetch on signal only |
+| **Options chain source** | Backend: yfinance `^SPX` (delayed, paper-ledger baseline only). **Live premiums: user's TradingView OPRA subscription** — Telegram sends the exact contract symbol, user charts it in TV for live pricing. TV alerts on the contract's premium levels (-50%/+100%) fire back into the existing `/webhook`, giving the backend live exit data |
 | **IV Rank filter** | Daily ATM IV stored to data branch → IV Rank percentile over trailing 60 sessions. Only buy when IV Rank < 50 |
 | **Signal → contract translator** (`options_engine.py`) | LONG→CALL, SHORT→PUT. Strike: delta ~0.40 (slightly OTM). Expiry: **15M/30M signals → 0DTE (same-day SPXW); signals after 13:00 ET or 4H-pool signals → 1DTE** (next session) — never enter 0DTE in the last 2.5h with theta at maximum burn |
 | **Expected-move check** | 0DTE ATM straddle = market's expected move for the day. Skip if ATR-based TP1 target < 0.8× remaining expected move |
