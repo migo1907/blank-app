@@ -97,5 +97,14 @@
     "ml_score": 0.5,
     "stored_at": "2026-06-11T14:30:20.841821+00:00",
     "expires_at": "2026-06-11T16:30:20.841836+00:00"
+  },
+  "PLUG_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "PLUG",
+    "trigger": "BOS",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-11T15:00:23.139762+00:00",
+    "expires_at": "2026-06-11T17:00:23.139781+00:00"
   }
 }
