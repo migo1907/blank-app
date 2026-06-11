@@ -1,11 +1,14 @@
 [phases.setup]
 # gfortran pulls in libgomp.so.1 from the Nix store at build time.
-# Copy it to /usr/local/lib so the dynamic linker finds it at runtime.
+# Copy it to /usr/local/lib and also capture the Nix store path for LD_LIBRARY_PATH.
 nixPkgs = ["python313", "gcc", "gfortran"]
 cmds = [
   "find /nix/store -name 'libgomp.so.1' -exec cp {} /usr/local/lib/ \\; 2>/dev/null || true",
   "ldconfig /usr/local/lib 2>/dev/null || true"
 ]
+
+[variables]
+LD_LIBRARY_PATH = "/usr/local/lib"
 
 [start]
 cmd = "uvicorn main:app --host 0.0.0.0 --port $PORT"
