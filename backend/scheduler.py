@@ -187,8 +187,8 @@ async def _breaking_news_cycle() -> None:
         if not alerts:
             return
 
-        # Breaking news Telegram — enabled by default, set BREAKING_NEWS_TELEGRAM=false to disable
-        telegram_enabled = os.environ.get("BREAKING_NEWS_TELEGRAM", "true").lower() == "true"
+        # Breaking news Telegram — paused by default, set BREAKING_NEWS_TELEGRAM=true to enable
+        telegram_enabled = os.environ.get("BREAKING_NEWS_TELEGRAM", "false").lower() == "true"
 
         now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
         new_seen = set(_fj_seen_headlines)
