@@ -85,6 +85,16 @@ def _evaluate_intel_triggers(velocity: dict, event: dict, gold_signal: dict, gol
     if accel >= 0.20 and vol >= 3:
         reasons.append(f"Sentiment accelerating fast (Δ{accel:.2f}) — regime shifting")
 
+    # 5. Geopolitical / market shock — single-headline reactive events that are
+    # time-critical by nature (no calendar). Unlike CPI-style releases, these
+    # warrant an immediate heads-up even when overall news flow is calm.
+    _SHOCK_EVENTS = {"WAR/CONFLICT", "GEOPOLITICAL", "FLASH_CRASH"}
+    if (event.get("detected") and event.get("event_type") in _SHOCK_EVENTS
+            and event.get("urgency", 0.0) >= 0.9):
+        heads = event.get("headlines") or []
+        lead = f" — “{heads[0][:90]}”" if heads else ""
+        reasons.append(f"{event['event_type']} shock headline{lead}")
+
     return reasons
 
 
