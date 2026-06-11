@@ -327,13 +327,16 @@ async def _news_signal_cycle() -> None:
                     print(f"[scheduler] SPY direction → {spy_dir} conf={spy_conf:.2f} — signal sent.")
                 # Phase 2C — SPX 0-1DTE options layer (paper): translate the SPY
                 # directional flip into an SPX long CALL/PUT recommendation.
+                # Silent mode: ledger only, no Telegram until Stage B proves edge.
+                # Set OPTIONS_TELEGRAM=true in Railway to enable messages.
                 try:
                     from options_engine import build_spx_recommendation, format_telegram, append_paper_trade
                     rec = await asyncio.to_thread(build_spx_recommendation, spy_dir, spy_conf)
                     if rec:
-                        from telegram_bot import send_text
-                        await send_text(format_telegram(rec))
                         await asyncio.to_thread(append_paper_trade, rec)
+                        if os.environ.get("OPTIONS_TELEGRAM", "false").lower() == "true":
+                            from telegram_bot import send_text
+                            await send_text(format_telegram(rec))
                 except Exception as _opt_err:
                     print(f"[options] recommendation failed: {_opt_err}")
             else:
@@ -1455,13 +1458,17 @@ async def _options_iv_record_cycle() -> None:
 
 
 async def _options_paper_manage_cycle() -> None:
-    """Hourly during RTH: enforce TP/SL/time exits on open paper option trades."""
+    """Hourly during RTH: enforce TP/SL/time exits on open paper option trades.
+    Silent mode: closes logged to console/ledger only unless OPTIONS_TELEGRAM=true."""
     try:
         from options_engine import manage_paper_positions
         closed = await asyncio.to_thread(manage_paper_positions)
+        tg_on = os.environ.get("OPTIONS_TELEGRAM", "false").lower() == "true"
         for line in closed:
-            from telegram_bot import send_text
-            await send_text(f"📄 <b>SPX PAPER CLOSED</b>\n{line}")
+            print(f"[options] paper closed: {line}")
+            if tg_on:
+                from telegram_bot import send_text
+                await send_text(f"📄 <b>SPX PAPER CLOSED</b>\n{line}")
     except Exception as e:
         print(f"[options] paper manage cycle failed: {e}")
 
