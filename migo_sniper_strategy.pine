@@ -4,7 +4,9 @@
 // runs in TradingView's Strategy Tester. Single-unit model (enter full, the stop
 // ratchets through TP1/TP2 to the breakeven lock & trail, exit at TP3 or stop) —
 // this matches the indicator's own expectancy accounting.
-strategy("Migo VS Market Sniper — Backtest", overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=10, pyramiding=0, commission_type=strategy.commission.percent, commission_value=0.0, slippage=0, process_orders_on_close=true, calc_on_every_tick=false, max_labels_count=500)
+strategy("Migo VS Market Sniper — Backtest", overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=10, pyramiding=0, commission_type=strategy.commission.percent, commission_value=0.0, slippage=10, process_orders_on_close=true, calc_on_every_tick=false, max_labels_count=500)
+// NOTE: slippage=10 ticks (~0.10 each side ≈ 0.20 round-trip) models gold spread/slippage.
+// Adjust commission/slippage in the Properties tab to match your broker for a true test.
 
 // --- INPUTS ---
 int lookback        = input.int(50, "Structural Lookback")
@@ -31,7 +33,7 @@ float beBufferMult  = input.float(0.1,  "Breakeven Lock Buffer (ATR) at TP1", mi
 bool  autoAdaptive  = input.bool(true,  "Auto-adapt SL/TP/Trail to volatility & trend", group="Realistic Levels")
 float adaptStrength = input.float(1.0,  "Adaptation Strength (0 = off, 2 = aggressive)", minval=0.0, maxval=2.0, group="Realistic Levels")
 bool  useRRtps      = input.bool(true,  "TPs as Risk:Reward of actual SL", group="Realistic Levels")
-float rrTP1         = input.float(1.0,  "TP1 Risk:Reward", minval=0.25, group="Realistic Levels")
+float rrTP1         = input.float(0.8,  "TP1 Risk:Reward", minval=0.25, group="Realistic Levels")
 float rrTP2         = input.float(2.0,  "TP2 Risk:Reward", minval=0.5, group="Realistic Levels")
 float rrTP3         = input.float(3.5,  "TP3 Risk:Reward", minval=1.0, group="Realistic Levels")
 
@@ -47,10 +49,10 @@ bool strongConfirm   = input.bool(true, "Strong confirmation (candle close + RSI
 float closeFrac      = input.float(0.33, "Confirm candle close in top/bottom fraction", minval=0.1, maxval=0.5, group="Signal Filters")
 bool momoEntry       = input.bool(true, "Momentum breakout entry (catch strong moves)", group="Signal Filters")
 int  brkLen          = input.int(10,   "Breakout lookback (bars)", minval=3, group="Signal Filters")
-bool noCtFilterLowTF = input.bool(true, "No counter-trend filter on 5m & lower (scalp both ways)", group="Signal Filters")
+bool noCtFilterLowTF = input.bool(false, "No counter-trend filter on 5m & lower (scalp both ways)", group="Signal Filters")
 bool confirmOnClose  = input.bool(true, "Confirm signals on bar close (no repaint)", group="Signal Filters")
 bool useQuality      = input.bool(true, "Require minimum signal quality score", group="Signal Quality")
-int  minScore        = input.int(60,   "Minimum quality score (0-100)", minval=0, maxval=100, group="Signal Quality")
+int  minScore        = input.int(65,   "Minimum quality score (0-100)", minval=0, maxval=100, group="Signal Quality")
 
 // --- SESSION FILTER (avoid noisy hours) ---
 bool   useSessions = input.bool(true,  "Restrict signals to selected sessions", group="Sessions")
