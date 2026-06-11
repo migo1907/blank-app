@@ -12,10 +12,10 @@
     "direction": "LONG",
     "timeframe": "30",
     "symbol": "QQQ",
-    "trigger": "OB",
-    "ml_score": 0.5,
-    "stored_at": "2026-06-11T17:30:07.465669+00:00",
-    "expires_at": "2026-06-11T19:30:07.465681+00:00"
+    "trigger": "BOS",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-11T20:00:13.937966+00:00",
+    "expires_at": "2026-06-11T22:00:13.937985+00:00"
   },
   "HOOD_240": {
     "direction": "LONG",
@@ -187,5 +187,32 @@
     "ml_score": 0.5,
     "stored_at": "2026-06-11T20:00:05.236398+00:00",
     "expires_at": "2026-06-11T22:00:05.236411+00:00"
+  },
+  "MSTR_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "MSTR",
+    "trigger": "FVG",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-11T20:00:05.861367+00:00",
+    "expires_at": "2026-06-11T22:00:05.861379+00:00"
+  },
+  "SOXL_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "SOXL",
+    "trigger": "BOS",
+    "ml_score": 0.875,
+    "stored_at": "2026-06-11T20:00:06.009732+00:00",
+    "expires_at": "2026-06-11T22:00:06.009744+00:00"
+  },
+  "SMCI_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "SMCI",
+    "trigger": "FVG",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-11T20:00:12.019312+00:00",
+    "expires_at": "2026-06-11T22:00:12.019331+00:00"
   }
 }
