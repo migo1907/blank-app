@@ -8,6 +8,14 @@
 - **Project ID:** bcc5442d-2f19-4dfa-ad25-219a5c70868a
 - **Service ID:** e4310b2b-3a37-440e-a3b7-a14ea476f8a1
 
+## Railway Deployment — CRITICAL knowledge (2026-06-11)
+- **Builder is Railpack, NOT Nixpacks** — `backend/nixpacks.toml` is IGNORED. Do not edit it expecting changes.
+- Forcing Nixpacks via railway.toml fails (nix gfortran-wrapper collision). Don't retry.
+- **Custom Start Command (Railway UI, Deploy section): `bash start.sh`** — stages sklearn's vendored libgomp as `/tmp/libs/libgomp.so.1` + sets LD_LIBRARY_PATH, then execs uvicorn. This is what makes LightGBM work (Railpack runtime image has no system libgomp).
+- Custom Build Command must stay EMPTY (apt-get not available; putting start.sh there crashes the build — no $PORT at build time).
+- `RAILWAY_API_TOKEN` is set in Railway Variables (backend hourly check uses it).
+- ✅ LightGBM working in production since 2026-06-11 16:10 UTC (joint_gold 516 trades, joint_stocks 276 trades).
+
 ## Non-Negotiable Rules
 These are permanent agreements — never override, skip, or work around them under any circumstance:
 
