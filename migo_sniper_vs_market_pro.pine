@@ -392,8 +392,10 @@ bool  sweepLong  = low  < ta.lowest(low,  brkLen)[1] and close > ta.lowest(low, 
 bool  sweepShort = high > ta.highest(high, brkLen)[1] and close < ta.highest(high, brkLen)[1]
 int scoreLong  = (trend1h == "UPTREND" and trend4h == "UPTREND" ? 25 : trend1h == "UPTREND" ? 12 : 0) + (close > dvwap ? 20 : 0) + (volOK ? 15 : 0) + (strongBull ? 15 : 0) + (rsiValue > 50 and rsiValue < 70 ? 15 : 0) + (sweepLong ? 10 : 0)
 int scoreShort = (trend1h == "DOWNTREND" and trend4h == "DOWNTREND" ? 25 : trend1h == "DOWNTREND" ? 12 : 0) + (close < dvwap ? 20 : 0) + (volOK ? 15 : 0) + (strongBear ? 15 : 0) + (rsiValue < 50 and rsiValue > 30 ? 15 : 0) + (sweepShort ? 10 : 0)
-bool qualLong  = (not useQuality) or scoreLong  >= minScore
-bool qualShort = (not useQuality) or scoreShort >= minScore
+// Auto-tighten quality on noisier low timeframes: 2m & lower +15, 5m & lower +10
+int  effMinScore = minScore + (baseMin <= 2 ? 15 : baseMin <= 5 ? 10 : 0)
+bool qualLong  = (not useQuality) or scoreLong  >= effMinScore
+bool qualShort = (not useQuality) or scoreShort >= effMinScore
 
 bool buySignal  = filtersOK and (baseLong  or brkLong)  and qualLong
 bool sellSignal = filtersOK and (baseShort or brkShort) and qualShort
@@ -579,9 +581,9 @@ if barstate.islast
     string wrText  = totalRes > 0 ? str.tostring(math.round(winRate)) + "% (" + str.tostring(tradeWins) + "/" + str.tostring(totalRes) + ")" : "-"
     color  wrColor = na(winRate) ? color.gray : winRate >= 50 ? color.green : color.red
     int   liveScore = activeTrade != "NONE" ? tradeConf : math.max(scoreLong, scoreShort)
-    color confCol   = liveScore >= minScore ? color.lime : liveScore >= minScore * 7 / 10 ? color.yellow : color.gray
+    color confCol   = liveScore >= effMinScore ? color.lime : liveScore >= effMinScore * 7 / 10 ? color.yellow : color.gray
     table.cell(hub, 0, 2, "QUALITY", text_color=color.gray, text_size=size.tiny)
-    table.cell(hub, 1, 2, isSideways ? "-" : str.tostring(liveScore) + "/100", text_color=confCol, text_size=size.tiny)
+    table.cell(hub, 1, 2, isSideways ? "-" : str.tostring(liveScore) + "/" + str.tostring(effMinScore) + "+", text_color=confCol, text_size=size.tiny)
     table.cell(hub, 2, 2, "WIN RATE",   text_color=color.gray, text_size=size.tiny)
     table.cell(hub, 3, 2, wrText, text_color=wrColor, text_size=size.tiny)
 
