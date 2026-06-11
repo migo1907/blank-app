@@ -1,27 +1,5 @@
 [
   {
-    "symbol": "QQQ",
-    "pool": "STOCKS_QQQ_30M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "news_score": 0.1838,
-    "macro_bias": 0.0298,
-    "macro_label": "NEUTRAL",
-    "combined_score": 0.0469,
-    "session": "NYSE_OPEN",
-    "regime": "NORMAL",
-    "regime_label": "NORMAL",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:NYSE_OPEN\u00d71.25 | confluence\u00d70.95 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.00) | news:neutral(+0.184) | macro:NEUTRAL(+0.030) | combined:+0.047 \u2192 conf:0.067 \u26a1 CPI",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-11T15:20:13.521749+00:00",
-    "created_at": "2026-06-11T14:50:14.410839+00:00",
-    "id": 101
-  },
-  {
     "symbol": "XAUUSD",
     "pool": "XAUUSD_2M",
     "direction": "NEUTRAL",
@@ -1950,7 +1928,7 @@
     "regime": "TRENDING_BEAR",
     "regime_label": "PULLBACK_LONG",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:TRENDING_BEAR(PULLBACK_LONG)\u00d70.95 | sess:NEW_YORK\u00d71.10 | confluence\u00d70.65 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:bullish(+0.327) | macro:NEUTRAL(-0.032) | combined:+0.089 \u2192 conf:0.061 \u26a1 WAR/CONFLICT",
-    "status": "EXPIRED",
+    "status": "ACTIVE",
     "expires_at": "2026-06-11T20:06:11.585312+00:00",
     "created_at": "2026-06-11T19:36:13.127751+00:00",
     "id": 101
@@ -1972,7 +1950,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d71.20 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.56) | news:bullish(+0.327) | macro:NEUTRAL(+0.030) | combined:+0.080 \u2192 conf:0.127 \u26a1 WAR/CONFLICT",
-    "status": "EXPIRED",
+    "status": "ACTIVE",
     "expires_at": "2026-06-11T20:06:15.003848+00:00",
     "created_at": "2026-06-11T19:36:15.557406+00:00",
     "id": 101
@@ -1994,7 +1972,7 @@
     "regime": "TRENDING_BULL",
     "regime_label": "TREND_FOLLOW",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(TREND_FOLLOW)\u00d71.15 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d71.27 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+0.61) | news:bullish(+0.327) | macro:NEUTRAL(+0.030) | combined:+0.080 \u2192 conf:0.154 \u26a1 WAR/CONFLICT",
-    "status": "EXPIRED",
+    "status": "ACTIVE",
     "expires_at": "2026-06-11T20:06:17.306283+00:00",
     "created_at": "2026-06-11T19:36:17.779102+00:00",
     "id": 101
@@ -2193,6 +2171,28 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-11T20:36:07.117504+00:00",
     "created_at": "2026-06-11T20:06:07.456366+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "XAUUSD",
+    "pool": "XAUUSD_2M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.75,
+    "rf_score": 0.3388,
+    "gbm_score": 0.3328,
+    "news_score": -0.0109,
+    "macro_bias": -0.0321,
+    "macro_label": "NEUTRAL",
+    "combined_score": 0.0197,
+    "session": "NY_LATE",
+    "regime": "TRENDING_BEAR",
+    "regime_label": "PULLBACK_LONG",
+    "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:TRENDING_BEAR(PULLBACK_LONG)\u00d70.95 | sess:NY_LATE\u00d70.90 | confluence\u00d70.72 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:neutral(-0.011) | macro:NEUTRAL(-0.032) | combined:+0.020 \u2192 conf:0.012 \u26a1 CPI",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-11T20:51:03.660657+00:00",
+    "created_at": "2026-06-11T20:21:05.236467+00:00",
     "id": 101
   }
 ]
