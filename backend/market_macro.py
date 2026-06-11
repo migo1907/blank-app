@@ -115,16 +115,18 @@ def _cftc_gold_cot() -> dict | None:
 # ── SPDR GLD: latest holdings in tonnes ───────────────────────────────────────
 
 def _parse_spdr_csv(text: str) -> dict | None:
-    """Parse SPDR GLD CSV text — finds header row with 'tonnes', returns latest holdings."""
+    """Parse SPDR GLD CSV text — finds header row with gold holdings, returns latest tonnes."""
     rows = list(csv.reader(io.StringIO(text, newline='')))
     header_idx = tonnes_col = date_col = None
+    # Accept multiple possible column names for tonnes/oz/holdings
+    _TONNES_SYNONYMS = ("tonnes", "metric tons", "gold (oz)", "holdings", "oz", "ounces")
     for i, row in enumerate(rows):
         joined = ",".join(c.lower() for c in row)
-        if "tonnes" in joined:
+        if any(s in joined for s in _TONNES_SYNONYMS):
             header_idx = i
             for j, c in enumerate(row):
                 cl = c.strip().lower()
-                if "tonnes" in cl:
+                if any(s in cl for s in _TONNES_SYNONYMS):
                     tonnes_col = j
                 if cl == "date" or cl.startswith("date"):
                     date_col = j

@@ -21,6 +21,12 @@ load_dotenv()
 _outcome_dedup_seen: dict[str, float] = {}   # dedup_key → monotonic seconds
 _OUTCOME_DEDUP_TTL = 30.0  # seconds
 
+# Entry price cache: when Pine Script fires a trade entry, store the entry price so
+# that outcome payloads (TP1_HIT, WIN, LOSS) can recover it if the field is missing/NaN.
+# Key: "SYMBOL|DIRECTION|TF"  Value: (entry_price, tp1, tp2, tp3, sl, monotonic_ts)
+_entry_price_cache: dict[str, tuple] = {}
+_ENTRY_CACHE_TTL = 86400.0  # 24h — covers overnight/multi-day trades
+
 
 def _outcome_is_duplicate(symbol: str, direction: str, entry_price: float, exit_price: float, timeframe: str) -> bool:
     """Returns True if this exact outcome was already processed within TTL window."""
@@ -520,8 +526,27 @@ async def trade_outcome(payload: TradeOutcomePayload):
 
     sym  = payload.symbol or "XAUUSD"
 
+    # Recover entry_price from cache if Pine Script sent NaN/0 (NaN is sanitized to 0)
+    import time as _time
+    if not payload.entry_price:
+        _ck = f"{sym.upper()}|{payload.direction}|{payload.timeframe or ''}"
+        _cached = _entry_price_cache.get(_ck)
+        if _cached and (_time.monotonic() - _cached[5]) < _ENTRY_CACHE_TTL:
+            payload.entry_price = _cached[0]
+            # Backfill TP/SL levels if also missing
+            if not payload.tp1: payload.tp1 = _cached[1]
+            if not payload.tp2: payload.tp2 = _cached[2]
+            if not payload.tp3: payload.tp3 = _cached[3]
+            if not payload.sl:  payload.sl  = _cached[4]
+            print(f"[trade-outcome] Recovered entry_price={payload.entry_price} from cache for {sym} {payload.direction}")
+
+    # If exit_price still missing but we have a TP level, use tp1 as exit for TP1 wins
+    if not payload.exit_price and payload.tp1:
+        payload.exit_price = payload.tp1
+        print(f"[trade-outcome] Used tp1={payload.tp1} as exit_price for {sym} {payload.direction}")
+
     if not payload.entry_price or not payload.exit_price:
-        print(f"[trade-outcome] Missing entry/exit price for {sym} {payload.direction} — skipping")
+        print(f"[trade-outcome] Missing entry/exit price for {sym} {payload.direction} — skipping (no cache hit)")
         return {"status": "ok", "skipped": "missing_prices"}
 
     try:
@@ -675,6 +700,12 @@ async def signal_entry(payload: SignalEntryPayload):
         print(f"[signal-entry] Missing entry_price for {sym} {payload.direction} — skipping Telegram")
         return {"status": "ok", "routed_to": "suppressed", "reason": "no_entry_price"}
 
+    # Cache the entry price so outcome payloads can recover it if missing/NaN
+    import time as _time
+    _cache_key = f"{sym.upper()}|{payload.direction}|{tf}"
+    _entry_price_cache[_cache_key] = (entry, payload.tp1 or 0.0, payload.tp2 or 0.0,
+                                      payload.tp3 or 0.0, payload.sl or 0.0, _time.monotonic())
+
     # Backend ML quality grade — annotate-only: never suppress,
     # tag the entry with P(TP1+) so the trader decides.
     from signal_engine import score_entry_gate
@@ -762,6 +793,12 @@ async def unified_webhook(payload: UnifiedPayload):
             print(f"[webhook] Missing entry_price for {sym} {payload.direction} — skipping Telegram")
             return {"status": "ok", "routed_to": "suppressed", "reason": "no_entry_price"}
 
+        # Cache the entry price so outcome payloads can recover it if missing/NaN
+        import time as _time
+        _cache_key = f"{sym.upper()}|{payload.direction}|{tf}"
+        _entry_price_cache[_cache_key] = (entry, payload.tp1 or 0.0, payload.tp2 or 0.0,
+                                          payload.tp3 or 0.0, payload.sl or 0.0, _time.monotonic())
+
         # Backend ML quality grade — annotate-only mode. Re-score the Pine-fired
         # entry with the trained KNN+RF+GBM (P of reaching TP1+), but never
         # suppress: every entry reaches Telegram tagged with its grade so the
@@ -846,6 +883,23 @@ async def unified_webhook(payload: UnifiedPayload):
         from ml_ensemble import get_rf, get_gbm
         from db import insert_outcome, recent_outcomes, symbol_to_pool
         sym2 = payload.symbol or "XAUUSD"
+
+        # Recover entry_price from cache if missing/NaN-sanitized-to-zero
+        import time as _time2
+        if not payload.entry_price:
+            _ck2 = f"{sym2.upper()}|{payload.direction}|{payload.timeframe or ''}"
+            _cached2 = _entry_price_cache.get(_ck2)
+            if _cached2 and (_time2.monotonic() - _cached2[5]) < _ENTRY_CACHE_TTL:
+                payload.entry_price = _cached2[0]
+                if not payload.tp1: payload.tp1 = _cached2[1]
+                if not payload.tp2: payload.tp2 = _cached2[2]
+                if not payload.tp3: payload.tp3 = _cached2[3]
+                if not payload.sl:  payload.sl  = _cached2[4]
+                print(f"[webhook] Recovered entry_price={payload.entry_price} from cache for {sym2} {payload.direction}")
+        if not payload.exit_price and payload.tp1:
+            payload.exit_price = payload.tp1
+            print(f"[webhook] Used tp1={payload.tp1} as exit_price for {sym2} {payload.direction}")
+
         try:
             pool     = symbol_to_pool(sym2, payload.timeframe or "")
             model    = get_model(pool)
