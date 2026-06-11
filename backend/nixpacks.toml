@@ -1,9 +1,11 @@
 [phases.setup]
-# gfortran pulls in the full GCC runtime including libgomp.so.1
-# required by lightgbm — without it lgbm_available stays false in /health
+# gfortran pulls in libgomp.so.1 from the Nix store at build time.
+# Copy it to /usr/local/lib so the dynamic linker finds it at runtime.
 nixPkgs = ["python313", "gcc", "gfortran"]
+cmds = [
+  "find /nix/store -name 'libgomp.so.1' -exec cp {} /usr/local/lib/ \\; 2>/dev/null || true",
+  "ldconfig /usr/local/lib 2>/dev/null || true"
+]
 
 [start]
-# Find libgomp.so.1 in the Nix store at runtime and inject its path so
-# LightGBM can load it — Nix doesn't add store paths to LD_LIBRARY_PATH
-cmd = "export LD_LIBRARY_PATH=$(find /nix/store -name 'libgomp.so.1' -exec dirname {} \\; 2>/dev/null | head -1):$LD_LIBRARY_PATH && uvicorn main:app --host 0.0.0.0 --port $PORT"
+cmd = "uvicorn main:app --host 0.0.0.0 --port $PORT"
