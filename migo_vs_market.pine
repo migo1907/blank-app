@@ -1,0 +1,172 @@
+// This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+//@version=6
+indicator("Migo VS Market - Master Filter", overlay=true)
+
+// ─── INPUTS ───────────────────────────────────────────────────────────────────
+grpEma  = "EMA Settings"
+grpRsi  = "RSI Settings"
+grpSt   = "Supertrend"
+grpRisk = "Risk / ATR"
+grpZone = "Zone Settings"
+
+emaFastLen  = input.int(9,   "Fast EMA Length",  group=grpEma, minval=1)
+emaSlowLen  = input.int(50,  "Slow EMA Length",  group=grpEma, minval=1)
+emaTrendLen = input.int(200, "Trend EMA Length", group=grpEma, minval=1)
+
+rsiLen = input.int(14, "RSI Length",    group=grpRsi, minval=1)
+rsiOS  = input.int(45, "RSI Long Max",  group=grpRsi, minval=20, maxval=60,
+         tooltip="Long signal fires when RSI is below this level (pullback weakness)")
+rsiOB  = input.int(55, "RSI Short Min", group=grpRsi, minval=40, maxval=80,
+         tooltip="Short signal fires when RSI is above this level (rally weakness)")
+
+stFactor = input.float(3.0, "Factor",     group=grpSt, minval=0.1, step=0.1)
+stAtrLen = input.int(10,    "ATR Period", group=grpSt, minval=1)
+
+atrLen = input.int(14,    "ATR Length",     group=grpRisk, minval=1)
+slMult = input.float(1.5, "SL Multiplier", group=grpRisk, minval=0.1, step=0.1)
+tpMult = input.float(3.0, "TP Multiplier", group=grpRisk, minval=0.1, step=0.1)
+
+zoneWidth = input.float(0.003, "Zone Width", group=grpZone, minval=0.0005, step=0.0005,
+            tooltip="Fraction of EMA50 price. 0.003 = 0.3% band around EMA50")
+
+// ─── CALCULATIONS ─────────────────────────────────────────────────────────────
+emaFast  = ta.ema(close, emaFastLen)
+emaSlow  = ta.ema(close, emaSlowLen)
+emaTrend = ta.ema(close, emaTrendLen)
+rsiVal   = ta.rsi(close, rsiLen)
+atrVal   = ta.atr(atrLen)
+
+[supertrend, direction] = ta.supertrend(stFactor, stAtrLen)
+
+// ─── TREND & MOMENTUM FILTERS ─────────────────────────────────────────────────
+bullTrend = close > emaTrend and emaFast > emaSlow
+bearTrend = close < emaTrend and emaFast < emaSlow
+stBull    = direction < 0
+stBear    = direction > 0
+rsiBull   = rsiVal < rsiOS   // RSI showing pullback weakness for longs
+rsiBear   = rsiVal > rsiOB   // RSI showing rally weakness for shorts
+
+// ─── DEMAND & SUPPLY ZONES ────────────────────────────────────────────────────
+// Demand: price pulls back to EMA50 from above — at or just below EMA50
+// Supply: price rallies to EMA50 from below — at or just above EMA50
+inDemandZone = close <= emaSlow and close >= emaSlow * (1.0 - zoneWidth)
+inSupplyZone = close >= emaSlow and close <= emaSlow * (1.0 + zoneWidth)
+
+// ─── ENTRY CONDITIONS ─────────────────────────────────────────────────────────
+longCondition  = bullTrend and stBull and inDemandZone and rsiBull
+shortCondition = bearTrend and stBear and inSupplyZone and rsiBear
+
+// ─── TRADE STATE MACHINE ──────────────────────────────────────────────────────
+var float  slLevel    = na
+var float  tpLevel    = na
+var float  entryPrice = na
+var string signal     = "FLAT"
+var bool   inTrade    = false
+
+if longCondition and not inTrade
+    entryPrice := close
+    slLevel    := close - atrVal * slMult
+    tpLevel    := close + atrVal * tpMult
+    signal     := "BUY"
+    inTrade    := true
+else if shortCondition and not inTrade
+    entryPrice := close
+    slLevel    := close + atrVal * slMult
+    tpLevel    := close - atrVal * tpMult
+    signal     := "SELL"
+    inTrade    := true
+else if inTrade
+    hitTP = signal == "BUY" ? high >= tpLevel : low  <= tpLevel
+    hitSL = signal == "BUY" ? low  <= slLevel : high >= slLevel
+    if hitTP or hitSL
+        entryPrice := na
+        slLevel    := na
+        tpLevel    := na
+        signal     := "FLAT"
+        inTrade    := false
+
+// ─── EMA PLOTS ────────────────────────────────────────────────────────────────
+plot(emaFast,  "EMA 9",   color=color.new(color.yellow, 0), linewidth=1)
+plot(emaSlow,  "EMA 50",  color=color.new(color.orange, 0), linewidth=2)
+plot(emaTrend, "EMA 200", color=color.new(color.white,  0), linewidth=2)
+
+// ─── SUPERTREND PLOT ──────────────────────────────────────────────────────────
+plot(supertrend, "Supertrend",
+     color    = stBull ? color.new(color.teal, 40) : color.new(color.maroon, 40),
+     linewidth = 1,
+     style     = plot.style_stepline)
+
+// ─── ZONE BACKGROUND ──────────────────────────────────────────────────────────
+bgcolor(inDemandZone ? color.new(color.green, 92) :
+        inSupplyZone ? color.new(color.red,   92) : na,
+        title="Zone Highlight")
+
+// ─── SIGNAL SHAPES ────────────────────────────────────────────────────────────
+plotshape(longCondition,  "Buy Signal",
+          style     = shape.labelup,
+          location  = location.belowbar,
+          color     = color.green,
+          text      = "BUY",
+          textcolor = color.white,
+          size      = size.small)
+
+plotshape(shortCondition, "Sell Signal",
+          style     = shape.labeldown,
+          location  = location.abovebar,
+          color     = color.red,
+          text      = "SELL",
+          textcolor = color.white,
+          size      = size.small)
+
+// ─── TP / SL LINES ────────────────────────────────────────────────────────────
+plot(inTrade ? tpLevel : na, "Take Profit",
+     color=color.new(color.green, 0), style=plot.style_linebr, linewidth=1)
+plot(inTrade ? slLevel : na, "Stop Loss",
+     color=color.new(color.red,   0), style=plot.style_linebr, linewidth=1)
+
+// ─── DASHBOARD ────────────────────────────────────────────────────────────────
+fmt(float val) =>
+    na(val) ? "---" : str.tostring(val, format.mintick)
+
+var table panel = table.new(position.top_right, 2, 7,
+     border_width=1, border_color=color.new(color.gray, 60))
+
+if barstate.islast
+    hdrBg = color.new(color.navy,  30)
+    celBg = color.new(color.black, 60)
+    lblBg = color.new(color.blue,  75)
+    wh    = color.white
+    sm    = size.small
+
+    // Header
+    table.cell(panel, 0, 0, "MIGO VS MARKET", bgcolor=hdrBg, text_color=wh, text_size=sm)
+    table.cell(panel, 1, 0, "Master Filter",  bgcolor=hdrBg, text_color=wh, text_size=sm)
+
+    // Signal
+    sigBg = signal == "BUY"  ? color.new(color.green, 20) :
+            signal == "SELL" ? color.new(color.red,   20) : color.new(color.gray, 40)
+    table.cell(panel, 0, 1, "Signal", bgcolor=lblBg, text_color=wh,    text_size=sm)
+    table.cell(panel, 1, 1, signal,   bgcolor=sigBg, text_color=wh,    text_size=sm)
+
+    // Trend
+    trendTxt = bullTrend ? "BULLISH" : bearTrend ? "BEARISH" : "NEUTRAL"
+    trendBg  = bullTrend ? color.new(color.green, 40) :
+               bearTrend ? color.new(color.red,   40) : color.new(color.gray, 40)
+    table.cell(panel, 0, 2, "Trend",   bgcolor=lblBg,   text_color=wh, text_size=sm)
+    table.cell(panel, 1, 2, trendTxt, bgcolor=trendBg, text_color=wh, text_size=sm)
+
+    // Entry
+    table.cell(panel, 0, 3, "Entry Price",   bgcolor=lblBg, text_color=wh,         text_size=sm)
+    table.cell(panel, 1, 3, fmt(entryPrice), bgcolor=celBg, text_color=wh,         text_size=sm)
+
+    // Take Profit
+    table.cell(panel, 0, 4, "Take Profit", bgcolor=lblBg, text_color=wh,           text_size=sm)
+    table.cell(panel, 1, 4, fmt(tpLevel),  bgcolor=celBg, text_color=color.lime,   text_size=sm)
+
+    // Stop Loss
+    table.cell(panel, 0, 5, "Stop Loss",  bgcolor=lblBg, text_color=wh,            text_size=sm)
+    table.cell(panel, 1, 5, fmt(slLevel), bgcolor=celBg, text_color=color.red,     text_size=sm)
+
+    // ATR
+    table.cell(panel, 0, 6, "ATR",                           bgcolor=lblBg, text_color=wh, text_size=sm)
+    table.cell(panel, 1, 6, str.tostring(atrVal, "#.#####"), bgcolor=celBg, text_color=wh, text_size=sm)
