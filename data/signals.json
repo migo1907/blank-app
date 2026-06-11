@@ -1,27 +1,5 @@
 [
   {
-    "symbol": "XAUUSD",
-    "pool": "XAUUSD_2M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.3642,
-    "gbm_score": 0.3332,
-    "news_score": 0.2075,
-    "macro_bias": -0.0321,
-    "macro_label": "NEUTRAL",
-    "combined_score": -0.0684,
-    "session": "LONDON",
-    "regime": "TRENDING_BEAR",
-    "regime_label": "TREND_FOLLOW",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BEAR(TREND_FOLLOW)\u00d71.15 | sess:LONDON\u00d71.15 | confluence\u00d71.05 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:bullish(+0.207) | macro:NEUTRAL(-0.032) | combined:-0.068 \u2192 conf:0.114 \u26a1 CPI",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-11T10:11:43.318957+00:00",
-    "created_at": "2026-06-11T09:41:44.014228+00:00",
-    "id": 101
-  },
-  {
     "symbol": "SPY",
     "pool": "STOCKS_INDEX_30M",
     "direction": "NEUTRAL",
@@ -2191,6 +2169,28 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-11T14:52:59.302834+00:00",
     "created_at": "2026-06-11T14:22:59.867228+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "SPY",
+    "pool": "STOCKS_INDEX_30M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "news_score": -0.0567,
+    "macro_bias": 0.0298,
+    "macro_label": "NEUTRAL",
+    "combined_score": -0.0086,
+    "session": "NYSE_OPEN",
+    "regime": "NORMAL",
+    "regime_label": "NORMAL",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:NYSE_OPEN\u00d71.25 | confluence\u00d71.12 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.04) | news:neutral(-0.057) | macro:NEUTRAL(+0.030) | combined:-0.009 \u2192 conf:0.014 \u26a1 CPI",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-11T14:53:02.111878+00:00",
+    "created_at": "2026-06-11T14:23:02.531567+00:00",
     "id": 101
   }
 ]
