@@ -35,10 +35,12 @@ _feature_cache_lock = _threading.Lock()
 
 def update_latest_features(pool: str, features: Features) -> None:
     """Cache latest features in memory and persist to GitHub data branch."""
-    _latest_features[pool] = features
-    # Serialize GitHub writes — concurrent heartbeats race on the same SHA
+    # Acquire lock before updating in-memory dict to prevent race on concurrent heartbeats
     if not _feature_cache_lock.acquire(blocking=False):
-        return  # another thread is already writing; in-memory is updated, skip duplicate write
+        # Another thread is writing — still update in-memory under a quick swap
+        _latest_features[pool] = features
+        return
+    _latest_features[pool] = features
     try:
         from db import _get_file, _put_file
         from datetime import datetime, timezone as _tz
@@ -84,8 +86,9 @@ def load_feature_cache() -> None:
         for pool, fv in data.items():
             if not isinstance(fv, dict) or "f1" not in fv:
                 continue
-            if "f25" not in fv:
-                print(f"[features] WARNING: pool {pool} cache missing f25 — will use 0.0 until next heartbeat")
+            missing = [f for f in ("f25", "f26") if f not in fv]
+            if missing:
+                print(f"[features] WARNING: pool {pool} cache missing {missing} — will use 0.0 until next heartbeat")
             _latest_features[pool] = Features(
                 f1=fv.get("f1",0.0),  f2=fv.get("f2",0.0),  f3=fv.get("f3",0.0),
                 f4=fv.get("f4",0.0),  f5=fv.get("f5",0.0),  f6=fv.get("f6",0.0),
@@ -95,7 +98,7 @@ def load_feature_cache() -> None:
                 f16=fv.get("f16",0.0),f17=fv.get("f17",0.0),f18=fv.get("f18",0.0),
                 f19=fv.get("f19",0.0),f20=fv.get("f20",0.0),f21=fv.get("f21",0.0),
                 f22=fv.get("f22",0.0),f23=fv.get("f23",0.0),f24=fv.get("f24",0.0),
-                f25=fv.get("f25",0.0),
+                f25=fv.get("f25",0.0),f26=fv.get("f26",0.0),
             )
         print(f"[features] Loaded feature cache for {len(_latest_features)} pools from GitHub.")
     except Exception as e:
@@ -466,7 +469,10 @@ def score_entry_gate(pool: str, direction: str) -> dict:
     # Works at n≥10 with no fine-tuning. Re-fit only when history length changes.
     tabpfn = get_tabpfn(pool)
     if len(history) >= 10:
-        tabpfn.fit_if_stale(history)
+        try:
+            tabpfn.fit_if_stale(history)
+        except Exception as _tpfn_err:
+            print(f"[gate] TabPFN fit failed for {pool}: {_tpfn_err}")
         if tabpfn.is_trained:
             components["tabpfn"] = tabpfn.predict(feat_list)
 
@@ -611,11 +617,8 @@ def _rapid_fire_penalty(history: list[dict], direction: str, trigger: str, now: 
         return 1.0
     last = history[0]
     try:
-        last_time = datetime.fromisoformat(
-            last.get("created_at", "2000-01-01T00:00:00").replace("Z", "+00:00")
-        )
-        if last_time.tzinfo is None:
-            last_time = last_time.replace(tzinfo=timezone.utc)
+        from db import _parse_ts
+        last_time = _parse_ts(last.get("created_at", "2000-01-01T00:00:00"))
         gap_seconds = (now - last_time).total_seconds()
         last_dir     = last.get("direction", "")
         last_trigger = last.get("trigger", "")

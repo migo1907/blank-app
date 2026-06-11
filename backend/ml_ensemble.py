@@ -101,8 +101,12 @@ class RandomForestEnsemble:
 
         # Feature selection: top-8 by |correlation| when n>=80 (validated: +3.5–20pp lift)
         if len(X_rows) >= 80:
-            corr = np.array([abs(np.corrcoef(X[:, j], y)[0, 1]) if not np.isnan(np.corrcoef(X[:, j], y)[0, 1]) else 0.0
-                             for j in range(X.shape[1])])
+            try:
+                corr_matrix = np.corrcoef(X.T, y)
+                corr = np.abs(corr_matrix[:-1, -1])
+                corr = np.where(np.isnan(corr), 0.0, corr)
+            except Exception:
+                corr = np.zeros(X.shape[1])
             self._feature_indices = np.argsort(corr)[::-1][:8].tolist()
         else:
             self._feature_indices = list(range(len(FEATURE_NAMES)))

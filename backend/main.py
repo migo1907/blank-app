@@ -58,8 +58,8 @@ VALID_POOLS = {
     "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",   "STOCKS_SPX500_4H",
 }
 RAILWAY_API_TOKEN  = os.environ.get("RAILWAY_API_TOKEN", "")
-RAILWAY_PROJECT_ID = os.environ.get("RAILWAY_PROJECT_ID", "bcc5442d-2f19-4dfa-ad25-219a5c70868a")
-RAILWAY_SERVICE_ID = os.environ.get("RAILWAY_SERVICE_ID", "e4310b2b-3a37-440e-a3b7-a14ea476f8a1")
+RAILWAY_PROJECT_ID = os.environ.get("RAILWAY_PROJECT_ID", "")
+RAILWAY_SERVICE_ID = os.environ.get("RAILWAY_SERVICE_ID", "")
 
 
 @asynccontextmanager
@@ -210,12 +210,12 @@ class _SanitizeNaNMiddleware:
         # Replace unquoted NaN / Infinity / -Infinity with 0 so JSON parses cleanly.
         patched = False
         if b"NaN" in body:
-            body = _NAN_RE.sub(b":0", body)
-            body = _NAN_RE2.sub(b",0", body)
+            body = _NAN_RE.sub(b":null", body)
+            body = _NAN_RE2.sub(b",null", body)
             patched = True
         if b"Infinity" in body:
-            body = _INF_RE.sub(b":0", body)
-            body = _INF_RE2.sub(b",0", body)
+            body = _INF_RE.sub(b":null", body)
+            body = _INF_RE2.sub(b",null", body)
             patched = True
         if patched:
             print(f"[nan_middleware] Sanitized invalid JSON literals in {scope.get('path','?')} ({len(body)} bytes)")
@@ -910,7 +910,7 @@ async def unified_webhook(payload: UnifiedPayload):
                 f13=payload.f13, f14=payload.f14, f15=payload.f15, f16=payload.f16,
                 f17=payload.f17, f18=payload.f18, f19=payload.f19, f20=payload.f20,
                 f21=payload.f21, f22=payload.f22, f23=payload.f23, f24=payload.f24,
-                f25=payload.f25,
+                f25=payload.f25, f26=payload.f26,
             )
             # Signed realized move (favorable = positive) — lets the KNN re-classify a
             # partial that actually closed negative (e.g. SL_TP1 on gold scalps) as a loss.

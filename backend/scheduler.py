@@ -612,9 +612,8 @@ async def _hourly_system_check() -> None:
         from datetime import timedelta
         hist_2m, _ = await asyncio.to_thread(_get_file, "data/trade_history_XAUUSD_2M.json")
         if isinstance(hist_2m, list) and len(hist_2m) > 0:
-            last_trade_time = datetime.fromisoformat(hist_2m[-1].get("created_at", "2000-01-01T00:00:00").replace("Z", "+00:00"))
-            if last_trade_time.tzinfo is None:
-                last_trade_time = last_trade_time.replace(tzinfo=timezone.utc)
+            from db import _parse_ts as _pts
+            last_trade_time = _pts(hist_2m[-1].get("created_at", "2000-01-01T00:00:00"))
             hours_since = (datetime.now(timezone.utc) - last_trade_time).total_seconds() / 3600
             dow = datetime.now(timezone.utc).weekday()
             market_hour = 7 <= datetime.now(timezone.utc).hour < 20
@@ -1089,18 +1088,20 @@ async def _weekly_model_comparison() -> None:
             for tr, val in tscv.split(X):
                 if len(tr) < 15 or len(set(y[tr].tolist())) < 2:
                     continue
+                from signal_engine import _pool_thresholds, ML_GATE_THRESHOLD
+                _thresh = _pool_thresholds.get(pool, ML_GATE_THRESHOLD)
                 for name, m in [("rf", get_rf(pool)), ("gbm", get_gbm(pool))]:
                     if not m.is_trained:
                         continue
                     try:
-                        preds = [(m.predict(X[i].tolist()) >= 0.45) for i in val]
+                        preds = [(m.predict(X[i].tolist()) >= _thresh) for i in val]
                         model_scores[name].append(_f1(y[val], preds, zero_division=0))
                     except Exception:
                         pass
                 jm = get_joint_gold() if pool in GOLD_TF_IDS else get_joint_stocks()
                 if jm.is_trained:
                     try:
-                        preds = [(jm.predict(X[i].tolist(), pool) >= 0.45) for i in val]
+                        preds = [(jm.predict(X[i].tolist(), pool) >= _thresh) for i in val]
                         model_scores["joint"].append(_f1(y[val], preds, zero_division=0))
                     except Exception:
                         pass
