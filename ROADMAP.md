@@ -84,8 +84,10 @@ When VIX spikes → stock signals get size reduction
 
 ---
 
-## PHASE 2C — SPX500 Options Layer (calls/puts only, long premium)
-**Goal:** Translate existing SPX500 directional signals into option trade recommendations — direction → CALL/PUT, with strike, expiry, and time-stop. No spreads, no selling premium.
+## PHASE 2C — SPX 0-1DTE Options Layer (calls/puts only, long premium)
+**Goal:** Translate SPX500 directional signals into SPX (SPXW daily-expiry) CALL/PUT recommendations. 0DTE or 1DTE only. No spreads, no selling premium.
+
+**Instrument decision (locked 2026-06-11):** SPX index options — cash-settled (no assignment risk), European exercise, $5-wide strikes, section 1256 tax treatment, daily expirations Mon-Fri. ~$100/point multiplier — position sizing must respect this.
 
 **What already exists (reuse, don't rebuild):**
 - STOCKS_SPX500 pools (15M/30M/4H) produce LONG/SHORT signals through the full ML gate
@@ -96,15 +98,16 @@ When VIX spikes → stock signals get size reduction
 ### Stage A — Data & Translation (paper only, ~1-2 weeks dev)
 | Task | Method |
 |------|--------|
-| **VIX feed** | yfinance `^VIX` + term structure (VIX/VIX3M ratio) — refresh hourly in market_macro. VIX > 25 = reduce size; VIX/VIX3M > 1 (backwardation) = panic regime, no long calls |
-| **Options chain source** | yfinance SPY/SPX options (free, 15-min delayed — fine for signals). Fallback: CBOE delayed CSV. Fetch on signal only, not continuously |
-| **IV Rank filter** | Store daily ATM IV in data branch → IV Rank = percentile over trailing 60 sessions. **Rule: only buy premium when IV Rank < 50** — buying expensive vol is the #1 retail option killer |
-| **Signal → contract translator** (`options_engine.py`) | direction LONG→CALL, SHORT→PUT. Strike: delta 0.40 (slightly OTM — best gamma/cost balance for directional bets). Expiry by pool TF: 15M signal → 0-1 DTE; 30M → nearest weekly (3-7 DTE); 4H → 2-3 weeks |
-| **Expected-move check** | Straddle price at ATM = market's expected move. Only take the trade if the signal's TP1 target (ATR-based) ≥ 0.8× expected move — otherwise the option can't pay for its theta |
-| **Event filter** | No new long premium within 24h before FOMC/CPI/NFP (IV crush after print kills the trade even when direction is right). Reuse `_check_scheduled_events` |
-| **Time stop, not price stop** | Long options: exit at 50% premium loss OR 2× premium gain OR fixed time stop (0DTE: 2h, weekly: 2 days, monthly: 5 days). Never hold 0DTE past 15:30 ET |
-| **Paper ledger** | `data/options_paper_SPX.json` — entry premium, strike, delta, IV at entry, exit premium, Greeks snapshot. Same schema discipline as trade_history |
-| **Telegram format** | `🎯 SPX OPTIONS — CALL 6080 (Δ0.41) exp Jun-13 @ $12.40 | IVR 32 | TP $24.80 / SL $6.20 / time-stop 2d` |
+| **VIX feed** | yfinance `^VIX` + VIX/VIX3M term structure — refresh hourly in market_macro. VIX > 25 = half size; backwardation (VIX/VIX3M > 1) = no trades, gamma too violent for long premium |
+| **Options chain source** | yfinance `^SPX` options (free, 15-min delayed — fine for paper). Fetch on signal only |
+| **IV Rank filter** | Daily ATM IV stored to data branch → IV Rank percentile over trailing 60 sessions. Only buy when IV Rank < 50 |
+| **Signal → contract translator** (`options_engine.py`) | LONG→CALL, SHORT→PUT. Strike: delta ~0.40 (slightly OTM). Expiry: **15M/30M signals → 0DTE (same-day SPXW); signals after 13:00 ET or 4H-pool signals → 1DTE** (next session) — never enter 0DTE in the last 2.5h with theta at maximum burn |
+| **Expected-move check** | 0DTE ATM straddle = market's expected move for the day. Skip if ATR-based TP1 target < 0.8× remaining expected move |
+| **Event filter** | No entries within 24h before FOMC/CPI/NFP, AND no 0DTE entries on the morning OF those events — reuse `_check_scheduled_events` |
+| **Exits — tight, time-first** | -50% premium stop / +100% premium target / **0DTE hard exit 15:30 ET no exceptions** / 1DTE time stop at next-day 14:00 ET. Intraday: exit immediately if the underlying signal flips |
+| **Sizing guard** | 0DTE total-loss probability is high by design: risk per trade = premium paid, capped at 1% of account. Expect ~40-45% of trades to expire worthless even with edge — the +100%/+200% winners carry the P&L |
+| **Paper ledger** | `data/options_paper_SPX.json` — entry premium, strike, delta, IV at entry, exit premium, time held. Same schema discipline as trade_history |
+| **Telegram format** | `🎯 SPX 0DTE — CALL 6080 (Δ0.41) @ $14.20 | IVR 32 | exp today | TP $28.40 / SL $7.10 / hard exit 15:30 ET` |
 
 ### Stage B — ML & Validation (needs 50+ paper option trades, ~4-6 weeks data)
 | Task | Method |
@@ -119,8 +122,8 @@ When VIX spikes → stock signals get size reduction
 - Hard limits: max 3 open contracts, max 5% account in premium, kill-switch env var
 
 **Prerequisites before Stage A is worth starting:**
-1. ⚠️ STOCKS_SPX500 pools are thin (8/8/3 trades) — the directional signal itself needs ~30+ trades to be trustworthy. Options amplify both edge AND noise.
-2. Decide instrument: **SPY options** (cheap, liquid, $1-wide strikes — recommended for paper) vs SPX (cash-settled, 10× size, better tax treatment but $5-wide strikes)
+1. ⚠️ STOCKS_SPX500 pools are thin (8/8/3 trades) — the directional signal itself needs ~30+ trades to be trustworthy. 0DTE amplifies both edge AND noise more than any other instrument.
+2. ~~Instrument decision~~ ✅ **SPX, 0-1DTE** (decided 2026-06-11)
 
 **Exit criteria for Stage A → B:** 50 paper option trades logged with full IV/Greeks data
 **Exit criteria for Stage B → C:** option-gate WR ≥ 55% AND profit factor ≥ 1.5 over 50+ out-of-sample paper trades
