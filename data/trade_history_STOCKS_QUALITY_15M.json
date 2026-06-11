@@ -2173,13 +2173,13 @@
     "direction": "SHORT",
     "trigger": "BOS",
     "entry_price": 224.24,
-    "exit_price": 222.92,
-    "outcome": "PARTIAL",
-    "ml_outcome": "WIN",
+    "exit_price": 220.8128,
+    "outcome": "WIN",
+    "ml_outcome": "TP1_HIT",
     "mfe": 0.0,
-    "tp_stage": "SL_TP1",
+    "tp_stage": "TP1",
     "timeframe": "15",
-    "pnl_pct": 0.5887,
+    "pnl_pct": 1.5284,
     "ml_bull_score": 0.625,
     "regime": "VOLATILE",
     "session": "NYSE_OPEN",
@@ -2209,8 +2209,8 @@
     "f24_fvgq": 0.0,
     "f25_tod": -0.5,
     "f26_stoch": -0.9616,
-    "id": "9b7e5c8c",
+    "id": "8f14f724",
     "pool": "STOCKS_QUALITY_15M",
-    "created_at": "2026-06-11T15:00:14.651774+00:00"
+    "created_at": "2026-06-11T15:00:09.856044+00:00"
   }
 ]
