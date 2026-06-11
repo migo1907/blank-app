@@ -568,5 +568,24 @@
       "trigger:",
       "atr:LOW"
     ]
+  },
+  {
+    "id": "990075c2",
+    "pool": "XAUUSD_2M",
+    "symbol": "XAUUSD",
+    "direction": "SHORT",
+    "trigger": "",
+    "session": "LONDON",
+    "regime": "TRENDING_BEAR",
+    "pnl_pct": -0.172,
+    "atr_level": "LOW",
+    "created_at": "2026-06-11T10:24:02.503738+00:00",
+    "cause_tags": [
+      "LONDON",
+      "TRENDING_BEAR",
+      "SHORT",
+      "trigger:",
+      "atr:LOW"
+    ]
   }
 ]
