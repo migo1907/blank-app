@@ -17403,13 +17403,13 @@
     "direction": "LONG",
     "trigger": "FVG",
     "entry_price": 4124.47,
-    "exit_price": 4130.6702,
+    "exit_price": 4143.39,
     "outcome": "WIN",
-    "ml_outcome": "TP1_HIT",
+    "ml_outcome": "WIN",
     "mfe": 18.92,
-    "tp_stage": "TP1",
+    "tp_stage": "TP3",
     "timeframe": "2",
-    "pnl_pct": 0.1503,
+    "pnl_pct": 0.4587,
     "ml_bull_score": 0.125,
     "regime": "VOLATILE",
     "session": "NEW_YORK",
@@ -17439,8 +17439,8 @@
     "f24_fvgq": 0.0,
     "f25_tod": -0.9914,
     "f26_stoch": 0.9682,
-    "id": "de8b35b4",
+    "id": "a4a6b352",
     "pool": "XAUUSD_2M",
-    "created_at": "2026-06-11T17:34:03.093083+00:00"
+    "created_at": "2026-06-11T17:34:06.939422+00:00"
   }
 ]
