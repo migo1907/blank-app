@@ -398,12 +398,39 @@ STOCK_POOL_IDS: dict[str, tuple[int, int]] = {
     "STOCKS_SPX500_15M":   (4, 0), "STOCKS_SPX500_30M":   (4, 1), "STOCKS_SPX500_4H":   (4, 2),
 }
 
+def _preload_libgomp() -> None:
+    """lib_lightgbm.so needs libgomp.so.1, absent from Railway's Railpack runtime
+    image. scikit-learn vendors its own copy in scikit_learn.libs/ — load it
+    RTLD_GLOBAL so the dynamic linker resolves lightgbm's dependency from it."""
+    import ctypes, glob, sysconfig
+    site = sysconfig.get_paths()["purelib"]
+    patterns = [
+        f"{site}/scikit_learn.libs/libgomp*.so*",
+        f"{site}/../**/scikit_learn.libs/libgomp*.so*",
+        "/app/.venv/lib/python*/site-packages/scikit_learn.libs/libgomp*.so*",
+    ]
+    for pattern in patterns:
+        for path in glob.glob(pattern, recursive=True):
+            try:
+                ctypes.CDLL(path, mode=ctypes.RTLD_GLOBAL)
+                print(f"[lgbm] preloaded bundled libgomp: {path}")
+                return
+            except OSError:
+                continue
+
+
 try:
     import lightgbm as _lgb
     _LGBM_AVAILABLE = True
-except Exception as _lgb_err:
-    _LGBM_AVAILABLE = False
-    print(f"[lgbm] lightgbm import failed: {_lgb_err}")
+except Exception:
+    try:
+        _preload_libgomp()
+        import lightgbm as _lgb
+        _LGBM_AVAILABLE = True
+        print("[lgbm] lightgbm loaded after libgomp preload")
+    except Exception as _lgb_err:
+        _LGBM_AVAILABLE = False
+        print(f"[lgbm] lightgbm import failed: {_lgb_err}")
 
 
 class JointGoldGBM:
