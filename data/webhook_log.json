@@ -36005,7 +36005,7 @@
     }
   },
   {
-    "received_at": "2026-06-11T14:30:11.771797+00:00",
+    "received_at": "2026-06-11T14:30:10.873469+00:00",
     "pool": "STOCKS_QUALITY_30M",
     "payload": {
       "secret": "gold2026",
@@ -36020,12 +36020,12 @@
       "sl": null,
       "ml_score": 0.5,
       "tier": null,
-      "trade_id": "ADBE_1781188202038",
-      "outcome": "WIN",
-      "ml_outcome": "TP1_HIT",
+      "trade_id": "ADBE_1781188202039",
+      "outcome": "PARTIAL",
+      "ml_outcome": "WIN",
       "mfe": 0.0,
-      "tp_stage": "TP1",
-      "exit_price": 224.482,
+      "tp_stage": "SL_TP1",
+      "exit_price": 229.88,
       "f1": -0.6222,
       "f2": -1.0,
       "f3": 0.0299,
