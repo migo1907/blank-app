@@ -1,8 +1,7 @@
 [phases.setup]
-nixPkgs = ["python313", "gcc"]
-# libgomp1: required by lightgbm at import time — without it the joint
-# gold/stock models silently stay disabled (lgbm_available: false in /health)
-aptPkgs = ["libgomp1"]
+# gfortran pulls in the full GCC runtime including libgomp.so.1
+# required by lightgbm — without it lgbm_available stays false in /health
+nixPkgs = ["python313", "gcc", "gfortran"]
 
 [start]
 cmd = "uvicorn main:app --host 0.0.0.0 --port $PORT"
