@@ -11,11 +11,12 @@ import threading
 from datetime import datetime, timezone
 from typing import Optional
 
-MIN_TRADES = 15  # minimum history before models will train
+MIN_TRADES = 30  # minimum history before models will train
 
 try:
     from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
     from sklearn.calibration import CalibratedClassifierCV
+    from sklearn.model_selection import TimeSeriesSplit
     import numpy as np
     _SKLEARN_AVAILABLE = True
 except Exception:
@@ -81,6 +82,9 @@ class RandomForestEnsemble:
             print(f"[rf] Only {len(history)} trades available (need {MIN_TRADES}) — skipping retrain.")
             return False
 
+        # Sort chronologically so TimeSeriesSplit never leaks future trades into calibration
+        history = sorted(history, key=lambda r: r.get("created_at", ""))
+
         # Build X, y
         X_rows = []
         y_rows = []
@@ -120,9 +124,10 @@ class RandomForestEnsemble:
             dtype=np.float64
         )
 
-        # Platt calibration: sigmoid wrapper, cv=3 (isotonic overfits below ~1000 samples)
+        # Platt calibration: TimeSeriesSplit prevents future-data leakage into calibration folds
         n_splits = 3 if len(X_rows) >= 45 else 2
-        clf = CalibratedClassifierCV(base_clf, method="sigmoid", cv=n_splits)
+        tscv = TimeSeriesSplit(n_splits=n_splits)
+        clf = CalibratedClassifierCV(base_clf, method="sigmoid", cv=tscv)
 
         try:
             clf.fit(X, y, sample_weight=sample_weights)
@@ -250,6 +255,9 @@ class GradientBoostEnsemble:
             print(f"[gbm] Only {len(history)} trades — skipping train.")
             return False
 
+        # Sort chronologically so TimeSeriesSplit never leaks future trades into calibration
+        history = sorted(history, key=lambda r: r.get("created_at", ""))
+
         X_rows, y_rows, w_rows = [], [], []
         for row in history:
             X_rows.append(row_to_vector(row))
@@ -283,9 +291,10 @@ class GradientBoostEnsemble:
             subsample=0.8,
             random_state=42,
         )
-        # Platt calibration wrapper
+        # Platt calibration: TimeSeriesSplit prevents future-data leakage into calibration folds
         n_splits = 3 if len(X_rows) >= 45 else 2
-        clf = CalibratedClassifierCV(base_clf, method="sigmoid", cv=n_splits)
+        tscv = TimeSeriesSplit(n_splits=n_splits)
+        clf = CalibratedClassifierCV(base_clf, method="sigmoid", cv=tscv)
         try:
             clf.fit(X, y, sample_weight=w)
         except Exception as exc:
