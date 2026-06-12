@@ -18,19 +18,11 @@
     "spec_net_prev": 154260,
     "net_change": 21760
   },
-  "gld": {
-    "date": "2026-06-11",
-    "price": 386.32,
-    "price_prev": 374.58,
-    "price_change": 11.74,
-    "tonnes": null,
-    "tonnes_change": 11.74,
-    "source": "yfinance_proxy"
-  },
-  "updated_at": "2026-06-12T12:25:51.036840+00:00",
+  "gld": null,
+  "updated_at": "2026-06-12T12:34:09.614314+00:00",
   "sources_live": {
     "fred": true,
     "cot": true,
-    "gld": true
+    "gld": false
   }
 }
