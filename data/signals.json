@@ -1,27 +1,5 @@
 [
   {
-    "symbol": "QQQ",
-    "pool": "STOCKS_QQQ_30M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "news_score": 0.0992,
-    "macro_bias": 0.0298,
-    "macro_label": "NEUTRAL",
-    "combined_score": 0.0274,
-    "session": "NYSE_AFTERNOON",
-    "regime": "TRENDING_BULL",
-    "regime_label": "TREND_FOLLOW",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(TREND_FOLLOW)\u00d71.15 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d71.21 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.43) | news:neutral(+0.099) | macro:NEUTRAL(+0.030) | combined:+0.027 \u2192 conf:0.050 \u26a1 CPI",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-11T19:49:58.570826+00:00",
-    "created_at": "2026-06-11T19:19:59.068591+00:00",
-    "id": 101
-  },
-  {
     "symbol": "XAUUSD",
     "pool": "XAUUSD_2M",
     "direction": "NEUTRAL",
@@ -2193,6 +2171,28 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-12T03:51:04.207517+00:00",
     "created_at": "2026-06-12T03:21:04.602435+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "SPY",
+    "pool": "STOCKS_INDEX_30M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "news_score": 0.1411,
+    "macro_bias": -0.1521,
+    "macro_label": "BEARISH",
+    "combined_score": 0.0097,
+    "session": "CLOSED",
+    "regime": "NORMAL",
+    "regime_label": "NORMAL",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d71.15 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.45) | news:neutral(+0.141) | macro:BEARISH(-0.152) | combined:+0.010 \u2192 conf:0.007 \u26a1 CPI",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-12T03:51:06.357678+00:00",
+    "created_at": "2026-06-12T03:21:07.816813+00:00",
     "id": 101
   }
 ]
