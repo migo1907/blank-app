@@ -1,27 +1,5 @@
 [
   {
-    "symbol": "XAUUSD",
-    "pool": "XAUUSD_2M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.375,
-    "rf_score": 0.3396,
-    "gbm_score": 0.3102,
-    "news_score": -0.1204,
-    "macro_bias": -0.1566,
-    "macro_label": "BEARISH",
-    "combined_score": -0.1383,
-    "session": "OVERLAP",
-    "regime": "TRENDING_BEAR",
-    "regime_label": "TREND_FOLLOW",
-    "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:TRENDING_BEAR(TREND_FOLLOW)\u00d71.15 | sess:OVERLAP\u00d71.30 | confluence\u00d71.42 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-0.96) | news:neutral(-0.120) | macro:BEARISH(-0.157) | combined:-0.138 \u2192 conf:0.250 \u26a1 CPI",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-12T13:33:55.518415+00:00",
-    "created_at": "2026-06-12T13:03:57.253361+00:00",
-    "id": 101
-  },
-  {
     "symbol": "SPY",
     "pool": "STOCKS_INDEX_30M",
     "direction": "NEUTRAL",
@@ -2191,6 +2169,28 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-12T21:16:52.861652+00:00",
     "created_at": "2026-06-12T20:46:54.494790+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "SPY",
+    "pool": "STOCKS_INDEX_30M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "news_score": -0.0408,
+    "macro_bias": -0.1521,
+    "macro_label": "BEARISH",
+    "combined_score": -0.0322,
+    "session": "NYSE_AFTERNOON",
+    "regime": "NORMAL",
+    "regime_label": "NORMAL",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d70.76 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.13) | news:neutral(-0.041) | macro:BEARISH(-0.152) | combined:-0.032 \u2192 conf:0.028 \u26a1 CPI",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-12T21:16:56.429591+00:00",
+    "created_at": "2026-06-12T20:46:58.018652+00:00",
     "id": 101
   }
 ]
