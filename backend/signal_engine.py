@@ -752,12 +752,21 @@ def generate_signal(
     from db import symbol_to_pool
     pool     = pool or symbol_to_pool(symbol)
     is_stock = not pool.startswith("XAUUSD")
-    min_conf = MIN_CONFIDENCE_STOCKS if is_stock else MIN_CONFIDENCE
 
     model   = get_model(pool)
     rf      = get_rf(pool)
     gbm     = get_gbm(pool)
     history = recent_outcomes(pool, limit=300)
+
+    # Adaptive confidence floor: thin pools need lower threshold so they can
+    # accumulate trades; tighten automatically as the pool matures.
+    _n = len(history)
+    if _n < 20:
+        min_conf = 0.50
+    elif _n < 50:
+        min_conf = 0.55
+    else:
+        min_conf = MIN_CONFIDENCE_STOCKS if is_stock else MIN_CONFIDENCE
     now     = datetime.now(timezone.utc)
 
     # ── Weekend guard ──────────────────────────────────────────────────────────
