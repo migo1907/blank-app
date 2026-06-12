@@ -1,27 +1,5 @@
 [
   {
-    "symbol": "SPY",
-    "pool": "STOCKS_INDEX_30M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "news_score": 0.1181,
-    "macro_bias": -0.1521,
-    "macro_label": "BEARISH",
-    "combined_score": 0.0044,
-    "session": "CLOSED",
-    "regime": "NORMAL",
-    "regime_label": "NORMAL",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d71.15 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.45) | news:neutral(+0.118) | macro:BEARISH(-0.152) | combined:+0.004 \u2192 conf:0.003 \u26a1 CPI",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-12T00:36:06.445770+00:00",
-    "created_at": "2026-06-12T00:06:09.400819+00:00",
-    "id": 101
-  },
-  {
     "symbol": "QQQ",
     "pool": "STOCKS_QQQ_30M",
     "direction": "NEUTRAL",
@@ -2195,6 +2173,28 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-12T08:51:17.132299+00:00",
     "created_at": "2026-06-12T08:21:17.510693+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "XAUUSD",
+    "pool": "XAUUSD_2M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.75,
+    "rf_score": 0.3158,
+    "gbm_score": 0.2995,
+    "news_score": 0.0711,
+    "macro_bias": -0.1566,
+    "macro_label": "BEARISH",
+    "combined_score": -0.3131,
+    "session": "LONDON",
+    "regime": "TRENDING_BEAR",
+    "regime_label": "TREND_FOLLOW",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BEAR(TREND_FOLLOW)\u00d71.15 | sess:LONDON\u00d71.15 | confluence\u00d71.07 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:neutral(+0.071) | macro:BEARISH(-0.157) | combined:-0.313 \u2192 conf:0.454 \u26a1 WAR/CONFLICT",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-12T09:06:09.327527+00:00",
+    "created_at": "2026-06-12T08:36:10.803758+00:00",
     "id": 101
   }
 ]
