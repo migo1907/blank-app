@@ -2082,7 +2082,7 @@
     "regime": "VOLATILE",
     "regime_label": "VOLATILE",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:VOLATILE(VOLATILE)\u00d70.92 | sess:LONDON\u00d71.15 | confluence\u00d70.94 | cluster\u00d70.88 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.06) | news:neutral(+0.101) | macro:BEARISH(-0.157) | combined:+0.069 \u2192 conf:0.051 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-12T08:36:06.318206+00:00",
     "created_at": "2026-06-12T08:06:07.869514+00:00",
     "id": 101
@@ -2104,7 +2104,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d71.15 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.45) | news:neutral(+0.101) | macro:BEARISH(-0.152) | combined:+0.000 \u2192 conf:0.000 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-12T08:36:09.334332+00:00",
     "created_at": "2026-06-12T08:06:12.518617+00:00",
     "id": 101
