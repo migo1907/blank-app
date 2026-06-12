@@ -1,27 +1,5 @@
 [
   {
-    "symbol": "XAUUSD",
-    "pool": "XAUUSD_2M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.75,
-    "rf_score": 0.3266,
-    "gbm_score": 0.3291,
-    "news_score": 0.1049,
-    "macro_bias": -0.1566,
-    "macro_label": "BEARISH",
-    "combined_score": -0.2871,
-    "session": "ASIAN",
-    "regime": "RANGING",
-    "regime_label": "RANGING",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:RANGING(RANGING)\u00d70.82 | sess:ASIAN\u00d70.85 | confluence\u00d71.21 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.25) | news:neutral(+0.105) | macro:BEARISH(-0.157) | combined:-0.287 \u2192 conf:0.247 \u26a1 CPI",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-12T00:51:03.502717+00:00",
-    "created_at": "2026-06-12T00:21:04.760148+00:00",
-    "id": 101
-  },
-  {
     "symbol": "SPY",
     "pool": "STOCKS_INDEX_30M",
     "direction": "NEUTRAL",
@@ -2195,6 +2173,28 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-12T09:06:12.636203+00:00",
     "created_at": "2026-06-12T08:36:13.118145+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "QQQ",
+    "pool": "STOCKS_QQQ_30M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "news_score": 0.0711,
+    "macro_bias": -0.1521,
+    "macro_label": "BEARISH",
+    "combined_score": -0.0064,
+    "session": "CLOSED",
+    "regime": "TRENDING_BULL",
+    "regime_label": "PULLBACK_SHORT",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(PULLBACK_SHORT)\u00d70.80 | sess:CLOSED\u00d70.60 | confluence\u00d70.76 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+0.60) | news:neutral(+0.071) | macro:BEARISH(-0.152) | combined:-0.006 \u2192 conf:0.002 \u26a1 WAR/CONFLICT",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-12T09:06:14.697717+00:00",
+    "created_at": "2026-06-12T08:36:15.972357+00:00",
     "id": 101
   }
 ]
