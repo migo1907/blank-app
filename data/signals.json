@@ -1,27 +1,5 @@
 [
   {
-    "symbol": "XAUUSD",
-    "pool": "XAUUSD_2M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.375,
-    "rf_score": 0.3348,
-    "gbm_score": 0.3072,
-    "news_score": 0.1673,
-    "macro_bias": -0.0321,
-    "macro_label": "NEUTRAL",
-    "combined_score": -0.0494,
-    "session": "NEW_YORK",
-    "regime": "TRENDING_BEAR",
-    "regime_label": "TREND_FOLLOW",
-    "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:TRENDING_BEAR(TREND_FOLLOW)\u00d71.15 | sess:NEW_YORK\u00d71.10 | confluence\u00d71.09 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:neutral(+0.167) | macro:NEUTRAL(-0.032) | combined:-0.049 \u2192 conf:0.068 \u26a1 CPI",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-11T19:02:13.135506+00:00",
-    "created_at": "2026-06-11T18:32:13.621898+00:00",
-    "id": 101
-  },
-  {
     "symbol": "SPY",
     "pool": "STOCKS_INDEX_30M",
     "direction": "NEUTRAL",
@@ -2193,6 +2171,28 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-12T02:21:06.422570+00:00",
     "created_at": "2026-06-12T01:51:07.613406+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "QQQ",
+    "pool": "STOCKS_QQQ_30M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "news_score": 0.0584,
+    "macro_bias": -0.1521,
+    "macro_label": "BEARISH",
+    "combined_score": -0.0093,
+    "session": "CLOSED",
+    "regime": "TRENDING_BULL",
+    "regime_label": "PULLBACK_SHORT",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(PULLBACK_SHORT)\u00d70.80 | sess:CLOSED\u00d70.60 | confluence\u00d70.76 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+0.60) | news:neutral(+0.058) | macro:BEARISH(-0.152) | combined:-0.009 \u2192 conf:0.003 \u26a1 CPI",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-12T02:21:09.433255+00:00",
+    "created_at": "2026-06-12T01:51:10.788446+00:00",
     "id": 101
   }
 ]
