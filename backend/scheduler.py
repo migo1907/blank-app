@@ -92,13 +92,13 @@ def _evaluate_intel_triggers(velocity: dict, event: dict, gold_signal: dict, gol
     # Deduplication: same headline is suppressed for 4 hours to prevent repeat
     # alerts on every 15-min cycle when the headline stays in the feed.
     import time as _time
-    _SHOCK_EVENTS = {“WAR/CONFLICT”, “GEOPOLITICAL”, “FLASH_CRASH”}
+    _SHOCK_EVENTS = {"WAR/CONFLICT", "GEOPOLITICAL", "FLASH_CRASH"}
     _SHOCK_TTL = 4 * 3600
-    if (event.get(“detected”) and event.get(“event_type”) in _SHOCK_EVENTS
-            and event.get(“urgency”, 0.0) >= 0.9):
-        heads = event.get(“headlines”) or []
-        lead_text = heads[0][:90] if heads else “”
-        shock_key = f”{event['event_type']}|{lead_text}”
+    if (event.get("detected") and event.get("event_type") in _SHOCK_EVENTS
+            and event.get("urgency", 0.0) >= 0.9):
+        heads = event.get("headlines") or []
+        lead_text = heads[0][:90] if heads else ""
+        shock_key = f"{event['event_type']}|{lead_text}"
         now_mono = _time.monotonic()
         # evict stale entries
         stale = [k for k, t in _shock_sent.items() if now_mono - t > _SHOCK_TTL]
@@ -106,8 +106,8 @@ def _evaluate_intel_triggers(velocity: dict, event: dict, gold_signal: dict, gol
             del _shock_sent[k]
         if shock_key not in _shock_sent:
             _shock_sent[shock_key] = now_mono
-            lead = f” — “{lead_text}”” if lead_text else “”
-            reasons.append(f”{event['event_type']} shock headline{lead}”)
+            lead = f' — “{lead_text}”' if lead_text else ""
+            reasons.append(f"{event['event_type']} shock headline{lead}")
 
     return reasons
 
