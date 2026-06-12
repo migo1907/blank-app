@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-06-12T13:43:36.965156+00:00",
+  "checked_at": "2026-06-12T16:33:31.929436+00:00",
   "health": {
     "status_code": 200,
     "data": {
@@ -184,47 +184,47 @@
       "pool": "XAUUSD_2M",
       "model": {
         "weights": {
-          "w1": 0.21,
-          "w2": 0.21,
-          "w3": 1.2793,
-          "w4": 0.2,
-          "w5": 0.21,
-          "w6": 3.0,
-          "w7": 0.21,
-          "w8": 0.2797,
-          "w9": 0.21,
-          "w10": 0.6397,
-          "w11": 0.2,
-          "w12": 1.6853,
-          "w13": 2.1253,
-          "w14": 1.3348,
-          "w15": 1.1793,
-          "w16": 0.4947,
-          "w17": 0.21,
+          "w1": 0.2153,
+          "w2": 0.2153,
+          "w3": 1.274,
+          "w4": 0.21,
+          "w5": 0.2153,
+          "w6": 2.99,
+          "w7": 0.2353,
+          "w8": 0.285,
+          "w9": 0.2,
+          "w10": 0.645,
+          "w11": 0.21,
+          "w12": 1.6905,
+          "w13": 2.12,
+          "w14": 1.34,
+          "w15": 1.1845,
+          "w16": 0.4895,
+          "w17": 0.2353,
           "w18": 0.2,
-          "w19": 1.4863,
-          "w20": 0.21,
-          "w21": 0.21,
+          "w19": 1.4915,
+          "w20": 0.2153,
+          "w21": 0.2153,
           "w22": 0.2,
           "w23": 0.2,
-          "w24": 1.3863,
-          "w25": 1.2102,
-          "w26": 0.519
+          "w24": 1.3915,
+          "w25": 1.205,
+          "w26": 0.5042
         },
-        "win_rate": 39.2,
-        "total_trades": 472,
+        "win_rate": 39.0,
+        "total_trades": 477,
         "top_features": [
           {
             "name": "WillR",
-            "weight": 3.0
+            "weight": 2.99
           },
           {
             "name": "P/D",
-            "weight": 2.1253
+            "weight": 2.12
           },
           {
             "name": "Liq",
-            "weight": 1.6853
+            "weight": 1.6905
           }
         ]
       },
@@ -233,45 +233,78 @@
         "top_features": [
           {
             "name": "f2_adx",
-            "importance": 0.3111
+            "importance": 0.2604
+          },
+          {
+            "name": "f8_ema_dist",
+            "importance": 0.2198
           },
           {
             "name": "f5_macd",
-            "importance": 0.2657
-          },
-          {
-            "name": "f6_willr",
-            "importance": 0.2583
+            "importance": 0.2165
           }
         ]
       },
-      "news_sentiment": 0.0673,
+      "news_sentiment": -0.1177,
       "news_velocity": {
         "multiplier": 0.6,
-        "volume": 43,
-        "consistency": 0.163,
-        "acceleration": 0.195,
-        "direction": "BULLISH",
+        "volume": 46,
+        "consistency": 0.05,
+        "acceleration": 0.07,
+        "direction": "BEARISH",
         "label": "CONFLICTED",
-        "high_count": 10,
-        "total_count": 51
+        "high_count": 11,
+        "total_count": 48
       },
       "high_impact_event": {
         "detected": true,
-        "event_type": "CPI",
-        "urgency": 0.9,
+        "event_type": "WAR/CONFLICT",
+        "urgency": 0.95,
         "headlines": [
-          "Treasury yields steady as investors monitor inflation data, U.S. strikes in Iran",
-          "Dollar slips as US inflation data keeps rate hike at bay - Reuters"
+          "US VP Vance: I'm seeing a lot of fake information about a potential deal to reopen the Strait and end Iran's nuclear weapons program. First, the Iranians are not receiving any cash, and no funds are being released for simply signing a deal or attending a meeting - Post on X",
+          "Israel's Defence Minister Katz: We expect Trump to stand by the principle that Iran will not be nuclear. Israel will not leave the security zone in Lebanon, Syria, and Gaza - Israel's Hayom News.",
+          "Israeli Defence Minister: Israel expects Trump to stand firm on the Iran nuclear principle, but Israel must ensure it can act independently to prevent Iran from obtaining nuclear weapons - Post On X."
         ],
         "all_events": [
+          "WAR/CONFLICT",
           "CPI",
-          "GEOPOLITICAL"
+          "GEOPOLITICAL",
+          "SANCTIONS"
         ],
         "scheduled": []
       },
       "recent_news_count": 200,
       "recent_trades": [
+        {
+          "direction": "LONG",
+          "outcome": "LOSS",
+          "created_at": "2026-06-12T15:58:02.653956+00:00"
+        },
+        {
+          "direction": "SHORT",
+          "outcome": "PARTIAL",
+          "created_at": "2026-06-12T15:54:09.216377+00:00"
+        },
+        {
+          "direction": "SHORT",
+          "outcome": "WIN",
+          "created_at": "2026-06-12T15:50:08.369404+00:00"
+        },
+        {
+          "direction": "SHORT",
+          "outcome": "LOSS",
+          "created_at": "2026-06-12T15:36:05.202400+00:00"
+        },
+        {
+          "direction": "LONG",
+          "outcome": "LOSS",
+          "created_at": "2026-06-12T15:30:12.227425+00:00"
+        },
+        {
+          "direction": "LONG",
+          "outcome": "PARTIAL",
+          "created_at": "2026-06-12T15:26:03.283475+00:00"
+        },
         {
           "direction": "LONG",
           "outcome": "LOSS",
@@ -291,36 +324,6 @@
           "direction": "SHORT",
           "outcome": "PARTIAL",
           "created_at": "2026-06-12T11:40:04.123303+00:00"
-        },
-        {
-          "direction": "SHORT",
-          "outcome": "WIN",
-          "created_at": "2026-06-12T11:34:03.475429+00:00"
-        },
-        {
-          "direction": "LONG",
-          "outcome": "LOSS",
-          "created_at": "2026-06-12T11:28:02.726471+00:00"
-        },
-        {
-          "direction": "LONG",
-          "outcome": "LOSS",
-          "created_at": "2026-06-12T10:54:02.471336+00:00"
-        },
-        {
-          "direction": "SHORT",
-          "outcome": "LOSS",
-          "created_at": "2026-06-12T10:32:02.876252+00:00"
-        },
-        {
-          "direction": "SHORT",
-          "outcome": "PARTIAL",
-          "created_at": "2026-06-12T10:28:02.775826+00:00"
-        },
-        {
-          "direction": "SHORT",
-          "outcome": "PARTIAL",
-          "created_at": "2026-06-12T10:26:02.804676+00:00"
         }
       ]
     }
@@ -330,48 +333,48 @@
     "data": {
       "pool": "XAUUSD_2M",
       "weights": {
-        "w1": 0.21,
-        "w2": 0.21,
-        "w3": 1.2793,
-        "w4": 0.2,
-        "w5": 0.21,
-        "w6": 3.0,
-        "w7": 0.21,
-        "w8": 0.2797,
-        "w9": 0.21,
-        "w10": 0.6397,
-        "w11": 0.2,
-        "w12": 1.6853,
-        "w13": 2.1253,
-        "w14": 1.3348,
-        "w15": 1.1793,
-        "w16": 0.4947,
-        "w17": 0.21,
+        "w1": 0.2153,
+        "w2": 0.2153,
+        "w3": 1.274,
+        "w4": 0.21,
+        "w5": 0.2153,
+        "w6": 2.99,
+        "w7": 0.2353,
+        "w8": 0.285,
+        "w9": 0.2,
+        "w10": 0.645,
+        "w11": 0.21,
+        "w12": 1.6905,
+        "w13": 2.12,
+        "w14": 1.34,
+        "w15": 1.1845,
+        "w16": 0.4895,
+        "w17": 0.2353,
         "w18": 0.2,
-        "w19": 1.4863,
-        "w20": 0.21,
-        "w21": 0.21,
+        "w19": 1.4915,
+        "w20": 0.2153,
+        "w21": 0.2153,
         "w22": 0.2,
         "w23": 0.2,
-        "w24": 1.3863,
-        "w25": 1.2102,
-        "w26": 0.519
+        "w24": 1.3915,
+        "w25": 1.205,
+        "w26": 0.5042
       },
-      "total_wins": 185,
-      "total_losses": 287,
-      "win_rate": 39.2,
+      "total_wins": 186,
+      "total_losses": 291,
+      "win_rate": 39.0,
       "top_features": [
         {
           "name": "WillR",
-          "weight": 3.0
+          "weight": 2.99
         },
         {
           "name": "P/D",
-          "weight": 2.1253
+          "weight": 2.12
         },
         {
           "name": "Liq",
-          "weight": 1.6853
+          "weight": 1.6905
         }
       ]
     }
