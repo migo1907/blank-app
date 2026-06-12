@@ -1950,7 +1950,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:LONDON\u00d71.15 | confluence\u00d70.99 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:neutral(+0.183) | macro:BEARISH(-0.157) | combined:-0.276 \u2192 conf:0.320 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-12T12:49:03.552951+00:00",
     "created_at": "2026-06-12T12:19:05.315104+00:00",
     "id": 101
@@ -1972,7 +1972,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:PRE_MARKET\u00d70.90 | confluence\u00d71.15 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.45) | news:neutral(+0.183) | macro:BEARISH(-0.152) | combined:+0.019 \u2192 conf:0.020 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-12T12:49:06.818665+00:00",
     "created_at": "2026-06-12T12:19:07.119157+00:00",
     "id": 101
@@ -1994,7 +1994,7 @@
     "regime": "TRENDING_BULL",
     "regime_label": "TREND_FOLLOW",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(TREND_FOLLOW)\u00d71.15 | sess:PRE_MARKET\u00d70.90 | confluence\u00d71.34 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+0.60) | news:neutral(+0.183) | macro:BEARISH(-0.152) | combined:+0.019 \u2192 conf:0.027 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-12T12:49:08.814286+00:00",
     "created_at": "2026-06-12T12:19:09.119870+00:00",
     "id": 101
@@ -2036,7 +2036,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:PRE_MARKET\u00d70.90 | confluence\u00d71.15 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.45) | news:neutral(+0.165) | macro:BEARISH(-0.152) | combined:+0.015 \u2192 conf:0.016 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-12T12:55:41.583097+00:00",
     "created_at": "2026-06-12T12:25:42.063145+00:00",
     "id": 101
@@ -2058,7 +2058,7 @@
     "regime": "TRENDING_BULL",
     "regime_label": "TREND_FOLLOW",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(TREND_FOLLOW)\u00d71.15 | sess:PRE_MARKET\u00d70.90 | confluence\u00d71.34 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+0.60) | news:neutral(+0.165) | macro:BEARISH(-0.152) | combined:+0.015 \u2192 conf:0.021 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-12T12:55:44.224574+00:00",
     "created_at": "2026-06-12T12:25:44.748657+00:00",
     "id": 101
