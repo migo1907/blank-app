@@ -138,7 +138,7 @@ def _put_file(path: str, content: dict | list, sha: str | None, message: str) ->
 
 STOCKS_MOMENTUM = {
     "TSLA","TSLL","MSTR","UPST","HTZ","SMCI","BLNK","PLUG","HOOD",
-    "BBAI","PLTR","SOXL","TNA","AMD","MU","NVDA","RR",
+    "BBAI","PLTR","SOXL","TNA","AMD","MU","NVDA","RR","SPCX",
 }
 STOCKS_QUALITY = {
     "META","GOOGL","GOOG","MSFT","AAPL","ADBE","IBKR","PATH","NOW","CRM",
