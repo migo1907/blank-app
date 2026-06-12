@@ -142,5 +142,23 @@
     "ml_score": 0.625,
     "stored_at": "2026-06-12T17:30:09.968250+00:00",
     "expires_at": "2026-06-13T01:30:09.968273+00:00"
+  },
+  "SOXL_240": {
+    "direction": "LONG",
+    "timeframe": "240",
+    "symbol": "SOXL",
+    "trigger": "FVG",
+    "ml_score": 0.75,
+    "stored_at": "2026-06-12T17:30:12.298857+00:00",
+    "expires_at": "2026-06-13T01:30:12.298888+00:00"
+  },
+  "TNA_240": {
+    "direction": "LONG",
+    "timeframe": "240",
+    "symbol": "TNA",
+    "trigger": "BOS",
+    "ml_score": 0.25,
+    "stored_at": "2026-06-12T17:30:14.145391+00:00",
+    "expires_at": "2026-06-13T01:30:14.145419+00:00"
   }
 }
