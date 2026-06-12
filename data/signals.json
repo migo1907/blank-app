@@ -1,27 +1,5 @@
 [
   {
-    "symbol": "XAUUSD",
-    "pool": "XAUUSD_2M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.3307,
-    "gbm_score": 0.3295,
-    "news_score": 0.0844,
-    "macro_bias": -0.1566,
-    "macro_label": "BEARISH",
-    "combined_score": -0.1466,
-    "session": "OFF",
-    "regime": "TRENDING_BEAR",
-    "regime_label": "TREND_FOLLOW",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BEAR(TREND_FOLLOW)\u00d71.15 | sess:OFF\u00d70.65 | confluence\u00d71.41 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.06) | news:neutral(+0.084) | macro:BEARISH(-0.157) | combined:-0.147 \u2192 conf:0.186 \u26a1 CPI",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-11T23:51:03.847506+00:00",
-    "created_at": "2026-06-11T23:21:05.472400+00:00",
-    "id": 101
-  },
-  {
     "symbol": "SPY",
     "pool": "STOCKS_INDEX_30M",
     "direction": "NEUTRAL",
@@ -2195,6 +2173,28 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-12T08:06:10.782528+00:00",
     "created_at": "2026-06-12T07:36:12.331468+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "XAUUSD",
+    "pool": "XAUUSD_2M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.25,
+    "rf_score": 0.3197,
+    "gbm_score": 0.3249,
+    "news_score": -0.1076,
+    "macro_bias": -0.1566,
+    "macro_label": "BEARISH",
+    "combined_score": -0.0658,
+    "session": "LONDON_OPEN",
+    "regime": "NORMAL",
+    "regime_label": "NORMAL",
+    "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:NORMAL(NORMAL)\u00d71.00 | sess:LONDON_OPEN\u00d70.90 | confluence\u00d71.27 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-1.00) | news:neutral(-0.108) | macro:BEARISH(-0.157) | combined:-0.066 \u2192 conf:0.064 \u26a1 CPI",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-12T08:21:08.133933+00:00",
+    "created_at": "2026-06-12T07:51:09.506721+00:00",
     "id": 101
   }
 ]
