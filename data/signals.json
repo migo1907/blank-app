@@ -1,27 +1,5 @@
 [
   {
-    "symbol": "XAUUSD",
-    "pool": "XAUUSD_2M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.3311,
-    "gbm_score": 0.3139,
-    "news_score": 0.0255,
-    "macro_bias": -0.1566,
-    "macro_label": "BEARISH",
-    "combined_score": -0.1697,
-    "session": "OFF",
-    "regime": "TRENDING_BEAR",
-    "regime_label": "TREND_FOLLOW",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BEAR(TREND_FOLLOW)\u00d71.15 | sess:OFF\u00d70.65 | confluence\u00d70.90 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:neutral(+0.025) | macro:BEARISH(-0.157) | combined:-0.170 \u2192 conf:0.137 \u26a1 CPI",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-11T23:21:03.067052+00:00",
-    "created_at": "2026-06-11T22:51:03.474292+00:00",
-    "id": 101
-  },
-  {
     "symbol": "SPY",
     "pool": "STOCKS_INDEX_30M",
     "direction": "NEUTRAL",
@@ -2195,6 +2173,28 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-12T07:36:08.713013+00:00",
     "created_at": "2026-06-12T07:06:10.132938+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "XAUUSD",
+    "pool": "XAUUSD_2M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.625,
+    "rf_score": 0.3283,
+    "gbm_score": 0.325,
+    "news_score": 0.1696,
+    "macro_bias": -0.1566,
+    "macro_label": "BEARISH",
+    "combined_score": -0.1963,
+    "session": "LONDON_OPEN",
+    "regime": "NORMAL",
+    "regime_label": "NORMAL",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:LONDON_OPEN\u00d70.90 | confluence\u00d71.35 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-1.00) | news:neutral(+0.170) | macro:BEARISH(-0.157) | combined:-0.196 \u2192 conf:0.243 \u26a1 CPI",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-12T07:51:03.792217+00:00",
+    "created_at": "2026-06-12T07:21:05.200719+00:00",
     "id": 101
   }
 ]
