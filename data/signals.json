@@ -2058,7 +2058,7 @@
     "regime": "TRENDING_BEAR",
     "regime_label": "PULLBACK_LONG",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:TRENDING_BEAR(PULLBACK_LONG)\u00d70.95 | sess:OFF\u00d70.65 | confluence\u00d70.65 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:neutral(+0.112) | macro:NEUTRAL(-0.005) | combined:+0.028 \u2192 conf:0.010 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-12T22:46:54.231647+00:00",
     "created_at": "2026-06-12T22:16:55.850927+00:00",
     "id": 101
@@ -2080,7 +2080,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d71.15 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.13) | news:neutral(+0.112) | macro:BULLISH(+0.321) | combined:+0.074 \u2192 conf:0.052 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-12T22:46:57.796117+00:00",
     "created_at": "2026-06-12T22:16:59.313216+00:00",
     "id": 101
