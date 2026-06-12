@@ -2058,7 +2058,7 @@
     "regime": "TRENDING_BEAR",
     "regime_label": "PULLBACK_LONG",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:TRENDING_BEAR(PULLBACK_LONG)\u00d70.95 | sess:OFF\u00d70.65 | confluence\u00d70.65 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:bullish(+0.362) | macro:NEUTRAL(-0.005) | combined:+0.145 \u2192 conf:0.050 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-12T23:46:53.194981+00:00",
     "created_at": "2026-06-12T23:16:54.761647+00:00",
     "id": 101
