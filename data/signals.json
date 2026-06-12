@@ -1,27 +1,5 @@
 [
   {
-    "symbol": "XAUUSD",
-    "pool": "XAUUSD_2M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.25,
-    "rf_score": 0.3197,
-    "gbm_score": 0.3249,
-    "news_score": -0.1076,
-    "macro_bias": -0.1566,
-    "macro_label": "BEARISH",
-    "combined_score": -0.0658,
-    "session": "LONDON_OPEN",
-    "regime": "NORMAL",
-    "regime_label": "NORMAL",
-    "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:NORMAL(NORMAL)\u00d71.00 | sess:LONDON_OPEN\u00d70.90 | confluence\u00d71.27 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-1.00) | news:neutral(-0.108) | macro:BEARISH(-0.157) | combined:-0.066 \u2192 conf:0.064 \u26a1 CPI",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-12T08:21:08.133933+00:00",
-    "created_at": "2026-06-12T07:51:09.506721+00:00",
-    "id": 101
-  },
-  {
     "symbol": "SPY",
     "pool": "STOCKS_INDEX_30M",
     "direction": "NEUTRAL",
@@ -2193,6 +2171,28 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-12T15:31:53.649270+00:00",
     "created_at": "2026-06-12T15:01:54.355244+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "SPY",
+    "pool": "STOCKS_INDEX_30M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "news_score": -0.1045,
+    "macro_bias": -0.1521,
+    "macro_label": "BEARISH",
+    "combined_score": -0.0469,
+    "session": "NYSE_OPEN",
+    "regime": "TRENDING_BULL",
+    "regime_label": "PULLBACK_SHORT",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(PULLBACK_SHORT)\u00d70.80 | sess:NYSE_OPEN\u00d71.25 | confluence\u00d70.70 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.29) | news:neutral(-0.104) | macro:BEARISH(-0.152) | combined:-0.047 \u2192 conf:0.034 \u26a1 WAR/CONFLICT",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-12T15:31:56.314102+00:00",
+    "created_at": "2026-06-12T15:01:57.853044+00:00",
     "id": 101
   }
 ]
