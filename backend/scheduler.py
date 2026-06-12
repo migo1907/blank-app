@@ -17,6 +17,7 @@ _startup_cycle: bool = True  # suppress alert on first cycle after restart
 _webhook_errors:  int = 0   # count of failed trade webhooks since last hourly check
 _webhook_ok:      int = 0   # count of successful trade webhooks since last hourly check
 _intel_active:    bool = False  # True while market is in an elevated-activity regime (alert already sent)
+_shock_sent:      dict = {}     # headline_hash → monotonic time; suppresses duplicate shock alerts for 4h
 
 _SEEN_HEADLINES_PATH = "data/seen_headlines.json"
 _SEEN_HEADLINES_MAX  = 500
@@ -88,12 +89,25 @@ def _evaluate_intel_triggers(velocity: dict, event: dict, gold_signal: dict, gol
     # 5. Geopolitical / market shock — single-headline reactive events that are
     # time-critical by nature (no calendar). Unlike CPI-style releases, these
     # warrant an immediate heads-up even when overall news flow is calm.
-    _SHOCK_EVENTS = {"WAR/CONFLICT", "GEOPOLITICAL", "FLASH_CRASH"}
-    if (event.get("detected") and event.get("event_type") in _SHOCK_EVENTS
-            and event.get("urgency", 0.0) >= 0.9):
-        heads = event.get("headlines") or []
-        lead = f" — “{heads[0][:90]}”" if heads else ""
-        reasons.append(f"{event['event_type']} shock headline{lead}")
+    # Deduplication: same headline is suppressed for 4 hours to prevent repeat
+    # alerts on every 15-min cycle when the headline stays in the feed.
+    import time as _time
+    _SHOCK_EVENTS = {“WAR/CONFLICT”, “GEOPOLITICAL”, “FLASH_CRASH”}
+    _SHOCK_TTL = 4 * 3600
+    if (event.get(“detected”) and event.get(“event_type”) in _SHOCK_EVENTS
+            and event.get(“urgency”, 0.0) >= 0.9):
+        heads = event.get(“headlines”) or []
+        lead_text = heads[0][:90] if heads else “”
+        shock_key = f”{event['event_type']}|{lead_text}”
+        now_mono = _time.monotonic()
+        # evict stale entries
+        stale = [k for k, t in _shock_sent.items() if now_mono - t > _SHOCK_TTL]
+        for k in stale:
+            del _shock_sent[k]
+        if shock_key not in _shock_sent:
+            _shock_sent[shock_key] = now_mono
+            lead = f” — “{lead_text}”” if lead_text else “”
+            reasons.append(f”{event['event_type']} shock headline{lead}”)
 
     return reasons
 
