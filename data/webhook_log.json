@@ -45605,7 +45605,7 @@
     }
   },
   {
-    "received_at": "2026-06-12T19:22:03.778684+00:00",
+    "received_at": "2026-06-12T19:22:02.807563+00:00",
     "pool": "XAUUSD_2M",
     "payload": {
       "secret": "gold2026",
@@ -45621,11 +45621,11 @@
       "ml_score": 0.25,
       "tier": null,
       "trade_id": "XAUUSD_1781292121949",
-      "outcome": "WIN",
-      "ml_outcome": "TP1_HIT",
+      "outcome": "PARTIAL",
+      "ml_outcome": "WIN",
       "mfe": 0.0,
-      "tp_stage": "TP1",
-      "exit_price": 4212.2597,
+      "tp_stage": "SL_TP1",
+      "exit_price": 4215.11,
       "f1": -0.313,
       "f2": -0.4888,
       "f3": -0.1515,
