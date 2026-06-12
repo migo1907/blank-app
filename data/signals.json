@@ -1,27 +1,5 @@
 [
   {
-    "symbol": "SPY",
-    "pool": "STOCKS_INDEX_30M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "news_score": 0.1696,
-    "macro_bias": -0.1521,
-    "macro_label": "BEARISH",
-    "combined_score": 0.0163,
-    "session": "CLOSED",
-    "regime": "NORMAL",
-    "regime_label": "NORMAL",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d71.15 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.45) | news:neutral(+0.170) | macro:BEARISH(-0.152) | combined:+0.016 \u2192 conf:0.011 \u26a1 CPI",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-12T07:51:06.924465+00:00",
-    "created_at": "2026-06-12T07:21:08.279640+00:00",
-    "id": 101
-  },
-  {
     "symbol": "QQQ",
     "pool": "STOCKS_QQQ_30M",
     "direction": "NEUTRAL",
@@ -2193,6 +2171,28 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-12T15:02:00.294121+00:00",
     "created_at": "2026-06-12T14:32:00.804101+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "QQQ",
+    "pool": "STOCKS_QQQ_30M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "news_score": 0.0571,
+    "macro_bias": -0.1521,
+    "macro_label": "BEARISH",
+    "combined_score": -0.0096,
+    "session": "NYSE_OPEN",
+    "regime": "TRENDING_BULL",
+    "regime_label": "PULLBACK_SHORT",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(PULLBACK_SHORT)\u00d70.80 | sess:NYSE_OPEN\u00d71.25 | confluence\u00d70.76 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.15) | news:neutral(+0.057) | macro:BEARISH(-0.152) | combined:-0.010 \u2192 conf:0.007 \u26a1 WAR/CONFLICT",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-12T15:02:02.858020+00:00",
+    "created_at": "2026-06-12T14:32:03.357829+00:00",
     "id": 101
   }
 ]
