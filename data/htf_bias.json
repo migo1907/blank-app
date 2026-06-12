@@ -35,15 +35,6 @@
     "stored_at": "2026-06-12T14:00:09.333764+00:00",
     "expires_at": "2026-06-12T16:00:09.333785+00:00"
   },
-  "AMD_30": {
-    "direction": "LONG",
-    "timeframe": "30",
-    "symbol": "AMD",
-    "trigger": "BOS",
-    "ml_score": 0.75,
-    "stored_at": "2026-06-12T14:00:13.449340+00:00",
-    "expires_at": "2026-06-12T16:00:13.449363+00:00"
-  },
   "IBKR_30": {
     "direction": "LONG",
     "timeframe": "30",
@@ -133,5 +124,14 @@
     "ml_score": 0.5,
     "stored_at": "2026-06-12T16:30:03.248193+00:00",
     "expires_at": "2026-06-12T18:30:03.248216+00:00"
+  },
+  "AMD_240": {
+    "direction": "LONG",
+    "timeframe": "240",
+    "symbol": "AMD",
+    "trigger": "FVG",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-12T17:30:03.562580+00:00",
+    "expires_at": "2026-06-13T01:30:03.562602+00:00"
   }
 }
