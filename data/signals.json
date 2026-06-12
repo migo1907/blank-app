@@ -2078,7 +2078,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:NEW_YORK\u00d71.10 | confluence\u00d71.05 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:neutral(-0.086) | macro:BEARISH(-0.157) | combined:-0.175 \u2192 conf:0.207 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-12T17:46:54.716028+00:00",
     "created_at": "2026-06-12T17:16:56.628520+00:00",
     "id": 101
