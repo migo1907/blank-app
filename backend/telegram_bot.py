@@ -4,6 +4,12 @@ import httpx
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 
+# Display name overrides — map broker/feed tickers to canonical names shown in Telegram
+_DISPLAY_NAME: dict[str, str] = {
+    "US500":  "SPX500",
+    "SP500":  "SPX500",
+}
+
 load_dotenv()
 
 TOKEN           = os.environ.get("TELEGRAM_BOT_TOKEN", "")
@@ -58,7 +64,7 @@ async def send_entry_signal(s: dict) -> bool:
     tier      = s.get("tier", "LOW")
 
     dir_emoji    = "🟢" if direction == "LONG" else "🔴"
-    symbol_clean = html.escape(symbol.split(":")[-1])
+    symbol_clean = html.escape(_DISPLAY_NAME.get(symbol.split(":")[-1].upper(), symbol.split(":")[-1]))
     is_gold      = symbol_clean in ("XAUUSD", "GOLD", "GC")
     asset_emoji  = "🥇" if is_gold else "📊"
     now          = datetime.now(timezone.utc).strftime("%H:%M UTC — %d %b %Y")
@@ -103,7 +109,8 @@ async def send_signal(signal: dict) -> bool:
     """Send a direction change alert — fires only when market direction flips."""
     direction  = signal.get("direction", "NEUTRAL")
     confidence = signal.get("confidence", 0.0)
-    symbol     = signal.get("symbol", "XAUUSD").split(":")[-1]
+    symbol     = _DISPLAY_NAME.get(signal.get("symbol", "XAUUSD").split(":")[-1].upper(),
+                                   signal.get("symbol", "XAUUSD").split(":")[-1])
     session    = signal.get("session", "")
     event      = signal.get("high_impact_event", "")
 
