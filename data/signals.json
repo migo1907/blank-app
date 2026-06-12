@@ -2012,7 +2012,7 @@
     "regime": "TRENDING_BEAR",
     "regime_label": "TREND_FOLLOW",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:TRENDING_BEAR(TREND_FOLLOW)\u00d71.15 | sess:NY_LATE\u00d70.90 | confluence\u00d71.05 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+0.82) | news:neutral(+0.004) | macro:BEARISH(-0.232) | combined:-0.037 \u2192 conf:0.035 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-12T20:32:01.093367+00:00",
     "created_at": "2026-06-12T20:02:02.904608+00:00",
     "id": 101
@@ -2034,7 +2034,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d70.76 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.13) | news:neutral(+0.004) | macro:BEARISH(-0.152) | combined:-0.022 \u2192 conf:0.019 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-12T20:32:04.835846+00:00",
     "created_at": "2026-06-12T20:02:06.651299+00:00",
     "id": 101
@@ -2056,7 +2056,7 @@
     "regime": "NORMAL",
     "regime_label": "NORMAL",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d70.70 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.18) | news:neutral(+0.004) | macro:BEARISH(-0.152) | combined:-0.022 \u2192 conf:0.017 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-12T20:32:08.533944+00:00",
     "created_at": "2026-06-12T20:02:10.276688+00:00",
     "id": 101
@@ -2078,7 +2078,7 @@
     "regime": "TRENDING_BEAR",
     "regime_label": "TREND_FOLLOW",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:TRENDING_BEAR(TREND_FOLLOW)\u00d71.15 | sess:NY_LATE\u00d70.90 | confluence\u00d70.98 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:neutral(-0.087) | macro:BEARISH(-0.232) | combined:-0.089 \u2192 conf:0.076 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-12T20:46:52.814206+00:00",
     "created_at": "2026-06-12T20:16:53.493906+00:00",
     "id": 101
