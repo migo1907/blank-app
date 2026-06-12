@@ -1,27 +1,5 @@
 [
   {
-    "symbol": "SPY",
-    "pool": "STOCKS_INDEX_30M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "news_score": 0.1199,
-    "macro_bias": -0.1521,
-    "macro_label": "BEARISH",
-    "combined_score": 0.0049,
-    "session": "PRE_MARKET",
-    "regime": "NORMAL",
-    "regime_label": "NORMAL",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | sess:PRE_MARKET\u00d70.90 | confluence\u00d71.15 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.45) | news:neutral(+0.120) | macro:BEARISH(-0.152) | combined:+0.005 \u2192 conf:0.005 \u26a1 WAR/CONFLICT",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-12T12:34:02.674309+00:00",
-    "created_at": "2026-06-12T12:04:03.184442+00:00",
-    "id": 101
-  },
-  {
     "symbol": "QQQ",
     "pool": "STOCKS_QQQ_30M",
     "direction": "NEUTRAL",
@@ -2189,6 +2167,28 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-12T20:16:55.915487+00:00",
     "created_at": "2026-06-12T19:46:57.453154+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "QQQ",
+    "pool": "STOCKS_QQQ_30M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "news_score": -0.0088,
+    "macro_bias": -0.1521,
+    "macro_label": "BEARISH",
+    "combined_score": -0.0248,
+    "session": "NYSE_AFTERNOON",
+    "regime": "TRENDING_BULL",
+    "regime_label": "PULLBACK_SHORT",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(PULLBACK_SHORT)\u00d70.80 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d70.83 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.21) | news:neutral(-0.009) | macro:BEARISH(-0.152) | combined:-0.025 \u2192 conf:0.019 \u26a1 CPI",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-12T20:16:59.327598+00:00",
+    "created_at": "2026-06-12T19:47:00.889416+00:00",
     "id": 101
   }
 ]
