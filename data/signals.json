@@ -1,27 +1,5 @@
 [
   {
-    "symbol": "QQQ",
-    "pool": "STOCKS_QQQ_30M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "news_score": -0.1223,
-    "macro_bias": -0.1521,
-    "macro_label": "BEARISH",
-    "combined_score": -0.051,
-    "session": "PRE_MARKET",
-    "regime": "TRENDING_BULL",
-    "regime_label": "PULLBACK_SHORT",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(PULLBACK_SHORT)\u00d70.80 | sess:PRE_MARKET\u00d70.90 | confluence\u00d70.76 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+0.60) | news:neutral(-0.122) | macro:BEARISH(-0.152) | combined:-0.051 \u2192 conf:0.028 \u26a1 CPI",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-12T12:13:23.038035+00:00",
-    "created_at": "2026-06-12T11:43:23.336156+00:00",
-    "id": 101
-  },
-  {
     "symbol": "XAUUSD",
     "pool": "XAUUSD_2M",
     "direction": "NEUTRAL",
@@ -2189,6 +2167,28 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-12T19:47:01.448381+00:00",
     "created_at": "2026-06-12T19:17:03.107543+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "XAUUSD",
+    "pool": "XAUUSD_2M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.375,
+    "rf_score": 0.3327,
+    "gbm_score": 0.303,
+    "news_score": 0.1133,
+    "macro_bias": -0.1566,
+    "macro_label": "BEARISH",
+    "combined_score": -0.0746,
+    "session": "NEW_YORK",
+    "regime": "TRENDING_BEAR",
+    "regime_label": "TREND_FOLLOW",
+    "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:TRENDING_BEAR(TREND_FOLLOW)\u00d71.15 | sess:NEW_YORK\u00d71.10 | confluence\u00d71.28 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.58) | news:neutral(+0.113) | macro:BEARISH(-0.157) | combined:-0.075 \u2192 conf:0.103 \u26a1 WAR/CONFLICT",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-12T20:02:00.171146+00:00",
+    "created_at": "2026-06-12T19:32:01.846129+00:00",
     "id": 101
   }
 ]
