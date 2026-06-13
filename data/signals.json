@@ -1,27 +1,5 @@
 [
   {
-    "symbol": "QQQ",
-    "pool": "STOCKS_QQQ_30M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "news_score": 0.1133,
-    "macro_bias": -0.1521,
-    "macro_label": "BEARISH",
-    "combined_score": 0.0033,
-    "session": "NYSE_AFTERNOON",
-    "regime": "TRENDING_BULL",
-    "regime_label": "TREND_FOLLOW",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(TREND_FOLLOW)\u00d71.15 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d71.33 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.21) | news:neutral(+0.113) | macro:BEARISH(-0.152) | combined:+0.003 \u2192 conf:0.006 \u26a1 WAR/CONFLICT",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-12T20:02:07.690112+00:00",
-    "created_at": "2026-06-12T19:32:09.306888+00:00",
-    "id": 101
-  },
-  {
     "symbol": "XAUUSD",
     "pool": "XAUUSD_2M",
     "direction": "NEUTRAL",
@@ -2107,6 +2085,26 @@
     "status": "NEUTRAL",
     "expires_at": "2026-06-13T04:01:59.524752+00:00",
     "created_at": "2026-06-13T03:31:59.524821+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "XAUUSD",
+    "pool": "XAUUSD_2M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "news_score": 0.1986,
+    "combined_score": 0.0,
+    "session": "ASIAN",
+    "regime": "TRENDING_BEAR",
+    "regime_label": "TRENDING_BEAR",
+    "reasoning": "Weekend \u2014 market closed",
+    "status": "NEUTRAL",
+    "expires_at": "2026-06-13T04:16:54.679005+00:00",
+    "created_at": "2026-06-13T03:46:54.679373+00:00",
     "id": 101
   }
 ]
