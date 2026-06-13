@@ -1,27 +1,5 @@
 [
   {
-    "symbol": "XAUUSD",
-    "pool": "XAUUSD_2M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.875,
-    "rf_score": 0.3146,
-    "gbm_score": 0.2918,
-    "news_score": 0.049,
-    "macro_bias": -0.2315,
-    "macro_label": "BEARISH",
-    "combined_score": 0.0235,
-    "session": "NY_LATE",
-    "regime": "TRENDING_BEAR",
-    "regime_label": "PULLBACK_LONG",
-    "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:TRENDING_BEAR(PULLBACK_LONG)\u00d70.95 | sess:NY_LATE\u00d70.90 | confluence\u00d71.10 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:neutral(+0.049) | macro:BEARISH(-0.232) | combined:+0.024 \u2192 conf:0.019 \u26a1 FOMC",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-12T21:01:54.302537+00:00",
-    "created_at": "2026-06-12T20:31:56.202369+00:00",
-    "id": 101
-  },
-  {
     "symbol": "SPY",
     "pool": "STOCKS_INDEX_30M",
     "direction": "NEUTRAL",
@@ -2081,6 +2059,26 @@
     "status": "NEUTRAL",
     "expires_at": "2026-06-13T05:16:55.256637+00:00",
     "created_at": "2026-06-13T04:46:55.256695+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "SPY",
+    "pool": "STOCKS_INDEX_30M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "news_score": 0.2624,
+    "combined_score": 0.0,
+    "session": "CLOSED",
+    "regime": "NORMAL",
+    "regime_label": "NORMAL",
+    "reasoning": "Weekend \u2014 market closed",
+    "status": "NEUTRAL",
+    "expires_at": "2026-06-13T05:16:56.981236+00:00",
+    "created_at": "2026-06-13T04:46:56.981285+00:00",
     "id": 101
   }
 ]
