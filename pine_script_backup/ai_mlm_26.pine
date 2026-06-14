@@ -511,6 +511,6 @@ if showDash and barstate.islast
     cellR(14, sessLabel,   colBg)
 
 // ── Trend lines on chart (toggleable) ────────────────────────────
-plot(showTrend ? kernelEst : na, "Kernel", color=color.new(color.purple, 40), linewidth=2)
-plot(showTrend ? maShort   : na, "EMA 50",  color=color.new(color.orange, 60), linewidth=1)
-plot(showTrend ? maLong    : na, "EMA 200", color=color.new(color.blue,   60), linewidth=1)
+plot(showTrend ? kernelEst : na, "Kernel", color=color.new(color.purple, 40), linewidth=2, display=display.none)
+plot(showTrend ? maShort   : na, "EMA 50",  color=color.new(color.orange, 60), linewidth=1, display=display.none)
+plot(showTrend ? maLong    : na, "EMA 200", color=color.new(color.blue,   60), linewidth=1, display=display.none)
