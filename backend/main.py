@@ -436,13 +436,23 @@ async def health():
     except Exception:
         regimes = {}
 
+    try:
+        from market_macro import get_macro_bias, get_equity_macro_bias
+        intermarket = {
+            "vix":       (get_equity_macro_bias() or {}).get("vix"),
+            "dxy_break": (get_macro_bias() or {}).get("dxy_break"),
+        }
+    except Exception:
+        intermarket = {}
+
     return {
-        "status":    "ok",
-        "version":   "5.2.0-26F",
-        "scheduler": "running" if scheduler_ok else "restarted",
-        "ml":        ml_health,
-        "directive": directive,
-        "regimes":   regimes,
+        "status":      "ok",
+        "version":     "5.2.0-26F",
+        "scheduler":   "running" if scheduler_ok else "restarted",
+        "ml":          ml_health,
+        "directive":   directive,
+        "regimes":     regimes,
+        "intermarket": intermarket,
     }
 
 

@@ -248,6 +248,79 @@ def _compute_equity_macro_bias(
     }
 
 
+# ── Phase 2E: VIX regime + DXY level break (intermarket) ──────────────────────
+
+def _vix_context() -> dict:
+    """
+    VIX level + term structure → a stock-signal size factor.
+    Spiking / backwardated vol = de-risk equity signals. yfinance, free.
+    size_factor ∈ [0.80, 1.0]: 1.0 = calm, <1 = shrink stock signal confidence.
+    """
+    out = {"vix": None, "vix3m": None, "ratio": None,
+           "regime": "UNKNOWN", "size_factor": 1.0, "backwardation": False}
+    try:
+        import yfinance as yf
+        vix   = yf.Ticker("^VIX").history(period="5d")
+        vix3m = yf.Ticker("^VIX3M").history(period="5d")
+        if not len(vix):
+            return out
+        v = float(vix["Close"].iloc[-1])
+        out["vix"] = round(v, 2)
+        v3 = float(vix3m["Close"].iloc[-1]) if len(vix3m) else None
+        if v3:
+            out["vix3m"] = round(v3, 2)
+            out["ratio"] = round(v / v3, 3)
+            out["backwardation"] = (v / v3) > 1.0
+        # Size factor: calm <18, normal 18-25, elevated 25-30, stress >30
+        if v >= 30:
+            sf, regime = 0.80, "STRESS"
+        elif v >= 25:
+            sf, regime = 0.90, "ELEVATED"
+        elif v >= 18:
+            sf, regime = 0.97, "NORMAL"
+        else:
+            sf, regime = 1.00, "CALM"
+        if out["backwardation"]:
+            sf *= 0.92  # term-structure inversion = extra caution
+        out["regime"] = regime
+        out["size_factor"] = round(sf, 3)
+    except Exception as e:
+        print(f"[macro] VIX context failed: {e}")
+    return out
+
+
+def _dxy_break() -> dict:
+    """
+    Detect a US-dollar-index break of its trailing 20-session range.
+    DXY break DOWN (USD weakness) ⇒ gold tailwind; break UP ⇒ gold headwind.
+    Returns {direction: 'UP'|'DOWN'|'NONE', strength ∈ [0,1]}.
+    """
+    out = {"direction": "NONE", "strength": 0.0, "level": None}
+    try:
+        import yfinance as yf
+        # 'DX-Y.NYB' is the ICE Dollar Index on yfinance; fall back to UUP ETF proxy.
+        df = yf.Ticker("DX-Y.NYB").history(period="40d")
+        if len(df) < 22:
+            df = yf.Ticker("UUP").history(period="40d")
+        if len(df) < 22:
+            return out
+        close = df["Close"].to_numpy(dtype=float)
+        last = float(close[-1])
+        prior = close[-21:-1]   # trailing 20 sessions, excluding today
+        hi, lo = float(prior.max()), float(prior.min())
+        rng = max(hi - lo, 1e-9)
+        out["level"] = round(last, 3)
+        if last > hi:
+            out["direction"] = "UP"
+            out["strength"] = round(min(1.0, (last - hi) / rng), 3)
+        elif last < lo:
+            out["direction"] = "DOWN"
+            out["strength"] = round(min(1.0, (lo - last) / rng), 3)
+    except Exception as e:
+        print(f"[macro] DXY break check failed: {e}")
+    return out
+
+
 def compute_macro_bias() -> dict:
     """
     Fetch all macro drivers and compute a single gold bias score in [-1, +1].
@@ -263,6 +336,10 @@ def compute_macro_bias() -> dict:
     cot = _cftc_gold_cot()
     gld = _gld_holdings()
 
+    # Phase 2E intermarket — VIX regime (stocks) + DXY break (gold)
+    vix = _vix_context()
+    dxy = _dxy_break()
+
     # Cache equity macro bias as a side-effect of this fetch
     global _cached_equity_macro
     _cached_equity_macro = _compute_equity_macro_bias(
@@ -270,6 +347,7 @@ def compute_macro_bias() -> dict:
         nominal_yield, nominal_yield_prev,
         dollar, dollar_prev,
     )
+    _cached_equity_macro["vix"] = vix
 
     components: dict[str, float] = {}
 
@@ -318,6 +396,7 @@ def compute_macro_bias() -> dict:
         "breakeven":  breakeven,
         "cot":        cot,
         "gld":        gld,
+        "dxy_break":  dxy,
         "updated_at": datetime.now(timezone.utc).isoformat(),
         "sources_live": {
             "fred": real_yield is not None,

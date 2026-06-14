@@ -628,6 +628,40 @@ def _hmm_regime_multiplier(pool: str, direction: str) -> tuple[float, str]:
     return round(mult, 3), f"hmm:{regime}({conf:.2f}){'⇄' if state.get('shifting') else ''}"
 
 
+# ── Phase 2E: intermarket modulator (VIX for stocks, DXY break for gold) ──────
+def _intermarket_multiplier(macro_bias: dict | None, direction: str,
+                            is_stock: bool) -> tuple[float, str]:
+    """
+    Bounded confidence modulator from intermarket context:
+      • Stocks — VIX regime size factor: spiking/backwardated vol shrinks
+        equity-signal confidence (de-risk into turbulence).
+      • Gold — DXY range break: a dollar breakdown boosts gold-LONG (and gold-SHORT
+        on a dollar breakout), with the opposite case dampened.
+    Returns 1.0 when the relevant data is absent — additive, never blocks.
+    """
+    if not isinstance(macro_bias, dict):
+        return 1.0, "imkt:na"
+
+    if is_stock:
+        vix = macro_bias.get("vix") or {}
+        sf = float(vix.get("size_factor", 1.0) or 1.0)
+        if sf == 1.0:
+            return 1.0, "imkt:na"
+        return round(sf, 3), f"imkt:VIX-{vix.get('regime','?')}({vix.get('vix','?')})"
+
+    # Gold — DXY break
+    dxy = macro_bias.get("dxy_break") or {}
+    d = dxy.get("direction", "NONE")
+    strength = float(dxy.get("strength", 0.0) or 0.0)
+    if d == "NONE" or strength <= 0:
+        return 1.0, "imkt:na"
+    # Dollar DOWN ⇒ gold tailwind (helps LONG); dollar UP ⇒ gold headwind (helps SHORT)
+    gold_dir_helped = "LONG" if d == "DOWN" else "SHORT"
+    delta = 0.08 * min(1.0, strength)
+    mult = (1.0 + delta) if direction == gold_dir_helped else (1.0 - delta)
+    return round(mult, 3), f"imkt:DXY-{d}({strength:.2f})"
+
+
 # ── Trigger quality scoring ───────────────────────────────────────────────────
 def _trigger_quality_multiplier(history: list[dict], trigger: str) -> float:
     if not history or not trigger:
@@ -889,6 +923,7 @@ def generate_signal(
     rapid_mult   = _rapid_fire_penalty(history, direction_raw, trigger, now)
     cluster_mult = _clustering_multiplier(history, direction_raw)
     hmm_mult, hmm_label = _hmm_regime_multiplier(pool, direction_raw)
+    imkt_mult, imkt_label = _intermarket_multiplier(macro_bias, direction_raw, is_stock)
 
     confidence = (
         abs(combined_score)
@@ -901,6 +936,7 @@ def generate_signal(
         * trigger_mult
         * rapid_mult
         * hmm_mult
+        * imkt_mult
     )
 
     confidence = min(1.0, confidence)  # multipliers can compound above 1.0 — clamp to valid range
@@ -920,6 +956,7 @@ def generate_signal(
         f"{model_votes} | agree×{agreement_mult:.2f} | "
         f"regime:{regime}({regime_label})×{regime_mult:.2f} | "
         f"{hmm_label}×{hmm_mult:.2f} | "
+        f"{imkt_label}×{imkt_mult:.2f} | "
         f"sess:{session_name}×{sess_mult:.2f} | "
         f"confluence×{confluence_mult:.2f} | "
         f"cluster×{cluster_mult:.2f} | "
@@ -951,6 +988,7 @@ def generate_signal(
         "regime":         regime,
         "regime_label":   regime_label,
         "hmm_regime":     hmm_label,
+        "intermarket":    imkt_label,
         "reasoning":      reasoning,
         "status":         "ACTIVE",
         "expires_at":     (now + timedelta(minutes=30)).isoformat(),
