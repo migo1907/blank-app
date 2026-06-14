@@ -38,7 +38,7 @@ FEATURE_NAMES = [
     "f23_rsiacc",  # RSI Acceleration
     "f24_fvgq",    # FVG Quality (post-sweep)
     "f25_tod",     # Time-of-Day sine
-    "f26_stoch",   # Stochastic %K normalised
+    "f26_stoch",   # Stochastic %K−%D momentum delta (independent of F6 Williams %R)
 ]
 
 N_FEATURES = 26
