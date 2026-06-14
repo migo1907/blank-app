@@ -687,6 +687,7 @@ async def _hourly_system_check() -> None:
         active_pools = [
             ("data/trade_history_XAUUSD_2M.json",            "XAUUSD_2M",            gold_active,     6),
             ("data/trade_history_XAUUSD_5M.json",            "XAUUSD_5M",            gold_active,    12),
+            ("data/trade_history_XAUUSD_15M.json",           "XAUUSD_15M",           gold_active,    24),
             ("data/trade_history_XAUUSD_30M.json",           "XAUUSD_30M",           gold_active,    48),
             ("data/trade_history_XAUUSD_1H.json",            "XAUUSD_1H",            gold_active,    168),
             ("data/trade_history_STOCKS_MOMENTUM_15M.json",  "STOCKS_MOMENTUM_15M",  stocks_active,    6),
@@ -699,6 +700,12 @@ async def _hourly_system_check() -> None:
             ("data/trade_history_STOCKS_QQQ_30M.json",       "STOCKS_QQQ_30M",       stocks_active,   48),
             ("data/trade_history_STOCKS_SPX500_15M.json",    "STOCKS_SPX500_15M",    stocks_active,   24),
             ("data/trade_history_STOCKS_SPX500_30M.json",    "STOCKS_SPX500_30M",    stocks_active,   24),
+            # 1H pools — alert after 48h of silence
+            ("data/trade_history_STOCKS_MOMENTUM_1H.json",   "STOCKS_MOMENTUM_1H",   stocks_active,   48),
+            ("data/trade_history_STOCKS_QUALITY_1H.json",    "STOCKS_QUALITY_1H",    stocks_active,   48),
+            ("data/trade_history_STOCKS_INDEX_1H.json",      "STOCKS_INDEX_1H",      stocks_active,   48),
+            ("data/trade_history_STOCKS_QQQ_1H.json",        "STOCKS_QQQ_1H",        stocks_active,   48),
+            ("data/trade_history_STOCKS_SPX500_1H.json",     "STOCKS_SPX500_1H",     stocks_active,   48),
             # 4H pools resolve trades over many hours — only alert after ~2 sessions of silence
             ("data/trade_history_STOCKS_MOMENTUM_4H.json",   "STOCKS_MOMENTUM_4H",   stocks_active,   72),
             ("data/trade_history_STOCKS_QUALITY_4H.json",    "STOCKS_QUALITY_4H",    stocks_active,   72),
@@ -773,12 +780,12 @@ async def _hourly_system_check() -> None:
 
     try:
         from db import _get_file, _put_file
-        for _dedup_pool in ["XAUUSD_2M", "XAUUSD_5M", "XAUUSD_30M", "XAUUSD_1H",
-                             "STOCKS_MOMENTUM_15M", "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_4H",
-                             "STOCKS_QUALITY_15M",  "STOCKS_QUALITY_30M",  "STOCKS_QUALITY_4H",
-                             "STOCKS_INDEX_15M",    "STOCKS_INDEX_30M",    "STOCKS_INDEX_4H",
-                             "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",      "STOCKS_QQQ_4H",
-                             "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",   "STOCKS_SPX500_4H"]:
+        for _dedup_pool in ["XAUUSD_2M", "XAUUSD_5M", "XAUUSD_15M", "XAUUSD_30M", "XAUUSD_1H",
+                             "STOCKS_MOMENTUM_15M", "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_1H", "STOCKS_MOMENTUM_4H",
+                             "STOCKS_QUALITY_15M",  "STOCKS_QUALITY_30M",  "STOCKS_QUALITY_1H",  "STOCKS_QUALITY_4H",
+                             "STOCKS_INDEX_15M",    "STOCKS_INDEX_30M",    "STOCKS_INDEX_1H",    "STOCKS_INDEX_4H",
+                             "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",      "STOCKS_QQQ_1H",      "STOCKS_QQQ_4H",
+                             "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",   "STOCKS_SPX500_1H",   "STOCKS_SPX500_4H"]:
             _path = f"data/trade_history_{_dedup_pool}.json"
             _hist, _sha = await asyncio.to_thread(_get_file, _path)
             if not isinstance(_hist, list) or len(_hist) == 0:
@@ -800,12 +807,12 @@ async def _hourly_system_check() -> None:
     try:
         from ml_ensemble import get_rf, get_gbm
         from db import recent_outcomes
-        retrain_pools = ["XAUUSD_2M", "XAUUSD_5M", "XAUUSD_30M", "XAUUSD_1H",
-                         "STOCKS_MOMENTUM_15M", "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_4H",
-                         "STOCKS_QUALITY_15M",  "STOCKS_QUALITY_30M",  "STOCKS_QUALITY_4H",
-                         "STOCKS_INDEX_15M",    "STOCKS_INDEX_30M",    "STOCKS_INDEX_4H",
-                         "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",      "STOCKS_QQQ_4H",
-                         "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",   "STOCKS_SPX500_4H"]
+        retrain_pools = ["XAUUSD_2M", "XAUUSD_5M", "XAUUSD_15M", "XAUUSD_30M", "XAUUSD_1H",
+                         "STOCKS_MOMENTUM_15M", "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_1H", "STOCKS_MOMENTUM_4H",
+                         "STOCKS_QUALITY_15M",  "STOCKS_QUALITY_30M",  "STOCKS_QUALITY_1H",  "STOCKS_QUALITY_4H",
+                         "STOCKS_INDEX_15M",    "STOCKS_INDEX_30M",    "STOCKS_INDEX_1H",    "STOCKS_INDEX_4H",
+                         "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",      "STOCKS_QQQ_1H",      "STOCKS_QQQ_4H",
+                         "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",   "STOCKS_SPX500_1H",   "STOCKS_SPX500_4H"]
         for _pool in retrain_pools:
             _trades = await asyncio.to_thread(recent_outcomes, _pool, 500)
             if len(_trades) >= 50:
@@ -817,12 +824,12 @@ async def _hourly_system_check() -> None:
 
     try:
         from db import resync_pool_counters
-        sync_pools = ["XAUUSD_2M", "XAUUSD_5M", "XAUUSD_30M", "XAUUSD_1H",
-                      "STOCKS_MOMENTUM_15M", "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_4H",
-                      "STOCKS_QUALITY_15M",  "STOCKS_QUALITY_30M",  "STOCKS_QUALITY_4H",
-                      "STOCKS_INDEX_15M",    "STOCKS_INDEX_30M",    "STOCKS_INDEX_4H",
-                      "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",      "STOCKS_QQQ_4H",
-                      "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",   "STOCKS_SPX500_4H"]
+        sync_pools = ["XAUUSD_2M", "XAUUSD_5M", "XAUUSD_15M", "XAUUSD_30M", "XAUUSD_1H",
+                      "STOCKS_MOMENTUM_15M", "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_1H", "STOCKS_MOMENTUM_4H",
+                      "STOCKS_QUALITY_15M",  "STOCKS_QUALITY_30M",  "STOCKS_QUALITY_1H",  "STOCKS_QUALITY_4H",
+                      "STOCKS_INDEX_15M",    "STOCKS_INDEX_30M",    "STOCKS_INDEX_1H",    "STOCKS_INDEX_4H",
+                      "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",      "STOCKS_QQQ_1H",      "STOCKS_QQQ_4H",
+                      "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",   "STOCKS_SPX500_1H",   "STOCKS_SPX500_4H"]
         for _pool in sync_pools:
             await asyncio.to_thread(resync_pool_counters, _pool)
     except Exception as e:

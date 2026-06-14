@@ -384,18 +384,18 @@ def get_gbm(pool: str = "XAUUSD") -> GradientBoostEnsemble:
 
 # Gold pool → timeframe ID mapping
 GOLD_TF_IDS: dict[str, int] = {
-    "XAUUSD_2M": 0, "XAUUSD_5M": 1, "XAUUSD_30M": 2, "XAUUSD_1H": 3,
+    "XAUUSD_2M": 0, "XAUUSD_5M": 1, "XAUUSD_15M": 2, "XAUUSD_30M": 3, "XAUUSD_1H": 4,
 }
 
 # Stock pool → (cluster_id, timeframe_id) mapping
 # cluster: 0=MOMENTUM 1=QUALITY 2=INDEX 3=QQQ 4=SPX500
-# tf:      0=15M 1=30M 2=4H
+# tf:      0=15M 1=30M 2=1H 3=4H
 STOCK_POOL_IDS: dict[str, tuple[int, int]] = {
-    "STOCKS_MOMENTUM_15M": (0, 0), "STOCKS_MOMENTUM_30M": (0, 1),
-    "STOCKS_QUALITY_15M":  (1, 0), "STOCKS_QUALITY_30M":  (1, 1), "STOCKS_QUALITY_4H":  (1, 2),
-    "STOCKS_INDEX_15M":    (2, 0), "STOCKS_INDEX_30M":    (2, 1), "STOCKS_INDEX_4H":    (2, 2),
-    "STOCKS_QQQ_15M":      (3, 0), "STOCKS_QQQ_30M":      (3, 1), "STOCKS_QQQ_4H":      (3, 2),
-    "STOCKS_SPX500_15M":   (4, 0), "STOCKS_SPX500_30M":   (4, 1), "STOCKS_SPX500_4H":   (4, 2),
+    "STOCKS_MOMENTUM_15M": (0, 0), "STOCKS_MOMENTUM_30M": (0, 1), "STOCKS_MOMENTUM_1H": (0, 2), "STOCKS_MOMENTUM_4H": (0, 3),
+    "STOCKS_QUALITY_15M":  (1, 0), "STOCKS_QUALITY_30M":  (1, 1), "STOCKS_QUALITY_1H":  (1, 2), "STOCKS_QUALITY_4H":  (1, 3),
+    "STOCKS_INDEX_15M":    (2, 0), "STOCKS_INDEX_30M":    (2, 1), "STOCKS_INDEX_1H":    (2, 2), "STOCKS_INDEX_4H":    (2, 3),
+    "STOCKS_QQQ_15M":      (3, 0), "STOCKS_QQQ_30M":      (3, 1), "STOCKS_QQQ_1H":      (3, 2), "STOCKS_QQQ_4H":      (3, 3),
+    "STOCKS_SPX500_15M":   (4, 0), "STOCKS_SPX500_30M":   (4, 1), "STOCKS_SPX500_1H":   (4, 2), "STOCKS_SPX500_4H":   (4, 3),
 }
 
 def _preload_libgomp() -> None:

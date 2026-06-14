@@ -188,11 +188,11 @@ async def send_stocks_session_report() -> bool:
 
     today = date.today().isoformat()
     stock_pools = [
-        "STOCKS_MOMENTUM_15M", "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_4H",
-        "STOCKS_QUALITY_15M",  "STOCKS_QUALITY_30M",  "STOCKS_QUALITY_4H",
-        "STOCKS_INDEX_15M",    "STOCKS_INDEX_30M",    "STOCKS_INDEX_4H",
-        "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",      "STOCKS_QQQ_4H",
-        "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",   "STOCKS_SPX500_4H",
+        "STOCKS_MOMENTUM_15M", "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_1H", "STOCKS_MOMENTUM_4H",
+        "STOCKS_QUALITY_15M",  "STOCKS_QUALITY_30M",  "STOCKS_QUALITY_1H",  "STOCKS_QUALITY_4H",
+        "STOCKS_INDEX_15M",    "STOCKS_INDEX_30M",    "STOCKS_INDEX_1H",    "STOCKS_INDEX_4H",
+        "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",      "STOCKS_QQQ_1H",      "STOCKS_QQQ_4H",
+        "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",   "STOCKS_SPX500_1H",   "STOCKS_SPX500_4H",
     ]
 
     trades_today = []
@@ -241,7 +241,7 @@ async def send_stocks_session_report() -> bool:
         emoji   = "✅" if outcome in ("WIN", "PARTIAL") else "❌"
         dir_e   = "🟢" if direct == "LONG" else "🔴"
         tf_raw  = str(t.get("timeframe", "?"))
-        tf_disp = {"60": "1H", "240": "4H", "1H": "1H", "4H": "4H", "1h": "1H", "4h": "4H"}.get(tf_raw, f"{tf_raw}m")
+        tf_disp = {"15": "15M", "30": "30M", "60": "1H", "240": "4H", "15M": "15M", "30M": "30M", "1H": "1H", "4H": "4H", "1h": "1H", "4h": "4H"}.get(tf_raw, f"{tf_raw}m")
         lines.append(f"{emoji} {dir_e} <b>{sym}</b>  {tf_disp}  Entry: {entry:.2f}  {tp_lbl}")
 
     now = datetime.now(timezone.utc).strftime("%d %b %Y")
