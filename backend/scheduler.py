@@ -684,8 +684,16 @@ async def _hourly_system_check() -> None:
         now_utc  = datetime.now(timezone.utc)
         dow      = now_utc.weekday()           # 0=Mon … 4=Fri
         hour_utc = now_utc.hour
-        gold_active   = (dow < 5)              # gold trades Mon-Fri; skip weekend silence alerts
-        stocks_active = (dow < 5 and 13 <= hour_utc < 21)  # stocks 09:30–17:00 ET ≈ 13:30–21:00 UTC
+        # Holiday-aware market status (market_calendar handles NYSE + forex holidays).
+        # Falls back to the weekday/hour heuristic if the calendar import fails.
+        try:
+            from market_calendar import is_nyse_open, is_forex_open
+            gold_active   = is_forex_open(now_utc)
+            stocks_active = is_nyse_open(now_utc)
+        except Exception as _mc_err:
+            print(f"[system_check] market_calendar unavailable ({_mc_err}) — using weekday heuristic")
+            gold_active   = (dow < 5)
+            stocks_active = (dow < 5 and 13 <= hour_utc < 21)
 
         # max_silent_hours is calibrated to each pool's REAL trade cadence (verified
         # against the live webhook log), not a flat value. Thin pools (INDEX/QQQ) and
