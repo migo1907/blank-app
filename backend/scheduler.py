@@ -1188,12 +1188,18 @@ async def _test_personal_alert() -> None:
 
 
 async def _macro_refresh_cycle() -> None:
-    """Refresh gold macro drivers (FRED real yields/dollar, CFTC COT, GLD flows) hourly."""
+    """Refresh gold macro drivers (FRED real yields/dollar, CFTC COT, GLD flows) hourly,
+    plus the probabilistic HMM regime state for XAUUSD/SPY/QQQ (Phase 2A)."""
     try:
         from market_macro import refresh_macro_bias
         await asyncio.to_thread(refresh_macro_bias)
     except Exception as e:
         print(f"[scheduler] macro refresh failed: {e}")
+    try:
+        from regime_model import refresh_regimes
+        await asyncio.to_thread(refresh_regimes)
+    except Exception as e:
+        print(f"[scheduler] regime refresh failed: {e}")
 
 
 async def _fj_session_refresh_cycle() -> None:

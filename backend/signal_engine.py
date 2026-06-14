@@ -590,6 +590,44 @@ def _regime_context(regime: str, direction: str, pool: str = "") -> tuple[float,
     return 1.00, "NORMAL"
 
 
+# ── Phase 2A: HMM macro-regime modulator ──────────────────────────────────────
+def _hmm_regime_multiplier(pool: str, direction: str) -> tuple[float, str]:
+    """
+    Bounded confidence modulator from the probabilistic HMM regime (regime_model).
+    Confirms signals aligned with the prevailing asset regime, dampens counter-
+    regime signals and signals fired while the regime is shifting. Always returns
+    1.0 if the regime cache is empty/unknown — purely additive, never blocks.
+    """
+    try:
+        from regime_model import get_regime_for_pool
+        state = get_regime_for_pool(pool)
+    except Exception:
+        return 1.0, "hmm:na"
+    regime = state.get("regime", "UNKNOWN")
+    if regime in ("UNKNOWN", ""):
+        return 1.0, "hmm:na"
+
+    conf = float(state.get("confidence", 0.0) or 0.0)
+    mult = 1.0
+    if regime == "TRENDING_BULL":
+        mult = 1.05 if direction == "LONG" else 0.92
+    elif regime == "TRENDING_BEAR":
+        mult = 1.05 if direction == "SHORT" else 0.92
+    elif regime == "VOLATILE":
+        mult = 0.95
+    # RANGING leaves trend-following neutral (range trades handled elsewhere)
+
+    # Scale the deviation from 1.0 by regime confidence — a 55%-confident regime
+    # moves the needle less than a 90%-confident one.
+    mult = 1.0 + (mult - 1.0) * max(0.0, min(1.0, conf))
+
+    # Extra caution while the regime is actively shifting (transition in progress)
+    if state.get("shifting"):
+        mult *= 0.95
+
+    return round(mult, 3), f"hmm:{regime}({conf:.2f}){'⇄' if state.get('shifting') else ''}"
+
+
 # ── Trigger quality scoring ───────────────────────────────────────────────────
 def _trigger_quality_multiplier(history: list[dict], trigger: str) -> float:
     if not history or not trigger:
@@ -850,6 +888,7 @@ def generate_signal(
     trigger_mult = _trigger_quality_multiplier(history, trigger)
     rapid_mult   = _rapid_fire_penalty(history, direction_raw, trigger, now)
     cluster_mult = _clustering_multiplier(history, direction_raw)
+    hmm_mult, hmm_label = _hmm_regime_multiplier(pool, direction_raw)
 
     confidence = (
         abs(combined_score)
@@ -861,6 +900,7 @@ def generate_signal(
         * cluster_mult
         * trigger_mult
         * rapid_mult
+        * hmm_mult
     )
 
     confidence = min(1.0, confidence)  # multipliers can compound above 1.0 — clamp to valid range
@@ -879,6 +919,7 @@ def generate_signal(
     reasoning = (
         f"{model_votes} | agree×{agreement_mult:.2f} | "
         f"regime:{regime}({regime_label})×{regime_mult:.2f} | "
+        f"{hmm_label}×{hmm_mult:.2f} | "
         f"sess:{session_name}×{sess_mult:.2f} | "
         f"confluence×{confluence_mult:.2f} | "
         f"cluster×{cluster_mult:.2f} | "
@@ -909,6 +950,7 @@ def generate_signal(
         "session":        session_name,
         "regime":         regime,
         "regime_label":   regime_label,
+        "hmm_regime":     hmm_label,
         "reasoning":      reasoning,
         "status":         "ACTIVE",
         "expires_at":     (now + timedelta(minutes=30)).isoformat(),

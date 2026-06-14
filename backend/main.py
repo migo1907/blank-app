@@ -135,6 +135,10 @@ async def lifespan(app: FastAPI):
     from market_macro import load_macro_bias
     load_macro_bias()
 
+    print("[startup] Loading HMM regime state from GitHub…")
+    from regime_model import load_regimes
+    load_regimes()
+
     if not WEBHOOK_SECRET:
         print("[startup] ⚠ WARNING: WEBHOOK_SECRET is not set — all webhook endpoints are open to unauthenticated requests.")
 
@@ -426,12 +430,19 @@ async def health():
     except Exception:
         directive = {}
 
+    try:
+        from regime_model import get_regime, REGIME_ASSETS
+        regimes = {a: get_regime(a) for a in REGIME_ASSETS}
+    except Exception:
+        regimes = {}
+
     return {
         "status":    "ok",
         "version":   "5.2.0-26F",
         "scheduler": "running" if scheduler_ok else "restarted",
         "ml":        ml_health,
         "directive": directive,
+        "regimes":   regimes,
     }
 
 
