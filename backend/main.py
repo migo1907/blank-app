@@ -1147,6 +1147,14 @@ async def swing_candidates(secret: str = ""):
     return get_candidates()
 
 
+@app.get("/swing/trades")
+async def swing_trades(secret: str = ""):
+    """Swing paper-trade training-readiness summary (open/closed/win-rate)."""
+    _validate_secret(secret)
+    from swing_tracker import stats
+    return stats()
+
+
 @app.get("/inspect")
 async def inspect_now(secret: str = ""):
     """Run the full system inspection on demand and return the structured report."""

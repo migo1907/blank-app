@@ -73,7 +73,8 @@ These are permanent agreements — never override, skip, or work around them und
 - **`swing_narrative.py`** — Claude Haiku thesis ("why"). **Dormant-by-default:** if `ANTHROPIC_API_KEY` unset → structured bullet summary (no LLM, no failure). Key is ALREADY on Railway (used by news_fetcher + daily_analysis) → prose synthesis active. Model `claude-haiku-4-5-20251001`. ~$0.10/night for 50 stocks.
 - **Telegram:** `send_swing_brief` → `SWING_CHAT_ID` (defaults to main `TELEGRAM_CHAT_ID` until a dedicated swing channel exists — then just set `SWING_CHAT_ID` in Railway, no code change).
 - **Schedule:** nightly `_swing_screen_cycle` at 16:30 ET Mon-Fri (after NYSE close), holiday-aware (skips closed days).
-- **Manual triggers:** `GET /swing/now?secret=gold2026` (rescan+send), `GET /swing/candidates?secret=...` (cached, no scan).
+- **`swing_tracker.py`** — paper-trade engine = the ML training-data source. Nightly opens top picks as paper trades (entry=close, TP=+2·ATR14, SL=-1·ATR14, 15-day max), captures the 13-feature vector at entry (`FEATURE_KEYS`). `_swing_manage_cycle` (16:45 ET) resolves opens against fresh daily bars → WIN/LOSS labels. Persisted to `data/swing_trades.json` ({open, closed}). `training_dataset()` → (X, y, meta); `ready` flips True at ≥50 closed trades, at which point the ensemble trains and `_technical_score` goes ML-scored. SL-before-TP on same-bar touch (pessimistic label).
+- **Manual triggers:** `GET /swing/now?secret=gold2026` (rescan+send), `GET /swing/candidates?secret=...` (cached), `GET /swing/trades?secret=...` (training-readiness: open/closed/win-rate/ready).
 
 ## News sources
 - **Replaced NewsAPI** (free tier returns HTTP 426 from cloud servers + 24h delay — unusable on Railway) with **Finnhub** news (forex+general, 60 req/min, cloud-friendly). NewsAPI kept as legacy fallback only if `FINNHUB_KEY` unset.

@@ -1609,11 +1609,34 @@ async def _swing_screen_cycle() -> None:
 
     try:
         from swing_screener import run_screen
+        from swing_tracker import open_paper_trades
         from telegram_bot import send_swing_brief
         screen = await asyncio.to_thread(run_screen, 5)
+        # Log top candidates as paper trades — this is what accumulates the ML
+        # training data (features → WIN/LOSS) the ensemble will later learn from.
+        await asyncio.to_thread(open_paper_trades, screen)
         await send_swing_brief(screen)
     except Exception as e:
         print(f"[swing] nightly screen cycle failed: {e}")
+
+
+async def _swing_manage_cycle() -> None:
+    """Resolve open swing paper trades against fresh daily bars (TP/SL/max-hold)."""
+    from datetime import datetime, timezone
+    now_utc = datetime.now(timezone.utc)
+    try:
+        from market_calendar import is_nyse_open
+        probe = now_utc.replace(hour=15, minute=0, second=0, microsecond=0)
+        if not is_nyse_open(probe):
+            return
+    except Exception:
+        if now_utc.weekday() >= 5:
+            return
+    try:
+        from swing_tracker import manage_paper_trades
+        await asyncio.to_thread(manage_paper_trades)
+    except Exception as e:
+        print(f"[swing] manage cycle failed: {e}")
 
 
 def start_scheduler() -> AsyncIOScheduler:
@@ -1651,6 +1674,9 @@ def start_scheduler() -> AsyncIOScheduler:
     # Mon-Fri, holiday-aware inside the cycle. Top-50 S&P 500 watchlist.
     _scheduler.add_job(_swing_screen_cycle, trigger="cron", day_of_week="mon-fri", hour=16, minute=30,
                        timezone=_ny_tz, id="swing_screen", replace_existing=True, misfire_grace_time=3600)
+    # Resolve open swing paper trades 15 min after the screen (uses today's close).
+    _scheduler.add_job(_swing_manage_cycle, trigger="cron", day_of_week="mon-fri", hour=16, minute=45,
+                       timezone=_ny_tz, id="swing_manage", replace_existing=True, misfire_grace_time=3600)
     # Weekly mistake autopsy — every Monday 09:00 UTC
     _scheduler.add_job(_weekly_mistake_autopsy, trigger="cron", day_of_week="mon", hour=9, minute=0, id="weekly_autopsy", replace_existing=True, misfire_grace_time=3600)
     # Weekly model comparison — every Sunday 20:00 UTC
