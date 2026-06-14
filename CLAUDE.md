@@ -22,6 +22,7 @@ These are permanent agreements — never override, skip, or work around them und
 1. **CI must be green before any push is reported as done.** After every `git push`, wait for the Backend CI run on that exact commit SHA to complete with `conclusion: success`. Do not tell the user the work is done until that green line is confirmed. If CI fails, fix it before reporting.
 2. **Never push to `main`.**
 3. **Credentials (tokens, passwords, secrets) stay in Railway env only — never committed to the repo.**
+4. **Self-awareness, learning from mistakes, continuous improvement — always.** Check the simplest, most obvious explanation FIRST (market closed? weekend? holiday? wrong time?) before reaching for a complex one. State assumptions out loud so they can be challenged. Do not propose or make fixes on incomplete context — verify the real cause first (e.g., validate on a live trading day, not weekend data). When a mistake is caught, own it specifically, extract the lesson, and apply it going forward. Hold yourself to the same standard the system is built on (mistake ledger + weekly autopsy).
 
 ---
 
