@@ -1155,6 +1155,25 @@ async def swing_trades(secret: str = ""):
     return stats()
 
 
+@app.get("/swing/one")
+async def swing_one(ticker: str = "", secret: str = ""):
+    """
+    On-demand single-stock swing read — full fundamental + technical + combined
+    score plus the synthesized thesis, for any ticker regardless of rank.
+    Example: /swing/one?ticker=META&secret=...
+    """
+    _validate_secret(secret)
+    tkr = (ticker or "").strip().upper()
+    if not tkr:
+        return {"error": "ticker query param required, e.g. ?ticker=META"}
+    from swing_screener import screen_one
+    from swing_narrative import synthesize, available
+    cand = await asyncio.to_thread(screen_one, tkr)
+    cand["thesis"] = await asyncio.to_thread(synthesize, cand)
+    cand["llm_active"] = available()
+    return cand
+
+
 @app.get("/inspect")
 async def inspect_now(secret: str = ""):
     """Run the full system inspection on demand and return the structured report."""

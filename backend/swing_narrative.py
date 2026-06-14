@@ -102,11 +102,15 @@ def synthesize(cand: dict) -> str:
         return _structured_summary(cand)
 
     prompt = (
-        f"You are a swing-trading analyst. Write a tight 2-3 sentence thesis for "
-        f"{ticker} (3-15 day hold) from these facts. State the bull case, the key "
-        f"catalyst, and the main risk. Refer to momentum/trend qualitatively — do "
-        f"NOT cite raw indicator values like RSI numbers. No preamble, no "
-        f"disclaimers, no bullet points — just the thesis.\n\nFacts:\n"
+        f"You are an institutional equity analyst. Write a sharp, professional "
+        f"swing thesis for {ticker} (3-15 day hold) — MAX 2 sentences, ~45 words. "
+        f"Lead with the bull case and cite the hard fundamental figures that back "
+        f"it (analyst PT upside %, growth %, earnings surprise %, valuation, "
+        f"insider/short data — use the actual numbers from the facts). Close with "
+        f"the single biggest risk. Refer to price momentum/trend qualitatively — "
+        f"do NOT cite technical indicator values (no RSI numbers). No preamble, no "
+        f"hedging, no disclaimers, no bullet points — just the thesis prose.\n\n"
+        f"Facts:\n"
         + "\n".join(f"- {x}" for x in facts)
     )
     try:
@@ -114,7 +118,7 @@ def synthesize(cand: dict) -> str:
         client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
         resp = client.messages.create(
             model=MODEL,
-            max_tokens=300,
+            max_tokens=180,
             messages=[{"role": "user", "content": prompt}],
         )
         text = next((b.text for b in resp.content if getattr(b, "type", "") == "text"), "")
