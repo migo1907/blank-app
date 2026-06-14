@@ -1156,11 +1156,12 @@ async def swing_trades(secret: str = ""):
 
 
 @app.get("/swing/one")
-async def swing_one(ticker: str = "", secret: str = ""):
+async def swing_one(ticker: str = "", secret: str = "", send: bool = False):
     """
     On-demand single-stock swing read — full fundamental + technical + combined
     score plus the synthesized thesis, for any ticker regardless of rank.
-    Example: /swing/one?ticker=META&secret=...
+    Pass send=true to also push the formatted brief to the swing Telegram channel.
+    Example: /swing/one?ticker=META&secret=...&send=true
     """
     _validate_secret(secret)
     tkr = (ticker or "").strip().upper()
@@ -1171,6 +1172,9 @@ async def swing_one(ticker: str = "", secret: str = ""):
     cand = await asyncio.to_thread(screen_one, tkr)
     cand["thesis"] = await asyncio.to_thread(synthesize, cand)
     cand["llm_active"] = available()
+    if send:
+        from telegram_bot import send_swing_brief
+        cand["telegram_sent"] = await send_swing_brief({"candidates": [cand], "scanned": 1})
     return cand
 
 
