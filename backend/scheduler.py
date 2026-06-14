@@ -18,6 +18,7 @@ _webhook_errors:  int = 0   # count of failed trade webhooks since last hourly c
 _webhook_ok:      int = 0   # count of successful trade webhooks since last hourly check
 _intel_active:    bool = False  # True while market is in an elevated-activity regime (alert already sent)
 _shock_sent:      dict = {}     # headline_hash → monotonic time; suppresses duplicate shock alerts for 4h
+_fj_expiry_alert_at: float = 0.0  # monotonic time of last FJ-session-expired alert; throttles to 1/12h
 
 _SEEN_HEADLINES_PATH = "data/seen_headlines.json"
 _SEEN_HEADLINES_MAX  = 500
@@ -193,11 +194,20 @@ async def _breaking_news_cycle() -> None:
         breaking, is_401 = await asyncio.to_thread(fetch_fj_breaking_direct)
 
         if is_401:
-            await send_critical_alert(
-                "FinancialJuice Session Expired",
-                "Breaking news alerts have stopped — FJ cookie is no longer valid.",
-                "Log in to financialjuice.com in your browser, then copy the new .ASPXAUTH cookie value to Railway → Variables → FJ_SESSION_COOKIE and redeploy.",
-            )
+            # Throttle: the breaking cycle runs every ~2 min, so alert at most once
+            # per 12h to flag the expiry without spamming the personal chat.
+            global _fj_expiry_alert_at
+            import time as _time
+            _now_mono = _time.monotonic()
+            if _now_mono - _fj_expiry_alert_at >= 12 * 3600:
+                _fj_expiry_alert_at = _now_mono
+                await send_critical_alert(
+                    "FinancialJuice Session Expired",
+                    "FJ breaking-banner login has stopped working (cookie expired or auto-login failing). "
+                    "Your RSS-based news + ML intelligence is unaffected — only the live breaking banner is down.",
+                    "Optional fix: log in to financialjuice.com in your browser, copy the new .ASPXAUTH cookie "
+                    "value into Railway → Variables → FJ_SESSION_COOKIE, and redeploy.",
+                )
             return
 
         alerts: list[str] = []
