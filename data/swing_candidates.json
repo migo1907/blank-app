@@ -1,0 +1,267 @@
+{
+  "candidates": [
+    {
+      "ticker": "LLY",
+      "combined_score": 0.754,
+      "fundamental": {
+        "ticker": "LLY",
+        "earnings": {
+          "next_days": 52,
+          "last_surprise_pct": 25.9,
+          "imminent": false
+        },
+        "analyst": {
+          "recommendation": "buy",
+          "target_upside_pct": 10.41,
+          "num_analysts": 29
+        },
+        "insider": {
+          "net_buy_signal": -1.0,
+          "buy_count": 0,
+          "sell_count": 2
+        },
+        "institutional": {
+          "inst_held_pct": 85.3
+        },
+        "growth": {
+          "revenue_growth_pct": 55.5,
+          "earnings_growth_pct": 169.9
+        },
+        "short": {
+          "short_pct_float": 1.1
+        },
+        "news": {
+          "news_7d": 168,
+          "headlines": [
+            "Middle-aged adults taking GLP-1s for obesity can save over $192K on lifetime medical costs, higher if they don\u2019t have co",
+            "Lilly's Jaypirca (pirtobrutinib) significantly reduced the risk of disease progression or death by 45% when added to a v",
+            "Eli Lilly: The Macro Health Crisis Is Still Undervalued",
+            "Is Eli Lilly (LLY) One Of The Most Profitable Blue Chip Stocks To Buy According To Hedge Funds?",
+            "Lilly to present initial clinical data for first-in-class type II JAK2 inhibitor in patients with previously treated mye"
+          ],
+          "sentiment": 0.0
+        },
+        "score": 0.553,
+        "updated_at": "2026-06-14T13:03:35.018548+00:00"
+      },
+      "technical": {
+        "score": 1.0,
+        "rsi": 62.4,
+        "trend": "BULL",
+        "rel_strength_pct": 6.7
+      },
+      "updated_at": "2026-06-14T13:03:38.464327+00:00"
+    },
+    {
+      "ticker": "AMD",
+      "combined_score": 0.653,
+      "fundamental": {
+        "ticker": "AMD",
+        "earnings": {
+          "next_days": 51,
+          "last_surprise_pct": 5.82,
+          "imminent": false
+        },
+        "analyst": {
+          "recommendation": "strong_buy",
+          "target_upside_pct": -4.22,
+          "num_analysts": 48
+        },
+        "insider": {
+          "net_buy_signal": -1.0,
+          "buy_count": 0,
+          "sell_count": 11
+        },
+        "institutional": {
+          "inst_held_pct": 72.2
+        },
+        "growth": {
+          "revenue_growth_pct": 37.8,
+          "earnings_growth_pct": 91.2
+        },
+        "short": {
+          "short_pct_float": 2.7
+        },
+        "news": {
+          "news_7d": 247,
+          "headlines": [
+            "Meta At 17x P/E: Investing Doesn't Get Any Easier",
+            "AMD Meta AI Chip Pact Puts Data Center Growth And Valuation In Focus",
+            "Citi resets AMD stock price target on key move",
+            "Is Advanced Micro Devices, Inc. (AMD) A Good Stock To Buy Now?",
+            "Micron Stock Has Become Volatile, But Key Metric Hints at Further Gains"
+          ],
+          "sentiment": 0.0
+        },
+        "score": 0.37,
+        "updated_at": "2026-06-14T13:04:34.634553+00:00"
+      },
+      "technical": {
+        "score": 1.0,
+        "rsi": 57.2,
+        "trend": "BULL",
+        "rel_strength_pct": 15.8
+      },
+      "updated_at": "2026-06-14T13:04:37.715149+00:00"
+    },
+    {
+      "ticker": "IBM",
+      "combined_score": 0.643,
+      "fundamental": {
+        "ticker": "IBM",
+        "earnings": {
+          "next_days": 38,
+          "last_surprise_pct": 5.45,
+          "imminent": false
+        },
+        "analyst": {
+          "recommendation": "buy",
+          "target_upside_pct": 6.52,
+          "num_analysts": 21
+        },
+        "insider": {
+          "net_buy_signal": 1.0,
+          "buy_count": 3,
+          "sell_count": 0
+        },
+        "institutional": {
+          "inst_held_pct": 65.6
+        },
+        "growth": {
+          "revenue_growth_pct": 9.5,
+          "earnings_growth_pct": 14.2
+        },
+        "short": {
+          "short_pct_float": 3.6
+        },
+        "news": {
+          "news_7d": 87,
+          "headlines": [
+            "Analyst Lifts IBM Price Target by $15. Here is Why",
+            "Congresswoman Who Bought No Stocks In 2025 Is Back With More 2026 Trades: Here's The Shopping List",
+            "ServiceNow IBM AI Alliance Targets Legacy Bottlenecks And Valuation Expectations",
+            "Should IBM\u2019s US$10 Billion Quantum and AI Expansion Require Action From International Business Machines (IBM) Investors?",
+            "Is the Turnaround at IBM Stock Finally Here to Stay?"
+          ],
+          "sentiment": 0.0
+        },
+        "score": 0.351,
+        "updated_at": "2026-06-14T13:05:37.215076+00:00"
+      },
+      "technical": {
+        "score": 1.0,
+        "rsi": 56.4,
+        "trend": "BULL",
+        "rel_strength_pct": 19.3
+      },
+      "updated_at": "2026-06-14T13:05:40.425166+00:00"
+    },
+    {
+      "ticker": "GE",
+      "combined_score": 0.583,
+      "fundamental": {
+        "ticker": "GE",
+        "earnings": {
+          "next_days": 32,
+          "last_surprise_pct": 16.31,
+          "imminent": false
+        },
+        "analyst": {
+          "recommendation": "strong_buy",
+          "target_upside_pct": 5.28,
+          "num_analysts": 21
+        },
+        "insider": {
+          "net_buy_signal": 0.0,
+          "buy_count": 0,
+          "sell_count": 0
+        },
+        "institutional": {
+          "inst_held_pct": 81.0
+        },
+        "growth": {
+          "revenue_growth_pct": 24.7,
+          "earnings_growth_pct": -1.8
+        },
+        "short": {
+          "short_pct_float": 1.3
+        },
+        "news": {
+          "news_7d": 43,
+          "headlines": [
+            "Wolfspeed Targets High Voltage Growth With Gen 5 SiC And GE Alliance",
+            "SpaceX has a 'historical analogy' in GE, market historian explains",
+            "Bayer Shares Hinge On Two Court Decisions After $60 Billion Rout",
+            "General Electric Links AI Leadership And Space Vehicle Work At GE Aerospace",
+            "SpaceX IPO Valuation Is Worth More Than Boeing, RTX, GE Aerospace And Every Other S&P 500 Aerospace Firm Combined: Repor"
+          ],
+          "sentiment": 0.0
+        },
+        "score": 0.401,
+        "updated_at": "2026-06-14T13:05:05.817472+00:00"
+      },
+      "technical": {
+        "score": 0.806,
+        "rsi": 68.5,
+        "trend": "BULL",
+        "rel_strength_pct": 16.3
+      },
+      "updated_at": "2026-06-14T13:05:09.307607+00:00"
+    },
+    {
+      "ticker": "CAT",
+      "combined_score": 0.498,
+      "fundamental": {
+        "ticker": "CAT",
+        "earnings": {
+          "next_days": 51,
+          "last_surprise_pct": 19.3,
+          "imminent": false
+        },
+        "analyst": {
+          "recommendation": "buy",
+          "target_upside_pct": 5.21,
+          "num_analysts": 26
+        },
+        "insider": {
+          "net_buy_signal": -0.8,
+          "buy_count": 1,
+          "sell_count": 9
+        },
+        "institutional": {
+          "inst_held_pct": 72.9
+        },
+        "growth": {
+          "revenue_growth_pct": 22.2,
+          "earnings_growth_pct": 30.2
+        },
+        "short": {
+          "short_pct_float": 2.0
+        },
+        "news": {
+          "news_7d": 59,
+          "headlines": [
+            "How Investors May Respond To Caterpillar (CAT) Dividend Hike And Lynn Good\u2019s Board Appointment",
+            "Stay informed with the top movers within the dow jones index on Friday.",
+            "Dividend Champion, Contender, And Challenger Highlights: Week Of June 14",
+            "Move Over, New York! Why Texas Is Becoming \u2018America\u2019s New Center of Gravity\u2019",
+            "Top dow jones movers in Friday's session"
+          ],
+          "sentiment": 0.0
+        },
+        "score": 0.445,
+        "updated_at": "2026-06-14T13:05:30.916539+00:00"
+      },
+      "technical": {
+        "score": 0.563,
+        "rsi": 54.9,
+        "trend": "BULL",
+        "rel_strength_pct": -0.3
+      },
+      "updated_at": "2026-06-14T13:05:34.122759+00:00"
+    }
+  ],
+  "scanned": 50,
+  "top_n": 5,
+  "updated_at": "2026-06-14T13:05:40.425192+00:00"
+}
