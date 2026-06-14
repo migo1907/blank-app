@@ -11,28 +11,23 @@ Sources (all free, no paid keys):
                 growth, short interest.
   • Finnhub   — company-specific news + sentiment (FINNHUB_KEY in Railway).
                 Graceful no-op if unset.
-  • Finviz    — supplemental valuation ratios (P/E, forward P/E, EPS growth,
-                debt/equity, dividend, analyst rating, insider/inst ownership
-                cross-check). Scraped from finviz.com with a real browser UA.
-                Augments / fills gaps in yfinance data.
-  • SEC EDGAR — insider filing activity via EDGAR full-text search API (no auth
-                required). Confirms yfinance insider signal with Form 4 counts.
-  • CNBC RSS  — company-specific headline count (past 7d) via RSS.
-  • MarketWatch RSS — same, as a second news-volume signal.
-  • Benzinga RSS — financial news RSS for additional headline count.
+  • SEC EDGAR — CIK-based Form 4 insider-filing count + 8-K text (no auth).
+  • CNBC / MarketWatch / Benzinga RSS — company headline counts (past 7d).
+
+Advanced valuation/quality ratios (P/E, forward P/E, PEG, ROE/ROA, P/B, FCF
+yield, Rule of 40, Piotroski F-Score, Altman Z) are computed directly from
+yfinance `info` + statements in _advanced() — no scraping needed.
 
 Every fetch is best-effort: a failed source contributes 0 to the score rather
 than blocking the others. A stock with no data at all returns a neutral dict.
 
-Note on SeekingAlpha / TradingView: both block cloud IPs aggressively or have
-no public REST API; not viable from Railway without a paid proxy/API key.
+Note on Finviz / SeekingAlpha / TradingView: all block cloud/datacenter IPs or
+have no free REST API; not viable from Railway. yfinance covers their fields.
 """
 
 from __future__ import annotations
 
 import os
-import re
-import time
 from datetime import datetime, timezone, timedelta
 from xml.etree import ElementTree
 
@@ -375,8 +370,10 @@ def _advanced(tkr, info: dict, archetype: str, st: dict) -> dict:
     """Compute the advanced composite scores appropriate for this archetype."""
     out = {"piotroski_f": None, "altman_z": None, "rule_of_40": None,
            "fcf_yield_pct": None, "peg": None, "roe_pct": None, "roa_pct": None,
-           "price_to_book": None}
+           "price_to_book": None, "pe_ratio": None, "forward_pe": None}
     try:
+        out["pe_ratio"] = round(float(info["trailingPE"]), 1) if info.get("trailingPE") is not None else None
+        out["forward_pe"] = round(float(info["forwardPE"]), 1) if info.get("forwardPE") is not None else None
         out["roe_pct"] = round(float(info["returnOnEquity"]) * 100, 1) if info.get("returnOnEquity") is not None else None
         out["roa_pct"] = round(float(info["returnOnAssets"]) * 100, 1) if info.get("returnOnAssets") is not None else None
         out["price_to_book"] = round(float(info["priceToBook"]), 2) if info.get("priceToBook") is not None else None
@@ -426,113 +423,6 @@ def _news_sentiment(ticker: str) -> dict:
             out["headlines"] = [a.get("headline", "")[:120] for a in data[:5] if a.get("headline")]
     except Exception as e:
         print(f"[fundamental] Finnhub news {ticker} failed: {e}")
-    return out
-
-
-# ── Finviz ────────────────────────────────────────────────────────────────────
-
-def _parse_finviz_pct(val: str) -> float | None:
-    """Parse a Finviz percentage string like '12.34%' → 12.34."""
-    if not val or val == "-":
-        return None
-    try:
-        return float(val.replace("%", "").replace(",", "").strip())
-    except Exception:
-        return None
-
-
-def _parse_finviz_num(val: str) -> float | None:
-    """Parse a Finviz numeric string (handles B/M suffixes)."""
-    if not val or val == "-":
-        return None
-    try:
-        v = val.replace(",", "").strip()
-        if v.endswith("B"):
-            return float(v[:-1]) * 1e9
-        if v.endswith("M"):
-            return float(v[:-1]) * 1e6
-        return float(v)
-    except Exception:
-        return None
-
-
-def _finviz(ticker: str) -> dict:
-    """
-    Scrape Finviz stock page for supplemental fundamentals.
-    Returns a best-effort dict; all fields None on failure.
-    """
-    out = {
-        "pe_ratio": None,
-        "forward_pe": None,
-        "eps_growth_next_year_pct": None,
-        "debt_equity": None,
-        "dividend_pct": None,
-        "insider_own_pct": None,
-        "inst_own_pct": None,
-        "short_float_pct": None,
-        "analyst_rating": None,
-        "price_target": None,
-        "52w_high_pct": None,
-        "52w_low_pct": None,
-        "perf_week_pct": None,
-        "perf_month_pct": None,
-        "perf_ytd_pct": None,
-    }
-    try:
-        url = f"https://finviz.com/quote.ashx?t={ticker}&p=d"
-        with httpx.Client(timeout=15, headers=_HEADERS, follow_redirects=True) as client:
-            r = client.get(url)
-            if r.status_code != 200:
-                return out
-            html = r.text
-
-        # Finviz stores data in a <table class="snapshot-table2"> or similar;
-        # parse key/value pairs from the HTML table cells.
-        rows = re.findall(r'<td[^>]*class="[^"]*snapshot-td2[^"]*"[^>]*>(.*?)</td>', html, re.DOTALL)
-        labels = re.findall(r'<td[^>]*class="[^"]*snapshot-td2-cp[^"]*"[^>]*>(.*?)</td>', html, re.DOTALL)
-
-        def _strip(s: str) -> str:
-            return re.sub(r"<[^>]+>", "", s).strip()
-
-        pairs: dict[str, str] = {}
-        for i, lab in enumerate(labels):
-            key = _strip(lab)
-            if i < len(rows):
-                pairs[key] = _strip(rows[i])
-
-        # Alternative: zip adjacent cells (label, value) from snapshot table
-        if not pairs:
-            cells = re.findall(r'<td[^>]*>(.*?)</td>', html, re.DOTALL)
-            stripped = [_strip(c) for c in cells]
-            for i in range(0, len(stripped) - 1, 2):
-                if stripped[i] and stripped[i + 1]:
-                    pairs[stripped[i]] = stripped[i + 1]
-
-        _map = {
-            "P/E":            ("pe_ratio",                _parse_finviz_num),
-            "Forward P/E":    ("forward_pe",              _parse_finviz_num),
-            "EPS next Y":     ("eps_growth_next_year_pct",_parse_finviz_pct),
-            "Debt/Eq":        ("debt_equity",             _parse_finviz_num),
-            "Dividend %":     ("dividend_pct",            _parse_finviz_pct),
-            "Insider Own":    ("insider_own_pct",         _parse_finviz_pct),
-            "Inst Own":       ("inst_own_pct",            _parse_finviz_pct),
-            "Short Float":    ("short_float_pct",         _parse_finviz_pct),
-            "Recom":          ("analyst_rating",          lambda v: v),
-            "Target Price":   ("price_target",            _parse_finviz_num),
-            "52W High":       ("52w_high_pct",            _parse_finviz_pct),
-            "52W Low":        ("52w_low_pct",             _parse_finviz_pct),
-            "Perf Week":      ("perf_week_pct",           _parse_finviz_pct),
-            "Perf Month":     ("perf_month_pct",          _parse_finviz_pct),
-            "Perf YTD":       ("perf_ytd_pct",            _parse_finviz_pct),
-        }
-        for label, (field, fn) in _map.items():
-            if label in pairs:
-                val = fn(pairs[label])
-                if val is not None:
-                    out[field] = val
-
-    except Exception as e:
-        print(f"[fundamental] Finviz {ticker} failed: {e}")
     return out
 
 
@@ -739,7 +629,6 @@ def fetch_fundamentals(ticker: str) -> dict:
                      "roa_pct": None, "price_to_book": None},
         "earnings_call": {"reported": False, "score_delta": 0.0},
         "news": {"news_7d": 0, "headlines": [], "sentiment": 0.0},
-        "finviz": {},
         "edgar_insider": {"form4_count": 0},
         "rss_news": {"rss_news_7d": 0},
         "score": 0.0,
@@ -778,11 +667,6 @@ def fetch_fundamentals(ticker: str) -> dict:
 
     # Supplemental sources — best-effort, non-blocking
     try:
-        f["finviz"] = _finviz(ticker)
-    except Exception as e:
-        print(f"[fundamental] finviz {ticker} error: {e}")
-
-    try:
         f["edgar_insider"] = _edgar_insider(ticker, cik=cik)
     except Exception as e:
         print(f"[fundamental] edgar {ticker} error: {e}")
@@ -791,27 +675,6 @@ def fetch_fundamentals(ticker: str) -> dict:
         f["rss_news"] = _multi_rss_news(ticker)
     except Exception as e:
         print(f"[fundamental] rss news {ticker} error: {e}")
-
-    # Merge Finviz short float if yfinance missed it
-    fv = f.get("finviz", {})
-    if f["short"]["short_pct_float"] is None and fv.get("short_float_pct") is not None:
-        f["short"]["short_pct_float"] = fv["short_float_pct"]
-
-    # Merge Finviz institutional ownership
-    if f["institutional"]["inst_held_pct"] is None and fv.get("inst_own_pct") is not None:
-        f["institutional"]["inst_held_pct"] = fv["inst_own_pct"]
-
-    # Merge Finviz price target → compute upside if yfinance missed it
-    if f["analyst"]["target_upside_pct"] is None and fv.get("price_target"):
-        try:
-            info = f.get("_info", {})
-            price = info.get("currentPrice") or info.get("regularMarketPrice")
-            if price:
-                f["analyst"]["target_upside_pct"] = round(
-                    (fv["price_target"] / float(price) - 1) * 100, 2
-                )
-        except Exception:
-            pass
 
     f["score"] = _score(f)
     f.pop("_info", None)   # drop the bulky yfinance info blob before persisting

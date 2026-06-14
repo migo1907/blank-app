@@ -63,18 +63,11 @@ def _facts(cand: dict) -> list[str]:
         lines.append(f"High short interest {sh['short_pct_float']:.1f}% of float (squeeze potential)")
     if nw.get("news_7d"):
         lines.append(f"{nw['news_7d']} news items in last 7d (Finnhub)")
-    # Finviz supplemental
-    fv = cand.get("fundamental", {}).get("finviz", {})
-    if fv.get("forward_pe") is not None:
-        lines.append(f"Forward P/E {fv['forward_pe']:.1f}")
-    if fv.get("eps_growth_next_year_pct") is not None:
-        lines.append(f"EPS growth next year {fv['eps_growth_next_year_pct']:+.1f}%")
-    if fv.get("debt_equity") is not None:
-        lines.append(f"Debt/Equity {fv['debt_equity']:.2f}")
-    if fv.get("perf_week_pct") is not None:
-        lines.append(f"1-week performance {fv['perf_week_pct']:+.1f}%")
-    if fv.get("perf_month_pct") is not None:
-        lines.append(f"1-month performance {fv['perf_month_pct']:+.1f}%")
+    # Valuation
+    if adv.get("pe_ratio") is not None:
+        lines.append(f"Trailing P/E {adv['pe_ratio']:.1f}")
+    if adv.get("forward_pe") is not None:
+        lines.append(f"Forward P/E {adv['forward_pe']:.1f}")
     # Advanced composite fundamental scores
     if adv.get("roe_pct") is not None:
         lines.append(f"Return on equity {adv['roe_pct']:+.1f}%")
