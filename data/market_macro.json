@@ -27,7 +27,12 @@
     "tonnes_change": 0.22,
     "source": "yfinance_proxy"
   },
-  "updated_at": "2026-06-14T10:25:51.089856+00:00",
+  "dxy_break": {
+    "direction": "NONE",
+    "strength": 0.0,
+    "level": 99.75
+  },
+  "updated_at": "2026-06-14T10:29:07.574958+00:00",
   "sources_live": {
     "fred": true,
     "cot": true,
