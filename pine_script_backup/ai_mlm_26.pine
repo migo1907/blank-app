@@ -18,48 +18,48 @@ bool  isTF4H = tfMins >= 240
 bool  isTF1H = tfMins >= 60 and not isTF4H
 
 // ═══════════════════════════════════════════════════════════════════
-// INPUTS
+// INPUTS — cosmetic/display only (internals are fixed)
 // ═══════════════════════════════════════════════════════════════════
-bool  autoTF      = input.bool(true,  "⚡ Auto-Adjust for Timeframe",    group="⚙️ Settings")
-int   mlK         = input.int(8,      "K Neighbors",                     group="⚙️ Settings", minval=3, maxval=20)
-int   mlDepth_inp = input.int(300,    "History Depth",                   group="⚙️ Settings", minval=100, maxval=500)
-int   mlLag       = input.int(4,      "Forward Lag",                     group="⚙️ Settings", minval=1, maxval=20)
-float mlMinScore  = input.float(0.55, "Min Score (signal threshold)",    group="⚙️ Settings", minval=0.50, maxval=0.90, step=0.05)
-float learnRate   = input.float(0.05, "Adaptive Learn Rate",             group="⚙️ Settings", minval=0.01, maxval=0.30, step=0.01)
-float winReward   = input.float(0.15, "Win Weight Reward",               group="⚙️ Settings", minval=0.05, maxval=0.50, step=0.05)
-float lossPenalty = input.float(0.20, "Loss Weight Penalty",             group="⚙️ Settings", minval=0.05, maxval=0.50, step=0.05)
-float tp1_inp     = input.float(1.5,  "TP1 ATR Multiplier",              group="⚙️ Settings")
-float tp2_inp     = input.float(2.5,  "TP2 ATR Multiplier",              group="⚙️ Settings")
-float tp3_inp     = input.float(4.0,  "TP3 ATR Multiplier",              group="⚙️ Settings")
-float sl_inp      = input.float(1.5,  "SL ATR Multiplier",               group="⚙️ Settings")
-bool  showLines   = input.bool(true,  "Show TP/SL lines on last signal", group="🎨 Display")
-bool  showLabels  = input.bool(true,  "Show BUY/SELL signal labels",     group="🎨 Display")
-bool  showDash    = input.bool(true,  "Show Dashboard Table",            group="🎨 Display")
-bool  useSMC      = input.bool(true,  "Enable SMC Features (F9-F14)",    group="🧠 Features")
-bool  useSession  = input.bool(true,  "Enable Session KZ (F15)",         group="🧠 Features")
-bool  useMTF      = input.bool(true,  "Enable MTF Alignment (F16)",      group="🧠 Features")
-bool  useDXY      = input.bool(true,  "Enable DXY Inverse (F17)",        group="🧠 Features")
-bool  useVolDelta = input.bool(true,  "Enable Volume Delta (F18)",        group="🧠 Features")
-bool  useRSIDiv   = input.bool(true,  "Enable RSI Divergence (F19)",      group="🧠 Features")
-bool  useFib      = input.bool(true,  "Enable Fibonacci Zone (F20)",      group="🧠 Features")
-bool  useVWAP     = input.bool(true,  "Enable VWAP Distance (F21)",       group="🧠 Features")
-bool  useNewFeats = input.bool(true,  "Enable F22-F26",                   group="🧠 Features")
-bool  useKernel   = input.bool(true,  "Kernel Regression Filter",         group="🧠 Features")
-int   kWin_inp    = input.int(8,      "Kernel Window",                    group="🧠 Features", minval=3, maxval=50)
-float kH          = input.float(8.0,  "Kernel Bandwidth h",               group="🧠 Features", minval=1.0, maxval=50.0)
-float kAlpha      = input.float(1.0,  "Kernel Alpha",                     group="🧠 Features", minval=0.1, maxval=5.0)
-int   adxLen      = input.int(14,     "ADX Length",                       group="🔎 Filters")
-float adxThr      = input.float(20.0, "ADX Sideways Threshold",           group="🔎 Filters")
-float atrRR       = input.float(0.75, "ATR Range Ratio",                  group="🔎 Filters")
-float emaBandPct  = input.float(0.3,  "EMA Band %",                       group="🔎 Filters")
+bool  showLabels  = input.bool(true,  "Show signals on chart",           group="🎨 Display")
+bool  showLines   = input.bool(true,  "Show TP/SL lines (latest signal)",group="🎨 Display")
+bool  showDash    = input.bool(true,  "Show dashboard",                  group="🎨 Display")
+string dashPos    = input.string("Bottom Left", "Dashboard position",    group="🎨 Display",
+                    options=["Bottom Left", "Bottom Right", "Top Left", "Top Right"])
+bool  showTrend   = input.bool(true,  "Show trend lines (EMA/Kernel)",   group="🎨 Display")
 
-// ── Auto-TF overrides ─────────────────────────────────────────────
-int   mlDepth    = autoTF ? (isTF2 ? 150 : isTF5 ? 250 : isTF15 ? 350 : isTF30 ? 400 : 500) : mlDepth_inp
-int   kWin       = autoTF ? (isTF2 ? 5   : isTF5 ? 8   : isTF15 ? 12  : isTF30 ? 14  : isTF1H ? 16 : 20) : kWin_inp
-float atrMultTP1 = autoTF ? (isTF2 ? 1.0 : isTF5 ? 1.5 : isTF15 ? 2.0 : isTF30 ? 2.2 : isTF1H ? 2.5 : 3.0) : tp1_inp
-float atrMultTP2 = autoTF ? (isTF2 ? 1.8 : isTF5 ? 2.5 : isTF15 ? 3.5 : isTF30 ? 3.8 : isTF1H ? 4.5 : 5.5) : tp2_inp
-float atrMultTP3 = autoTF ? (isTF2 ? 3.0 : isTF5 ? 4.0 : isTF15 ? 5.5 : isTF30 ? 6.0 : isTF1H ? 7.0 : 9.0) : tp3_inp
-float atrMultSL  = autoTF ? (isTF2 ? 0.8 : isTF5 ? 1.5 : isTF15 ? 2.0 : isTF30 ? 2.2 : isTF1H ? 2.5 : 3.0) : sl_inp
+// ── All internals fixed (not exposed) ────────────────────────────
+bool  autoTF      = true
+int   mlK         = 8
+int   mlDepth_inp = 300
+int   mlLag       = 4
+float mlMinScore  = 0.55
+float learnRate   = 0.05
+float winReward   = 0.15
+float lossPenalty = 0.20
+bool  useSMC      = true
+bool  useSession  = true
+bool  useMTF      = true
+bool  useDXY      = true
+bool  useVolDelta = true
+bool  useRSIDiv   = true
+bool  useFib      = true
+bool  useVWAP     = true
+bool  useNewFeats = true
+bool  useKernel   = true
+int   adxLen      = 14
+float adxThr      = 20.0
+float atrRR       = 0.75
+float emaBandPct  = 0.3
+
+// ── Auto-TF overrides (always on) ────────────────────────────────
+int   mlDepth    = isTF2 ? 150 : isTF5 ? 250 : isTF15 ? 350 : isTF30 ? 400 : 500
+int   kWin       = isTF2 ? 5   : isTF5 ? 8   : isTF15 ? 12  : isTF30 ? 14  : isTF1H ? 16 : 20
+float kH         = 8.0
+float kAlpha     = 1.0
+float atrMultTP1 = isTF2 ? 1.0 : isTF5 ? 1.5 : isTF15 ? 2.0 : isTF30 ? 2.2 : isTF1H ? 2.5 : 3.0
+float atrMultTP2 = isTF2 ? 1.8 : isTF5 ? 2.5 : isTF15 ? 3.5 : isTF30 ? 3.8 : isTF1H ? 4.5 : 5.5
+float atrMultTP3 = isTF2 ? 3.0 : isTF5 ? 4.0 : isTF15 ? 5.5 : isTF30 ? 6.0 : isTF1H ? 7.0 : 9.0
+float atrMultSL  = isTF2 ? 0.8 : isTF5 ? 1.5 : isTF15 ? 2.0 : isTF30 ? 2.2 : isTF1H ? 2.5 : 3.0
 
 // ═══════════════════════════════════════════════════════════════════
 // BASE INDICATORS
@@ -355,7 +355,7 @@ if showLabels
                          "TP2:   " + str.tostring(tp2L, format.mintick) + "  +" + pctStr(entryP, tp2L) + "\n" +
                          "TP3:   " + str.tostring(tp3L, format.mintick) + "  +" + pctStr(entryP, tp3L) + "\n" +
                          "SL:    " + str.tostring(slL,  format.mintick) + "  -" + pctStr(entryP, slL)  + "\n" +
-                         "ML ▲ " + bullPct
+                         "MLM ▲ " + bullPct
         label.new(bar_index, low - atr * 0.4, lblTxt,
                   color=color.new(color.teal, 10), textcolor=color.white,
                   style=label.style_label_up, size=size.small)
@@ -368,7 +368,7 @@ if showLabels
                          "TP2:   " + str.tostring(tp2L, format.mintick) + "  +" + pctStr(entryP, tp2L) + "\n" +
                          "TP3:   " + str.tostring(tp3L, format.mintick) + "  +" + pctStr(entryP, tp3L) + "\n" +
                          "SL:    " + str.tostring(slL,  format.mintick) + "  +" + pctStr(entryP, slL)  + "\n" +
-                         "ML ▼ " + bearPct
+                         "MLM ▼ " + bearPct
         label.new(bar_index, high + atr * 0.4, lblTxt,
                   color=color.new(color.red, 10), textcolor=color.white,
                   style=label.style_label_down, size=size.small)
@@ -401,46 +401,8 @@ if showLines and (sigLong or sigShort)
                           color=color.new(color.red, 20), width=1)
 
 // ═══════════════════════════════════════════════════════════════════
-// TOP FEATURES BY WEIGHT (for dashboard)
+// SIGNAL TIER
 // ═══════════════════════════════════════════════════════════════════
-string[] fNames = array.from(
-    "F1·RSI", "F2·ADX", "F3·ATR", "F4·BB%", "F5·MACD",
-    "F6·WillR","F7·CMO","F8·EMA","F9·FVG","F10·Impl",
-    "F11·BOS","F12·Liq","F13·Mid","F14·ChoCh","F15·Sess",
-    "F16·MTF","F17·DXY","F18·VolΔ","F19·RSIDiv","F20·Fib",
-    "F21·VWAP","F22·Body","F23·RSIAcc","F24·FVGQual","F25·TOD",
-    "F26·StochΔ")
-
-// Find top 5 weights
-topFeats() =>
-    string result = ""
-    float[] wCopy = array.copy(weights)
-    for _t = 0 to 4
-        float maxW  = -1.0
-        int   maxI  = 0
-        for i = 0 to 25
-            if array.get(wCopy, i) > maxW
-                maxW := array.get(wCopy, i)
-                maxI := i
-        array.set(wCopy, maxI, -999.0)
-        float fval = array.get(curFeats, maxI)
-        string dir = fval > 0.1 ? " ▲" : fval < -0.1 ? " ▼" : " –"
-        result := result + array.get(fNames, maxI) + str.tostring(array.get(weights, maxI), "#.##") + dir + "\n"
-    result
-
-// ═══════════════════════════════════════════════════════════════════
-// COMPOSITE SCORE (weighted feature dot product)
-// ═══════════════════════════════════════════════════════════════════
-float compScore = 0.0
-float wSum      = 0.0
-for i = 0 to 25
-    float w = array.get(weights, i)
-    float f = array.get(curFeats, i)
-    compScore += w * f
-    wSum      += w
-float normScore = wSum > 0 ? compScore / wSum : 0.0
-
-// Signal tier based on ML score
 signalTier(bullScore, bearScore) =>
     float top = math.max(bullScore, bearScore)
     top >= 0.75 ? "⭐⭐⭐ STRONG" :
@@ -455,9 +417,14 @@ string sessLabel = (utcHour >= 13 and utcHour < 17) ? "NY+Lon Overlap" :
                    (utcHour >= 17 and utcHour < 22) ? "NY Late" : "Asian"
 
 // ═══════════════════════════════════════════════════════════════════
-// DASHBOARD TABLE (bottom-left)
+// DASHBOARD TABLE
 // ═══════════════════════════════════════════════════════════════════
-var table dash = table.new(position.bottom_left, 2, 18,
+dashPosition() =>
+    dashPos == "Bottom Right" ? position.bottom_right :
+     dashPos == "Top Left"    ? position.top_left :
+     dashPos == "Top Right"   ? position.top_right : position.bottom_left
+
+var table dash = table.new(dashPosition(), 2, 15,
                            bgcolor=color.new(color.black, 15),
                            border_color=color.new(color.gray, 60),
                            border_width=1, frame_color=color.new(color.gray, 40), frame_width=1)
@@ -488,6 +455,22 @@ color wrColor     = winRate >= 55 ? colBull : winRate >= 45 ? colNeu : colBear
 string sigDir = sigLong ? "▲ LONG" : sigShort ? "▼ SHORT" : "– FLAT"
 color  sigClr = sigLong ? colBull  : sigShort  ? colBear  : colNeu
 
+// TP/SL for dashboard (last signal levels — persistent)
+var float dashEntry = na
+var float dashTP1   = na
+var float dashTP2   = na
+var float dashTP3   = na
+var float dashSL    = na
+var bool  dashIsLong = true
+
+if sigLong or sigShort
+    dashEntry  := close
+    dashIsLong := sigLong
+    dashTP1    := sigLong ? close + atr * atrMultTP1 : close - atr * atrMultTP1
+    dashTP2    := sigLong ? close + atr * atrMultTP2 : close - atr * atrMultTP2
+    dashTP3    := sigLong ? close + atr * atrMultTP3 : close - atr * atrMultTP3
+    dashSL     := sigLong ? close - atr * atrMultSL  : close + atr * atrMultSL
+
 // Regime
 color regClr  = isSideways ? colWarn : (mainTrend == "UPTREND" ? colBull : mainTrend == "DOWNTREND" ? colBear : colNeu)
 
@@ -495,53 +478,39 @@ if showDash and barstate.islast
     // Header
     hdr(0, "  AI MLM 26  ·  " + syminfo.ticker + " " + timeframe.period + "m")
 
-    // ML Quality
-    hdr(1, "── ML Quality ──")
-    cellL(2, "BULL Score",   colBg)
-    cellR(2, str.tostring(math.round(mlBull * 100)) + "%",
-          mlBull >= mlMinScore ? colBull : colNeu)
-    cellL(3, "BEAR Score",   colBg)
-    cellR(3, str.tostring(math.round(mlBear * 100)) + "%",
-          mlBear >= mlMinScore ? colBear : colNeu)
-    cellL(4, "Tier",         colBg)
-    cellR(4, signalTier(mlBull, mlBear), colBg)
+    // MLM Quality (score hidden, only tier shown)
+    hdr(1, "── MLM Quality ──")
+    cellL(2, "Signal",        colBg)
+    cellR(2, sigDir,          sigClr)
+    cellL(3, "Tier",          colBg)
+    cellR(3, signalTier(mlBull, mlBear), colBg)
 
-    // Signal
-    hdr(5, "── Signal ──")
-    cellL(6, "Direction",    colBg)
-    cellR(6, sigDir,         sigClr)
-    cellL(7, "Entry",        colBg)
-    cellR(7, str.tostring(close, format.mintick), colBg)
-    cellL(8, "Composite F",  colBg)
-    cellR(8, str.tostring(normScore, "#.##"),
-          normScore > 0.1 ? colBull : normScore < -0.1 ? colBear : colNeu)
-    cellL(9, "Kernel",       colBg)
-    cellR(9, kernelUp ? "▲ UP" : kernelDown ? "▼ DOWN" : "– FLAT",
-          kernelUp ? colBull : kernelDown ? colBear : colNeu)
+    // Signal levels
+    hdr(4, "── Levels ──")
+    cellL(5, "Entry",  colBg)
+    cellR(5, na(dashEntry) ? "–" : str.tostring(dashEntry, format.mintick), colBg)
+    cellL(6, "TP 1",   colBg)
+    cellR(6, na(dashTP1) ? "–" : str.tostring(dashTP1, format.mintick) + "  +" + pctStr(dashEntry, dashTP1), colBull)
+    cellL(7, "TP 2",   colBg)
+    cellR(7, na(dashTP2) ? "–" : str.tostring(dashTP2, format.mintick) + "  +" + pctStr(dashEntry, dashTP2), color.new(color.green, 20))
+    cellL(8, "TP 3",   colBg)
+    cellR(8, na(dashTP3) ? "–" : str.tostring(dashTP3, format.mintick) + "  +" + pctStr(dashEntry, dashTP3), color.new(color.lime, 30))
+    cellL(9, "Stop",   colBg)
+    cellR(9, na(dashSL) ? "–" : str.tostring(dashSL, format.mintick)  + "  -" + pctStr(dashEntry, dashSL),  colBear)
 
     // Performance
     hdr(10, "── Performance ──")
-    cellL(11, "Win Rate",    colBg)
-    cellR(11, totalTrades > 0 ? str.tostring(winRate, "#.#") + "% (" + str.tostring(totalTrades) + " trades)" : "– (no data yet)", wrColor)
-    cellL(12, "W / L",       colBg)
-    cellR(12, str.tostring(totalWins) + " / " + str.tostring(totalLosses), colBg)
+    cellL(11, "Win Rate",  colBg)
+    cellR(11, totalTrades > 0 ? str.tostring(winRate, "#.#") + "% (" + str.tostring(totalTrades) + ")" : "–", wrColor)
 
-    // Context
-    hdr(13, "── Context ──")
-    cellL(14, "Regime",      colBg)
-    cellR(14, isSideways ? "⚠ SIDEWAYS" : mainTrend, regClr)
-    cellL(15, "Session",     colBg)
-    cellR(15, sessLabel,     colBg)
-    cellL(16, "MTF Align",   colBg)
-    cellR(16, bullAlign ? "▲ BULL" : bearAlign ? "▼ BEAR" : "– NEUTRAL",
-          bullAlign ? colBull : bearAlign ? colBear : colNeu)
-    cellL(17, "DXY",         colBg)
-    cellR(17, dxyEma5 < dxyEma20 ? "▼ Bearish (↑Gold)" : "▲ Bullish (↓Gold)",
-          dxyEma5 < dxyEma20 ? colBull : colBear)
+    // Context (trimmed — no MTF/DXY)
+    hdr(12, "── Context ──")
+    cellL(13, "Regime",    colBg)
+    cellR(13, isSideways ? "⚠ SIDEWAYS" : mainTrend, regClr)
+    cellL(14, "Session",   colBg)
+    cellR(14, sessLabel,   colBg)
 
-// ── Kernel line on chart ─────────────────────────────────────────
-plot(useKernel ? kernelEst : na, "Kernel", color=color.new(color.purple, 40), linewidth=2)
-
-// ── EMA reference lines ───────────────────────────────────────────
-plot(maShort, "EMA 50",  color=color.new(color.orange, 60), linewidth=1)
-plot(maLong,  "EMA 200", color=color.new(color.blue,   60), linewidth=1)
+// ── Trend lines on chart (toggleable) ────────────────────────────
+plot(showTrend ? kernelEst : na, "Kernel", color=color.new(color.purple, 40), linewidth=2)
+plot(showTrend ? maShort   : na, "EMA 50",  color=color.new(color.orange, 60), linewidth=1)
+plot(showTrend ? maLong    : na, "EMA 200", color=color.new(color.blue,   60), linewidth=1)
