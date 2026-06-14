@@ -33,8 +33,12 @@ def _facts(cand: dict) -> list[str]:
     t = cand.get("technical", {})
     a, e, g = f.get("analyst", {}), f.get("earnings", {}), f.get("growth", {})
     ins, sh, nw = f.get("insider", {}), f.get("short", {}), f.get("news", {})
+    adv, ec = f.get("advanced", {}), f.get("earnings_call", {})
     lines = []
 
+    arch = f.get("archetype")
+    if arch and arch != "default":
+        lines.append(f"Business model: {arch.replace('_', '-')} (scored on the metrics that drive this type)")
     if a.get("recommendation"):
         rec = a["recommendation"].replace("_", " ").title()
         up = a.get("target_upside_pct")
@@ -71,11 +75,42 @@ def _facts(cand: dict) -> list[str]:
         lines.append(f"1-week performance {fv['perf_week_pct']:+.1f}%")
     if fv.get("perf_month_pct") is not None:
         lines.append(f"1-month performance {fv['perf_month_pct']:+.1f}%")
-    # EDGAR insider confirmation
+    # Advanced composite fundamental scores
+    if adv.get("roe_pct") is not None:
+        lines.append(f"Return on equity {adv['roe_pct']:+.1f}%")
+    if adv.get("fcf_yield_pct") is not None:
+        lines.append(f"Free-cash-flow yield {adv['fcf_yield_pct']:+.1f}%")
+    if adv.get("rule_of_40") is not None:
+        lines.append(f"Rule of 40 score {adv['rule_of_40']:.0f} ({'passes' if adv['rule_of_40'] >= 40 else 'below'} 40)")
+    if adv.get("peg") is not None:
+        lines.append(f"PEG ratio {adv['peg']:.2f} ({'cheap' if adv['peg'] < 1 else 'fair' if adv['peg'] < 2 else 'rich'} vs growth)")
+    if adv.get("price_to_book") is not None:
+        lines.append(f"Price/Book {adv['price_to_book']:.2f}")
+    if adv.get("piotroski_f") is not None:
+        lines.append(f"Piotroski F-Score {adv['piotroski_f']}/9 ({'strong' if adv['piotroski_f'] >= 7 else 'weak' if adv['piotroski_f'] <= 2 else 'mid'} quality)")
+    if adv.get("altman_z") is not None:
+        zone = "safe" if adv["altman_z"] > 2.6 else "distress" if adv["altman_z"] < 1.8 else "grey"
+        lines.append(f"Altman Z-Score {adv['altman_z']:.2f} ({zone} zone)")
+    # Just-reported earnings event (conference-call monitor)
+    if ec.get("reported"):
+        bits = []
+        if ec.get("surprise_pct") is not None:
+            bits.append(f"EPS {ec['surprise_pct']:+.1f}% vs est")
+        if ec.get("rev_beat_pct") is not None:
+            bits.append(f"revenue {ec['rev_beat_pct']:+.1f}% vs est")
+        if ec.get("guidance") and ec["guidance"] != "none":
+            bits.append(f"guidance {ec['guidance']}")
+        if ec.get("buyback"):
+            bits.append("new buyback")
+        if ec.get("dividend_raise"):
+            bits.append("dividend raised")
+        when = f"{ec['days_ago']}d ago" if ec.get("days_ago") is not None else "recently"
+        if bits:
+            lines.append(f"Just reported ({when}): " + ", ".join(bits))
+    # EDGAR insider activity
     ed = cand.get("fundamental", {}).get("edgar_insider", {})
-    if ed.get("form4_total", 0) >= 3:
-        side = "buying" if ed.get("form4_buys", 0) > ed.get("form4_sells", 0) else "selling"
-        lines.append(f"SEC Form 4 filings (90d): {ed['form4_buys']}B/{ed['form4_sells']}S — insiders {side}")
+    if ed.get("form4_count", 0) >= 3:
+        lines.append(f"{ed['form4_count']} SEC Form 4 insider filings in last 90d")
     # RSS news volume
     rss = cand.get("fundamental", {}).get("rss_news", {})
     if rss.get("rss_news_7d", 0) > 0:

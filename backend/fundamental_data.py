@@ -48,12 +48,33 @@ _HEADERS = {
 }
 
 
+_CIK_MAP: dict[str, str] = {}  # ticker → CIK string, lazy-loaded from SEC
+
+
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
 def _clamp(x: float, lo: float = -1.0, hi: float = 1.0) -> float:
     return max(lo, min(hi, x))
+
+
+def cik_for(ticker: str) -> str | None:
+    """Resolve a ticker → SEC CIK (cached). Used by EDGAR insider + 8-K readers."""
+    global _CIK_MAP
+    if not _CIK_MAP:
+        try:
+            with httpx.Client(timeout=15, headers={"User-Agent": "SwingScreener research contact@example.com"}) as c:
+                r = c.get("https://www.sec.gov/files/company_tickers.json")
+                r.raise_for_status()
+                for row in (r.json() or {}).values():
+                    t = str(row.get("ticker", "")).upper()
+                    if t:
+                        _CIK_MAP[t] = str(row.get("cik_str", "")).zfill(10)
+        except Exception as e:
+            print(f"[fundamental] CIK map load failed: {e}")
+            return None
+    return _CIK_MAP.get(ticker.upper())
 
 
 # ── yfinance readers ───────────────────────────────────────────────────────────
@@ -170,6 +191,217 @@ def _short_interest(tkr) -> dict:
             out["short_pct_float"] = round(float(s) * 100, 1)
     except Exception:
         pass
+    return out
+
+
+# ── Business-model archetype classification ───────────────────────────────────
+
+# Metric set + weights per archetype. Every metric is normalized to [-1,+1] by
+# _metrics(); the fundamental score is the weight-average over the metrics that
+# are actually computable for that name. Different businesses are judged on the
+# numbers that actually drive them (banks on ROE/book value, growth-tech on
+# Rule of 40, REITs on yield/coverage — never on metrics that misfire for them).
+ARCHETYPE_WEIGHTS = {
+    "growth_tech":   {"rev_growth": .25, "rule40": .20, "gross_margin": .15,
+                      "fcf_yield": .10, "peg": .10, "pt_upside": .10, "eps_growth": .10},
+    "mega_tech":     {"roe": .20, "fcf_yield": .20, "op_margin": .15, "eps_growth": .15,
+                      "rev_growth": .10, "pt_upside": .10, "peg": .10},
+    "bank":          {"roe": .30, "roa": .20, "pb": .25, "div_yield": .15, "pt_upside": .10},
+    "nonbank_fin":   {"roe": .25, "pb": .20, "profit_margin": .15, "peg": .15,
+                      "div_yield": .10, "pt_upside": .15},
+    "energy":        {"fcf_yield": .25, "div_yield": .20, "debt_equity": .15,
+                      "roa": .15, "pt_upside": .10, "piotroski": .15},
+    "staples":       {"div_yield": .25, "payout": .20, "gross_margin": .15,
+                      "roe": .15, "debt_equity": .10, "rev_growth": .15},
+    "discretionary": {"rev_growth": .25, "eps_growth": .20, "op_margin": .20,
+                      "pt_upside": .15, "piotroski": .20},
+    "healthcare":    {"fcf_yield": .15, "profit_margin": .15, "peg": .15, "eps_growth": .15,
+                      "rev_growth": .15, "pt_upside": .15, "div_yield": .10},
+    "industrial":    {"roe": .20, "op_margin": .20, "piotroski": .20, "rev_growth": .15,
+                      "debt_equity": .10, "pt_upside": .15},
+    "reit":          {"div_yield": .35, "payout": .20, "debt_equity": .20,
+                      "pb": .15, "pt_upside": .10},
+    "utility":       {"div_yield": .30, "payout": .25, "debt_equity": .20,
+                      "roe": .15, "pt_upside": .10},
+    "materials":     {"fcf_yield": .20, "roa": .20, "op_margin": .15, "debt_equity": .15,
+                      "rev_growth": .15, "pt_upside": .15},
+    "default":       {"pt_upside": .20, "rev_growth": .20, "eps_growth": .20,
+                      "roe": .20, "fcf_yield": .20},
+}
+
+# Archetypes where Altman Z / Piotroski / leverage tests misfire (balance sheet
+# IS the business) — never apply distress-leverage logic to these.
+_NO_ZSCORE = {"bank", "nonbank_fin", "reit", "utility"}
+
+
+def archetype_of(info: dict) -> str:
+    """Map a yfinance info dict → business-model archetype (sector + industry refined)."""
+    sector = (info.get("sector") or "").strip()
+    industry = (info.get("industry") or "").lower()
+    pm = info.get("profitMargins") or 0.0
+    mcap = info.get("marketCap") or 0.0
+
+    if sector == "Technology":
+        return "mega_tech" if (pm > 0.15 and mcap > 5e11) else "growth_tech"
+    if sector == "Financial Services":
+        if "bank" in industry:
+            return "bank"
+        if "credit services" in industry:   # Visa / Mastercard / PayPal behave like quality-tech
+            return "mega_tech"
+        return "nonbank_fin"
+    if sector == "Real Estate":
+        return "reit" if "reit" in industry else "nonbank_fin"
+    if sector == "Consumer Defensive":
+        return "staples"
+    if sector == "Consumer Cyclical":
+        return "discretionary"
+    if sector == "Healthcare":
+        return "healthcare"
+    if sector == "Industrials":
+        return "industrial"
+    if sector == "Energy":
+        return "energy"
+    if sector == "Utilities":
+        return "utility"
+    if sector == "Basic Materials":
+        return "materials"
+    if sector == "Communication Services":
+        if "telecom" in industry:
+            return "utility"          # telcos ≈ bond-proxy / leverage-sensitive
+        return "growth_tech"          # media / internet content → growth rules
+    return "default"
+
+
+# ── Statement-based advanced composite scores ─────────────────────────────────
+
+def _safe(df, *keys, col=0):
+    """Pull a row value from a yfinance statement DataFrame by any matching label."""
+    try:
+        if df is None or not len(df.columns):
+            return None
+        for k in keys:
+            for idx in df.index:
+                if str(idx).strip().lower() == k.lower():
+                    v = df.iloc[:, col][idx]
+                    return float(v) if v == v else None
+    except Exception:
+        pass
+    return None
+
+
+def _statements(tkr) -> dict:
+    """Pull the three core statements once; downstream advanced scores read from these."""
+    out = {"income": None, "balance": None, "cash": None}
+    try:
+        out["income"] = tkr.income_stmt
+        out["balance"] = tkr.balance_sheet
+        out["cash"] = tkr.cashflow
+    except Exception as e:
+        print(f"[fundamental] statements failed: {e}")
+    return out
+
+
+def piotroski_f(st: dict, info: dict) -> int | None:
+    """Piotroski F-Score (0-9). Higher = stronger fundamental quality. Needs 2 periods."""
+    inc, bal, cf = st.get("income"), st.get("balance"), st.get("cash")
+    if inc is None or bal is None or len(getattr(inc, "columns", [])) < 2:
+        return None
+    try:
+        score = 0
+        ni0 = _safe(inc, "Net Income", "Net Income Common Stockholders", col=0)
+        ni1 = _safe(inc, "Net Income", "Net Income Common Stockholders", col=1)
+        ta0 = _safe(bal, "Total Assets", col=0)
+        ta1 = _safe(bal, "Total Assets", col=1)
+        ocf = _safe(cf, "Operating Cash Flow", "Total Cash From Operating Activities", col=0)
+        rev0 = _safe(inc, "Total Revenue", col=0)
+        rev1 = _safe(inc, "Total Revenue", col=1)
+        gp0 = _safe(inc, "Gross Profit", col=0)
+        gp1 = _safe(inc, "Gross Profit", col=1)
+        ltd0 = _safe(bal, "Long Term Debt", col=0) or 0.0
+        ltd1 = _safe(bal, "Long Term Debt", col=1) or 0.0
+        ca0 = _safe(bal, "Current Assets", "Total Current Assets", col=0)
+        cl0 = _safe(bal, "Current Liabilities", "Total Current Liabilities", col=0)
+        ca1 = _safe(bal, "Current Assets", "Total Current Assets", col=1)
+        cl1 = _safe(bal, "Current Liabilities", "Total Current Liabilities", col=1)
+        sh0 = info.get("sharesOutstanding")
+        sh1 = _safe(bal, "Share Issued", "Ordinary Shares Number", col=1)
+
+        if ni0 and ni0 > 0: score += 1
+        if ocf and ocf > 0: score += 1
+        if ni0 and ni1 and ta0 and ta1 and (ni0 / ta0) > (ni1 / ta1): score += 1
+        if ocf and ni0 and ocf > ni0: score += 1
+        if ta0 and ta1 and (ltd0 / ta0) < (ltd1 / ta1): score += 1
+        if ca0 and cl0 and ca1 and cl1 and (ca0 / cl0) > (ca1 / cl1): score += 1
+        if sh0 and sh1 and sh0 <= sh1 * 1.01: score += 1
+        if gp0 and rev0 and gp1 and rev1 and (gp0 / rev0) > (gp1 / rev1): score += 1
+        if rev0 and ta0 and rev1 and ta1 and (rev0 / ta0) > (rev1 / ta1): score += 1
+        return score
+    except Exception as e:
+        print(f"[fundamental] piotroski failed: {e}")
+        return None
+
+
+def altman_z(st: dict, info: dict, manufacturer: bool = True) -> float | None:
+    """Altman Z (manufacturers) / Z'' (non-manufacturers). Distress predictor."""
+    bal, inc = st.get("balance"), st.get("income")
+    if bal is None or inc is None:
+        return None
+    try:
+        ta = _safe(bal, "Total Assets", col=0)
+        if not ta:
+            return None
+        ca = _safe(bal, "Current Assets", "Total Current Assets", col=0) or 0.0
+        cl = _safe(bal, "Current Liabilities", "Total Current Liabilities", col=0) or 0.0
+        wc = ca - cl
+        re = _safe(bal, "Retained Earnings", col=0) or 0.0
+        ebit = _safe(inc, "EBIT", "Operating Income", col=0) or 0.0
+        tl = _safe(bal, "Total Liabilities Net Minority Interest", "Total Liab", col=0) or 0.0
+        rev = _safe(inc, "Total Revenue", col=0) or 0.0
+        mcap = info.get("marketCap") or 0.0
+        eq = _safe(bal, "Stockholders Equity", "Total Stockholder Equity", col=0) or 0.0
+        if tl <= 0:
+            return None
+        A, B, C = wc / ta, re / ta, ebit / ta
+        if manufacturer:
+            D, E = mcap / tl, rev / ta
+            return round(1.2 * A + 1.4 * B + 3.3 * C + 0.6 * D + 1.0 * E, 2)
+        return round(3.25 + 6.56 * A + 3.26 * B + 6.72 * C + 1.05 * (eq / tl), 2)
+    except Exception as e:
+        print(f"[fundamental] altman failed: {e}")
+        return None
+
+
+def _advanced(tkr, info: dict, archetype: str, st: dict) -> dict:
+    """Compute the advanced composite scores appropriate for this archetype."""
+    out = {"piotroski_f": None, "altman_z": None, "rule_of_40": None,
+           "fcf_yield_pct": None, "peg": None, "roe_pct": None, "roa_pct": None,
+           "price_to_book": None}
+    try:
+        out["roe_pct"] = round(float(info["returnOnEquity"]) * 100, 1) if info.get("returnOnEquity") is not None else None
+        out["roa_pct"] = round(float(info["returnOnAssets"]) * 100, 1) if info.get("returnOnAssets") is not None else None
+        out["price_to_book"] = round(float(info["priceToBook"]), 2) if info.get("priceToBook") is not None else None
+        peg = info.get("trailingPegRatio") or info.get("pegRatio")
+        out["peg"] = round(float(peg), 2) if peg is not None else None
+
+        fcf = info.get("freeCashflow")
+        mcap = info.get("marketCap")
+        if fcf and mcap:
+            out["fcf_yield_pct"] = round(fcf / mcap * 100, 2)
+
+        # Rule of 40 — growth archetypes only
+        if archetype in ("growth_tech", "mega_tech"):
+            rg = info.get("revenueGrowth")
+            rev = info.get("totalRevenue")
+            if rg is not None and fcf and rev:
+                out["rule_of_40"] = round(rg * 100 + (fcf / rev) * 100, 1)
+
+        # Piotroski — quality/value names; skip financials/REITs (tests misfire)
+        if archetype not in _NO_ZSCORE:
+            out["piotroski_f"] = piotroski_f(st, info)
+            manu = archetype in ("industrial", "materials", "energy", "staples")
+            out["altman_z"] = altman_z(st, info, manufacturer=manu)
+    except Exception as e:
+        print(f"[fundamental] advanced failed: {e}")
     return out
 
 
@@ -306,42 +538,41 @@ def _finviz(ticker: str) -> dict:
 
 # ── SEC EDGAR ─────────────────────────────────────────────────────────────────
 
-def _edgar_insider(ticker: str) -> dict:
+def _edgar_insider(ticker: str, cik: str | None = None) -> dict:
     """
-    Count Form 4 filings (insider buy/sell) via EDGAR full-text search.
-    Free, no auth required. Uses SEC EDGAR company search to get CIK first.
+    Count Form 4 insider filings in the last 90 days via the SEC submissions API
+    (CIK-based — reliable, unlike the prior full-text-search approach). Activity
+    level only; yfinance supplies the buy/sell direction.
     """
-    out = {"form4_buys": 0, "form4_sells": 0, "form4_total": 0}
+    out = {"form4_count": 0}
+    cik = cik or cik_for(ticker)
+    if not cik:
+        return out
     try:
-        # Step 1: resolve ticker → CIK
-        url = f"https://efts.sec.gov/LATEST/search-index?q=%22{ticker}%22&dateRange=custom&startdt={_edgar_since()}&enddt={datetime.now(timezone.utc).date().isoformat()}&forms=4"
-        with httpx.Client(timeout=15, headers={"User-Agent": "SwingScreener/1.0 research@example.com"}) as client:
+        url = f"https://data.sec.gov/submissions/CIK{str(cik).zfill(10)}.json"
+        with httpx.Client(timeout=15, headers={"User-Agent": "SwingScreener research contact@example.com"}) as client:
             r = client.get(url)
             if r.status_code != 200:
                 return out
-            data = r.json()
-
-        hits = data.get("hits", {}).get("hits", [])
-        buys = sells = 0
-        for h in hits[:30]:
-            src = h.get("_source", {})
-            # transaction_type: A = acquisition (buy), D = disposal (sell)
-            tx_type = str(src.get("transaction_type", "")).upper()
-            if "A" in tx_type:
-                buys += 1
-            elif "D" in tx_type:
-                sells += 1
-        out["form4_buys"] = buys
-        out["form4_sells"] = sells
-        out["form4_total"] = buys + sells
+            recent = (r.json() or {}).get("filings", {}).get("recent", {})
+        forms = recent.get("form", [])
+        dates = recent.get("filingDate", [])
+        cutoff = datetime.now(timezone.utc).date() - timedelta(days=90)
+        cnt = 0
+        for i, form in enumerate(forms):
+            if form != "4":
+                continue
+            try:
+                if datetime.fromisoformat(dates[i]).date() >= cutoff:
+                    cnt += 1
+                else:
+                    break  # newest-first → older than 90d, stop
+            except Exception:
+                pass
+        out["form4_count"] = cnt
     except Exception as e:
         print(f"[fundamental] EDGAR insider {ticker} failed: {e}")
     return out
-
-
-def _edgar_since() -> str:
-    """90-day lookback date string."""
-    return (datetime.now(timezone.utc).date() - timedelta(days=90)).isoformat()
 
 
 # ── News RSS (CNBC, MarketWatch, Benzinga) ────────────────────────────────────
@@ -400,77 +631,94 @@ def _multi_rss_news(ticker: str) -> dict:
     return {"rss_news_7d": total}
 
 
-# ── Score ─────────────────────────────────────────────────────────────────────
+# ── Archetype-aware scoring ───────────────────────────────────────────────────
+
+def _metrics(f: dict) -> dict:
+    """
+    Compute every candidate metric, normalized to [-1,+1], from the assembled
+    fundamental dict. Only metrics that are computable are returned; the scorer
+    weight-averages over whichever ones exist for the archetype.
+    """
+    m: dict[str, float] = {}
+    a, g, adv = f["analyst"], f["growth"], f.get("advanced", {})
+
+    if a.get("target_upside_pct") is not None:
+        m["pt_upside"] = _clamp(a["target_upside_pct"] / 25.0)      # +25% → +1
+    if g.get("revenue_growth_pct") is not None:
+        m["rev_growth"] = _clamp(g["revenue_growth_pct"] / 30.0)    # +30% → +1
+    if g.get("earnings_growth_pct") is not None:
+        m["eps_growth"] = _clamp(g["earnings_growth_pct"] / 40.0)   # +40% → +1
+    if adv.get("roe_pct") is not None:
+        m["roe"] = _clamp(adv["roe_pct"] / 25.0)                    # 25% ROE → +1
+    if adv.get("roa_pct") is not None:
+        m["roa"] = _clamp(adv["roa_pct"] / 10.0)                    # 10% ROA → +1
+    if adv.get("fcf_yield_pct") is not None:
+        m["fcf_yield"] = _clamp(adv["fcf_yield_pct"] / 8.0)         # 8% FCF yield → +1
+    if adv.get("rule_of_40") is not None:
+        m["rule40"] = _clamp((adv["rule_of_40"] - 40.0) / 40.0)     # 40 = neutral, 80 → +1
+    if adv.get("peg") is not None and adv["peg"] > 0:
+        m["peg"] = _clamp((2.0 - adv["peg"]) / 2.0)                 # PEG 1 → +0.5, 0 → +1, 4 → -1
+    if adv.get("price_to_book") is not None and adv["price_to_book"] > 0:
+        m["pb"] = _clamp((2.0 - adv["price_to_book"]) / 2.0)        # P/B 1 → +0.5 (financials/REIT)
+    if adv.get("piotroski_f") is not None:
+        m["piotroski"] = _clamp((adv["piotroski_f"] - 4.5) / 4.5)   # 9 → +1, 0 → -1
+
+    info = f.get("_info", {})
+    gm = info.get("grossMargins")
+    if gm is not None:
+        m["gross_margin"] = _clamp((float(gm) - 0.40) / 0.40)       # 40% neutral, 80% → +1
+    om = info.get("operatingMargins")
+    if om is not None:
+        m["op_margin"] = _clamp((float(om) - 0.15) / 0.20)          # 15% neutral
+    pm = info.get("profitMargins")
+    if pm is not None:
+        m["profit_margin"] = _clamp((float(pm) - 0.10) / 0.20)
+    dy = info.get("dividendYield")
+    if dy is not None:
+        dyv = float(dy) / 100.0 if float(dy) > 1.5 else float(dy)   # yfinance returns % or frac
+        m["div_yield"] = _clamp(dyv / 0.04)                         # 4% yield → +1
+    pr = info.get("payoutRatio")
+    if pr is not None:
+        m["payout"] = _clamp((0.60 - float(pr)) / 0.60)            # lower payout = safer
+    de = info.get("debtToEquity")
+    if de is not None:
+        m["debt_equity"] = _clamp((100.0 - float(de)) / 100.0)     # D/E 1.0 neutral, 0 → +1
+
+    return m
+
 
 def _score(f: dict) -> float:
-    """Reduce the fundamental dict to a single bullish/bearish score ∈ [-1, +1]."""
-    parts: list[float] = []
+    """
+    Archetype-aware fundamental score ∈ [-1,+1]. Weight-averages the metrics that
+    matter for this business model, then overlays insider direction, an Altman
+    distress penalty (non-financials), and the just-reported earnings event.
+    """
+    archetype = f.get("archetype", "default")
+    weights = ARCHETYPE_WEIGHTS.get(archetype, ARCHETYPE_WEIGHTS["default"])
+    m = _metrics(f)
 
-    # Analyst consensus + price target (yfinance primary, Finviz supplement)
-    a = f["analyst"]
-    if a["target_upside_pct"] is not None:
-        parts.append(_clamp(a["target_upside_pct"] / 25.0))
-    rec = (a["recommendation"] or "").lower()
-    if rec in ("strong_buy", "buy"):
-        parts.append(0.6 if rec == "strong_buy" else 0.4)
-    elif rec in ("sell", "strong_sell", "underperform"):
-        parts.append(-0.5)
+    num = den = 0.0
+    for metric, w in weights.items():
+        if metric in m:
+            num += w * m[metric]
+            den += w
+    base = (num / den) if den else 0.0
 
-    # Finviz analyst rating as secondary signal (numeric 1-5, lower = more bullish)
-    fv = f.get("finviz", {})
-    fv_rec = fv.get("analyst_rating")
-    if fv_rec and a["recommendation"] is None:
-        try:
-            rv = float(fv_rec)
-            # Finviz: 1.0=Strong Buy … 5.0=Strong Sell → map to [-1,+1]
-            parts.append(_clamp((3.0 - rv) / 2.0))
-        except Exception:
-            pass
+    # Overlays (applied on top of the archetype-weighted base)
+    overlay = 0.0
+    overlay += 0.10 * f.get("insider", {}).get("net_buy_signal", 0.0)
 
-    # Earnings surprise
-    e = f["earnings"]
-    if e["last_surprise_pct"] is not None:
-        parts.append(_clamp(e["last_surprise_pct"] / 20.0))
+    adv = f.get("advanced", {})
+    z = adv.get("altman_z")
+    if z is not None:                                  # distress penalty (non-financials only)
+        if z < 1.8:
+            overlay -= 0.10
+        elif z > 3.0:
+            overlay += 0.05
 
-    # Insider signal — yfinance + EDGAR confirmation
-    parts.append(0.5 * f["insider"]["net_buy_signal"])
-    ed = f.get("edgar_insider", {})
-    tot = ed.get("form4_total", 0)
-    if tot:
-        net = (ed.get("form4_buys", 0) - ed.get("form4_sells", 0)) / tot
-        parts.append(0.3 * net)  # lighter weight — cross-confirms yfinance
+    overlay += f.get("earnings_call", {}).get("score_delta", 0.0)  # conference-call event
 
-    # Growth
-    g = f["growth"]
-    if g["revenue_growth_pct"] is not None:
-        parts.append(_clamp(g["revenue_growth_pct"] / 30.0))
-    if g["earnings_growth_pct"] is not None:
-        parts.append(_clamp(g["earnings_growth_pct"] / 40.0))
-
-    # Finviz EPS growth next year
-    eg_next = fv.get("eps_growth_next_year_pct")
-    if eg_next is not None and g["earnings_growth_pct"] is None:
-        parts.append(_clamp(eg_next / 40.0))
-
-    # Finviz 52-week position (% from 52w low — closer to low → more room)
-    low_pct = fv.get("52w_low_pct")
-    high_pct = fv.get("52w_high_pct")
-    if low_pct is not None and high_pct is not None:
-        try:
-            # low_pct: e.g. +45.2 means 45.2% above 52w low
-            # Range position: 0 = at low, 1 = at high
-            span = abs(low_pct) + abs(high_pct) if high_pct < 0 else abs(low_pct)
-            if span > 0:
-                pos = abs(low_pct) / span
-                # Slight pullback preference: 40-65% of range is sweet spot
-                if 0.4 <= pos <= 0.65:
-                    parts.append(0.15)
-        except Exception:
-            pass
-
-    if not parts:
-        return 0.0
-    return round(_clamp(sum(parts) / len(parts)), 3)
+    return round(_clamp(base + overlay), 3)
 
 
 # ── Main entry ────────────────────────────────────────────────────────────────
@@ -479,32 +727,54 @@ def fetch_fundamentals(ticker: str) -> dict:
     """Full fundamental snapshot + score for one stock. Best-effort, never raises."""
     f = {
         "ticker": ticker,
+        "archetype": "default",
         "earnings": {"next_days": None, "last_surprise_pct": None, "imminent": False},
         "analyst": {"recommendation": None, "target_upside_pct": None, "num_analysts": None},
         "insider": {"net_buy_signal": 0.0, "buy_count": 0, "sell_count": 0},
         "institutional": {"inst_held_pct": None},
         "growth": {"revenue_growth_pct": None, "earnings_growth_pct": None},
         "short": {"short_pct_float": None},
+        "advanced": {"piotroski_f": None, "altman_z": None, "rule_of_40": None,
+                     "fcf_yield_pct": None, "peg": None, "roe_pct": None,
+                     "roa_pct": None, "price_to_book": None},
+        "earnings_call": {"reported": False, "score_delta": 0.0},
         "news": {"news_7d": 0, "headlines": [], "sentiment": 0.0},
         "finviz": {},
-        "edgar_insider": {"form4_buys": 0, "form4_sells": 0, "form4_total": 0},
+        "edgar_insider": {"form4_count": 0},
         "rss_news": {"rss_news_7d": 0},
         "score": 0.0,
         "updated_at": _now(),
     }
+    cik = cik_for(ticker)
     try:
         import yfinance as yf
         tkr = yf.Ticker(ticker)
+        info = tkr.info or {}
+        f["_info"] = info
+        f["archetype"] = archetype_of(info)
         f["earnings"] = _earnings(tkr)
         f["analyst"] = _analyst(tkr)
         f["insider"] = _insider(tkr)
         f["institutional"] = _institutional(tkr)
         f["growth"] = _growth(tkr)
         f["short"] = _short_interest(tkr)
+        try:
+            st = _statements(tkr)
+            f["advanced"] = _advanced(tkr, info, f["archetype"], st)
+        except Exception as e:
+            print(f"[fundamental] advanced {ticker} error: {e}")
     except Exception as e:
         print(f"[fundamental] yfinance {ticker} failed: {e}")
+        tkr = None
 
     f["news"] = _news_sentiment(ticker)
+
+    # Earnings conference-call / event monitor (folds a bounded delta into score)
+    try:
+        from earnings_call import earnings_update
+        f["earnings_call"] = earnings_update(ticker, tkr=tkr, cik=cik)
+    except Exception as e:
+        print(f"[fundamental] earnings_call {ticker} error: {e}")
 
     # Supplemental sources — best-effort, non-blocking
     try:
@@ -513,7 +783,7 @@ def fetch_fundamentals(ticker: str) -> dict:
         print(f"[fundamental] finviz {ticker} error: {e}")
 
     try:
-        f["edgar_insider"] = _edgar_insider(ticker)
+        f["edgar_insider"] = _edgar_insider(ticker, cik=cik)
     except Exception as e:
         print(f"[fundamental] edgar {ticker} error: {e}")
 
@@ -534,8 +804,7 @@ def fetch_fundamentals(ticker: str) -> dict:
     # Merge Finviz price target → compute upside if yfinance missed it
     if f["analyst"]["target_upside_pct"] is None and fv.get("price_target"):
         try:
-            import yfinance as yf
-            info = yf.Ticker(ticker).info or {}
+            info = f.get("_info", {})
             price = info.get("currentPrice") or info.get("regularMarketPrice")
             if price:
                 f["analyst"]["target_upside_pct"] = round(
@@ -545,4 +814,5 @@ def fetch_fundamentals(ticker: str) -> dict:
             pass
 
     f["score"] = _score(f)
+    f.pop("_info", None)   # drop the bulky yfinance info blob before persisting
     return f
