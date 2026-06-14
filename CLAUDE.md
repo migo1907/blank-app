@@ -30,16 +30,26 @@ These are permanent agreements — never override, skip, or work around them und
 - **Development branch:** `claude/hopeful-pasteur-VVHCl`
 - **DATA branch:** `data` — ALL live trade history, weights, signals, news cache, feature cache are written here by Railway at runtime (db.py GITHUB_BRANCH="data"). ALWAYS check the `data` branch for trade counts, not the dev branch.
 - **Never push to:** `main`
-- **Stable baseline tag:** `checkpoint-v1` (05:54 UTC 2026-06-04)
-- **checkpoint-v2 commit:** `42312b0` (2026-06-04) — 25-feature pipeline complete, F1-F25 from Pine Script, TVC:GOLD data source, pools aligned to live alerts (XAUUSD 2M/5M/30M/1H + stocks 30M/4H), weights.json default, 25 live XAUUSD trades
+- **Checkpoint commits (tags blocked by proxy — commits only):**
+  - `checkpoint-v1` → `903adc2b` (2026-06-04) — 25-feature stable baseline
+  - `checkpoint-v2` → `42312b0`  (2026-06-04) — 25-feature pipeline complete, F1-F25, TVC:GOLD, pools aligned, weights.json
+  - `checkpoint-v3` → `9dae7bdec` (2026-06-14) — 26 features (F26 fixed), Phase 2 layers, macro intelligence, swing brain, LightGBM ← **current rollback point** (also GitHub branch `checkpoint-v3`)
+- **Tag push is permanently blocked** (git proxy returns 403 on `refs/tags/*`). Use `git checkout <SHA>` to restore, or GitHub branch `checkpoint-v3` for v3. Do NOT attempt `git push --tags` — it will always fail.
 
 ## Security
 - Webhook secret: `gold2026`
 - Personal Telegram chat ID: `966897595` (critical alerts only)
 - No Telegram for errors — Railway console only
 
+## AI MLM 26 — Read-Only Indicator (separate from production)
+- **File:** `pine_script_backup/ai_mlm_26.pine`
+- **Purpose:** visual-only ML signal quality mirror for TradingView — NO alerts, NO webhook, NO heartbeat. Shows BUY/SELL labels with Entry/TP1/TP2/TP3/SL on chart + dashboard table (ML BULL/BEAR %, tier, win rate, regime, session, MTF, DXY).
+- **Update cadence:** updated by Claude approximately weekly as ML training progresses (new weights, win rate data, feature improvements). User pastes the new version into TradingView manually — 30-second copy-paste, no alerts to re-create.
+- **How to update TradingView:** copy raw contents from `pine_script_backup/ai_mlm_26.pine` on the dev branch → Pine Script Editor → paste over old version → Save. No other action needed.
+- **Raw URL:** `https://raw.githubusercontent.com/migo1907/blank-app/claude/hopeful-pasteur-VVHCl/pine_script_backup/ai_mlm_26.pine`
+
 ## Pine Script
-- **Current version:** `f25 Migo VS Market Sniper Pro` (Pine Script v6)
+- **Current version:** `f26 Migo VS Market Sniper Pro` (Pine Script v6)
 - **Sends to:** `/webhook` unified endpoint (single alert URL for all payload types)
 - **Payload types:** HEARTBEAT (every bar close), entry signal, TP1_HIT, TP2_HIT, WIN, PARTIAL, LOSS
 - **Timeframe format:** `timeframe.period` — always numeric strings: `"2"`,`"5"`,`"15"`,`"30"`,`"60"`,`"240"`
