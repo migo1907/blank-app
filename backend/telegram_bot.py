@@ -468,7 +468,7 @@ async def send_swing_brief(screen: dict) -> bool:
         emoji = "🟢" if score >= 0.35 else "🟡" if score >= 0.15 else "⚪"
         thesis = html.escape(synthesize(c))
         line = (
-            f"\n{emoji} <b>{i}. {tkr}</b>  conviction {score:+.2f} ({_conviction(score)})\n"
+            f"\n{emoji} <b>{i}. {tkr}</b>  conviction {score*100:.0f}% ({_conviction(score)})\n"
             f"<i>{tech.get('trend','—')} daily trend</i>\n"
             f"{thesis}\n"
         )
@@ -480,8 +480,7 @@ async def send_swing_brief(screen: dict) -> bool:
 
     blocks.append(
         "\n━━━━━━━━━━━━━━━━━━━━\n"
-        "<i>Conviction −1…+1 (STRONG ≥0.50 · GOOD ≥0.35 · MODERATE ≥0.15). "
-        "Levels are ATR-based: stop −1 ATR, T1 +2 ATR, T2 +3 ATR.\n"
-        "Swing horizon 3–15 days · not the intraday channel · size and confirm at your own entry.</i>"
+        "<i>Swing horizon 3–15 days · not the intraday channel · "
+        "size and confirm at your own entry.</i>"
     )
     return await _send_to(SWING_CHAT_ID, "".join(blocks))
