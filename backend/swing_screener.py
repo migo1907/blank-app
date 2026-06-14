@@ -85,12 +85,28 @@ def _rsi(close: np.ndarray, period: int = 14) -> float:
     return 100.0 - 100.0 / (1.0 + rs)
 
 
+def _atr(d, period: int = 14) -> float | None:
+    """Daily ATR(14) from an OHLC frame (simple mean of true range)."""
+    try:
+        h = d["High"].to_numpy(dtype=float)
+        l = d["Low"].to_numpy(dtype=float)
+        c = d["Close"].to_numpy(dtype=float)
+        if len(c) < period + 1:
+            return None
+        prev = c[:-1]
+        tr = np.maximum.reduce([h[1:] - l[1:], np.abs(h[1:] - prev), np.abs(l[1:] - prev)])
+        return float(tr[-period:].mean())
+    except Exception:
+        return None
+
+
 def _technical_score(ticker: str) -> dict:
     """
     Daily-bar timing read → score ∈ [-1, +1]. Combines EMA trend, momentum, and a
     mean-reversion-aware RSI band. Sector relative strength applied as a tilt.
     """
-    out = {"score": 0.0, "rsi": None, "trend": "NEUTRAL", "rel_strength_pct": None}
+    out = {"score": 0.0, "rsi": None, "trend": "NEUTRAL", "rel_strength_pct": None,
+           "entry": None, "atr": None, "stop": None, "t1": None, "t2": None}
     try:
         from market_data import fetch_daily
 
@@ -100,6 +116,17 @@ def _technical_score(ticker: str) -> dict:
         c = d["Close"].to_numpy(dtype=float)
         if len(c) < 60:
             return out
+
+        # Suggested levels — same ATR basis the paper-trade tracker grades on, so the
+        # displayed entry/stop/targets match how WIN/LOSS is later judged.
+        atr = _atr(d)
+        if atr:
+            entry = float(c[-1])
+            out["entry"] = round(entry, 2)
+            out["atr"]   = round(atr, 2)
+            out["stop"]  = round(entry - 1.0 * atr, 2)   # -1 ATR  (paper SL)
+            out["t1"]    = round(entry + 2.0 * atr, 2)   # +2 ATR  (paper TP)
+            out["t2"]    = round(entry + 3.0 * atr, 2)   # +3 ATR  (stretch)
 
         ef, es = _ema(c, 20), _ema(c, 50)
         spread = (ef[-1] - es[-1]) / max(abs(es[-1]), 1e-9)

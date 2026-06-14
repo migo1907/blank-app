@@ -40,7 +40,7 @@ def _facts(cand: dict) -> list[str]:
         up = a.get("target_upside_pct")
         lines.append(f"Analyst consensus {rec}" + (f", median PT {up:+.1f}% vs price" if up is not None else ""))
     if t.get("trend"):
-        lines.append(f"Daily trend {t['trend']}" + (f", RSI {t['rsi']}" if t.get("rsi") else ""))
+        lines.append(f"Daily trend {t['trend']}")
     if t.get("rel_strength_pct") is not None:
         lines.append(f"Sector relative strength {t['rel_strength_pct']:+.1f}% (20d)")
     if e.get("next_days") is not None:
@@ -83,8 +83,10 @@ def synthesize(cand: dict) -> str:
     prompt = (
         f"You are a swing-trading analyst. Write a tight 2-3 sentence thesis for "
         f"{ticker} (3-15 day hold) from these facts. State the bull case, the key "
-        f"catalyst, and the main risk. No preamble, no disclaimers, no bullet "
-        f"points — just the thesis.\n\nFacts:\n" + "\n".join(f"- {x}" for x in facts)
+        f"catalyst, and the main risk. Refer to momentum/trend qualitatively — do "
+        f"NOT cite raw indicator values like RSI numbers. No preamble, no "
+        f"disclaimers, no bullet points — just the thesis.\n\nFacts:\n"
+        + "\n".join(f"- {x}" for x in facts)
     )
     try:
         import anthropic
