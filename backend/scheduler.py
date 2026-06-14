@@ -1531,6 +1531,61 @@ async def _options_paper_manage_cycle() -> None:
         print(f"[options] paper manage cycle failed: {e}")
 
 
+async def _market_open_data_check() -> None:
+    """
+    Shortly after the US market opens (holiday-aware), force a fresh fetch of the
+    Phase 2 context layers during LIVE hours and verify all three assets actually
+    got real data. Weekend/holiday data can mask a yfinance drop; this validates
+    the layers when the market is genuinely open. Alerts the personal chat only
+    when something looks wrong (healthy = console only, no noise).
+    """
+    try:
+        from market_calendar import is_nyse_open
+        if not is_nyse_open():
+            print("[data_check] NYSE closed (holiday) — skipping market-open data check")
+            return
+
+        # Force a fresh fetch now that markets are live.
+        try:
+            from regime_model import refresh_regimes, REGIME_ASSETS, get_regime
+            from mtf_confluence import refresh_mtf, get_mtf
+            await asyncio.to_thread(refresh_regimes)
+            await asyncio.to_thread(refresh_mtf)
+        except Exception as _re:
+            print(f"[data_check] refresh failed: {_re}")
+            return
+
+        problems: list[str] = []
+        lines: list[str] = []
+        for a in REGIME_ASSETS:
+            reg = get_regime(a)
+            mtf = get_mtf(a)
+            votes = mtf.get("votes", {})
+            reg_ok = reg.get("method") in ("hmm", "heuristic")
+            mtf_ok = any(votes.get(k, 0) != 0 for k in ("h1", "h4", "d1")) or mtf.get("bias") not in (None, "NEUTRAL")
+            tag = "✅" if (reg_ok and mtf_ok) else "⚠️"
+            if not reg_ok:
+                problems.append(f"{a} regime={reg.get('method','?')}")
+            if not mtf_ok:
+                problems.append(f"{a} MTF empty/flat")
+            lines.append(f"{tag} {a}: regime {reg.get('regime','?')}({reg.get('method','?')}) · "
+                         f"MTF {mtf.get('bias','?')} {votes}")
+
+        status = "healthy ✅" if not problems else "issues ⚠️ — " + ", ".join(problems)
+        print(f"[data_check] market-open data layers: {status}\n  " + "\n  ".join(lines))
+
+        if problems:
+            from telegram_bot import send_critical_alert
+            await send_critical_alert(
+                "Data Layer Check (market open)",
+                "\n".join(lines),
+                "yfinance likely dropped during the open burst — Stooq/Alpha Vantage "
+                "fallback should cover. Investigate if this persists across days.",
+            )
+    except Exception as e:
+        print(f"[data_check] market-open data check failed: {e}")
+
+
 def start_scheduler() -> AsyncIOScheduler:
     global _scheduler
     _load_seen_headlines()
@@ -1558,6 +1613,10 @@ def start_scheduler() -> AsyncIOScheduler:
     _scheduler.add_job(_fj_session_refresh_cycle, trigger="cron", hour="5,17", minute=30, id="fj_session_refresh", replace_existing=True, misfire_grace_time=3600)
     # Market pulse — direction summary at London open (10:00), NY open (14:00), NY close (20:00) UTC.
     _scheduler.add_job(_market_pulse_cycle, trigger="cron", hour="10,14,20", minute=0, id="market_pulse", replace_existing=True, misfire_grace_time=600)
+    # Phase 2 data-layer health check — 30 min after NYSE open (10:00 ET, DST-safe),
+    # verifies the context layers fetched live data; holiday-aware (skips when closed).
+    _scheduler.add_job(_market_open_data_check, trigger="cron", day_of_week="mon-fri", hour=10, minute=0,
+                       timezone=_ny_tz, id="market_open_data_check", replace_existing=True, misfire_grace_time=1800)
     # Weekly mistake autopsy — every Monday 09:00 UTC
     _scheduler.add_job(_weekly_mistake_autopsy, trigger="cron", day_of_week="mon", hour=9, minute=0, id="weekly_autopsy", replace_existing=True, misfire_grace_time=3600)
     # Weekly model comparison — every Sunday 20:00 UTC
