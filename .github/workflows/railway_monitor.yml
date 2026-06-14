@@ -2,7 +2,7 @@ name: Railway System Monitor
 
 on:
   schedule:
-    - cron: '*/15 6-22 * * 1-5'   # every 15 min, Mon-Fri 06:00-22:00 UTC
+    - cron: '*/5 * * * *'   # every 5 min, 24/7 including weekends
   workflow_dispatch:
 
 jobs:
@@ -20,17 +20,21 @@ jobs:
           ref: data
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Probe Railway endpoints
+      - name: Probe Railway + alert if down
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         run: |
           python3 - <<'EOF'
-          import json, os, subprocess
+          import json, os, time
           from datetime import datetime, timezone
           from urllib.request import urlopen, Request
           from urllib.error import URLError, HTTPError
 
-          BASE = "https://blank-app-production-a8bd.up.railway.app"
+          BASE   = "https://blank-app-production-a8bd.up.railway.app"
           SECRET = "gold2026"
-          NOW = datetime.now(timezone.utc).isoformat()
+          CHAT   = "966897595"
+          TOKEN  = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+          NOW    = datetime.now(timezone.utc)
 
           def probe(path, timeout=12):
               url = f"{BASE}{path}"
@@ -50,33 +54,71 @@ jobs:
               except Exception as e:
                   return 0, {"error": str(e)}
 
-          health_status, health_data   = probe("/health")
-          dash_status,   dash_data     = probe(f"/dashboard?secret={SECRET}")
-          weights_status, weights_data = probe(f"/weights?secret={SECRET}")
+          def send_telegram(text):
+              if not TOKEN:
+                  print("[monitor] TELEGRAM_BOT_TOKEN not set — skipping alert")
+                  return
+              import urllib.parse, urllib.request
+              url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
+              data = urllib.parse.urlencode({
+                  "chat_id": CHAT,
+                  "text": text,
+                  "parse_mode": "HTML",
+              }).encode()
+              try:
+                  urllib.request.urlopen(url, data=data, timeout=10)
+                  print("[monitor] Telegram alert sent")
+              except Exception as e:
+                  print(f"[monitor] Telegram send failed: {e}")
+
+          health_status, health_data = probe("/health")
+          overall = "ok" if health_status == 200 else "down"
+
+          # Load previous status to avoid repeat alerts
+          prev_file = "data/railway_status.json"
+          prev_status = "ok"
+          try:
+              with open(prev_file) as f:
+                  prev = json.load(f)
+                  prev_status = prev.get("overall", "ok")
+          except Exception:
+              pass
+
+          if overall == "down" and prev_status != "down":
+              # Service just went down — send alert
+              ts = NOW.strftime("%H:%M UTC %d %b %Y")
+              err = health_data.get("error", f"HTTP {health_status}")
+              msg = (
+                  f"🚨 <b>RAILWAY SERVICE DOWN</b>\n"
+                  f"━━━━━━━━━━━━━━━━━━━━\n"
+                  f"⏰ Detected: {ts}\n"
+                  f"❌ Error: {err}\n\n"
+                  f"Action: Redeploy at railway.app"
+              )
+              send_telegram(msg)
+
+          elif overall == "ok" and prev_status == "down":
+              # Service recovered — send recovery alert
+              ts = NOW.strftime("%H:%M UTC %d %b %Y")
+              msg = (
+                  f"✅ <b>RAILWAY SERVICE RECOVERED</b>\n"
+                  f"━━━━━━━━━━━━━━━━━━━━\n"
+                  f"⏰ Recovered: {ts}\n"
+                  f"Service is back online."
+              )
+              send_telegram(msg)
 
           status = {
-              "checked_at": NOW,
-              "health": {
-                  "status_code": health_status,
-                  "data": health_data,
-              },
-              "dashboard": {
-                  "status_code": dash_status,
-                  "data": dash_data,
-              },
-              "weights": {
-                  "status_code": weights_status,
-                  "data": weights_data,
-              },
-              "overall": "ok" if health_status == 200 else "degraded",
+              "checked_at": NOW.isoformat(),
+              "health": {"status_code": health_status, "data": health_data},
+              "overall": overall,
           }
 
           os.makedirs("data", exist_ok=True)
-          with open("data/railway_status.json", "w") as f:
+          with open(prev_file, "w") as f:
               json.dump(status, f, indent=2)
 
-          print(f"[monitor] health={health_status} dash={dash_status} weights={weights_status}")
-          print(f"[monitor] overall={status['overall']}")
+          print(f"[monitor] health={health_status} overall={overall} prev={prev_status}")
           EOF
 
       - name: Commit status snapshot
@@ -84,5 +126,5 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/railway_status.json
-          git diff --cached --quiet || git commit -m "chore: railway status snapshot $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git diff --cached --quiet || git commit -m "chore: railway status $(date -u +'%Y-%m-%d %H:%M UTC')"
           git push
