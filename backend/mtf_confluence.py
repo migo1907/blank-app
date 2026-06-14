@@ -61,11 +61,10 @@ def compute_mtf(asset_key: str) -> dict:
     ticker = MTF_ASSETS.get(asset_key, asset_key)
     votes = {"h1": 0, "h4": 0, "d1": 0}
     try:
-        import yfinance as yf
-        import pandas as pd
+        from market_data import fetch_intraday, fetch_daily
 
-        h1 = yf.Ticker(ticker).history(period="60d", interval="1h")
-        d1 = yf.Ticker(ticker).history(period="1y", interval="1d")
+        h1 = fetch_intraday(ticker, interval="1h", period="60d")
+        d1 = fetch_daily(ticker, period="1y")   # yfinance → Stooq fallback
 
         if len(h1):
             c1 = h1["Close"].to_numpy(dtype=float)

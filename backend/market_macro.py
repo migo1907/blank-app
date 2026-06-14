@@ -259,9 +259,9 @@ def _vix_context() -> dict:
     out = {"vix": None, "vix3m": None, "ratio": None,
            "regime": "UNKNOWN", "size_factor": 1.0, "backwardation": False}
     try:
-        import yfinance as yf
-        vix   = yf.Ticker("^VIX").history(period="5d")
-        vix3m = yf.Ticker("^VIX3M").history(period="5d")
+        from market_data import fetch_daily
+        vix   = fetch_daily("^VIX", period="5d")     # yfinance → Stooq fallback
+        vix3m = fetch_daily("^VIX3M", period="5d")
         if not len(vix):
             return out
         v = float(vix["Close"].iloc[-1])
@@ -297,11 +297,12 @@ def _dxy_break() -> dict:
     """
     out = {"direction": "NONE", "strength": 0.0, "level": None}
     try:
-        import yfinance as yf
-        # 'DX-Y.NYB' is the ICE Dollar Index on yfinance; fall back to UUP ETF proxy.
-        df = yf.Ticker("DX-Y.NYB").history(period="40d")
+        from market_data import fetch_daily
+        # 'DX-Y.NYB' is the ICE Dollar Index (yfinance → Stooq ^dxy fallback);
+        # UUP ETF is a secondary proxy if the index is unavailable.
+        df = fetch_daily("DX-Y.NYB", period="40d")
         if len(df) < 22:
-            df = yf.Ticker("UUP").history(period="40d")
+            df = fetch_daily("UUP", period="40d")
         if len(df) < 22:
             return out
         close = df["Close"].to_numpy(dtype=float)

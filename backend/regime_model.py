@@ -239,11 +239,17 @@ def _heuristic_regime(close: np.ndarray, high: np.ndarray, low: np.ndarray) -> d
 
 
 def compute_regime(asset_key: str) -> dict:
-    """Fetch OHLC, fit the HMM, return the current probabilistic regime."""
+    """Fetch OHLC, fit the HMM, return the current probabilistic regime.
+    Primary: 1h bars (yfinance). Fallback: daily bars (yfinance → Stooq) when
+    intraday is unavailable — daily regime is a valid, slower read."""
     ticker = REGIME_ASSETS.get(asset_key, asset_key)
     try:
-        import yfinance as yf
-        df = yf.Ticker(ticker).history(period=_PERIOD, interval=_INTERVAL)
+        from market_data import fetch_intraday, fetch_daily
+        df = fetch_intraday(ticker, interval=_INTERVAL, period=_PERIOD)
+        if df is None or len(df) < 60:
+            df = fetch_daily(ticker, period="2y")   # Stooq-backed daily fallback
+        if df is None or not len(df):
+            raise RuntimeError("no OHLC from yfinance or Stooq")
         close = df["Close"].to_numpy(dtype=float)
         high  = df["High"].to_numpy(dtype=float)
         low   = df["Low"].to_numpy(dtype=float)
