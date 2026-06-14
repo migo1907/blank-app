@@ -1120,6 +1120,24 @@ async def _weekly_mistake_autopsy() -> None:
         except Exception as _se:
             print(f"[autopsy] SHAP section failed: {_se}")
 
+        # Swing addon — accumulation + win-rate sanity (no tuning before ≥50 closed).
+        try:
+            from swing_tracker import stats as _swing_stats, sanity_flag as _swing_flag
+            sm = await asyncio.to_thread(_swing_stats)
+            wr = f"{sm['win_rate']:.0%}" if sm.get("win_rate") is not None else "—"
+            lines.append(
+                f"\n📈 *Swing data:* {sm['n_closed']} closed ({sm['n_wins']}W/{sm['n_losses']}L, "
+                f"win-rate {wr}), {sm['n_open']} open · "
+                + ("ML ready ✅" if sm.get("ready") else f"accumulating ({sm['n_closed']}/50)")
+            )
+            flag = _swing_flag(sm)
+            if flag:
+                lines.append(f"  ⚠️ {flag}")
+            else:
+                lines.append("  ✅ within normal range — do NOT tune exit rule / watchlist on noise")
+        except Exception as _swe:
+            print(f"[autopsy] swing section failed: {_swe}")
+
         from telegram_bot import send_text
         await send_text("\n".join(lines))
         print("[autopsy] Weekly autopsy sent.")
@@ -1185,6 +1203,17 @@ async def _weekly_model_comparison() -> None:
                 winner = max(avgs, key=avgs.get)
                 results.append(f"  `{pool}`: winner=*{winner}* "
                                 + " ".join(f"{k}={v:.2f}" for k, v in sorted(avgs.items())))
+
+        # Swing addon — shadow comparison: ML candidate vs rules baseline (does NOT
+        # drive live scoring; promote only after it beats the baseline on live data).
+        try:
+            from swing_tracker import shadow_eval
+            se = await asyncio.to_thread(shadow_eval)
+            results.append(f"\n📈 *Swing shadow:* {se.get('verdict','—')}")
+            if se.get("baseline_f1") is not None:
+                results.append(f"  rules_f1={se['baseline_f1']:.2f} ml_f1={se['ml_f1']:.2f}")
+        except Exception as _swe:
+            print(f"[model_compare] swing shadow failed: {_swe}")
 
         if len(results) > 1:
             from telegram_bot import send_text

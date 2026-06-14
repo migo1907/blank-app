@@ -266,3 +266,63 @@ def stats() -> dict:
     """Lightweight training-readiness summary for the /swing/trades endpoint."""
     _, _, meta = training_dataset()
     return meta
+
+
+def sanity_flag(meta: dict) -> str | None:
+    """
+    Return a human-readable warning if the win-rate looks pathological — the
+    signal that the rules-based score or exit rule has a real bug worth a look
+    (vs. normal noise). None when nothing's off. Mirrors the autopsy discipline:
+    only flag the extremes, don't invite tuning on noise.
+    """
+    n, wr = meta.get("n_closed", 0), meta.get("win_rate")
+    if n < 20 or wr is None:
+        return None
+    if wr < 0.25:
+        return f"win-rate {wr:.0%} over {n} trades — abnormally low, investigate exit rule / technical score"
+    if wr > 0.75:
+        return f"win-rate {wr:.0%} over {n} trades — abnormally high, verify labels aren't leaking"
+    return None
+
+
+def shadow_eval() -> dict:
+    """
+    Once enough closed trades exist, walk-forward compare the ML ensemble candidate
+    against the rules baseline (combined_score > 0 ⇒ WIN). Pure shadow — does NOT
+    drive live scoring. Returns {ready, baseline_f1, ml_f1, verdict, ...}.
+    """
+    X, y, meta = training_dataset()
+    out = {"ready": meta["ready"], "n_closed": meta["n_closed"], "win_rate": meta["win_rate"]}
+    if meta["n_closed"] < 50 or len(set(y)) < 2:
+        out["verdict"] = "accumulating — not enough closed trades to evaluate ML yet"
+        return out
+    try:
+        import numpy as np
+        from sklearn.ensemble import RandomForestClassifier
+        from sklearn.model_selection import TimeSeriesSplit
+        from sklearn.metrics import f1_score
+
+        Xa, ya = np.array(X, dtype=float), np.array(y)
+        ci = FEATURE_KEYS.index("combined_score")
+        tscv = TimeSeriesSplit(n_splits=3, gap=2)
+        base_f1, ml_f1 = [], []
+        for tr, val in tscv.split(Xa):
+            if len(tr) < 20 or len(set(ya[tr].tolist())) < 2:
+                continue
+            base_pred = (Xa[val, ci] > 0).astype(int)
+            base_f1.append(f1_score(ya[val], base_pred, zero_division=0))
+            clf = RandomForestClassifier(n_estimators=100, max_depth=4, random_state=42)
+            clf.fit(Xa[tr], ya[tr])
+            ml_f1.append(f1_score(ya[val], clf.predict(Xa[val]), zero_division=0))
+        if not base_f1:
+            out["verdict"] = "insufficient class balance for walk-forward eval"
+            return out
+        b, m = round(float(np.mean(base_f1)), 3), round(float(np.mean(ml_f1)), 3)
+        out["baseline_f1"], out["ml_f1"] = b, m
+        if m > b + 0.03:
+            out["verdict"] = f"ML beats rules baseline ({m} vs {b}) — candidate to promote after a shadow period"
+        else:
+            out["verdict"] = f"ML not yet beating rules baseline ({m} vs {b}) — keep rules-based"
+    except Exception as e:
+        out["verdict"] = f"shadow eval error: {e}"
+    return out
