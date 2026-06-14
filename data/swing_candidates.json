@@ -2,9 +2,10 @@
   "candidates": [
     {
       "ticker": "LLY",
-      "combined_score": 0.754,
+      "combined_score": 0.789,
       "fundamental": {
         "ticker": "LLY",
+        "archetype": "healthcare",
         "earnings": {
           "next_days": 52,
           "last_surprise_pct": 25.9,
@@ -30,19 +31,51 @@
         "short": {
           "short_pct_float": 1.1
         },
+        "advanced": {
+          "piotroski_f": 7,
+          "altman_z": 7.25,
+          "rule_of_40": null,
+          "fcf_yield_pct": 0.91,
+          "peg": 1.52,
+          "roe_pct": 107.5,
+          "roa_pct": 20.7,
+          "price_to_book": 32.45,
+          "pe_ratio": 40.3,
+          "forward_pe": 25.5
+        },
+        "earnings_call": {
+          "reported": false,
+          "date": null,
+          "days_ago": null,
+          "surprise_pct": null,
+          "rev_beat_pct": null,
+          "guidance": "none",
+          "buyback": false,
+          "dividend_raise": false,
+          "tone": 0.0,
+          "note": "",
+          "score_delta": 0.0,
+          "updated_at": "2026-06-14T14:27:57.799011+00:00"
+        },
         "news": {
-          "news_7d": 168,
+          "news_7d": 169,
           "headlines": [
+            "3 Reasons to Buy Eli Lilly Stock Like There's No Tomorrow",
             "Middle-aged adults taking GLP-1s for obesity can save over $192K on lifetime medical costs, higher if they don\u2019t have co",
             "Lilly's Jaypirca (pirtobrutinib) significantly reduced the risk of disease progression or death by 45% when added to a v",
             "Eli Lilly: The Macro Health Crisis Is Still Undervalued",
-            "Is Eli Lilly (LLY) One Of The Most Profitable Blue Chip Stocks To Buy According To Hedge Funds?",
-            "Lilly to present initial clinical data for first-in-class type II JAK2 inhibitor in patients with previously treated mye"
+            "Is Eli Lilly (LLY) One Of The Most Profitable Blue Chip Stocks To Buy According To Hedge Funds?"
           ],
           "sentiment": 0.0
         },
-        "score": 0.553,
-        "updated_at": "2026-06-14T13:36:47.994138+00:00"
+        "edgar_insider": {
+          "form4_count": 14
+        },
+        "rss_news": {
+          "rss_news_7d": 3
+        },
+        "score": 0.616,
+        "updated_at": "2026-06-14T14:27:54.424328+00:00"
       },
       "technical": {
         "score": 1.0,
@@ -55,13 +88,14 @@
         "t1": 1214.36,
         "t2": 1255.04
       },
-      "updated_at": "2026-06-14T13:36:48.801769+00:00"
+      "updated_at": "2026-06-14T14:28:01.499218+00:00"
     },
     {
       "ticker": "AMD",
-      "combined_score": 0.653,
+      "combined_score": 0.706,
       "fundamental": {
         "ticker": "AMD",
+        "archetype": "growth_tech",
         "earnings": {
           "next_days": 51,
           "last_surprise_pct": 5.82,
@@ -87,6 +121,32 @@
         "short": {
           "short_pct_float": 2.7
         },
+        "advanced": {
+          "piotroski_f": 8,
+          "altman_z": 10.15,
+          "rule_of_40": 57.0,
+          "fcf_yield_pct": 0.86,
+          "peg": 1.23,
+          "roe_pct": 8.1,
+          "roa_pct": 3.6,
+          "price_to_book": 12.94,
+          "pe_ratio": 169.4,
+          "forward_pe": 39.0
+        },
+        "earnings_call": {
+          "reported": false,
+          "date": null,
+          "days_ago": null,
+          "surprise_pct": null,
+          "rev_beat_pct": null,
+          "guidance": "none",
+          "buyback": false,
+          "dividend_raise": false,
+          "tone": 0.0,
+          "note": "",
+          "score_delta": 0.0,
+          "updated_at": "2026-06-14T14:30:08.032300+00:00"
+        },
         "news": {
           "news_7d": 247,
           "headlines": [
@@ -98,8 +158,14 @@
           ],
           "sentiment": 0.0
         },
-        "score": 0.37,
-        "updated_at": "2026-06-14T13:37:00.696798+00:00"
+        "edgar_insider": {
+          "form4_count": 20
+        },
+        "rss_news": {
+          "rss_news_7d": 0
+        },
+        "score": 0.466,
+        "updated_at": "2026-06-14T14:30:04.444142+00:00"
       },
       "technical": {
         "score": 1.0,
@@ -112,70 +178,14 @@
         "t1": 581.69,
         "t2": 616.75
       },
-      "updated_at": "2026-06-14T13:37:01.197711+00:00"
-    },
-    {
-      "ticker": "IBM",
-      "combined_score": 0.643,
-      "fundamental": {
-        "ticker": "IBM",
-        "earnings": {
-          "next_days": 38,
-          "last_surprise_pct": 5.45,
-          "imminent": false
-        },
-        "analyst": {
-          "recommendation": "buy",
-          "target_upside_pct": 6.52,
-          "num_analysts": 21
-        },
-        "insider": {
-          "net_buy_signal": 1.0,
-          "buy_count": 3,
-          "sell_count": 0
-        },
-        "institutional": {
-          "inst_held_pct": 65.6
-        },
-        "growth": {
-          "revenue_growth_pct": 9.5,
-          "earnings_growth_pct": 14.2
-        },
-        "short": {
-          "short_pct_float": 3.6
-        },
-        "news": {
-          "news_7d": 87,
-          "headlines": [
-            "Analyst Lifts IBM Price Target by $15. Here is Why",
-            "Congresswoman Who Bought No Stocks In 2025 Is Back With More 2026 Trades: Here's The Shopping List",
-            "ServiceNow IBM AI Alliance Targets Legacy Bottlenecks And Valuation Expectations",
-            "Should IBM\u2019s US$10 Billion Quantum and AI Expansion Require Action From International Business Machines (IBM) Investors?",
-            "Is the Turnaround at IBM Stock Finally Here to Stay?"
-          ],
-          "sentiment": 0.0
-        },
-        "score": 0.351,
-        "updated_at": "2026-06-14T13:37:14.454596+00:00"
-      },
-      "technical": {
-        "score": 1.0,
-        "rsi": 56.4,
-        "trend": "BULL",
-        "rel_strength_pct": 19.3,
-        "entry": 272.24,
-        "atr": 16.52,
-        "stop": 255.72,
-        "t1": 305.27,
-        "t2": 321.79
-      },
-      "updated_at": "2026-06-14T13:37:15.090924+00:00"
+      "updated_at": "2026-06-14T14:30:11.281079+00:00"
     },
     {
       "ticker": "GE",
-      "combined_score": 0.583,
+      "combined_score": 0.642,
       "fundamental": {
         "ticker": "GE",
+        "archetype": "industrial",
         "earnings": {
           "next_days": 32,
           "last_surprise_pct": 16.31,
@@ -201,6 +211,32 @@
         "short": {
           "short_pct_float": 1.3
         },
+        "advanced": {
+          "piotroski_f": 6,
+          "altman_z": 3.47,
+          "rule_of_40": null,
+          "fcf_yield_pct": 1.62,
+          "peg": 8.07,
+          "roe_pct": 45.4,
+          "roa_pct": 4.9,
+          "price_to_book": 18.83,
+          "pe_ratio": 41.7,
+          "forward_pe": 38.6
+        },
+        "earnings_call": {
+          "reported": false,
+          "date": null,
+          "days_ago": null,
+          "surprise_pct": null,
+          "rev_beat_pct": null,
+          "guidance": "none",
+          "buyback": false,
+          "dividend_raise": false,
+          "tone": 0.0,
+          "note": "",
+          "score_delta": 0.0,
+          "updated_at": "2026-06-14T14:31:15.514941+00:00"
+        },
         "news": {
           "news_7d": 43,
           "headlines": [
@@ -212,8 +248,14 @@
           ],
           "sentiment": 0.0
         },
-        "score": 0.401,
-        "updated_at": "2026-06-14T13:37:07.149408+00:00"
+        "edgar_insider": {
+          "form4_count": 17
+        },
+        "rss_news": {
+          "rss_news_7d": 27
+        },
+        "score": 0.507,
+        "updated_at": "2026-06-14T14:31:12.110313+00:00"
       },
       "technical": {
         "score": 0.806,
@@ -226,13 +268,104 @@
         "t1": 356.5,
         "t2": 367.1
       },
-      "updated_at": "2026-06-14T13:37:07.950737+00:00"
+      "updated_at": "2026-06-14T14:31:19.191367+00:00"
+    },
+    {
+      "ticker": "IBM",
+      "combined_score": 0.636,
+      "fundamental": {
+        "ticker": "IBM",
+        "archetype": "growth_tech",
+        "earnings": {
+          "next_days": 38,
+          "last_surprise_pct": 5.45,
+          "imminent": false
+        },
+        "analyst": {
+          "recommendation": "buy",
+          "target_upside_pct": 6.52,
+          "num_analysts": 21
+        },
+        "insider": {
+          "net_buy_signal": 1.0,
+          "buy_count": 3,
+          "sell_count": 0
+        },
+        "institutional": {
+          "inst_held_pct": 65.6
+        },
+        "growth": {
+          "revenue_growth_pct": 9.5,
+          "earnings_growth_pct": 14.2
+        },
+        "short": {
+          "short_pct_float": 3.6
+        },
+        "advanced": {
+          "piotroski_f": 7,
+          "altman_z": 7.35,
+          "rule_of_40": 28.5,
+          "fcf_yield_pct": 5.11,
+          "peg": 2.54,
+          "roe_pct": 35.8,
+          "roa_pct": 5.4,
+          "price_to_book": 7.76,
+          "pe_ratio": 24.1,
+          "forward_pe": 20.3
+        },
+        "earnings_call": {
+          "reported": false,
+          "date": null,
+          "days_ago": null,
+          "surprise_pct": null,
+          "rev_beat_pct": null,
+          "guidance": "none",
+          "buyback": false,
+          "dividend_raise": false,
+          "tone": 0.0,
+          "note": "",
+          "score_delta": 0.0,
+          "updated_at": "2026-06-14T14:32:26.126890+00:00"
+        },
+        "news": {
+          "news_7d": 87,
+          "headlines": [
+            "Analyst Lifts IBM Price Target by $15. Here is Why",
+            "Congresswoman Who Bought No Stocks In 2025 Is Back With More 2026 Trades: Here's The Shopping List",
+            "ServiceNow IBM AI Alliance Targets Legacy Bottlenecks And Valuation Expectations",
+            "Should IBM\u2019s US$10 Billion Quantum and AI Expansion Require Action From International Business Machines (IBM) Investors?",
+            "Is the Turnaround at IBM Stock Finally Here to Stay?"
+          ],
+          "sentiment": 0.0
+        },
+        "edgar_insider": {
+          "form4_count": 14
+        },
+        "rss_news": {
+          "rss_news_7d": 0
+        },
+        "score": 0.339,
+        "updated_at": "2026-06-14T14:32:22.557050+00:00"
+      },
+      "technical": {
+        "score": 1.0,
+        "rsi": 56.4,
+        "trend": "BULL",
+        "rel_strength_pct": 19.3,
+        "entry": 272.24,
+        "atr": 16.52,
+        "stop": 255.72,
+        "t1": 305.27,
+        "t2": 321.79
+      },
+      "updated_at": "2026-06-14T14:32:29.288955+00:00"
     },
     {
       "ticker": "CAT",
-      "combined_score": 0.498,
+      "combined_score": 0.424,
       "fundamental": {
         "ticker": "CAT",
+        "archetype": "industrial",
         "earnings": {
           "next_days": 51,
           "last_surprise_pct": 19.3,
@@ -258,6 +391,32 @@
         "short": {
           "short_pct_float": 2.0
         },
+        "advanced": {
+          "piotroski_f": 6,
+          "altman_z": 5.47,
+          "rule_of_40": null,
+          "fcf_yield_pct": 0.9,
+          "peg": 2.16,
+          "roe_pct": 51.3,
+          "roa_pct": 8.5,
+          "price_to_book": 22.48,
+          "pe_ratio": 45.3,
+          "forward_pe": 30.3
+        },
+        "earnings_call": {
+          "reported": false,
+          "date": null,
+          "days_ago": null,
+          "surprise_pct": null,
+          "rev_beat_pct": null,
+          "guidance": "none",
+          "buyback": false,
+          "dividend_raise": false,
+          "tone": 0.0,
+          "note": "",
+          "score_delta": 0.0,
+          "updated_at": "2026-06-14T14:32:09.867711+00:00"
+        },
         "news": {
           "news_7d": 59,
           "headlines": [
@@ -269,8 +428,14 @@
           ],
           "sentiment": 0.0
         },
-        "score": 0.445,
-        "updated_at": "2026-06-14T13:37:13.067121+00:00"
+        "edgar_insider": {
+          "form4_count": 29
+        },
+        "rss_news": {
+          "rss_news_7d": 14
+        },
+        "score": 0.311,
+        "updated_at": "2026-06-14T14:32:06.425458+00:00"
       },
       "technical": {
         "score": 0.563,
@@ -283,10 +448,10 @@
         "t1": 981.69,
         "t2": 1017.26
       },
-      "updated_at": "2026-06-14T13:37:13.747608+00:00"
+      "updated_at": "2026-06-14T14:32:13.230282+00:00"
     }
   ],
   "scanned": 50,
   "top_n": 5,
-  "updated_at": "2026-06-14T13:37:15.090950+00:00"
+  "updated_at": "2026-06-14T14:32:29.289008+00:00"
 }
