@@ -282,6 +282,14 @@ async def _news_signal_cycle() -> None:
             _latest_velocity = velocity
             _latest_event    = event
 
+        # Phase 2D — refresh post-event volatility state (cheap calendar check
+        # first; only fetches price reactions when a high-impact event just fired)
+        try:
+            from post_event import refresh_post_event
+            await asyncio.to_thread(refresh_post_event)
+        except Exception as _pe:
+            print(f"[scheduler] post-event refresh failed: {_pe}")
+
         from market_macro import get_macro_bias, get_equity_macro_bias
         _gold_macro   = get_macro_bias()
         _equity_macro = get_equity_macro_bias()

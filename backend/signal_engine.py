@@ -691,6 +691,39 @@ def _mtf_confluence_multiplier(pool: str, direction: str) -> tuple[float, str]:
     return round(mult, 3), f"mtf:{aligned}/3{'⚠' if aligned < 2 else ''}"
 
 
+# ── Phase 2D: post-event volatility modulator ─────────────────────────────────
+def _post_event_multiplier(pool: str, direction: str) -> tuple[float, str]:
+    """
+    Bounded modulator for the window after a high-impact print (post_event):
+      • SETTLING — de-risk hard regardless of direction (initial whipsaw).
+      • BREAKOUT — follow the established move (boost with-move, dampen against).
+      • FADE     — spike reverting: reward fading it, dampen chasing it.
+    Neutral (1.0) when no event is live. Never blocks.
+    """
+    try:
+        from post_event import get_post_event_for_pool
+        st = get_post_event_for_pool(pool)
+    except Exception:
+        return 1.0, "evt:na"
+    if not st.get("active"):
+        return 1.0, "evt:na"
+
+    phase = st.get("phase", "SETTLING")
+    move_dir = st.get("move_dir", 0)
+    sig_dir = 1 if direction == "LONG" else -1
+
+    if phase == "SETTLING":
+        return round(float(st.get("size_factor", 0.70)), 3), f"evt:{st.get('event_type','')}-SETTLING"
+    if phase == "BREAKOUT":
+        mult = 1.05 if sig_dir == move_dir else 0.88
+        return round(mult, 3), f"evt:{st.get('event_type','')}-BREAKOUT{'↑' if move_dir>0 else '↓'}"
+    if phase == "FADE":
+        # Fading = trading against the (reverting) move.
+        mult = 1.03 if sig_dir != move_dir else 0.93
+        return round(mult, 3), f"evt:{st.get('event_type','')}-FADE"
+    return 1.0, "evt:na"
+
+
 # ── Trigger quality scoring ───────────────────────────────────────────────────
 def _trigger_quality_multiplier(history: list[dict], trigger: str) -> float:
     if not history or not trigger:
@@ -954,6 +987,7 @@ def generate_signal(
     hmm_mult, hmm_label = _hmm_regime_multiplier(pool, direction_raw)
     imkt_mult, imkt_label = _intermarket_multiplier(macro_bias, direction_raw, is_stock)
     mtf_mult, mtf_label = _mtf_confluence_multiplier(pool, direction_raw)
+    evt_mult, evt_label = _post_event_multiplier(pool, direction_raw)
 
     confidence = (
         abs(combined_score)
@@ -968,6 +1002,7 @@ def generate_signal(
         * hmm_mult
         * imkt_mult
         * mtf_mult
+        * evt_mult
     )
 
     confidence = min(1.0, confidence)  # multipliers can compound above 1.0 — clamp to valid range
@@ -989,6 +1024,7 @@ def generate_signal(
         f"{hmm_label}×{hmm_mult:.2f} | "
         f"{imkt_label}×{imkt_mult:.2f} | "
         f"{mtf_label}×{mtf_mult:.2f} | "
+        f"{evt_label}×{evt_mult:.2f} | "
         f"sess:{session_name}×{sess_mult:.2f} | "
         f"confluence×{confluence_mult:.2f} | "
         f"cluster×{cluster_mult:.2f} | "
@@ -1022,6 +1058,7 @@ def generate_signal(
         "hmm_regime":     hmm_label,
         "intermarket":    imkt_label,
         "mtf_confluence": mtf_label,
+        "post_event":     evt_label,
         "reasoning":      reasoning,
         "status":         "ACTIVE",
         "expires_at":     (now + timedelta(minutes=30)).isoformat(),

@@ -447,6 +447,13 @@ async def health():
         mtf = {}
 
     try:
+        from post_event import get_post_event, POST_EVENT_ASSETS
+        post_evt = {a: get_post_event(a) for a in POST_EVENT_ASSETS}
+        post_evt = {k: v for k, v in post_evt.items() if v.get("active")}
+    except Exception:
+        post_evt = {}
+
+    try:
         from market_macro import get_macro_bias, get_equity_macro_bias
         intermarket = {
             "vix":       (get_equity_macro_bias() or {}).get("vix"),
@@ -463,6 +470,7 @@ async def health():
         "directive":   directive,
         "regimes":     regimes,
         "mtf":         mtf,
+        "post_event":  post_evt,
         "intermarket": intermarket,
     }
 
