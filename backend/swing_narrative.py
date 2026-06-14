@@ -58,7 +58,28 @@ def _facts(cand: dict) -> list[str]:
     if sh.get("short_pct_float") is not None and sh["short_pct_float"] >= 10:
         lines.append(f"High short interest {sh['short_pct_float']:.1f}% of float (squeeze potential)")
     if nw.get("news_7d"):
-        lines.append(f"{nw['news_7d']} news items in last 7d")
+        lines.append(f"{nw['news_7d']} news items in last 7d (Finnhub)")
+    # Finviz supplemental
+    fv = cand.get("fundamental", {}).get("finviz", {})
+    if fv.get("forward_pe") is not None:
+        lines.append(f"Forward P/E {fv['forward_pe']:.1f}")
+    if fv.get("eps_growth_next_year_pct") is not None:
+        lines.append(f"EPS growth next year {fv['eps_growth_next_year_pct']:+.1f}%")
+    if fv.get("debt_equity") is not None:
+        lines.append(f"Debt/Equity {fv['debt_equity']:.2f}")
+    if fv.get("perf_week_pct") is not None:
+        lines.append(f"1-week performance {fv['perf_week_pct']:+.1f}%")
+    if fv.get("perf_month_pct") is not None:
+        lines.append(f"1-month performance {fv['perf_month_pct']:+.1f}%")
+    # EDGAR insider confirmation
+    ed = cand.get("fundamental", {}).get("edgar_insider", {})
+    if ed.get("form4_total", 0) >= 3:
+        side = "buying" if ed.get("form4_buys", 0) > ed.get("form4_sells", 0) else "selling"
+        lines.append(f"SEC Form 4 filings (90d): {ed['form4_buys']}B/{ed['form4_sells']}S — insiders {side}")
+    # RSS news volume
+    rss = cand.get("fundamental", {}).get("rss_news", {})
+    if rss.get("rss_news_7d", 0) > 0:
+        lines.append(f"{rss['rss_news_7d']} mentions across CNBC/MarketWatch/Benzinga (7d)")
     return lines
 
 
