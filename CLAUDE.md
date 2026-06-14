@@ -66,6 +66,15 @@ These are permanent agreements — never override, skip, or work around them und
 - Folded into `generate_signal` combined_score at weight 0.20 (gold only, stocks ignore). Surfaced in `health.json` (`macro_bias`, `macro_label`).
 - **Required env keys (set in Railway):** `FRED_API_KEY` (free, fred.stlouisfed.org), `FINNHUB_KEY` (free, finnhub.io). Graceful no-op if absent.
 
+## Swing Trading Addon (separate brain from intraday)
+- **Goal:** swing trades (3–15 day holds) for stocks — Fundamental + news + sentiment "why" fused with a daily-bar technical "when". Backend-only (yfinance/Finnhub/Stooq), NO Pine Script / TradingView involvement.
+- **`fundamental_data.py`** — per-stock free fundamentals: yfinance (earnings date+surprise/drift, analyst consensus+PT upside, insider tx, institutional %, revenue/EPS growth, short %float) + Finnhub company news. Reduces to `score` ∈ [-1,+1].
+- **`swing_screener.py`** — top-50 S&P 500 watchlist (`WATCHLIST`), nightly scan. `combined = 0.55·fundamental + 0.45·technical`, ×0.6 into imminent earnings. Technical score = daily EMA trend + 20d momentum + RSI band + sector relative strength (XL* ETFs). Persisted to `data/swing_candidates.json`. **ML ensemble NOT wired yet** — cold-start, no closed swing trades to train on; rules-based until the swing pool accumulates outcomes (then plugs into `_technical_score`).
+- **`swing_narrative.py`** — Claude Haiku thesis ("why"). **Dormant-by-default:** if `ANTHROPIC_API_KEY` unset → structured bullet summary (no LLM, no failure). Key is ALREADY on Railway (used by news_fetcher + daily_analysis) → prose synthesis active. Model `claude-haiku-4-5-20251001`. ~$0.10/night for 50 stocks.
+- **Telegram:** `send_swing_brief` → `SWING_CHAT_ID` (defaults to main `TELEGRAM_CHAT_ID` until a dedicated swing channel exists — then just set `SWING_CHAT_ID` in Railway, no code change).
+- **Schedule:** nightly `_swing_screen_cycle` at 16:30 ET Mon-Fri (after NYSE close), holiday-aware (skips closed days).
+- **Manual triggers:** `GET /swing/now?secret=gold2026` (rescan+send), `GET /swing/candidates?secret=...` (cached, no scan).
+
 ## News sources
 - **Replaced NewsAPI** (free tier returns HTTP 426 from cloud servers + 24h delay — unusable on Railway) with **Finnhub** news (forex+general, 60 req/min, cloud-friendly). NewsAPI kept as legacy fallback only if `FINNHUB_KEY` unset.
 - **Scheduled-event awareness:** Finnhub economic calendar gives forward NFP/CPI/FOMC warning (imminent = high-impact within 90min) — de-risk BEFORE the print, not after keyword detection.

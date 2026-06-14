@@ -1586,6 +1586,36 @@ async def _market_open_data_check() -> None:
         print(f"[data_check] market-open data check failed: {e}")
 
 
+async def _swing_screen_cycle() -> None:
+    """
+    Nightly swing-trade screen — scans the top-50 S&P 500 watchlist after the
+    close, ranks candidates by fundamental + technical score, and sends the
+    evening swing brief. Backend-only (yfinance/Finnhub); separate from the
+    intraday signal engine. Holiday-aware: skips when NYSE was closed today.
+    """
+    from datetime import datetime, timezone
+    now_utc = datetime.now(timezone.utc)
+    try:
+        from market_calendar import is_nyse_open
+        # Screen only on trading days. At 16:30 ET the market just closed, so
+        # is_nyse_open(now) is False — probe midday (14:00 UTC ≈ open) instead.
+        probe = now_utc.replace(hour=15, minute=0, second=0, microsecond=0)
+        if not is_nyse_open(probe):
+            print("[swing] NYSE closed today — skipping nightly screen.")
+            return
+    except Exception:
+        if now_utc.weekday() >= 5:
+            return
+
+    try:
+        from swing_screener import run_screen
+        from telegram_bot import send_swing_brief
+        screen = await asyncio.to_thread(run_screen, 5)
+        await send_swing_brief(screen)
+    except Exception as e:
+        print(f"[swing] nightly screen cycle failed: {e}")
+
+
 def start_scheduler() -> AsyncIOScheduler:
     global _scheduler
     _load_seen_headlines()
@@ -1617,6 +1647,10 @@ def start_scheduler() -> AsyncIOScheduler:
     # verifies the context layers fetched live data; holiday-aware (skips when closed).
     _scheduler.add_job(_market_open_data_check, trigger="cron", day_of_week="mon-fri", hour=10, minute=0,
                        timezone=_ny_tz, id="market_open_data_check", replace_existing=True, misfire_grace_time=1800)
+    # Swing addon — nightly screen + brief at 16:30 ET (after the NYSE close),
+    # Mon-Fri, holiday-aware inside the cycle. Top-50 S&P 500 watchlist.
+    _scheduler.add_job(_swing_screen_cycle, trigger="cron", day_of_week="mon-fri", hour=16, minute=30,
+                       timezone=_ny_tz, id="swing_screen", replace_existing=True, misfire_grace_time=3600)
     # Weekly mistake autopsy — every Monday 09:00 UTC
     _scheduler.add_job(_weekly_mistake_autopsy, trigger="cron", day_of_week="mon", hour=9, minute=0, id="weekly_autopsy", replace_existing=True, misfire_grace_time=3600)
     # Weekly model comparison — every Sunday 20:00 UTC

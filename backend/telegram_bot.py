@@ -15,6 +15,9 @@ load_dotenv()
 TOKEN           = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 CHAT_ID         = os.environ.get("TELEGRAM_CHAT_ID", "")
 PERSONAL_CHAT_ID = os.environ.get("TELEGRAM_PERSONAL_CHAT_ID", "966897595")
+# Swing brief target — defaults to the main signals channel until a dedicated
+# swing channel is created, then just set SWING_CHAT_ID in Railway (no code change).
+SWING_CHAT_ID   = os.environ.get("SWING_CHAT_ID", "") or CHAT_ID
 
 TRIGGER_NAMES = {
     "RSI":  "RSI Momentum Cross",
@@ -404,3 +407,71 @@ async def send_critical_alert(title: str, detail: str, action: str = "") -> bool
             else:
                 print(f"[critical] Personal alert failed after 3 attempts: {e}")
     return False
+
+
+async def _send_to(chat_id: str, text: str) -> bool:
+    """Generic send to an arbitrary chat id with retry (used by the swing brief)."""
+    if not TOKEN or not chat_id:
+        print("[telegram] TOKEN or target chat id not set — skipping.")
+        return False
+    import asyncio as _asyncio
+    url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
+    for attempt in range(3):
+        try:
+            async with httpx.AsyncClient(timeout=10) as client:
+                resp = await client.post(url, json={
+                    "chat_id":    chat_id,
+                    "text":       text,
+                    "parse_mode": "HTML",
+                })
+                resp.raise_for_status()
+                return True
+        except Exception as e:
+            if attempt < 2:
+                await _asyncio.sleep(1 if attempt == 0 else 3)
+            else:
+                print(f"[telegram] swing send failed after 3 attempts: {e}")
+    return False
+
+
+async def send_swing_brief(screen: dict) -> bool:
+    """
+    Evening swing-trade brief — top candidates with fundamental + technical read
+    and a synthesized 'why'. Sent to SWING_CHAT_ID (defaults to main channel).
+    """
+    cands = (screen or {}).get("candidates", [])
+    if not cands:
+        print("[swing] no candidates to send")
+        return False
+
+    from swing_narrative import synthesize, available as narrative_on
+
+    now = datetime.now(timezone.utc).strftime("%d %b %Y")
+    head = (
+        f"📈 <b>SWING WATCH — Top {len(cands)} Setups</b>\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n"
+        f"<i>Scanned {screen.get('scanned', 0)} S&amp;P 500 names · {now}</i>\n"
+        f"{'🤖 AI thesis' if narrative_on() else '📊 Data thesis'}\n"
+    )
+
+    blocks = [head]
+    for i, c in enumerate(cands, 1):
+        tkr = html.escape(str(c.get("ticker", "?")))
+        score = c.get("combined_score", 0.0)
+        tech = c.get("technical", {})
+        emoji = "🟢" if score >= 0.35 else "🟡" if score >= 0.15 else "⚪"
+        thesis = html.escape(synthesize(c))
+        rsi = tech.get("rsi")
+        blocks.append(
+            f"\n{emoji} <b>{i}. {tkr}</b>  score {score:+.2f}\n"
+            f"<i>{tech.get('trend','—')}"
+            + (f" · RSI {rsi}" if rsi is not None else "")
+            + f"</i>\n{thesis}\n"
+        )
+
+    blocks.append(
+        "\n━━━━━━━━━━━━━━━━━━━━\n"
+        "<i>Swing horizon 3–15 days · not the intraday channel · "
+        "size and confirm at your own entry.</i>"
+    )
+    return await _send_to(SWING_CHAT_ID, "".join(blocks))

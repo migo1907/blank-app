@@ -143,6 +143,10 @@ async def lifespan(app: FastAPI):
     from mtf_confluence import load_mtf
     load_mtf()
 
+    print("[startup] Loading swing candidates from GitHub…")
+    from swing_screener import load_candidates
+    load_candidates()
+
     if not WEBHOOK_SECRET:
         print("[startup] ⚠ WARNING: WEBHOOK_SECRET is not set — all webhook endpoints are open to unauthenticated requests.")
 
@@ -1118,6 +1122,29 @@ async def signal_now(secret: str = ""):
     from scheduler import _news_signal_cycle
     asyncio.create_task(_news_signal_cycle())
     return {"status": "signal cycle triggered"}
+
+
+@app.get("/swing/now")
+async def swing_now(secret: str = ""):
+    """Run the swing screen + brief immediately (ignores the holiday gate)."""
+    _validate_secret(secret)
+
+    async def _run():
+        from swing_screener import run_screen
+        from telegram_bot import send_swing_brief
+        screen = await asyncio.to_thread(run_screen, 5)
+        await send_swing_brief(screen)
+
+    asyncio.create_task(_run())
+    return {"status": "swing screen triggered"}
+
+
+@app.get("/swing/candidates")
+async def swing_candidates(secret: str = ""):
+    """Return the latest cached swing candidates (no rescan)."""
+    _validate_secret(secret)
+    from swing_screener import get_candidates
+    return get_candidates()
 
 
 @app.get("/inspect")
