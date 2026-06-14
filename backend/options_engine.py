@@ -5,8 +5,9 @@ Translates SPY/SPX directional signals into SPX (SPXW daily-expiry) long
 CALL/PUT recommendations. Never sells premium, never builds spreads.
 
 Data sources:
-  • yfinance ^SPX options chain (15-min delayed) — strike selection, expected
-    move, paper-ledger premium baseline.
+  • Options chain (strike selection, expected move, paper-ledger premium):
+    Tradier when TRADIER_TOKEN is set (stable REST, ~15-min delayed sandbox
+    quotes), else yfinance ^SPX (delayed scrape) as automatic fallback.
   • yfinance ^VIX / ^VIX3M — volatility regime gate.
   • Live premiums come from the user's TradingView OPRA subscription: Telegram
     delivers the exact contract symbol; TV premium alerts can route back into
@@ -108,6 +109,15 @@ def iv_rank(current_iv: float) -> float | None:
 # ── Chain access (yfinance, delayed — paper baseline) ─────────────────────────
 
 def _spx_chain(expiry: str):
+    """Spot + option chain. Prefers Tradier (stable REST) when TRADIER_TOKEN is
+    set; falls back to yfinance (delayed scrape). Both return the same shape."""
+    import tradier_data
+    if tradier_data.available():
+        spot = tradier_data.get_spot()
+        chain = tradier_data.get_chain(tradier_data.SPX_SYMBOL, expiry)
+        if spot and chain is not None and (len(chain.calls) or len(chain.puts)):
+            return spot, chain
+        print("[options] Tradier chain empty — falling back to yfinance")
     import yfinance as yf
     tk = yf.Ticker("^SPX")
     spot = float(tk.history(period="1d")["Close"].iloc[-1])
@@ -115,11 +125,22 @@ def _spx_chain(expiry: str):
     return spot, chain
 
 
+def _list_expiries() -> list[str]:
+    """Sorted expiry strings from Tradier when available, else yfinance."""
+    import tradier_data
+    if tradier_data.available():
+        exps = tradier_data.get_expirations()
+        if exps:
+            return exps
+        print("[options] Tradier expiries empty — falling back to yfinance")
+    import yfinance as yf
+    return list(yf.Ticker("^SPX").options or [])
+
+
 def _pick_expiry(now_et: datetime) -> tuple[str, int] | None:
     """0DTE before 13:00 ET, else 1DTE (next listed expiry). Returns (date, dte)."""
     try:
-        import yfinance as yf
-        expiries = yf.Ticker("^SPX").options or []
+        expiries = _list_expiries()
     except Exception as e:
         print(f"[options] expiry list failed: {e}")
         return None
