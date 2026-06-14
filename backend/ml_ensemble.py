@@ -3,6 +3,7 @@ Ensemble models for XAU/USD trade outcome prediction.
   - RandomForestEnsemble   : existing RF model
   - GradientBoostEnsemble  : XGBoost-equivalent via sklearn GradientBoosting (item 2)
 Both support session-weighted training (item 5): London/NY trades weighted 1.3×.
+Both support quality-weighted training: full TP3 run > TP2 stopped > TP1 stopped.
 Requires scikit-learn >= 1.4.
 """
 from __future__ import annotations
@@ -37,6 +38,21 @@ def _session_weight(created_at: str) -> float:
         return 1.00
     except Exception:
         return 1.00
+
+
+# tp_stage values sent by Pine: "TP3" | "SL_TP2" | "SL_TP1" | "SL" | ""
+_QUALITY_WEIGHT: dict[str, float] = {
+    "TP3":    1.00,   # full run — strongest learning signal
+    "SL_TP2": 0.70,   # hit TP2, stopped at tightened trail — good signal
+    "SL_TP1": 0.35,   # hit TP1 only, stopped at trail — weak positive
+    "SL":     1.00,   # clean loss before TP1 — penalise fully
+    "":       0.60,   # unknown / legacy trade — moderate weight
+}
+
+def _quality_weight(row: dict) -> float:
+    """Return sample weight based on how far the trade ran (tp_stage)."""
+    stage = row.get("tp_stage", "") or ""
+    return _QUALITY_WEIGHT.get(stage, 0.60)
 
 
 class RandomForestEnsemble:
@@ -122,9 +138,9 @@ class RandomForestEnsemble:
             n_jobs=-1,
         )
 
-        # Session-weighted training: London/NY trades count more
+        # Combined weight: session quality × signal quality (tp_stage)
         sample_weights = np.array(
-            [_session_weight(row.get("created_at", "")) for row in history],
+            [_session_weight(row.get("created_at", "")) * _quality_weight(row) for row in history],
             dtype=np.float64
         )
 
@@ -268,7 +284,7 @@ class GradientBoostEnsemble:
             # PARTIAL is a profitable close (hit TP1+) — treat as win, not loss
             outcome_val = row.get("ml_outcome") or row.get("outcome", "LOSS")
             y_rows.append(1 if outcome_val in ("WIN", "PARTIAL") else 0)
-            w_rows.append(_session_weight(row.get("created_at", "")))
+            w_rows.append(_session_weight(row.get("created_at", "")) * _quality_weight(row))
 
         if len(set(y_rows)) < 2:
             print(f"[gbm] Only one class in training data ({set(y_rows)}) — skipping train until wins accumulate.")
@@ -462,7 +478,7 @@ class JointGoldGBM:
                 label = 1 if outcome_val in ("WIN", "PARTIAL") else 0
                 X_rows.append(feat)
                 y_rows.append(label)
-                w_rows.append(_session_weight(row.get("created_at", "")))
+                w_rows.append(_session_weight(row.get("created_at", "")) * _quality_weight(row))
 
         if len(X_rows) < MIN_TRADES or len(set(y_rows)) < 2:
             print(f"[joint_gold] Not enough data ({len(X_rows)} rows, classes={set(y_rows)}) — skipping")
