@@ -25,7 +25,7 @@ bool  showLines   = input.bool(true,  "Show TP/SL lines (latest signal)",group="
 bool  showDash    = input.bool(true,  "Show dashboard",                  group="🎨 Display")
 string dashPos    = input.string("Bottom Left", "Dashboard position",    group="🎨 Display",
                     options=["Bottom Left", "Bottom Right", "Top Left", "Top Right"])
-bool  showTrend   = input.bool(true,  "Show trend lines (EMA/Kernel)",   group="🎨 Display")
+bool  showTrend   = false
 
 // ── All internals fixed (not exposed) ────────────────────────────
 bool  autoTF      = true
