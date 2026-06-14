@@ -1,8 +1,8 @@
 {
-  "timestamp": "2026-06-14T11:55:09.132185+00:00",
+  "timestamp": "2026-06-14T11:56:51.227993+00:00",
   "signal": "NEUTRAL",
   "confidence": 0.0,
-  "news_score": -0.1568,
+  "news_score": 0.1059,
   "velocity": "CONFLICTED",
   "breaking_count": 10,
   "trades_total": 486,
@@ -13,6 +13,5 @@
   "macro_label": "NEUTRAL",
   "equity_macro_bias": 0.3207,
   "equity_macro_label": "BULLISH",
-  "scheduler": "running",
-  "startup_at": "2026-06-14T11:56:25.110410+00:00"
+  "scheduler": "running"
 }
