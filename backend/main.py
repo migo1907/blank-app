@@ -835,6 +835,20 @@ async def unified_webhook(payload: UnifiedPayload):
         print(f"[webhook] ML QUALITY {payload.direction} {sym} TF={tf} "
               f"score={_gate['score']} ({_gate['reason']}) components={_gate['components']}")
 
+        # Higher-quality-only gate: suppress confidently-WEAK signals from Telegram.
+        # "similar setups mostly stopped out" = backend quality < 0.40 backed by real
+        # model scores. Never suppress while models are warming up (cold-start / no
+        # features / gate error) so young pools still accumulate trade data. The HTF
+        # bias store and entry-price cache above already ran, so suppression here only
+        # silences the Telegram alert — the trade still feeds the ML.
+        _WEAK_SUPPRESS = 0.40
+        _warming = _gate["reason"] in ("no_features_cached", "cold_start_bypass", "gate_error")
+        if not _warming and _gate["score"] < _WEAK_SUPPRESS:
+            print(f"[webhook] SUPPRESSED weak {payload.direction} {sym} TF={tf} "
+                  f"score={_gate['score']} — similar setups mostly stopped out")
+            return {"status": "ok", "routed_to": "suppressed",
+                    "reason": "weak_ml_quality", "score": _gate["score"]}
+
         bias        = get_active_bias(sym, payload.direction)
         contra_bias = get_active_bias(sym, "SHORT" if payload.direction == "LONG" else "LONG")
         htf_context = "htf_direct" if is_htf(tf) else ("with_bias" if bias else ("counter_trend" if contra_bias else "scalp"))
