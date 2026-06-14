@@ -1639,12 +1639,15 @@ async def _swing_screen_cycle() -> None:
     try:
         from swing_screener import run_screen
         from swing_tracker import open_paper_trades
-        from telegram_bot import send_swing_brief
         screen = await asyncio.to_thread(run_screen, 5)
         # Log top candidates as paper trades — this is what accumulates the ML
         # training data (features → WIN/LOSS) the ensemble will later learn from.
+        # SILENT during training phase — Telegram send disabled until ≥50 closed
+        # swing trades are accumulated. Re-enable by uncommenting the two lines below
+        # and importing send_swing_brief.
         await asyncio.to_thread(open_paper_trades, screen)
-        await send_swing_brief(screen)
+        # from telegram_bot import send_swing_brief
+        # await send_swing_brief(screen)
     except Exception as e:
         print(f"[swing] nightly screen cycle failed: {e}")
 
