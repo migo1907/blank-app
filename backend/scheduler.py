@@ -1208,6 +1208,11 @@ async def _macro_refresh_cycle() -> None:
         await asyncio.to_thread(refresh_regimes)
     except Exception as e:
         print(f"[scheduler] regime refresh failed: {e}")
+    try:
+        from mtf_confluence import refresh_mtf
+        await asyncio.to_thread(refresh_mtf)
+    except Exception as e:
+        print(f"[scheduler] MTF refresh failed: {e}")
 
 
 async def _fj_session_refresh_cycle() -> None:

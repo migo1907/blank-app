@@ -139,6 +139,10 @@ async def lifespan(app: FastAPI):
     from regime_model import load_regimes
     load_regimes()
 
+    print("[startup] Loading MTF confluence stack from GitHub…")
+    from mtf_confluence import load_mtf
+    load_mtf()
+
     if not WEBHOOK_SECRET:
         print("[startup] ⚠ WARNING: WEBHOOK_SECRET is not set — all webhook endpoints are open to unauthenticated requests.")
 
@@ -437,6 +441,12 @@ async def health():
         regimes = {}
 
     try:
+        from mtf_confluence import get_mtf, MTF_ASSETS
+        mtf = {a: get_mtf(a) for a in MTF_ASSETS}
+    except Exception:
+        mtf = {}
+
+    try:
         from market_macro import get_macro_bias, get_equity_macro_bias
         intermarket = {
             "vix":       (get_equity_macro_bias() or {}).get("vix"),
@@ -452,6 +462,7 @@ async def health():
         "ml":          ml_health,
         "directive":   directive,
         "regimes":     regimes,
+        "mtf":         mtf,
         "intermarket": intermarket,
     }
 

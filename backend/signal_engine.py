@@ -662,6 +662,35 @@ def _intermarket_multiplier(macro_bias: dict | None, direction: str,
     return round(mult, 3), f"imkt:DXY-{d}({strength:.2f})"
 
 
+# ── Phase 2B: multi-timeframe confluence modulator ────────────────────────────
+def _mtf_confluence_multiplier(pool: str, direction: str) -> tuple[float, str]:
+    """
+    Bounded confidence modulator from the 1H+4H+Daily trend stack (mtf_confluence).
+      3/3 aligned → ×1.08, 2/3 → ×1.03, 1/3 → ×0.93, 0/3 (full opposition) → ×0.85.
+    Honours "fire only when 2 of 3 agree" as a strong dampener below confluence,
+    rather than a hard block, so young pools still accumulate data. Neutral (1.0)
+    when the stack is unavailable.
+    """
+    try:
+        from mtf_confluence import agreement
+        a = agreement(pool, direction)
+    except Exception:
+        return 1.0, "mtf:na"
+    aligned = a.get("aligned", 0)
+    against = a.get("against", 0)
+    if aligned == 0 and against == 0:
+        return 1.0, "mtf:na"
+    if aligned >= 3:
+        mult = 1.08
+    elif aligned == 2:
+        mult = 1.03
+    elif aligned == 1:
+        mult = 0.93
+    else:  # 0 aligned — stack opposes the signal
+        mult = 0.85
+    return round(mult, 3), f"mtf:{aligned}/3{'⚠' if aligned < 2 else ''}"
+
+
 # ── Trigger quality scoring ───────────────────────────────────────────────────
 def _trigger_quality_multiplier(history: list[dict], trigger: str) -> float:
     if not history or not trigger:
@@ -924,6 +953,7 @@ def generate_signal(
     cluster_mult = _clustering_multiplier(history, direction_raw)
     hmm_mult, hmm_label = _hmm_regime_multiplier(pool, direction_raw)
     imkt_mult, imkt_label = _intermarket_multiplier(macro_bias, direction_raw, is_stock)
+    mtf_mult, mtf_label = _mtf_confluence_multiplier(pool, direction_raw)
 
     confidence = (
         abs(combined_score)
@@ -937,6 +967,7 @@ def generate_signal(
         * rapid_mult
         * hmm_mult
         * imkt_mult
+        * mtf_mult
     )
 
     confidence = min(1.0, confidence)  # multipliers can compound above 1.0 — clamp to valid range
@@ -957,6 +988,7 @@ def generate_signal(
         f"regime:{regime}({regime_label})×{regime_mult:.2f} | "
         f"{hmm_label}×{hmm_mult:.2f} | "
         f"{imkt_label}×{imkt_mult:.2f} | "
+        f"{mtf_label}×{mtf_mult:.2f} | "
         f"sess:{session_name}×{sess_mult:.2f} | "
         f"confluence×{confluence_mult:.2f} | "
         f"cluster×{cluster_mult:.2f} | "
@@ -989,6 +1021,7 @@ def generate_signal(
         "regime_label":   regime_label,
         "hmm_regime":     hmm_label,
         "intermarket":    imkt_label,
+        "mtf_confluence": mtf_label,
         "reasoning":      reasoning,
         "status":         "ACTIVE",
         "expires_at":     (now + timedelta(minutes=30)).isoformat(),

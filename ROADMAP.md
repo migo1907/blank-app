@@ -50,28 +50,33 @@ Next:    Hidden Markov Model — detects regime TRANSITIONS before they complete
          Act on the transition, not after it's confirmed
 ```
 
-**2B — Multi-Timeframe Confluence Engine**
+**2A — Market Regime Model — ✅ DONE (2026-06-14)**
 ```
-Current: f16_mtf = single 1H value
-Next:    Full MTF stack — 1H + 4H + Daily all scored and weighted
-         Signal only fires when 2 of 3 timeframes agree
-         Higher TF = higher weight in the decision
-```
-
-**2C — Volatility-Adjusted Position Sizing**
-```
-Current: Fixed TP/SL multipliers
-Next:    ATR-normalized sizing — wider market = wider SL, smaller size
-         R:R stays constant regardless of market conditions
-         Protects capital during high-volatility sessions
+Gaussian HMM (regime_model.py) — probabilistic TRENDING/RANGING/VOLATILE with
+forward-looking transition detection. Bounded confidence modulator in
+signal_engine. Refreshed hourly, persisted, surfaced in /health.
 ```
 
-**2D — News Intelligence Layer**
+**2B — Multi-Timeframe Confluence Engine — ✅ DONE (2026-06-14, backend-side)**
 ```
-Current: Basic sentiment score
-Next:    Economic calendar integration — know BEFORE high-impact events
-         NFP / FOMC / CPI = reduce position size or pause signals 30min before
-         Post-event volatility scoring — fade the spike or follow the breakout
+Implemented in the BACKEND (mtf_confluence.py) via yfinance 1H + 4H + Daily —
+no Pine Script changes, no alert re-creation, no feature cold-start. Each TF
+scored, higher TF weighted more (1H=1, 4H=2, 1D=3). Signal confidence boosted
+on 2-of-3 / 3-of-3 agreement, dampened when <2 agree.
+```
+
+**2C — Volatility-Adjusted Position Sizing — ➡️ MOVED TO PHASE 3**
+```
+Deferred: sizing is advisory-only until execution exists (Phase 4). Revisit
+with the Phase 3 signal-validation layer.
+```
+
+**2D — News Intelligence Layer — 🟡 calendar DONE, post-event scoring DONE (2026-06-14)**
+```
+Economic calendar (Finnhub) — forward NFP/FOMC/CPI awareness, de-risk before. ✅
+Post-event volatility scoring (post_event.py) — after a high-impact print,
+classify SETTLING / BREAKOUT / FADE from the asset's own price reaction and
+modulate signal confidence accordingly. ✅
 ```
 
 **2E — Correlation & Intermarket Analysis**
@@ -132,6 +137,14 @@ When VIX spikes → stock signals get size reduction
 
 ## PHASE 3 — Semi-Autonomous: Signal Validation Layer
 **Goal:** System validates its own signals before sending them
+
+**3D — Volatility-Adjusted Position Sizing (moved from 2C, 2026-06-14)**
+```
+ATR-normalized sizing — wider market = wider SL, smaller size, constant R:R.
+Advisory sizing notes in alerts now; becomes enforced sizing once Phase 4
+execution exists. Reuses the HMM VOLATILE regime + intermarket VIX size factor
+already built in Phase 2.
+```
 
 **3A — Pre-Signal Checklist (automatic)**
 ```
