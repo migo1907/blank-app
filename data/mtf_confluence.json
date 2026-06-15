@@ -3,12 +3,12 @@
     "asset": "XAUUSD",
     "votes": {
       "h1": 1,
-      "h4": 0,
+      "h4": 1,
       "d1": -1
     },
-    "weighted": -0.333,
-    "bias": "BEAR",
-    "updated_at": "2026-06-14T23:39:02.485740+00:00",
+    "weighted": 0.0,
+    "bias": "NEUTRAL",
+    "updated_at": "2026-06-15T00:39:05.015126+00:00",
     "method": "yfinance"
   },
   "SPY": {
@@ -20,7 +20,7 @@
     },
     "weighted": 0.0,
     "bias": "NEUTRAL",
-    "updated_at": "2026-06-14T23:39:02.727441+00:00",
+    "updated_at": "2026-06-15T00:39:05.251301+00:00",
     "method": "yfinance"
   },
   "QQQ": {
@@ -32,7 +32,7 @@
     },
     "weighted": 0.0,
     "bias": "NEUTRAL",
-    "updated_at": "2026-06-14T23:39:03.032903+00:00",
+    "updated_at": "2026-06-15T00:39:05.461595+00:00",
     "method": "yfinance"
   }
 }
