@@ -12,36 +12,36 @@
       "VOLATILE": 0.0
     },
     "method": "hmm",
-    "updated_at": "2026-06-15T14:51:09.513440+00:00"
+    "updated_at": "2026-06-15T15:03:26.115133+00:00"
   },
   "SPY": {
     "asset": "SPY",
     "regime": "TRENDING_BULL",
-    "confidence": 0.881,
-    "transition_prob": 0.154,
+    "confidence": 0.82,
+    "transition_prob": 0.175,
     "next_regime": "TRENDING_BULL",
     "shifting": false,
     "probs": {
-      "TRENDING_BULL": 0.881,
-      "RANGING": 0.096,
-      "VOLATILE": 0.023
+      "TRENDING_BULL": 0.82,
+      "RANGING": 0.153,
+      "VOLATILE": 0.026
     },
     "method": "hmm",
-    "updated_at": "2026-06-15T14:51:10.566613+00:00"
+    "updated_at": "2026-06-15T15:03:27.020727+00:00"
   },
   "QQQ": {
     "asset": "QQQ",
     "regime": "VOLATILE",
-    "confidence": 0.982,
-    "transition_prob": 0.074,
+    "confidence": 0.978,
+    "transition_prob": 0.077,
     "next_regime": "VOLATILE",
     "shifting": false,
     "probs": {
-      "TRENDING_BULL": 0.012,
-      "RANGING": 0.006,
-      "VOLATILE": 0.982
+      "TRENDING_BULL": 0.015,
+      "RANGING": 0.007,
+      "VOLATILE": 0.978
     },
     "method": "hmm",
-    "updated_at": "2026-06-15T14:51:11.869580+00:00"
+    "updated_at": "2026-06-15T15:03:27.751309+00:00"
   }
 }
