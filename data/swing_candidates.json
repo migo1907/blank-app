@@ -2,18 +2,18 @@
   "candidates": [
     {
       "ticker": "LLY",
-      "combined_score": 0.789,
+      "combined_score": 0.79,
       "fundamental": {
         "ticker": "LLY",
         "archetype": "healthcare",
         "earnings": {
-          "next_days": 52,
+          "next_days": 51,
           "last_surprise_pct": 25.9,
           "imminent": false
         },
         "analyst": {
           "recommendation": "buy",
-          "target_upside_pct": 10.41,
+          "target_upside_pct": 10.77,
           "num_analysts": 29
         },
         "insider": {
@@ -39,9 +39,9 @@
           "peg": 1.52,
           "roe_pct": 107.5,
           "roa_pct": 20.7,
-          "price_to_book": 32.45,
-          "pe_ratio": 40.3,
-          "forward_pe": 25.5
+          "price_to_book": 32.34,
+          "pe_ratio": 40.2,
+          "forward_pe": 25.4
         },
         "earnings_call": {
           "reported": false,
@@ -55,16 +55,16 @@
           "tone": 0.0,
           "note": "",
           "score_delta": 0.0,
-          "updated_at": "2026-06-14T14:29:53.171478+00:00"
+          "updated_at": "2026-06-15T20:38:50.219964+00:00"
         },
         "news": {
-          "news_7d": 169,
+          "news_7d": 172,
           "headlines": [
-            "3 Reasons to Buy Eli Lilly Stock Like There's No Tomorrow",
-            "Middle-aged adults taking GLP-1s for obesity can save over $192K on lifetime medical costs, higher if they don\u2019t have co",
-            "Lilly's Jaypirca (pirtobrutinib) significantly reduced the risk of disease progression or death by 45% when added to a v",
-            "Eli Lilly: The Macro Health Crisis Is Still Undervalued",
-            "Is Eli Lilly (LLY) One Of The Most Profitable Blue Chip Stocks To Buy According To Hedge Funds?"
+            "Should You Buy Eli Lilly Stock Now or Wait for a Dip?",
+            "This Financial Bellwether Bankrolls A Breakout",
+            "Novo Nordisk Gains 7% in a Week: How Should Investors Play the Stock?",
+            "Is Pfizer's Discounted Valuation a Buying Opportunity or a Value Trap?",
+            "ENDO 2026 Oral Presentation Highlights Comparative Clinical Data for Entera\u2019s Breakthrough Single Tablet EB613 (First-in"
           ],
           "sentiment": 0.0
         },
@@ -72,38 +72,38 @@
           "form4_count": 14
         },
         "rss_news": {
-          "rss_news_7d": 3
+          "rss_news_7d": 5
         },
-        "score": 0.616,
-        "updated_at": "2026-06-14T14:29:49.610010+00:00"
+        "score": 0.618,
+        "updated_at": "2026-06-15T20:38:46.907814+00:00"
       },
       "technical": {
         "score": 1.0,
-        "rsi": 62.4,
+        "rsi": 61.6,
         "trend": "BULL",
-        "rel_strength_pct": 6.7,
-        "entry": 1133.0,
-        "atr": 40.68,
-        "stop": 1092.32,
-        "t1": 1214.36,
-        "t2": 1255.04
+        "rel_strength_pct": 9.4,
+        "entry": 1129.35,
+        "atr": 40.96,
+        "stop": 1088.39,
+        "t1": 1211.26,
+        "t2": 1252.22
       },
-      "updated_at": "2026-06-14T14:29:55.895101+00:00"
+      "updated_at": "2026-06-15T20:38:53.749018+00:00"
     },
     {
       "ticker": "AMD",
-      "combined_score": 0.706,
+      "combined_score": 0.693,
       "fundamental": {
         "ticker": "AMD",
         "archetype": "growth_tech",
         "earnings": {
-          "next_days": 51,
+          "next_days": 50,
           "last_surprise_pct": 5.82,
           "imminent": false
         },
         "analyst": {
           "recommendation": "strong_buy",
-          "target_upside_pct": -4.22,
+          "target_upside_pct": -10.46,
           "num_analysts": 48
         },
         "insider": {
@@ -125,13 +125,13 @@
           "piotroski_f": 8,
           "altman_z": 10.15,
           "rule_of_40": 57.0,
-          "fcf_yield_pct": 0.86,
+          "fcf_yield_pct": 0.8,
           "peg": 1.23,
           "roe_pct": 8.1,
           "roa_pct": 3.6,
-          "price_to_book": 12.94,
-          "pe_ratio": 169.4,
-          "forward_pe": 39.0
+          "price_to_book": 13.84,
+          "pe_ratio": 181.2,
+          "forward_pe": 41.8
         },
         "earnings_call": {
           "reported": false,
@@ -145,55 +145,55 @@
           "tone": 0.0,
           "note": "",
           "score_delta": 0.0,
-          "updated_at": "2026-06-14T14:31:53.733238+00:00"
+          "updated_at": "2026-06-15T20:40:58.324941+00:00"
         },
         "news": {
           "news_7d": 247,
           "headlines": [
-            "Meta At 17x P/E: Investing Doesn't Get Any Easier",
-            "AMD Meta AI Chip Pact Puts Data Center Growth And Valuation In Focus",
-            "Citi resets AMD stock price target on key move",
-            "Is Advanced Micro Devices, Inc. (AMD) A Good Stock To Buy Now?",
-            "Micron Stock Has Become Volatile, But Key Metric Hints at Further Gains"
+            "AMD vs Intel: Both Are Positioned for AI Data Center Growth But There Will Be Only One Winner",
+            "Top S&P500 movers in Monday's session",
+            "Cathie Wood Buys $444 Million in SpaceX, Dumps Tesla and AMD",
+            "AMD Wants Flash To Behave Like DRAM \u2014 And Just Bought The Tech To Do It",
+            "Better Artificial Intelligence (AI) Inference Stock: AMD vs. Intel"
           ],
           "sentiment": 0.0
         },
         "edgar_insider": {
-          "form4_count": 20
+          "form4_count": 19
         },
         "rss_news": {
           "rss_news_7d": 0
         },
-        "score": 0.466,
-        "updated_at": "2026-06-14T14:31:49.967309+00:00"
+        "score": 0.441,
+        "updated_at": "2026-06-15T20:40:54.869990+00:00"
       },
       "technical": {
         "score": 1.0,
-        "rsi": 57.2,
+        "rsi": 57.1,
         "trend": "BULL",
-        "rel_strength_pct": 15.8,
-        "entry": 511.57,
-        "atr": 35.06,
-        "stop": 476.51,
-        "t1": 581.69,
-        "t2": 616.75
+        "rel_strength_pct": 20.0,
+        "entry": 547.26,
+        "atr": 35.58,
+        "stop": 511.68,
+        "t1": 618.43,
+        "t2": 654.01
       },
-      "updated_at": "2026-06-14T14:31:56.410507+00:00"
+      "updated_at": "2026-06-15T20:41:01.240429+00:00"
     },
     {
       "ticker": "GE",
-      "combined_score": 0.642,
+      "combined_score": 0.648,
       "fundamental": {
         "ticker": "GE",
         "archetype": "industrial",
         "earnings": {
-          "next_days": 32,
+          "next_days": 31,
           "last_surprise_pct": 16.31,
           "imminent": false
         },
         "analyst": {
           "recommendation": "strong_buy",
-          "target_upside_pct": 5.28,
+          "target_upside_pct": 3.14,
           "num_analysts": 21
         },
         "insider": {
@@ -213,15 +213,15 @@
         },
         "advanced": {
           "piotroski_f": 6,
-          "altman_z": 3.47,
+          "altman_z": 3.51,
           "rule_of_40": null,
-          "fcf_yield_pct": 1.62,
+          "fcf_yield_pct": 1.58,
           "peg": 8.07,
           "roe_pct": 45.4,
           "roa_pct": 4.9,
-          "price_to_book": 18.83,
-          "pe_ratio": 41.7,
-          "forward_pe": 38.6
+          "price_to_book": 19.22,
+          "pe_ratio": 42.5,
+          "forward_pe": 39.4
         },
         "earnings_call": {
           "reported": false,
@@ -235,16 +235,16 @@
           "tone": 0.0,
           "note": "",
           "score_delta": 0.0,
-          "updated_at": "2026-06-14T14:32:57.493030+00:00"
+          "updated_at": "2026-06-15T20:42:03.472935+00:00"
         },
         "news": {
-          "news_7d": 43,
+          "news_7d": 45,
           "headlines": [
-            "Wolfspeed Targets High Voltage Growth With Gen 5 SiC And GE Alliance",
-            "SpaceX has a 'historical analogy' in GE, market historian explains",
-            "Bayer Shares Hinge On Two Court Decisions After $60 Billion Rout",
-            "General Electric Links AI Leadership And Space Vehicle Work At GE Aerospace",
-            "SpaceX IPO Valuation Is Worth More Than Boeing, RTX, GE Aerospace And Every Other S&P 500 Aerospace Firm Combined: Repor"
+            "GE Vernova GridOS Launch Spurs Questions On Growth And Valuation",
+            "Dow Jones Stocks: Honeywell Aerospace Looms As GE Stock Breaks Out",
+            "GE Aerospace Rises 12.2% in Six Months: How Should You Play the Stock?",
+            "10 Industrials Stocks With Whale Alerts In Today's Session",
+            "Wolfspeed Targets High Voltage Growth With Gen 5 SiC And GE Alliance"
           ],
           "sentiment": 0.0
         },
@@ -252,38 +252,38 @@
           "form4_count": 17
         },
         "rss_news": {
-          "rss_news_7d": 27
+          "rss_news_7d": 25
         },
-        "score": 0.507,
-        "updated_at": "2026-06-14T14:32:53.748575+00:00"
+        "score": 0.495,
+        "updated_at": "2026-06-15T20:42:00.035237+00:00"
       },
       "technical": {
-        "score": 0.806,
-        "rsi": 68.5,
+        "score": 0.835,
+        "rsi": 66.7,
         "trend": "BULL",
-        "rel_strength_pct": 16.3,
-        "entry": 335.3,
-        "atr": 10.6,
-        "stop": 324.7,
-        "t1": 356.5,
-        "t2": 367.1
+        "rel_strength_pct": 15.0,
+        "entry": 342.26,
+        "atr": 10.7,
+        "stop": 331.56,
+        "t1": 363.67,
+        "t2": 374.38
       },
-      "updated_at": "2026-06-14T14:33:00.361917+00:00"
+      "updated_at": "2026-06-15T20:42:07.239254+00:00"
     },
     {
       "ticker": "IBM",
-      "combined_score": 0.636,
+      "combined_score": 0.631,
       "fundamental": {
         "ticker": "IBM",
         "archetype": "growth_tech",
         "earnings": {
-          "next_days": 38,
+          "next_days": 37,
           "last_surprise_pct": 5.45,
           "imminent": false
         },
         "analyst": {
           "recommendation": "buy",
-          "target_upside_pct": 6.52,
+          "target_upside_pct": 7.92,
           "num_analysts": 21
         },
         "insider": {
@@ -305,13 +305,13 @@
           "piotroski_f": 7,
           "altman_z": 7.35,
           "rule_of_40": 28.5,
-          "fcf_yield_pct": 5.11,
+          "fcf_yield_pct": 5.18,
           "peg": 2.54,
           "roe_pct": 35.8,
           "roa_pct": 5.4,
-          "price_to_book": 7.76,
-          "pe_ratio": 24.1,
-          "forward_pe": 20.3
+          "price_to_book": 7.66,
+          "pe_ratio": 23.8,
+          "forward_pe": 20.0
         },
         "earnings_call": {
           "reported": false,
@@ -325,16 +325,16 @@
           "tone": 0.0,
           "note": "",
           "score_delta": 0.0,
-          "updated_at": "2026-06-14T14:34:00.834024+00:00"
+          "updated_at": "2026-06-15T20:43:13.259039+00:00"
         },
         "news": {
-          "news_7d": 87,
+          "news_7d": 94,
           "headlines": [
-            "Analyst Lifts IBM Price Target by $15. Here is Why",
-            "Congresswoman Who Bought No Stocks In 2025 Is Back With More 2026 Trades: Here's The Shopping List",
-            "ServiceNow IBM AI Alliance Targets Legacy Bottlenecks And Valuation Expectations",
-            "Should IBM\u2019s US$10 Billion Quantum and AI Expansion Require Action From International Business Machines (IBM) Investors?",
-            "Is the Turnaround at IBM Stock Finally Here to Stay?"
+            "Discover which dow jones stocks are making waves on Monday.",
+            "Can IBM's Extended ServiceNow Deal Accelerate Enterprise AI Adoption?",
+            "What Is The Market Really Expecting From PLTR Stock?",
+            "Announced at Kaltura Connect on the Road 2026: IBM, Accenture, McDonald\u2019s, Bank of America, Vanguard, Cisco, and More Ar",
+            "Two Weeks Left to Enter The Global Supply Chain Awards"
           ],
           "sentiment": 0.0
         },
@@ -344,42 +344,42 @@
         "rss_news": {
           "rss_news_7d": 0
         },
-        "score": 0.339,
-        "updated_at": "2026-06-14T14:33:57.312103+00:00"
+        "score": 0.345,
+        "updated_at": "2026-06-15T20:43:09.975441+00:00"
       },
       "technical": {
-        "score": 1.0,
-        "rsi": 56.4,
+        "score": 0.981,
+        "rsi": 56.3,
         "trend": "BULL",
-        "rel_strength_pct": 19.3,
-        "entry": 272.24,
-        "atr": 16.52,
-        "stop": 255.72,
-        "t1": 305.27,
-        "t2": 321.79
+        "rel_strength_pct": 10.6,
+        "entry": 268.71,
+        "atr": 16.4,
+        "stop": 252.31,
+        "t1": 301.51,
+        "t2": 317.91
       },
-      "updated_at": "2026-06-14T14:34:03.591413+00:00"
+      "updated_at": "2026-06-15T20:43:16.390403+00:00"
     },
     {
       "ticker": "CAT",
-      "combined_score": 0.424,
+      "combined_score": 0.598,
       "fundamental": {
         "ticker": "CAT",
         "archetype": "industrial",
         "earnings": {
-          "next_days": 51,
+          "next_days": 50,
           "last_surprise_pct": 19.3,
           "imminent": false
         },
         "analyst": {
           "recommendation": "buy",
-          "target_upside_pct": 5.21,
+          "target_upside_pct": 2.57,
           "num_analysts": 26
         },
         "insider": {
-          "net_buy_signal": -0.8,
-          "buy_count": 1,
-          "sell_count": 9
+          "net_buy_signal": -1.0,
+          "buy_count": 0,
+          "sell_count": 4
         },
         "institutional": {
           "inst_held_pct": 72.9
@@ -393,15 +393,15 @@
         },
         "advanced": {
           "piotroski_f": 6,
-          "altman_z": 5.47,
+          "altman_z": 5.55,
           "rule_of_40": null,
-          "fcf_yield_pct": 0.9,
+          "fcf_yield_pct": 0.88,
           "peg": 2.16,
           "roe_pct": 51.3,
           "roa_pct": 8.5,
-          "price_to_book": 22.48,
-          "pe_ratio": 45.3,
-          "forward_pe": 30.3
+          "price_to_book": 23.05,
+          "pe_ratio": 46.4,
+          "forward_pe": 31.0
         },
         "earnings_call": {
           "reported": false,
@@ -415,43 +415,43 @@
           "tone": 0.0,
           "note": "",
           "score_delta": 0.0,
-          "updated_at": "2026-06-14T14:33:48.076536+00:00"
+          "updated_at": "2026-06-15T20:42:59.865094+00:00"
         },
         "news": {
-          "news_7d": 59,
+          "news_7d": 66,
           "headlines": [
-            "How Investors May Respond To Caterpillar (CAT) Dividend Hike And Lynn Good\u2019s Board Appointment",
-            "Stay informed with the top movers within the dow jones index on Friday.",
-            "Dividend Champion, Contender, And Challenger Highlights: Week Of June 14",
-            "Move Over, New York! Why Texas Is Becoming \u2018America\u2019s New Center of Gravity\u2019",
-            "Top dow jones movers in Friday's session"
+            "Discover which dow jones stocks are making waves on Monday.",
+            "How Did Wall Street Sleep Through CAT Stock's 150% Surge?",
+            "Up 300% YTD, How High Can CAT Stock Rally This Year?",
+            "10 Industrials Stocks With Whale Alerts In Today's Session",
+            "Stock Market Today: Dow Rallies 500 Points On U.S.-Iran Deal; Oil Prices Tumble (Live Coverage)"
           ],
           "sentiment": 0.0
         },
         "edgar_insider": {
-          "form4_count": 29
+          "form4_count": 27
         },
         "rss_news": {
-          "rss_news_7d": 14
+          "rss_news_7d": 10
         },
-        "score": 0.311,
-        "updated_at": "2026-06-14T14:33:44.565409+00:00"
+        "score": 0.275,
+        "updated_at": "2026-06-15T20:42:56.485752+00:00"
       },
       "technical": {
-        "score": 0.563,
-        "rsi": 54.9,
+        "score": 0.992,
+        "rsi": 54.1,
         "trend": "BULL",
-        "rel_strength_pct": -0.3,
-        "entry": 910.57,
-        "atr": 35.56,
-        "stop": 875.01,
-        "t1": 981.69,
-        "t2": 1017.26
+        "rel_strength_pct": 3.5,
+        "entry": 933.93,
+        "atr": 35.84,
+        "stop": 898.09,
+        "t1": 1005.61,
+        "t2": 1041.45
       },
-      "updated_at": "2026-06-14T14:33:50.945751+00:00"
+      "updated_at": "2026-06-15T20:43:03.149528+00:00"
     }
   ],
   "scanned": 50,
   "top_n": 5,
-  "updated_at": "2026-06-14T14:34:03.591470+00:00"
+  "updated_at": "2026-06-15T20:43:16.390439+00:00"
 }
