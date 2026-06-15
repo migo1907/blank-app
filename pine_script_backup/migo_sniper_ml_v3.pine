@@ -231,10 +231,12 @@ float todMinutes = float(utcHour * 60 + minute)
 float f25_raw    = math.sin((todMinutes / 1440.0) * 2.0 * math.pi)
 float f25        = useNewFeats ? f25_raw : 0.0
 
-// F26: Stochastic %K normalised — overbought/oversold momentum context
-// +1.0 = %K at 100 (extreme overbought), -1.0 = %K at 0 (extreme oversold)
-// Complements F1 RSI — stoch is more sensitive to recent swing extremes
-float f26_raw    = math.max(-1.0, math.min(1.0, (stochK - 50.0) / 50.0))
+// F26: Stochastic %K−%D momentum (crossover delta) — independent of F6 Williams %R
+// IMPORTANT: f6 = -(willR+50)/50 ≡ -(stochK-50)/50, so a raw normalised stochK was
+// perfectly anti-correlated with F6 (r = -1.0) and added ZERO information to the model.
+// The %K−%D delta captures Stochastic momentum/crossover instead — genuinely orthogonal
+// to Williams %R. +ve = %K crossing up through %D (bullish), -ve = bearish.
+float f26_raw    = math.max(-1.0, math.min(1.0, (stochK - stochD) / 20.0))
 float f26        = useNewFeats ? f26_raw : 0.0
 
 // ═══════════════════════════════════════════════════════
@@ -713,7 +715,7 @@ string[] featNames = array.from(
     "F11·BOS","F12·Liq","F13·P/D","F14·CHoCH","F15·Sess",
     "F16·MTF","F17·DXY","F18·VolD","F19·RSIDiv","F20·Fib",
     "F21·VWAP","F22·Body","F23·RSIAcc","F24·FVGq","F25·ToD",
-    "F26·Stoch")
+    "F26·StochΔ")
 
 float wMax1 = -1.0
 float wMax2 = -1.0
@@ -830,7 +832,7 @@ if barstate.islast
     table.cell(hub, 3, 12, f16 > 0.5 ? "BULL ALIGN" : f16 < -0.5 ? "BEAR ALIGN" : "MIXED", text_color=f16 > 0.5 ? color.lime : f16 < -0.5 ? color.red : color.gray)
 
     // New features row — F22-F26
-    string newFeatStr = "Body:" + str.tostring(math.round(f22*100)/100.0,"#.##") + "  RSIacc:" + str.tostring(math.round(f23*100)/100.0,"#.##") + "  FVGq:" + str.tostring(f24,"#") + "  ToD:" + str.tostring(math.round(f25*100)/100.0,"#.##") + "  Stoch:" + str.tostring(math.round(f26*100)/100.0,"#.##")
+    string newFeatStr = "Body:" + str.tostring(math.round(f22*100)/100.0,"#.##") + "  RSIacc:" + str.tostring(math.round(f23*100)/100.0,"#.##") + "  FVGq:" + str.tostring(f24,"#") + "  ToD:" + str.tostring(math.round(f25*100)/100.0,"#.##") + "  StochΔ:" + str.tostring(math.round(f26*100)/100.0,"#.##")
     table.cell(hub, 0, 13, newFeatStr, text_color=color.new(color.aqua, 20), text_size=size.tiny)
     table.merge_cells(hub, 0, 13, 3, 13)
 
