@@ -23073,13 +23073,13 @@
     "direction": "SHORT",
     "trigger": "LIQ",
     "entry_price": 4342.34,
-    "exit_price": 4339.5535,
-    "outcome": "WIN",
-    "ml_outcome": "TP1_HIT",
+    "exit_price": 4342.89,
+    "outcome": "PARTIAL",
+    "ml_outcome": "WIN",
     "mfe": 0.0,
-    "tp_stage": "TP1",
+    "tp_stage": "SL_TP2",
     "timeframe": "2",
-    "pnl_pct": 0.0642,
+    "pnl_pct": -0.0127,
     "ml_bull_score": 0.0,
     "regime": "NORMAL",
     "session": "LONDON",
@@ -23109,8 +23109,8 @@
     "f24_fvgq": 0.0,
     "f25_tod": 0.0785,
     "f26_stoch": -1.0,
-    "id": "de927ef4",
+    "id": "0cd56bc0",
     "pool": "XAUUSD_2M",
-    "created_at": "2026-06-15T11:46:04.604818+00:00"
+    "created_at": "2026-06-15T11:46:03.011706+00:00"
   }
 ]
