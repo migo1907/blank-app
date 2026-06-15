@@ -346,7 +346,10 @@ def _bias_line(label_emoji: str, name: str, signal: dict) -> str:
     elif direction == "SHORT":
         dir_str = f"🔴 SHORT ({confidence*100:.0f}%)"
     else:
-        dir_str = "⚪ NEUTRAL"
+        lean_dir = signal.get("lean_direction", "")
+        lean_pct = signal.get("lean_pct")
+        lean_str = f"  ({lean_dir} {lean_pct}%)" if lean_dir and lean_pct is not None else ""
+        dir_str = f"⚪ NEUTRAL{lean_str}"
     regime_str = _REGIME_MAP.get(regime, regime)
     return f"{label_emoji} <b>{name} Bias:</b> {dir_str}  ·  {regime_str}"
 
