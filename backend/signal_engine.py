@@ -1039,10 +1039,14 @@ def generate_signal(
         reasoning += f" ⚡ {event['event_type']}"
 
     expire_old_signals(symbol)
+    lean_pct = round((bull_score if direction_raw == "LONG" else bear_score) * 100)
+
     row = {
         "symbol":         symbol,
         "pool":           pool,
         "direction":      direction,
+        "lean_direction": direction_raw,
+        "lean_pct":       lean_pct,
         "confidence":     round(confidence, 4),
         "tier":           tier,
         "ml_score":       round(ml_score_out, 4),
