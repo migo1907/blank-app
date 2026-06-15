@@ -275,7 +275,7 @@ def _intel_dir_line(emoji: str, name: str, sig: dict) -> str:
         tag = "⚪ NEUTRAL"
         lean_dir = sig.get("lean_direction", "")
         lean_pct = sig.get("lean_pct")
-        conf = f"  ({lean_dir} {lean_pct}%)" if lean_dir and lean_pct is not None else ""
+        conf = f"  ({lean_dir} {lean_pct}%)" if lean_dir and lean_pct is not None and lean_pct >= 55 else ""
     return f"{emoji} <b>{name}</b>: {tag}{conf}"
 
 
@@ -348,7 +348,7 @@ def _bias_line(label_emoji: str, name: str, signal: dict) -> str:
     else:
         lean_dir = signal.get("lean_direction", "")
         lean_pct = signal.get("lean_pct")
-        lean_str = f"  ({lean_dir} {lean_pct}%)" if lean_dir and lean_pct is not None else ""
+        lean_str = f"  ({lean_dir} {lean_pct}%)" if lean_dir and lean_pct is not None and lean_pct >= 55 else ""
         dir_str = f"⚪ NEUTRAL{lean_str}"
     regime_str = _REGIME_MAP.get(regime, regime)
     return f"{label_emoji} <b>{name} Bias:</b> {dir_str}  ·  {regime_str}"
