@@ -2386,7 +2386,7 @@
     "mtf_confluence": "mtf:1/3\u26a0",
     "post_event": "evt:na",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:TRENDING_BULL(1.00)\u00d70.92 | imkt:na\u00d71.00 | mtf:1/3\u26a0\u00d70.93 | evt:na\u00d71.00 | sess:NEW_YORK\u00d71.10 | confluence\u00d71.35 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.54) | news:neutral(+0.023) | macro:NEUTRAL(-0.005) | combined:-0.085 \u2192 conf:0.091 \u26a1 GEOPOLITICAL",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-15T18:16:44.300633+00:00",
     "created_at": "2026-06-15T17:46:45.697640+00:00",
     "id": 101
@@ -2412,7 +2412,7 @@
     "mtf_confluence": "mtf:2/3",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(TREND_FOLLOW)\u00d71.15 | hmm:TRENDING_BULL(0.97)\u00d71.05 | imkt:na\u00d71.00 | mtf:2/3\u00d71.03 | evt:na\u00d71.00 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d71.21 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.21) | news:neutral(+0.023) | macro:BULLISH(+0.321) | combined:+0.054 \u2192 conf:0.090 \u26a1 GEOPOLITICAL",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-15T18:16:47.514117+00:00",
     "created_at": "2026-06-15T17:46:48.818109+00:00",
     "id": 101
@@ -2438,7 +2438,7 @@
     "mtf_confluence": "mtf:3/3",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(TREND_FOLLOW)\u00d71.15 | hmm:TRENDING_BULL(0.89)\u00d71.04 | imkt:na\u00d71.00 | mtf:3/3\u00d71.08 | evt:na\u00d71.00 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d71.33 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.24) | news:neutral(+0.023) | macro:BULLISH(+0.321) | combined:+0.054 \u2192 conf:0.104 \u26a1 GEOPOLITICAL",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-15T18:16:50.406787+00:00",
     "created_at": "2026-06-15T17:46:50.765569+00:00",
     "id": 101
@@ -2466,7 +2466,7 @@
     "mtf_confluence": "mtf:1/3\u26a0",
     "post_event": "evt:na",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:TRENDING_BULL(1.00)\u00d70.92 | imkt:na\u00d71.00 | mtf:1/3\u26a0\u00d70.93 | evt:na\u00d71.00 | sess:NEW_YORK\u00d71.10 | confluence\u00d71.35 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-0.64) | news:neutral(-0.010) | macro:NEUTRAL(-0.005) | combined:-0.172 \u2192 conf:0.185 \u26a1 GEOPOLITICAL",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-15T18:21:38.879870+00:00",
     "created_at": "2026-06-15T17:51:39.302020+00:00",
     "id": 101
@@ -2494,7 +2494,7 @@
     "mtf_confluence": "mtf:2/3",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(TREND_FOLLOW)\u00d71.15 | hmm:TRENDING_BULL(0.97)\u00d71.05 | imkt:na\u00d71.00 | mtf:2/3\u00d71.03 | evt:na\u00d71.00 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d71.21 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.21) | news:neutral(-0.010) | macro:BULLISH(+0.321) | combined:+0.046 \u2192 conf:0.077 \u26a1 GEOPOLITICAL",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-15T18:21:41.132706+00:00",
     "created_at": "2026-06-15T17:51:41.530476+00:00",
     "id": 101
@@ -2522,7 +2522,7 @@
     "mtf_confluence": "mtf:3/3",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(TREND_FOLLOW)\u00d71.15 | hmm:TRENDING_BULL(0.89)\u00d71.04 | imkt:na\u00d71.00 | mtf:3/3\u00d71.08 | evt:na\u00d71.00 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d71.33 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.24) | news:neutral(-0.010) | macro:BULLISH(+0.321) | combined:+0.046 \u2192 conf:0.089 \u26a1 GEOPOLITICAL",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-15T18:21:43.362223+00:00",
     "created_at": "2026-06-15T17:51:43.670733+00:00",
     "id": 101
