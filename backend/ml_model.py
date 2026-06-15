@@ -286,7 +286,7 @@ class AdaptiveKNN:
             "RSI", "ADX", "ATR", "BB%", "MACD", "WillR", "CMO", "EMA-dist",
             "FVG", "OB", "BOS", "Liq", "P/D", "CHoCH",
             "Session", "MTF", "DXY", "VolDelta", "RSIDiv", "Fib", "VWAP",
-            "Body", "RSIAcc", "FVGq", "ToD",
+            "Body", "RSIAcc", "FVGq", "ToD", "Stoch",
         ]
         paired = list(zip(short_names, self._weights))
         paired.sort(key=lambda x: x[1], reverse=True)

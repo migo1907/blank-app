@@ -560,7 +560,7 @@ class JointStocksGBM:
                 label = 1 if outcome_val in ("WIN", "PARTIAL") else 0
                 X_rows.append(feat)
                 y_rows.append(label)
-                w_rows.append(_session_weight(row.get("created_at", "")))
+                w_rows.append(_session_weight(row.get("created_at", "")) * _quality_weight(row))
 
         if len(X_rows) < MIN_TRADES or len(set(y_rows)) < 2:
             print(f"[joint_stocks] Not enough data ({len(X_rows)} rows) — skipping")
