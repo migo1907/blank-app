@@ -720,24 +720,27 @@ async def _hourly_system_check() -> None:
             ("data/trade_history_STOCKS_MOMENTUM_30M.json",  "STOCKS_MOMENTUM_30M",  stocks_active,    8),
             ("data/trade_history_STOCKS_QUALITY_15M.json",   "STOCKS_QUALITY_15M",   stocks_active,   12),
             ("data/trade_history_STOCKS_QUALITY_30M.json",   "STOCKS_QUALITY_30M",   stocks_active,   24),
-            ("data/trade_history_STOCKS_INDEX_15M.json",     "STOCKS_INDEX_15M",     stocks_active,   48),
-            ("data/trade_history_STOCKS_INDEX_30M.json",     "STOCKS_INDEX_30M",     stocks_active,   48),
-            ("data/trade_history_STOCKS_QQQ_15M.json",       "STOCKS_QQQ_15M",       stocks_active,   48),
-            ("data/trade_history_STOCKS_QQQ_30M.json",       "STOCKS_QQQ_30M",       stocks_active,   48),
+            # INDEX/QQQ pools are single-ticker (SPY/QQQ only) — setups are rare vs
+            # multi-symbol MOMENTUM/QUALITY pools; verified <1 setup/day historically.
+            # Alert only after a full trading week of silence (168h) to avoid false alarms.
+            ("data/trade_history_STOCKS_INDEX_15M.json",     "STOCKS_INDEX_15M",     stocks_active,  168),
+            ("data/trade_history_STOCKS_INDEX_30M.json",     "STOCKS_INDEX_30M",     stocks_active,  168),
+            ("data/trade_history_STOCKS_QQQ_15M.json",       "STOCKS_QQQ_15M",       stocks_active,  168),
+            ("data/trade_history_STOCKS_QQQ_30M.json",       "STOCKS_QQQ_30M",       stocks_active,  168),
             ("data/trade_history_STOCKS_SPX500_15M.json",    "STOCKS_SPX500_15M",    stocks_active,   24),
-            ("data/trade_history_STOCKS_SPX500_30M.json",    "STOCKS_SPX500_30M",    stocks_active,   24),
-            # 1H pools — alert after 48h of silence
-            ("data/trade_history_STOCKS_MOMENTUM_1H.json",   "STOCKS_MOMENTUM_1H",   stocks_active,   48),
-            ("data/trade_history_STOCKS_QUALITY_1H.json",    "STOCKS_QUALITY_1H",    stocks_active,   48),
-            ("data/trade_history_STOCKS_INDEX_1H.json",      "STOCKS_INDEX_1H",      stocks_active,   48),
-            ("data/trade_history_STOCKS_QQQ_1H.json",        "STOCKS_QQQ_1H",        stocks_active,   48),
-            ("data/trade_history_STOCKS_SPX500_1H.json",     "STOCKS_SPX500_1H",     stocks_active,   48),
-            # 4H pools resolve trades over many hours — only alert after ~2 sessions of silence
-            ("data/trade_history_STOCKS_MOMENTUM_4H.json",   "STOCKS_MOMENTUM_4H",   stocks_active,   72),
-            ("data/trade_history_STOCKS_QUALITY_4H.json",    "STOCKS_QUALITY_4H",    stocks_active,   72),
-            ("data/trade_history_STOCKS_INDEX_4H.json",      "STOCKS_INDEX_4H",      stocks_active,   72),
-            ("data/trade_history_STOCKS_QQQ_4H.json",        "STOCKS_QQQ_4H",        stocks_active,   72),
-            ("data/trade_history_STOCKS_SPX500_4H.json",     "STOCKS_SPX500_4H",     stocks_active,   72),
+            ("data/trade_history_STOCKS_SPX500_30M.json",    "STOCKS_SPX500_30M",    stocks_active,   48),
+            # 1H pools — single-bar closes every hour; alert after 72h (3 trading days)
+            ("data/trade_history_STOCKS_MOMENTUM_1H.json",   "STOCKS_MOMENTUM_1H",   stocks_active,   72),
+            ("data/trade_history_STOCKS_QUALITY_1H.json",    "STOCKS_QUALITY_1H",    stocks_active,   72),
+            ("data/trade_history_STOCKS_INDEX_1H.json",      "STOCKS_INDEX_1H",      stocks_active,  168),
+            ("data/trade_history_STOCKS_QQQ_1H.json",        "STOCKS_QQQ_1H",        stocks_active,  168),
+            ("data/trade_history_STOCKS_SPX500_1H.json",     "STOCKS_SPX500_1H",     stocks_active,   72),
+            # 4H pools — alert after a full trading week (168h)
+            ("data/trade_history_STOCKS_MOMENTUM_4H.json",   "STOCKS_MOMENTUM_4H",   stocks_active,  168),
+            ("data/trade_history_STOCKS_QUALITY_4H.json",    "STOCKS_QUALITY_4H",    stocks_active,  168),
+            ("data/trade_history_STOCKS_INDEX_4H.json",      "STOCKS_INDEX_4H",      stocks_active,  168),
+            ("data/trade_history_STOCKS_QQQ_4H.json",        "STOCKS_QQQ_4H",        stocks_active,  168),
+            ("data/trade_history_STOCKS_SPX500_4H.json",     "STOCKS_SPX500_4H",     stocks_active,  168),
         ]
 
         silent_pools = []
