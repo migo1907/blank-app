@@ -912,8 +912,10 @@ async def _hourly_system_check() -> None:
             if lvl_ts.tzinfo is None:
                 lvl_ts = lvl_ts.replace(tzinfo=timezone.utc)
             lvl_age_h = (now_utc - lvl_ts).total_seconds() / 3600
-            # Refreshed every weekday; >30h means the GitHub Action failed (signals use stale pivots)
-            if now_utc.weekday() < 5 and lvl_age_h > 30:
+            # Refreshed every weekday at ~11:50 UTC; on Monday before noon the weekend gap
+            # is expected (~65h from Fri afternoon), so use a 90h threshold that day.
+            stale_threshold = 90 if now_utc.weekday() == 0 and now_utc.hour < 12 else 30
+            if now_utc.weekday() < 5 and lvl_age_h > stale_threshold:
                 critical_alerts.append((
                     "Daily Levels Stale",
                     f"daily_levels.json is {lvl_age_h:.0f}h old — the pivot-fetch GitHub Action may have failed.",

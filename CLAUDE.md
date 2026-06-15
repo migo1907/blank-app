@@ -67,7 +67,7 @@ These are permanent agreements — never override, skip, or work around them und
 - Features: 25 features (F1-F25), all computed in Pine Script and sent via webhook
 - **Phase 2 — F26:** Stochastic (%K/%D) — ✅ implemented 2026-06-11 — Pine Script + backend expanded to 26 fields
 - XAUUSD data: TVC:GOLD scanner (spot, ~$1-3 from ICMARKETS) + GC=F prev day H/L/C → pivot levels
-- Daily levels written to `data/daily_levels.json` by GitHub Actions (07:50 UTC Mon-Fri), fetched at runtime from GitHub raw URL
+- Daily levels written to `data/daily_levels.json` by GitHub Actions (11:50 UTC Mon-Fri), fetched at runtime from GitHub raw URL
 
 ## Market Macro Intelligence (`market_macro.py`)
 - Fills gold's real macro-driver blind spots beyond headline sentiment. Refreshed hourly, persisted to `data/market_macro.json`, loaded on startup.
