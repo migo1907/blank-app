@@ -6168,13 +6168,13 @@
     "direction": "LONG",
     "trigger": "OB",
     "entry_price": 4292.08,
-    "exit_price": 4301.8642,
-    "outcome": "WIN",
-    "ml_outcome": "TP1_HIT",
+    "exit_price": 4296.29,
+    "outcome": "PARTIAL",
+    "ml_outcome": "WIN",
     "mfe": 11.33,
-    "tp_stage": "TP1",
+    "tp_stage": "SL_TP1",
     "timeframe": "5",
-    "pnl_pct": 0.228,
+    "pnl_pct": 0.0981,
     "ml_bull_score": 0.25,
     "regime": "NORMAL",
     "session": "ASIAN",
@@ -6204,8 +6204,8 @@
     "f24_fvgq": 0.0,
     "f25_tod": -0.0785,
     "f26_stoch": 1.0,
-    "id": "c7befe5d",
+    "id": "1b4451c8",
     "pool": "XAUUSD_5M",
-    "created_at": "2026-06-15T00:17:04.461456+00:00"
+    "created_at": "2026-06-15T00:17:03.046995+00:00"
   }
 ]
