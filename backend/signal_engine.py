@@ -942,7 +942,9 @@ def generate_signal(
         ml_conf_proxy  = 0.5 + ml_strength * 0.5
         high_conviction = ml_conf_proxy >= 0.65
         all_agree       = (knn_dir == rf_dir == gbm_dir)
-        if not high_conviction and not all_agree:
+        if not high_conviction and not all_agree and _n >= 50:
+            # Thin-pool bypass: pools with <50 trades must accumulate data; skip CONFLICTED
+            # gate so entries can come through and the pool can grow its training set.
             sig = _neutral_signal(symbol, now, model, rf, "News CONFLICTED — low conviction", news_agg, pool, current_features, is_stock=is_stock)
             _lean_dir = "LONG" if bull_score > bear_score else "SHORT"
             sig["lean_direction"] = _lean_dir
@@ -1011,9 +1013,16 @@ def generate_signal(
 
     confidence = min(1.0, confidence)  # multipliers can compound above 1.0 — clamp to valid range
     raw_confidence = confidence
-    direction = direction_raw if confidence >= min_conf else "NEUTRAL"
-    if direction == "NEUTRAL":
-        confidence = 0.0
+    # Thin-pool bypass: fewer than 50 trades → skip confidence gate so the pool can
+    # accumulate training data. ML direction still drives the signal; only the
+    # confidence floor is removed. Block only when combined_score is truly zero.
+    if _n < 50 and combined_score != 0.0:
+        direction = direction_raw
+        confidence = max(confidence, 0.30)  # floor at 0.30 so tier logic fires
+    else:
+        direction = direction_raw if confidence >= min_conf else "NEUTRAL"
+        if direction == "NEUTRAL":
+            confidence = 0.0
 
     tier = "HIGH" if confidence >= 0.75 else "MED" if confidence >= 0.60 else "LOW"
 
