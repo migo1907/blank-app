@@ -943,7 +943,11 @@ def generate_signal(
         high_conviction = ml_conf_proxy >= 0.65
         all_agree       = (knn_dir == rf_dir == gbm_dir)
         if not high_conviction and not all_agree:
-            return _neutral_signal(symbol, now, model, rf, "News CONFLICTED — low conviction", news_agg, pool, current_features, is_stock=is_stock)
+            sig = _neutral_signal(symbol, now, model, rf, "News CONFLICTED — low conviction", news_agg, pool, current_features, is_stock=is_stock)
+            _lean_dir = "LONG" if bull_score > bear_score else "SHORT"
+            sig["lean_direction"] = _lean_dir
+            sig["lean_pct"] = round((bull_score if _lean_dir == "LONG" else bear_score) * 100)
+            return sig
 
     if event.get("detected") and event.get("urgency", 0) >= 0.9:
         v_mult = min(v_mult * 1.5, 3.0)
