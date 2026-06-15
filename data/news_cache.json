@@ -1,408 +1,5 @@
 [
   {
-    "source": "FinancialJuice",
-    "headline": "Taiwan overnight interbank rate starts at 0.810%, unchanged from previous session",
-    "url": "https://www.financialjuice.com/News/9634945/Taiwan-overnight-interbank-rate-starts-at-0810-unchanged-from-previous-session.aspx?xy=rss",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "interbank rate",
-      "Taiwan",
-      "unchanged"
-    ],
-    "fetched_at": "2026-06-15T03:23:48.228010+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "three killed, three injured in drone strike in Russia's Tula, governor says",
-    "url": "https://www.financialjuice.com/News/9634944/three-killed-three-injured-in-drone-strike-in-Russias-Tula-governor-says.aspx?xy=rss",
-    "sentiment_score": 0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "geopolitical risk",
-      "Russia",
-      "safe-haven"
-    ],
-    "fetched_at": "2026-06-15T03:23:48.228010+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "China PBOC expected to fix yuan midpoint at 6.7544 per dollar: estimate",
-    "url": "https://www.financialjuice.com/News/9634930/China-PBOC-expected-to-fix-yuan-midpoint-at-67544-per-dollar-estimate.aspx?xy=rss",
-    "sentiment_score": -0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "yuan valuation",
-      "dollar strength",
-      "China"
-    ],
-    "fetched_at": "2026-06-15T03:23:48.228010+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Ten hurt in Russian air strikes on Ukraine's Kyiv: mayor",
-    "url": "https://www.financialjuice.com/News/9634929/Ten-hurt-in-Russian-air-strikes-on-Ukraines-Kyiv-mayor.aspx?xy=rss",
-    "sentiment_score": 0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "geopolitical risk",
-      "Ukraine",
-      "safe-haven"
-    ],
-    "fetched_at": "2026-06-15T03:23:48.228010+00:00"
-  },
-  {
-    "source": "MarketWatch Top",
-    "headline": "Stock futures jump, oil prices fall as Trump says U.S. has reached peace deal with Iran",
-    "url": "https://www.marketwatch.com/story/trump-says-u-s-had-reached-peace-deal-with-iran-57a93e56?mod=mw_rss_topstories",
-    "sentiment_score": -0.6,
-    "impact": "HIGH",
-    "keywords": [
-      "Iran deal",
-      "risk-on",
-      "dollar strength"
-    ],
-    "fetched_at": "2026-06-15T03:23:48.228010+00:00"
-  },
-  {
-    "source": "MarketWatch Top",
-    "headline": "Will the real Kevin Warsh please stand up? Ahead of his first Fed meeting, economists honestly don\u2019t know what to expect.",
-    "url": "https://www.marketwatch.com/story/will-the-real-kevin-warsh-please-stand-up-ahead-of-his-first-fed-meeting-economists-honestly-dont-know-what-to-expect-6fa95c8c?mod=mw_rss_topstories",
-    "sentiment_score": -0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "Fed uncertainty",
-      "policy shift",
-      "dollar"
-    ],
-    "fetched_at": "2026-06-15T03:23:48.228010+00:00"
-  },
-  {
-    "source": "MarketWatch Top",
-    "headline": "Defaults in debt markets are starting again, warns Pimco. Here\u2019s the bond giant\u2019s game plan.",
-    "url": "https://www.marketwatch.com/story/defaults-in-debt-markets-are-starting-again-warns-pimco-heres-the-bond-giants-game-plan-16559c6d?mod=mw_rss_topstories",
-    "sentiment_score": 0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "credit stress",
-      "risk-off",
-      "safe-haven"
-    ],
-    "fetched_at": "2026-06-15T03:23:48.228010+00:00"
-  },
-  {
-    "source": "MarketWatch Top",
-    "headline": "We thought we found the perfect luxury retirement community, but it\u2019s millions of dollars in debt. Are we trapped?",
-    "url": "https://www.marketwatch.com/story/we-thought-we-found-the-perfect-luxury-retirement-community-but-its-millions-of-dollars-in-debt-are-we-trapped-cde2e8f5?mod=mw_rss_topstories",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "personal finance",
-      "unrelated",
-      "noise"
-    ],
-    "fetched_at": "2026-06-15T03:23:48.228010+00:00"
-  },
-  {
-    "source": "MarketWatch Top",
-    "headline": "SpaceX shows investors still want moonshots. The Fed may test that theory this week.",
-    "url": "https://www.marketwatch.com/story/spacex-shows-investors-still-want-moonshots-the-fed-may-test-that-theory-this-week-d7771f3a?mod=mw_rss_topstories",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "venture capital",
-      "unrelated",
-      "noise"
-    ],
-    "fetched_at": "2026-06-15T03:23:48.228010+00:00"
-  },
-  {
-    "source": "MarketWatch Top",
-    "headline": "My plumber charged $160 to fix the cistern on my toilet \u2014 but created another problem. Do I pay again?",
-    "url": "https://www.marketwatch.com/story/my-plumber-charged-160-to-fix-a-problem-in-my-bathroom-but-appears-to-have-created-another-one-do-i-pay-again-f64903ae?mod=mw_rss_topstories",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "consumer service",
-      "unrelated",
-      "noise"
-    ],
-    "fetched_at": "2026-06-15T03:23:48.228010+00:00"
-  },
-  {
-    "source": "Investing.com Comm",
-    "headline": "Gold fever sends some vintage luxury watches to the melting furnace",
-    "url": "https://www.investing.com/news/stock-market-news/gold-fever-sends-some-vintage-luxury-watches-to-the-melting-furnace-4741138",
-    "sentiment_score": 0.1,
-    "impact": "LOW",
-    "keywords": [
-      "gold demand",
-      "luxury goods",
-      "melting"
-    ],
-    "fetched_at": "2026-06-15T03:23:48.228010+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Dollar set for weekly loss as Iran peace hopes surge; eyes on central bank deluge",
-    "url": "https://www.investing.com/news/forex-news/asia-fx-mixed-as-traders-assess-iran-peace-prospects-rupee-top-gainer-4738906",
-    "sentiment_score": -0.5,
-    "impact": "HIGH",
-    "keywords": [
-      "dollar weakness",
-      "Iran peace",
-      "risk sentiment"
-    ],
-    "fetched_at": "2026-06-15T03:23:48.228010+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Sterling today: Pound slips as UK economy contracts and dollar remains supported",
-    "url": "https://www.investing.com/news/forex-news/sterling-today-pound-slips-as-uk-economy-contracts-and-dollar-remains-supported-4739585",
-    "sentiment_score": -0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "pound weakness",
-      "dollar strength",
-      "economic slowdown"
-    ],
-    "fetched_at": "2026-06-15T03:23:48.228010+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "BlackRock says oil, FX risks loom over India\u2019s bond inflow push",
-    "url": "https://www.investing.com/news/forex-news/blackrock-says-oil-fx-risks-loom-over-indias-bond-inflow-push-4739026",
-    "sentiment_score": 0.2,
-    "impact": "LOW",
-    "keywords": [
-      "emerging markets",
-      "capital flow risk",
-      "India"
-    ],
-    "fetched_at": "2026-06-15T03:23:48.228010+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Eurozone bonds rise on prospects of Iran-U.S. diplomatic breakthrough",
-    "url": "https://www.investing.com/news/forex-news/eurozone-bonds-rise-on-prospects-of-iranus-diplomatic-breakthrough-4739018",
-    "sentiment_score": 0.3,
-    "impact": "LOW",
-    "keywords": [
-      "diplomatic",
-      "risk-off",
-      "bonds"
-    ],
-    "fetched_at": "2026-06-15T03:23:48.228010+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Dollar slides after Trump says Iran deal reached, euro up after ECB rate hike",
-    "url": "https://www.investing.com/news/forex-news/asia-fx-dollar-steady-amid-fresh-usiran-tensions-fed-rate-caution-4736482",
-    "sentiment_score": 0.7,
-    "impact": "HIGH",
-    "keywords": [
-      "dollar weakness",
-      "geopolitical",
-      "peace"
-    ],
-    "fetched_at": "2026-06-15T03:23:48.228010+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Euro dips as ECB raises rates",
-    "url": "https://www.investing.com/news/forex-news/euro-dips-as-ecb-raises-rates-93CH-4737892",
-    "sentiment_score": -0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "strong dollar",
-      "ECB hike",
-      "rate rise"
-    ],
-    "fetched_at": "2026-06-15T03:23:48.228010+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Sterling today: Pound slips as ECB hike fails to shake dollar\u2019s grip",
-    "url": "https://www.investing.com/news/forex-news/sterling-today-pound-slips-as-ecb-hike-fails-to-shake-dollars-grip-4737382",
-    "sentiment_score": -0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "dollar strength",
-      "ECB",
-      "rates"
-    ],
-    "fetched_at": "2026-06-15T03:23:48.228010+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "German two-year yield near multi-week high ahead of ECB decision",
-    "url": "https://www.investing.com/news/forex-news/german-twoyear-yield-near-multiweek-high-ahead-of-ecb-decision-4736617",
-    "sentiment_score": -0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "yields rise",
-      "ECB",
-      "tightening"
-    ],
-    "fetched_at": "2026-06-15T03:23:48.228010+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Dollar inches up in choppy session as traders parse Iran tensions, U.S. CPI data",
-    "url": "https://www.investing.com/news/forex-news/asia-fx-dollar-steady-as-usiran-tensions-intensify-cpi-data-ahead-4734323",
-    "sentiment_score": 0.2,
-    "impact": "LOW",
-    "keywords": [
-      "mixed signals",
-      "CPI",
-      "geopolitical"
-    ],
-    "fetched_at": "2026-06-15T03:23:48.228010+00:00"
-  },
-  {
-    "source": "Mining.com",
-    "headline": "Silver stockpile drawdown risk is misunderstood",
-    "url": "https://www.mining.com/silver-stockpile-drawdown-risk-is-misunderstood/",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "silver",
-      "supply",
-      "technical"
-    ],
-    "fetched_at": "2026-06-15T03:23:48.228010+00:00"
-  },
-  {
-    "source": "Mining.com",
-    "headline": "Triple Flag buys gold stream on Ravenswood mine for $440M",
-    "url": "https://www.mining.com/triple-flag-buys-gold-stream-on-ravenswood-mine-for-440m/",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "M&A",
-      "mining",
-      "corporate"
-    ],
-    "fetched_at": "2026-06-15T03:23:48.228010+00:00"
-  },
-  {
-    "source": "Mining.com",
-    "headline": "China\u2019s gold market cools amid ETF outflows: report",
-    "url": "https://www.mining.com/chinas-gold-market-cools-amid-etf-outflows-report/",
-    "sentiment_score": -0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "outflows",
-      "ETF",
-      "demand"
-    ],
-    "fetched_at": "2026-06-15T03:23:48.228010+00:00"
-  },
-  {
-    "source": "Mining.com",
-    "headline": "PeaceGold,\u00a0SigraFi\u00a0sign\u00a0responsible\u00a0artisanal\u00a0gold supply deal\u00a0in\u00a0DRC",
-    "url": "https://www.mining.com/peacegold-sigrafi-sign-responsible-artisanal-gold-supply-deal-in-drc/",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "supply chain",
-      "ESG",
-      "artisanal"
-    ],
-    "fetched_at": "2026-06-15T03:23:48.228010+00:00"
-  },
-  {
-    "source": "Mining.com",
-    "headline": "Troilus drills shallow gold, boosts Quebec satellite case",
-    "url": "https://www.mining.com/troilus-drills-shallow-gold-boosts-quebec-satellite-case/",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "exploration",
-      "mining",
-      "corporate"
-    ],
-    "fetched_at": "2026-06-15T03:23:48.228010+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Trump veers toward exit in Iran war but risks loom - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMikgFBVV95cUxQcEZVelNtYmlvYmYzR3RtY1ViZ0EzNzU2LTdEcjctWGo0WnhBejRXVG5aVXNBT2VGQWdwWHhNdW90djhTV0VHN0FmcmZjZVJSYThHVzhPcTJ6TDlEdV9NSElZbk9fVWNEN3VlazRLeWtTaXEwb3Z4M1VMeTRTOGRCMWJ3MFByc1dmamxmVklVWVRYUQ?oc=5",
-    "sentiment_score": 0.6,
-    "impact": "HIGH",
-    "keywords": [
-      "geopolitical",
-      "peace deal",
-      "risk-off"
-    ],
-    "fetched_at": "2026-06-15T03:23:48.228010+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Dollar hits 10-day low as US, Iran reach peace deal - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMirAFBVV95cUxNejMtS3JFZU9GNXp1dF9iVjU3V0hyWDQ1M0Y2NEZlbVFyd3JQXzVCek5kbEdIRHltT1RiX0cza051RzJVUm1neDQ3Q3V6SGJIVE9LVnRNNGFKR1JXTXRjNmMtLTdqNGh1SFhpTzE0ajN5aU9jUG0xUG44dTVEYVdFWFpuQXZpX2NKek5tMGtLZmFVeGItV0xjM3NOc2JCNUZqMURPVDNfMXZRNzBi?oc=5",
-    "sentiment_score": 0.8,
-    "impact": "HIGH",
-    "keywords": [
-      "dollar weakness",
-      "peace deal",
-      "Iran"
-    ],
-    "fetched_at": "2026-06-15T03:23:48.228010+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Gold gains over 1% after US, Iran reach peace deal - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMinAFBVV95cUxQdDRBZ2VtTERRLW5oS1J0MVZvWlJBTkNiNFJpcGJ2RmM1bmYwQXMtMWI1dlFVb1ptZGpNYURkZ0VGaFRZeFNPZ3NMZkVRMzZTV2hfYTlXOFFQMUpDQ0c5bnFjeXR5bDlXYlRXVFlvR3NUNkRBNklJT2wwREhMN2I4aXhNMHp4SnBoS1lnR1NjaDhvcUl1R2pULW5PbE4?oc=5",
-    "sentiment_score": 0.7,
-    "impact": "HIGH",
-    "keywords": [
-      "risk-off",
-      "peace deal",
-      "geopolitical"
-    ],
-    "fetched_at": "2026-06-15T03:23:48.228010+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "US, Iran reach preliminary agreement to end war, signing set for Friday - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMisgFBVV95cUxOYkM0aHUzN3lFUGRoNGhaYnA0aXFMTVdPYUlUWXlocnpiZUZCUWhZbFNoTDVSNGJVbTM2bnN0aUdXaXUtYjBzX21SX2xoUjFwWUgyMDNsNVhwS1NMekItUDFGYmxoRXAyNzlUekpFTjVUU2Y2aWZTajVGV3JvcllPVXRub2lJZUFSVElrbk1ncEt1YjRnZEFLRFN4V293cW8xYTFULU93MkRBc3g2LU4wbktn?oc=5",
-    "sentiment_score": 0.7,
-    "impact": "HIGH",
-    "keywords": [
-      "peace agreement",
-      "geopolitical",
-      "risk-off"
-    ],
-    "fetched_at": "2026-06-15T03:23:48.228010+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Trump says deal to end war will be signed on Sunday, Iran questions timing - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMixwFBVV95cUxPOFNVaW1EQjcyVjlOZGtnLTdLXzctb2RqaXlFY0RfQ2FscHk3Y2NvYUkzZms3TGk1NHhoaGJGY21fV3hDa2VYYm4zRnVOTHpMYXJhOXk0UUdycFJMNlRNQ09SRFhXRTZvS2JiMDhtNlkzc2pIMWVrdm1mWGp0OUlIdHYwbGVDOGhUeW5FeFQ5ekdiY0RobFZjTDkyVnJONEhXM01TX1FKcE5INUg2RDlxWHpBa3RNRDEyX1J2SGlHd1pEVl9ZLUMw?oc=5",
-    "sentiment_score": 0.6,
-    "impact": "HIGH",
-    "keywords": [
-      "deal uncertainty",
-      "timing",
-      "geopolitical"
-    ],
-    "fetched_at": "2026-06-15T03:23:48.228010+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Exclusive: UAE to unlock billions of dollars for Iran, sources say - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMinwFBVV95cUxNdU8xSkdDSVRGOXhzQTVoemlTUi1GaFEyMzFNSUFXdGdQd21pbUNENTdfX01KaGFXdGQ5RklfMVNiSDlBRzRvb0xZVkU1dVd6Q0NTakI1WmxVaXZMMlVtUHVEZ2I1d3NkbExTQXU4RlRSQVhueHE0RU9sbTg5VjJWU0VwUjRMeGJtRmhXbzBQM013T3p4Y05JU2JnZkt1d0k?oc=5",
-    "sentiment_score": 0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "capital flows",
-      "risk-on",
-      "Iran"
-    ],
-    "fetched_at": "2026-06-15T03:23:48.228010+00:00"
-  },
-  {
     "source": "Reuters",
     "headline": "Since March, Trump has repeatedly said the Iran war will end soon - Reuters",
     "url": "https://news.google.com/rss/articles/CBMipAFBVV95cUxNbXdqTDl6UFBIS2llelo4cy1oak03OGhGUm1aeXUwRkRoS1FjNFl2RDlrZWhTOEhYVWh2OEdOWmNiRzRDQmloQmlBOHZhallUQlA5aDdueDdEZ1BWdlVVeTg5VFJXZTd0cTRLYWt3UGEyS3daMEMzS1RhcFQzQ2dMTWFtdUFtU28zeF9KVk45TWpNemMyTzZ0Wkt6bEx6TURMQWc1UA?oc=5",
@@ -2596,5 +2193,408 @@
       "industrial sector"
     ],
     "fetched_at": "2026-06-15T04:08:50.140324+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Ukraine Foreign Minister after monastery attack: will urgently initiate all relevant procedures within Unesco for immediate and adequate response to state barbarism",
+    "url": "https://www.financialjuice.com/News/9635080/Ukraine-Foreign-Minister-after-monastery-attack-will-urgently-initiate-all-relevant-procedures-within-Unesco-for-immediate-and-adequate-response-to-state-barbarism.aspx?xy=rss",
+    "sentiment_score": 0.3,
+    "impact": "LOW",
+    "keywords": [
+      "geopolitical",
+      "cultural heritage",
+      "conflict"
+    ],
+    "fetched_at": "2026-06-15T04:23:43.726725+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Ukraine strikes damage two bridges in Russia-held Kherson region: traffic halted, TASS cites local officials",
+    "url": "https://www.financialjuice.com/News/9635073/Ukraine-strikes-damage-two-bridges-in-Russia-held-Kherson-region-traffic-halted-TASS-cites-local-officials.aspx?xy=rss",
+    "sentiment_score": 0.2,
+    "impact": "LOW",
+    "keywords": [
+      "Ukraine",
+      "military",
+      "regional conflict"
+    ],
+    "fetched_at": "2026-06-15T04:23:43.726725+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "S. Korea foreign net investment in local bonds $5.68 bln vs $0.55 bln in April: central bank",
+    "url": "https://www.financialjuice.com/News/9635041/S-Korea-foreign-net-investment-in-local-bonds-568-bln-vs-055-bln-in-April-central-bank.aspx?xy=rss",
+    "sentiment_score": -0.3,
+    "impact": "LOW",
+    "keywords": [
+      "capital inflows",
+      "risk appetite",
+      "bonds"
+    ],
+    "fetched_at": "2026-06-15T04:23:43.726725+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "S.Korea foreign net investment in local stocks minus $31.83 billion vs minus $2.68 billion in April: central bank",
+    "url": "https://www.financialjuice.com/News/9635040/SKorea-foreign-net-investment-in-local-stocks-minus-3183-billion-vs-minus-268-billion-in-April-central-bank.aspx?xy=rss",
+    "sentiment_score": -0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "capital outflows",
+      "risk aversion reversed",
+      "equities"
+    ],
+    "fetched_at": "2026-06-15T04:23:43.726725+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Two killed in Russian airstrike on Kyiv, local officials say",
+    "url": "https://www.financialjuice.com/News/9635038/Two-killed-in-Russian-airstrike-on-Kyiv-local-officials-say.aspx?xy=rss",
+    "sentiment_score": 0.2,
+    "impact": "LOW",
+    "keywords": [
+      "geopolitical",
+      "conflict escalation",
+      "Ukraine"
+    ],
+    "fetched_at": "2026-06-15T04:23:43.726725+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "S.Korea central bank sells 91-day monetary stabilisation bonds at yield of 2.690%",
+    "url": "https://www.financialjuice.com/News/9634972/SKorea-central-bank-sells-91-day-monetary-stabilisation-bonds-at-yield-of-2690.aspx?xy=rss",
+    "sentiment_score": -0.2,
+    "impact": "LOW",
+    "keywords": [
+      "monetary policy",
+      "central bank",
+      "rates"
+    ],
+    "fetched_at": "2026-06-15T04:23:43.726725+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "China c.bank injects 425 billion yuan through 7-day reverse repos at 1.40%: statement",
+    "url": "https://www.financialjuice.com/News/9634958/China-cbank-injects-425-billion-yuan-through-7-day-reverse-repos-at-140-statement.aspx?xy=rss",
+    "sentiment_score": -0.3,
+    "impact": "LOW",
+    "keywords": [
+      "liquidity injection",
+      "easing",
+      "stimulus"
+    ],
+    "fetched_at": "2026-06-15T04:23:43.726725+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "China sets yuan midpoint at strongest level since February 10, 2023",
+    "url": "https://www.financialjuice.com/News/9634957/China-sets-yuan-midpoint-at-strongest-level-since-February-10-2023.aspx?xy=rss",
+    "sentiment_score": -0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "currency strength",
+      "yuan appreciation",
+      "risk sentiment"
+    ],
+    "fetched_at": "2026-06-15T04:23:43.726725+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Taiwan overnight interbank rate starts at 0.810%, unchanged from previous session",
+    "url": "https://www.financialjuice.com/News/9634945/Taiwan-overnight-interbank-rate-starts-at-0810-unchanged-from-previous-session.aspx?xy=rss",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "interbank rates",
+      "Taiwan",
+      "neutral"
+    ],
+    "fetched_at": "2026-06-15T04:23:43.726725+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "three killed, three injured in drone strike in Russia's Tula, governor says",
+    "url": "https://www.financialjuice.com/News/9634944/three-killed-three-injured-in-drone-strike-in-Russias-Tula-governor-says.aspx?xy=rss",
+    "sentiment_score": 0.1,
+    "impact": "LOW",
+    "keywords": [
+      "geopolitical",
+      "conflict",
+      "minor impact"
+    ],
+    "fetched_at": "2026-06-15T04:23:43.726725+00:00"
+  },
+  {
+    "source": "MarketWatch Top",
+    "headline": "Stock futures jump, oil prices fall as Trump says U.S. has reached peace deal with Iran",
+    "url": "https://www.marketwatch.com/story/trump-says-u-s-had-reached-peace-deal-with-iran-57a93e56?mod=mw_rss_topstories",
+    "sentiment_score": -0.7,
+    "impact": "HIGH",
+    "keywords": [
+      "Iran peace deal",
+      "geopolitical de-escalation",
+      "risk-on"
+    ],
+    "fetched_at": "2026-06-15T04:23:43.726725+00:00"
+  },
+  {
+    "source": "MarketWatch Top",
+    "headline": "Will the real Kevin Warsh please stand up? Ahead of his first Fed meeting, economists honestly don\u2019t know what to expect.",
+    "url": "https://www.marketwatch.com/story/will-the-real-kevin-warsh-please-stand-up-ahead-of-his-first-fed-meeting-economists-honestly-dont-know-what-to-expect-6fa95c8c?mod=mw_rss_topstories",
+    "sentiment_score": -0.2,
+    "impact": "LOW",
+    "keywords": [
+      "Fed uncertainty",
+      "policy expectations",
+      "neutral"
+    ],
+    "fetched_at": "2026-06-15T04:23:43.726725+00:00"
+  },
+  {
+    "source": "MarketWatch Top",
+    "headline": "Defaults in debt markets are starting again, warns Pimco. Here\u2019s the bond giant\u2019s game plan.",
+    "url": "https://www.marketwatch.com/story/defaults-in-debt-markets-are-starting-again-warns-pimco-heres-the-bond-giants-game-plan-16559c6d?mod=mw_rss_topstories",
+    "sentiment_score": 0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "credit stress",
+      "defaults",
+      "financial risk"
+    ],
+    "fetched_at": "2026-06-15T04:23:43.726725+00:00"
+  },
+  {
+    "source": "MarketWatch Top",
+    "headline": "We thought we found the perfect luxury retirement community, but it\u2019s millions of dollars in debt. Are we trapped?",
+    "url": "https://www.marketwatch.com/story/we-thought-we-found-the-perfect-luxury-retirement-community-but-its-millions-of-dollars-in-debt-are-we-trapped-cde2e8f5?mod=mw_rss_topstories",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "real estate",
+      "personal finance",
+      "irrelevant"
+    ],
+    "fetched_at": "2026-06-15T04:23:43.726725+00:00"
+  },
+  {
+    "source": "MarketWatch Top",
+    "headline": "SpaceX shows investors still want moonshots. The Fed may test that theory this week.",
+    "url": "https://www.marketwatch.com/story/spacex-shows-investors-still-want-moonshots-the-fed-may-test-that-theory-this-week-d7771f3a?mod=mw_rss_topstories",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "technology",
+      "venture capital",
+      "irrelevant"
+    ],
+    "fetched_at": "2026-06-15T04:23:43.726725+00:00"
+  },
+  {
+    "source": "MarketWatch Top",
+    "headline": "My plumber charged $160 to fix the cistern on my toilet \u2014 but created another problem. Do I pay again?",
+    "url": "https://www.marketwatch.com/story/my-plumber-charged-160-to-fix-a-problem-in-my-bathroom-but-appears-to-have-created-another-one-do-i-pay-again-f64903ae?mod=mw_rss_topstories",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "consumer",
+      "personal finance",
+      "irrelevant"
+    ],
+    "fetched_at": "2026-06-15T04:23:43.726725+00:00"
+  },
+  {
+    "source": "Investing.com Comm",
+    "headline": "Exclusive-ByteDance in talks with China\u2019s Iluvatar CoreX to purchase AI chips, sources say",
+    "url": "https://www.investing.com/news/stock-market-news/exclusivebytedance-in-talks-with-chinas-iluvatar-corex-to-purchase-ai-chips-sources-say-4741150",
+    "sentiment_score": -0.2,
+    "impact": "LOW",
+    "keywords": [
+      "China",
+      "tech sector",
+      "geopolitical"
+    ],
+    "fetched_at": "2026-06-15T04:23:43.726725+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Dollar set for weekly loss as Iran peace hopes surge; eyes on central bank deluge",
+    "url": "https://www.investing.com/news/forex-news/asia-fx-mixed-as-traders-assess-iran-peace-prospects-rupee-top-gainer-4738906",
+    "sentiment_score": -0.6,
+    "impact": "HIGH",
+    "keywords": [
+      "dollar weakness",
+      "Iran peace",
+      "risk sentiment"
+    ],
+    "fetched_at": "2026-06-15T04:23:43.726725+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Sterling today: Pound slips as UK economy contracts and dollar remains supported",
+    "url": "https://www.investing.com/news/forex-news/sterling-today-pound-slips-as-uk-economy-contracts-and-dollar-remains-supported-4739585",
+    "sentiment_score": -0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "pound weakness",
+      "dollar strength",
+      "safe haven flows"
+    ],
+    "fetched_at": "2026-06-15T04:23:43.726725+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "BlackRock says oil, FX risks loom over India\u2019s bond inflow push",
+    "url": "https://www.investing.com/news/forex-news/blackrock-says-oil-fx-risks-loom-over-indias-bond-inflow-push-4739026",
+    "sentiment_score": -0.3,
+    "impact": "MEDIUM",
+    "keywords": [
+      "emerging markets",
+      "capital flows",
+      "FX volatility"
+    ],
+    "fetched_at": "2026-06-15T04:23:43.726725+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Eurozone bonds rise on prospects of Iran-U.S. diplomatic breakthrough",
+    "url": "https://www.investing.com/news/forex-news/eurozone-bonds-rise-on-prospects-of-iranus-diplomatic-breakthrough-4739018",
+    "sentiment_score": 0.3,
+    "impact": "LOW",
+    "keywords": [
+      "diplomatic breakthrough",
+      "risk-off relief",
+      "bond yields"
+    ],
+    "fetched_at": "2026-06-15T04:23:43.726725+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Dollar slides after Trump says Iran deal reached, euro up after ECB rate hike",
+    "url": "https://www.investing.com/news/forex-news/asia-fx-dollar-steady-amid-fresh-usiran-tensions-fed-rate-caution-4736482",
+    "sentiment_score": -0.7,
+    "impact": "HIGH",
+    "keywords": [
+      "dollar weakness",
+      "Iran deal",
+      "risk sentiment"
+    ],
+    "fetched_at": "2026-06-15T04:23:43.726725+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Euro dips as ECB raises rates",
+    "url": "https://www.investing.com/news/forex-news/euro-dips-as-ecb-raises-rates-93CH-4737892",
+    "sentiment_score": -0.6,
+    "impact": "MEDIUM",
+    "keywords": [
+      "ECB rate hike",
+      "stronger euro",
+      "higher yields"
+    ],
+    "fetched_at": "2026-06-15T04:23:43.726725+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Sterling today: Pound slips as ECB hike fails to shake dollar\u2019s grip",
+    "url": "https://www.investing.com/news/forex-news/sterling-today-pound-slips-as-ecb-hike-fails-to-shake-dollars-grip-4737382",
+    "sentiment_score": -0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "ECB hike",
+      "dollar strength",
+      "rate expectations"
+    ],
+    "fetched_at": "2026-06-15T04:23:43.726725+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "German two-year yield near multi-week high ahead of ECB decision",
+    "url": "https://www.investing.com/news/forex-news/german-twoyear-yield-near-multiweek-high-ahead-of-ecb-decision-4736617",
+    "sentiment_score": -0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "ECB decision",
+      "yield rise",
+      "tighter policy"
+    ],
+    "fetched_at": "2026-06-15T04:23:43.726725+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Dollar inches up in choppy session as traders parse Iran tensions, U.S. CPI data",
+    "url": "https://www.investing.com/news/forex-news/asia-fx-dollar-steady-as-usiran-tensions-intensify-cpi-data-ahead-4734323",
+    "sentiment_score": 0.2,
+    "impact": "LOW",
+    "keywords": [
+      "dollar volatility",
+      "geopolitical risk",
+      "inflation data"
+    ],
+    "fetched_at": "2026-06-15T04:23:43.726725+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Silver stockpile drawdown risk is misunderstood",
+    "url": "https://www.mining.com/silver-stockpile-drawdown-risk-is-misunderstood/",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "silver",
+      "industrial demand",
+      "supply"
+    ],
+    "fetched_at": "2026-06-15T04:23:43.726725+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Triple Flag buys gold stream on Ravenswood mine for $440M",
+    "url": "https://www.mining.com/triple-flag-buys-gold-stream-on-ravenswood-mine-for-440m/",
+    "sentiment_score": 0.1,
+    "impact": "LOW",
+    "keywords": [
+      "mining M&A",
+      "gold production",
+      "corporate news"
+    ],
+    "fetched_at": "2026-06-15T04:23:43.726725+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "China\u2019s gold market cools amid ETF outflows: report",
+    "url": "https://www.mining.com/chinas-gold-market-cools-amid-etf-outflows-report/",
+    "sentiment_score": -0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "China demand",
+      "ETF outflows",
+      "investment demand"
+    ],
+    "fetched_at": "2026-06-15T04:23:43.726725+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "PeaceGold,\u00a0SigraFi\u00a0sign\u00a0responsible\u00a0artisanal\u00a0gold supply deal\u00a0in\u00a0DRC",
+    "url": "https://www.mining.com/peacegold-sigrafi-sign-responsible-artisanal-gold-supply-deal-in-drc/",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "artisanal gold",
+      "supply chain",
+      "ESG"
+    ],
+    "fetched_at": "2026-06-15T04:23:43.726725+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Troilus drills shallow gold, boosts Quebec satellite case",
+    "url": "https://www.mining.com/troilus-drills-shallow-gold-boosts-quebec-satellite-case/",
+    "sentiment_score": 0.1,
+    "impact": "LOW",
+    "keywords": [
+      "exploration success",
+      "mining development",
+      "producer news"
+    ],
+    "fetched_at": "2026-06-15T04:23:43.726725+00:00"
   }
 ]
