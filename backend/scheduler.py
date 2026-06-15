@@ -1758,13 +1758,50 @@ def start_scheduler() -> AsyncIOScheduler:
     _scheduler.add_job(_fj_session_refresh_cycle, trigger="date", run_date=_now + _td(seconds=60),
                        id="fj_session_refresh_boot", replace_existing=True)
 
-    # Startup catch-up: fire daily performance report if we missed the 16:15 ET cron
-    # (e.g. redeployed after NY close). Uses NY time so it tracks DST automatically.
+    # Startup catch-up: re-fire any once-per-day job whose scheduled window passed
+    # while the app was down (deploy restart). APScheduler has no persistent state,
+    # so misfire_grace_time is useless across restarts — we handle it here instead.
+    # Window: job fired today AND startup is within 4 hours AFTER the schedule.
+    # Worst case: two deploys in the same window → harmless double-send.
     _now_ny = _now.astimezone(_ny_tz)
-    if _now_ny.weekday() < 5 and (_now_ny.hour, _now_ny.minute) >= (16, 15):
-        print("[scheduler] Startup catch-up: firing daily performance report on boot.")
+    _is_weekday = _now_ny.weekday() < 5
+    _is_monday  = _now_ny.weekday() == 0
+
+    def _missed(sched_h: int, sched_m: int, tz_now) -> bool:
+        """True if scheduled time passed today and startup is within 4 hours after."""
+        sched_min = sched_h * 60 + sched_m
+        now_min   = tz_now.hour * 60 + tz_now.minute
+        return sched_min <= now_min < sched_min + 240
+
+    # Daily market brief — 08:00 UTC
+    if _is_weekday and _missed(8, 0, _now):
+        print("[scheduler] Startup catch-up: daily market brief.")
+        _scheduler.add_job(_daily_market_brief, trigger="date", run_date=_now + _td(seconds=30),
+                           id="daily_brief_catchup", replace_existing=True)
+
+    # Daily performance report — 16:15 ET
+    if _is_weekday and _missed(16, 15, _now_ny):
+        print("[scheduler] Startup catch-up: daily performance report.")
         _scheduler.add_job(_daily_trade_count_report, trigger="date", run_date=_now + _td(seconds=45),
                            id="daily_report_catchup", replace_existing=True)
+
+    # Swing screen — 16:30 ET
+    if _is_weekday and _missed(16, 30, _now_ny):
+        print("[scheduler] Startup catch-up: swing screen.")
+        _scheduler.add_job(_swing_screen_cycle, trigger="date", run_date=_now + _td(seconds=60),
+                           id="swing_screen_catchup", replace_existing=True)
+
+    # Swing manage — 16:45 ET
+    if _is_weekday and _missed(16, 45, _now_ny):
+        print("[scheduler] Startup catch-up: swing manage.")
+        _scheduler.add_job(_swing_manage_cycle, trigger="date", run_date=_now + _td(seconds=75),
+                           id="swing_manage_catchup", replace_existing=True)
+
+    # Weekly autopsy — Monday 09:00 UTC
+    if _is_monday and _missed(9, 0, _now):
+        print("[scheduler] Startup catch-up: weekly autopsy.")
+        _scheduler.add_job(_weekly_mistake_autopsy, trigger="date", run_date=_now + _td(seconds=90),
+                           id="autopsy_catchup", replace_existing=True)
 
     print(f"[scheduler] Started — signal every {interval} min, breaking news every 2 min, system check every 60 min, daily performance report at 16:15 ET.")
     return _scheduler
