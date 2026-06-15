@@ -7,5 +7,14 @@
     "ml_score": 0.75,
     "stored_at": "2026-06-15T09:02:01.527067+00:00",
     "expires_at": "2026-06-15T13:02:01.527078+00:00"
+  },
+  "PLTR_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "PLTR",
+    "trigger": "FVG",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-15T14:00:02.538918+00:00",
+    "expires_at": "2026-06-15T16:00:02.538934+00:00"
   }
 }
