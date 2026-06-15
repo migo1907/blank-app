@@ -1,25 +1,5 @@
 [
   {
-    "symbol": "QQQ",
-    "pool": "STOCKS_QQQ_30M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "news_score": 0.1513,
-    "combined_score": 0.0,
-    "session": "NYSE_AFTERNOON",
-    "regime": "NORMAL",
-    "regime_label": "NORMAL",
-    "reasoning": "Weekend \u2014 market closed",
-    "status": "NEUTRAL",
-    "expires_at": "2026-06-14T20:35:09.865126+00:00",
-    "created_at": "2026-06-14T20:05:09.865175+00:00",
-    "id": 101
-  },
-  {
     "symbol": "XAUUSD",
     "pool": "XAUUSD_2M",
     "direction": "NEUTRAL",
@@ -2309,6 +2289,32 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-15T04:53:45.330710+00:00",
     "created_at": "2026-06-15T04:23:45.786548+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "SPY",
+    "pool": "STOCKS_INDEX_30M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "news_score": -0.2566,
+    "macro_bias": 0.3207,
+    "macro_label": "BULLISH",
+    "combined_score": -0.0374,
+    "session": "CLOSED",
+    "regime": "NORMAL",
+    "regime_label": "NORMAL",
+    "hmm_regime": "hmm:TRENDING_BULL(0.99)",
+    "intermarket": "imkt:na",
+    "mtf_confluence": "mtf:2/3",
+    "post_event": "evt:na",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:TRENDING_BULL(0.99)\u00d70.92 | imkt:na\u00d71.00 | mtf:2/3\u00d71.03 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.76 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.13) | news:bearish(-0.257) | macro:BULLISH(+0.321) | combined:-0.037 \u2192 conf:0.017 \u26a1 GEOPOLITICAL",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-15T04:53:47.337473+00:00",
+    "created_at": "2026-06-15T04:23:47.635377+00:00",
     "id": 101
   }
 ]
