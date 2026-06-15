@@ -34,5 +34,23 @@
     "ml_score": 0.5,
     "stored_at": "2026-06-15T14:00:05.038650+00:00",
     "expires_at": "2026-06-15T16:00:05.038665+00:00"
+  },
+  "SOXL_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "SOXL",
+    "trigger": "BOS",
+    "ml_score": 0.75,
+    "stored_at": "2026-06-15T14:00:06.741638+00:00",
+    "expires_at": "2026-06-15T16:00:06.741650+00:00"
+  },
+  "SPY_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "SPY",
+    "trigger": "BOS",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-15T14:00:10.718249+00:00",
+    "expires_at": "2026-06-15T16:00:10.718270+00:00"
   }
 }
