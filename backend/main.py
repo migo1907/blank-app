@@ -1196,6 +1196,15 @@ async def daily_brief_now(secret: str = ""):
     return {"status": "daily brief triggered — check Telegram in ~15 seconds"}
 
 
+@app.get("/daily-report")
+async def daily_report_now(secret: str = ""):
+    """Trigger end-of-day performance report immediately and send to Telegram."""
+    _validate_secret(secret)
+    from scheduler import _daily_trade_count_report
+    asyncio.create_task(_daily_trade_count_report())
+    return {"status": "daily performance report triggered — check Telegram in ~15 seconds"}
+
+
 @app.get("/railway-status")
 async def railway_status(secret: str = ""):
     _validate_secret(secret)
