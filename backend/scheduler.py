@@ -936,6 +936,23 @@ async def _hourly_system_check() -> None:
         await send_critical_alert(title, detail, action)
 
 
+async def _daily_market_brief() -> None:
+    """Send daily technical market brief to Telegram at 08:00 UTC Mon-Fri (London open)."""
+    if _dt.now(_tz.utc).weekday() >= 5:
+        return
+    try:
+        from daily_analysis import generate_daily_brief
+        from telegram_bot import send_text
+        msg = await asyncio.to_thread(generate_daily_brief)
+        if msg:
+            await send_text(msg)
+            print("[daily_brief] Sent to Telegram.")
+        else:
+            print("[daily_brief] generate_daily_brief returned None — nothing sent.")
+    except Exception as e:
+        print(f"[daily_brief] Failed: {e}")
+
+
 async def _daily_trade_count_report() -> None:
     """
     RULE: One daily performance report, fired once after NY session closes (16:15 ET).
@@ -1691,6 +1708,9 @@ def start_scheduler() -> AsyncIOScheduler:
     _scheduler.add_job(_hourly_system_check, trigger="interval", hours=1, id="hourly_system_check", replace_existing=True)
     _scheduler.add_job(_macro_refresh_cycle, trigger="interval", hours=1, id="macro_refresh_cycle", replace_existing=True,
                        start_date=_dt.now(_tz.utc) + _td(seconds=20))
+    # Daily technical market brief — fires at 08:00 UTC (London open) Mon-Fri.
+    _scheduler.add_job(_daily_market_brief, trigger="cron", day_of_week="mon-fri", hour=8, minute=0,
+                       id="daily_market_brief", replace_existing=True, misfire_grace_time=3600)
     # ONE daily performance report — fires at 16:15 ET (after NY session close).
     # DST-safe via America/New_York so it always fires 15 min after market close.
     from zoneinfo import ZoneInfo
