@@ -23,6 +23,20 @@ These are permanent agreements — never override, skip, or work around them und
 2. **Never push to `main`.**
 3. **Credentials (tokens, passwords, secrets) stay in Railway env only — never committed to the repo.**
 4. **Self-awareness, learning from mistakes, continuous improvement — always.** Check the simplest, most obvious explanation FIRST (market closed? weekend? holiday? wrong time?) before reaching for a complex one. State assumptions out loud so they can be challenged. Do not propose or make fixes on incomplete context — verify the real cause first (e.g., validate on a live trading day, not weekend data). When a mistake is caught, own it specifically, extract the lesson, and apply it going forward. Hold yourself to the same standard the system is built on (mistake ledger + weekly autopsy).
+5. **Pine Script backup sync — always.** Any change touching F-numbers, feature formulas, or webhook payload fields must update `data/pine_script_backup/migo_sniper_ml_v3.pine` on the `data` branch in the same push. Never let the backup drift from production.
+6. **Trade history analysis — never use WebFetch agents.** WebFetch truncates large JSON files and returns wrong counts/timestamps. Always use `mcp__github__get_file_contents` + local Python/regex to parse trade data. For files >100KB, parse the saved tool-result file with Python regex directly.
+7. **APScheduler has no persistent state across Railway restarts.** `misfire_grace_time` only helps while the scheduler is running — it does NOT catch jobs missed during a cold restart. Startup catch-up logic in `start_scheduler()` handles this (scheduler.py). If a scheduled job is missed, trigger it manually via its `/endpoint?secret=gold2026` URL. Manual endpoints: `/daily-brief`, `/daily-report`, `/signal/now`, `/swing/now`.
+8. **Thin-pool cold-start deadlock.** Pools with <50 trades return KNN confidence=0 → NEUTRAL → no entries stored → pool never grows. Signal engine bypasses both the CONFLICTED gate and the min_conf threshold for _n<50 (signal_engine.py). Do NOT re-add those gates for thin pools. The bypass self-deactivates at 50 trades.
+
+---
+
+## Known Pool Architecture
+- **STOCKS_INDEX** = SPY only → pools: STOCKS_INDEX_15M / 30M / 4H
+- **STOCKS_SPX500** = SPX500, SP500, US500 → pools: STOCKS_SPX500_15M / 30M / 4H
+- **STOCKS_QQQ** = QQQ only → pools: STOCKS_QQQ_15M / 30M / 4H
+- **STOCKS_MOMENTUM / QUALITY** = individual stock tickers (AAPL, MSFT, ADBE, META, etc.)
+- **Pool silence diagnosis:** check `data/feature_cache.json` on data branch first — if timestamp is fresh, charts ARE sending heartbeats (not a TradingView issue). Then check `data/signals.json` for direction=NEUTRAL pattern. If all signals for a pool are NEUTRAL with conf=0.0, it is the thin-pool deadlock (rule 8 above).
+- **Trade data ground truth:** always read from `data` branch, not dev branch. Use `mcp__github__get_file_contents` + Python regex for counts and last-trade timestamps.
 
 ---
 
