@@ -46,51 +46,48 @@ SYMBOLS_TV = {
     "QQQ":    ("QQQ",    "NASDAQ",    2, "QQQ 📊"),
 }
 
-ANALYSIS_PROMPT = """You are a senior institutional trader writing a morning market brief for professional traders.
+ANALYSIS_PROMPT = """You are a senior institutional trader writing a concise morning market brief for professional traders.
 
-Assets with live data are provided below. Each includes:
-- Live market price right now (pre-market or spot — this is the ACTUAL current price)
-- Previous session close
-- Gap from close (how much price moved overnight/pre-market, with direction)
-- Classic daily pivot levels (P, R1–R3, S1–S3)
-- Macro context for gold (if available)
-
-Your job — write a sharp, actionable morning brief. Rules:
-- Open with a 1-line market tone sentence covering all three assets together
-- For each asset: reference the LIVE PRICE, call out the gap if significant (>0.2%), and explain what it means for today's session
-- Position the live price vs pivot — is price above or below pivot? What does that mean for bias?
-- Give the 2–3 key levels traders will watch today
-- One BULL scenario (entry trigger + target) and one BEAR scenario (trigger + target) — both must use the actual numbers provided
-- Be direct and specific. No filler. No indicator names (no RSI, MACD, EMA, ATR, Fibonacci).
-- Use $ formatting for prices. Keep each asset block tight — 6–8 lines max.
-
-Asset data:
+Asset data (live prices, prev-session OHLC, pivot levels):
 {asset_data}
 
-Format EXACTLY as follows (no extra sections, no deviations):
+Rules:
+- Open with ONE sentence covering the cross-asset risk tone (all three together).
+- For each asset: state the live price and gap clearly, position vs pivot, give 2–3 actionable levels, one bull and one bear scenario with real numbers.
+- Be direct. No filler. No indicator names (no RSI, MACD, EMA, ATR, Fibonacci).
+- Prices with $ and comma formatting. Each asset block max 7 lines.
+- Arrow ↑ for positive gap, ↓ for negative gap.
 
-📊 <b>Market Tone:</b> [1 sentence covering overall risk-on/off tone across all three]
+Output EXACTLY this format — no extra lines, no deviations, use HTML bold tags as shown:
 
+📊 <b>Market Tone:</b> [1 sentence]
+
+──────────────────────
 🥇 <b>XAUUSD</b>
-<b>Live:</b> $X,XXX.XX  |  Prev close: $X,XXX.XX  |  Gap: [+/-X.XX (+/-X.XX%)] [pre-market/overnight]
-<b>Pivot:</b> $X,XXX.XX — price is [above/below] pivot → [bullish/bearish] intraday bias
-<b>Watch:</b> $X,XXX / $X,XXX / $X,XXX
-📈 <b>Bull:</b> [trigger level] → targets $X,XXX then $X,XXX
-📉 <b>Bear:</b> [trigger level] → targets $X,XXX then $X,XXX
+<b>$X,XXX.XX</b>  [↑/↓] [+/-X.XX] ([+/-X.XX]%) · Prev close $X,XXX.XX
+📍 Pivot <b>$X,XXX.XX</b> · [Above → Bullish / Below → Bearish]
+🔴 R1 $X,XXX · R2 $X,XXX · R3 $X,XXX
+🟢 S1 $X,XXX · S2 $X,XXX · S3 $X,XXX
+📈 <b>Bull:</b> [trigger] → $X,XXX then $X,XXX
+📉 <b>Bear:</b> [trigger] → $X,XXX then $X,XXX
 
+──────────────────────
 📈 <b>SPY</b>
-<b>Live:</b> $XXX.XX  |  Prev close: $XXX.XX  |  Gap: [+/-X.XX (+/-X.XX%)] [pre-market/overnight]
-<b>Pivot:</b> $XXX.XX — price is [above/below] pivot → [bullish/bearish] intraday bias
-<b>Watch:</b> $XXX / $XXX / $XXX
-📈 <b>Bull:</b> [trigger level] → targets $XXX then $XXX
-📉 <b>Bear:</b> [trigger level] → targets $XXX then $XXX
+<b>$XXX.XX</b>  [↑/↓] [+/-X.XX] ([+/-X.XX]%) · Prev close $XXX.XX
+📍 Pivot <b>$XXX.XX</b> · [Above → Bullish / Below → Bearish]
+🔴 R1 $XXX · R2 $XXX · R3 $XXX
+🟢 S1 $XXX · S2 $XXX · S3 $XXX
+📈 <b>Bull:</b> [trigger] → $XXX then $XXX
+📉 <b>Bear:</b> [trigger] → $XXX then $XXX
 
-📈 <b>QQQ</b>
-<b>Live:</b> $XXX.XX  |  Prev close: $XXX.XX  |  Gap: [+/-X.XX (+/-X.XX%)] [pre-market/overnight]
-<b>Pivot:</b> $XXX.XX — price is [above/below] pivot → [bullish/bearish] intraday bias
-<b>Watch:</b> $XXX / $XXX / $XXX
-📈 <b>Bull:</b> [trigger level] → targets $XXX then $XXX
-📉 <b>Bear:</b> [trigger level] → targets $XXX then $XXX"""
+──────────────────────
+📊 <b>QQQ</b>
+<b>$XXX.XX</b>  [↑/↓] [+/-X.XX] ([+/-X.XX]%) · Prev close $XXX.XX
+📍 Pivot <b>$XXX.XX</b> · [Above → Bullish / Below → Bearish]
+🔴 R1 $XXX · R2 $XXX · R3 $XXX
+🟢 S1 $XXX · S2 $XXX · S3 $XXX
+📈 <b>Bull:</b> [trigger] → $XXX then $XXX
+📉 <b>Bear:</b> [trigger] → $XXX then $XXX"""
 
 
 def _calc_pivots(ph, pl, pc, decimals):
@@ -346,10 +343,10 @@ def generate_daily_brief() -> str | None:
     calendar_section = f"\n\n{calendar_block}" if calendar_block else ""
 
     msg = (
-        f"📅 <b>MORNING MARKET BRIEF — {weekday}, {date_str}</b>\n"
+        f"📅 <b>MORNING BRIEF — {weekday}, {date_str}</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━\n\n"
         f"{analysis}{calendar_section}\n\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
-        f"⏰ {now.strftime('%H:%M UTC')} | 1:00 PM Dubai | {session_label}"
+        f"⏰ {now.strftime('%H:%M')} UTC  ·  1:00 PM Dubai  ·  {session_label}"
     )
     return msg
