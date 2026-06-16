@@ -945,11 +945,12 @@ async def _hourly_system_check() -> None:
 async def _daily_market_brief() -> None:
     """Send daily technical market brief to Telegram at 09:00 UTC (1 PM Dubai) Mon-Fri."""
     global _brief_sent_date
-    today = _dt.now(_tz.utc).date()
+    from datetime import datetime, timezone
+    today = datetime.now(timezone.utc).date()
     if today == _brief_sent_date:
         print("[daily_brief] Already sent today — skipping.")
         return
-    if _dt.now(_tz.utc).weekday() >= 5:
+    if datetime.now(timezone.utc).weekday() >= 5:
         return
     try:
         from daily_analysis import generate_daily_brief
