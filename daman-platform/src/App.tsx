@@ -1,5 +1,5 @@
 import { useState, lazy, Suspense } from 'react';
-import { Globe, Shield, Menu, X, Moon, Sun } from 'lucide-react';
+import { Globe, Shield, Menu, X, Moon, Sun, Languages } from 'lucide-react';
 import DamanLogo from './components/DamanLogo';
 import MobileBottomNav from './components/MobileBottomNav';
 import BackToTop from './components/BackToTop';
@@ -8,6 +8,7 @@ import InstallPrompt from './components/InstallPrompt';
 import CommandPalette from './components/CommandPalette';
 import { ToastProvider } from './components/ToastContainer';
 import { useTheme } from './contexts/ThemeContext';
+import { useLanguage } from './contexts/LanguageContext';
 
 // Lazy-load pages so the initial bundle only ships what first paint needs.
 // Each page becomes its own chunk, fetched on demand when navigated to.
@@ -29,16 +30,17 @@ function PageLoader() {
 
 function App() {
   const { theme, toggleTheme } = useTheme();
+  const { toggleLang, t } = useLanguage();
   const [currentPage, setCurrentPage] = useState<'home' | 'market-overview' | 'ai-strategist' | 'portfolio' | 'watchlist' | 'settings'>('home');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navigation = [
-    { name: 'Home', id: 'home' as const },
-    { name: 'Market Overview', id: 'market-overview' as const },
-    { name: 'AI Strategist', id: 'ai-strategist' as const },
-    { name: 'Portfolio', id: 'portfolio' as const },
-    { name: 'Watchlist', id: 'watchlist' as const },
-    { name: 'Settings', id: 'settings' as const },
+    { name: t('nav.home'), id: 'home' as const },
+    { name: t('nav.market'), id: 'market-overview' as const },
+    { name: t('nav.ai'), id: 'ai-strategist' as const },
+    { name: t('nav.portfolio'), id: 'portfolio' as const },
+    { name: t('nav.watchlist'), id: 'watchlist' as const },
+    { name: t('nav.settings'), id: 'settings' as const },
   ];
 
   const handleNavigation = (page: string) => {
@@ -60,6 +62,15 @@ function App() {
               </div>
 
               <div className="hidden md:flex items-center space-x-8">
+                <button
+                  onClick={toggleLang}
+                  className="flex items-center gap-1 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-slate-700 dark:text-slate-300"
+                  aria-label="Toggle language"
+                  title="العربية / English"
+                >
+                  <Languages className="h-5 w-5" />
+                  <span className="text-sm font-medium">{t('common.language')}</span>
+                </button>
                 <button
                   onClick={toggleTheme}
                   className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
@@ -114,6 +125,13 @@ function App() {
           {isMenuOpen && (
             <div className="md:hidden bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 animate-slideUp">
               <div className="px-4 pt-2 pb-4 space-y-2">
+                <button
+                  onClick={toggleLang}
+                  className="flex items-center justify-between w-full px-4 py-2 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                >
+                  <span>{t('common.language')}</span>
+                  <Languages className="h-5 w-5" />
+                </button>
                 <button
                   onClick={toggleTheme}
                   className="flex items-center justify-between w-full px-4 py-2 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
