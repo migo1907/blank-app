@@ -5,13 +5,17 @@ const CACHE_NAME = 'daman-financial-v1.0.0';
 const RUNTIME_CACHE = 'daman-runtime-v1';
 const API_CACHE = 'daman-api-v1';
 
-// Assets to cache immediately on install
+// Assets to cache immediately on install — relative to the SW scope so this
+// works under any base path (e.g. GitHub Pages /blank-app/).
 const PRECACHE_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/logo (2).svg',
+  './',
+  './index.html',
+  './manifest.json',
+  './logo (2).svg',
 ];
+
+// Bumped so returning visitors get fresh assets instead of stale cache.
+const _CACHE_VERSION = 'v1.1.0';
 
 // Install event - cache core assets
 self.addEventListener('install', (event) => {
