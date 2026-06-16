@@ -49,9 +49,28 @@
     <meta http-equiv="X-Frame-Options" content="DENY" />
     <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
     <meta name="referrer" content="no-referrer-when-downgrade" />
+
+    <!-- Structured data for search engines -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FinancialService",
+        "name": "DAMAN Securities",
+        "url": "https://daman.securities/",
+        "logo": "https://daman.securities/logo (2).svg",
+        "description": "Professional online trading platform offering real-time market data, stock screening, technical analysis, portfolio tracking, and global market access.",
+        "areaServed": "Worldwide"
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      <div style="max-width:640px;margin:80px auto;padding:24px;font-family:system-ui,sans-serif;text-align:center;color:#0f172a">
+        <h1>DAMAN Securities</h1>
+        <p>This trading platform requires JavaScript to run. Please enable JavaScript in your browser to continue.</p>
+      </div>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

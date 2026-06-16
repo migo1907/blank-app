@@ -23,6 +23,14 @@
   * {
     -webkit-tap-highlight-color: transparent;
   }
+
+  /* Visible focus ring for keyboard users only (mouse clicks stay clean).
+     Uses the brand blue so it stays on-theme in light and dark mode. */
+  :focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
 }
 
 @layer components {
