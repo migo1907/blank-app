@@ -1,4 +1,4 @@
-import { Home, TrendingUp, PieChart, Eye, Menu } from 'lucide-react';
+import { Home, TrendingUp, Sparkles, PieChart, Eye, Menu } from 'lucide-react';
 
 interface MobileBottomNavProps {
   currentPage: string;
@@ -10,6 +10,7 @@ export default function MobileBottomNav({ currentPage, onNavigate, onMenuClick }
   const navItems = [
     { id: 'home', label: 'Home', icon: Home },
     { id: 'market-overview', label: 'Markets', icon: TrendingUp },
+    { id: 'ai-strategist', label: 'AI', icon: Sparkles },
     { id: 'portfolio', label: 'Portfolio', icon: PieChart },
     { id: 'watchlist', label: 'Watchlist', icon: Eye },
   ];
@@ -20,7 +21,7 @@ export default function MobileBottomNav({ currentPage, onNavigate, onMenuClick }
       role="navigation"
       aria-label="Mobile navigation"
     >
-      <div className="grid grid-cols-5 h-16">
+      <div className="grid grid-cols-6 h-16">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = currentPage === item.id;

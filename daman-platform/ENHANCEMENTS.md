@@ -40,6 +40,17 @@ npm run dev            # http://localhost:5173
   bar); active indicator now anchors to the active tab; active-icon scale.
 - Theme toggle added to the mobile dropdown menu (was desktop-only).
 
+### 🤖 AI Strategist "Hermes" (powered by Claude)
+- **Market Wrap-Up** — `claude-opus-4-8` generates a fundamentals-and-technicals-loaded
+  session recap (technical levels, fundamental drivers, macro, sector rotation,
+  swing-trade and day-trade ideas, risks, what-to-watch).
+- **Hermes Portfolio Analysis** — fundamental + technical review of the user's saved
+  holdings, with diversification/risk and actionable suggestions.
+- **Audio commentary** — browser text-to-speech narration of the AI's `audio_script`.
+- **Daily subscription** — email opt-in for daily commentary (Supabase-backed).
+- Runs server-side in a Supabase Edge Function (key never hits the browser), with
+  structured JSON output and a graceful demo fallback. **Setup:** `docs/AI_COMMENTARY_SETUP.md`.
+
 ## Reusable building blocks added
 | File | Purpose |
 |------|---------|

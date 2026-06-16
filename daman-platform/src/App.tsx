@@ -10,6 +10,7 @@ import { useTheme } from './contexts/ThemeContext';
 // Each page becomes its own chunk, fetched on demand when navigated to.
 const HomePage = lazy(() => import('./pages/HomePage'));
 const MarketOverviewWithTabs = lazy(() => import('./pages/MarketOverviewWithTabs'));
+const AIStrategist = lazy(() => import('./pages/AIStrategist'));
 const Portfolio = lazy(() => import('./pages/Portfolio'));
 const WatchlistPage = lazy(() => import('./pages/WatchlistPage'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
@@ -25,19 +26,20 @@ function PageLoader() {
 
 function App() {
   const { theme, toggleTheme } = useTheme();
-  const [currentPage, setCurrentPage] = useState<'home' | 'market-overview' | 'portfolio' | 'watchlist' | 'settings'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'market-overview' | 'ai-strategist' | 'portfolio' | 'watchlist' | 'settings'>('home');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navigation = [
     { name: 'Home', id: 'home' as const },
     { name: 'Market Overview', id: 'market-overview' as const },
+    { name: 'AI Strategist', id: 'ai-strategist' as const },
     { name: 'Portfolio', id: 'portfolio' as const },
     { name: 'Watchlist', id: 'watchlist' as const },
     { name: 'Settings', id: 'settings' as const },
   ];
 
   const handleNavigation = (page: string) => {
-    const validPages = ['home', 'market-overview', 'portfolio', 'watchlist', 'settings'];
+    const validPages = ['home', 'market-overview', 'ai-strategist', 'portfolio', 'watchlist', 'settings'];
     if (validPages.includes(page)) {
       setCurrentPage(page as typeof currentPage);
       setIsMenuOpen(false);
@@ -152,6 +154,7 @@ function App() {
             <div key={currentPage} className="animate-fadeIn">
               {currentPage === 'home' && <HomePage onNavigate={handleNavigation} />}
               {currentPage === 'market-overview' && <MarketOverviewWithTabs />}
+              {currentPage === 'ai-strategist' && <AIStrategist />}
               {currentPage === 'portfolio' && <Portfolio />}
               {currentPage === 'watchlist' && <WatchlistPage />}
               {currentPage === 'settings' && <SettingsPage />}
