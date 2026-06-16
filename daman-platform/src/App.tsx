@@ -5,6 +5,7 @@ import MobileBottomNav from './components/MobileBottomNav';
 import BackToTop from './components/BackToTop';
 import FloatingHermes from './components/FloatingHermes';
 import InstallPrompt from './components/InstallPrompt';
+import CommandPalette from './components/CommandPalette';
 import { ToastProvider } from './components/ToastContainer';
 import { useTheme } from './contexts/ThemeContext';
 
@@ -173,6 +174,7 @@ function App() {
         <BackToTop />
         <FloatingHermes />
         <InstallPrompt />
+        <CommandPalette onNavigate={handleNavigation} />
 
         <footer className="bg-slate-900 text-white mt-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

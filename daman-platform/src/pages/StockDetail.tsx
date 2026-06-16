@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   ArrowLeft, TrendingUp, TrendingDown, Building2, Users, Globe,
   Calendar, DollarSign, BarChart3, Download, Share2, BookOpen,
@@ -6,6 +6,9 @@ import {
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { askHermes } from '../lib/hermesBus';
+import PriceChart, { genSeries, sma, rsi } from '../components/PriceChart';
+
+const TIMEFRAMES: Record<string, number> = { '1M': 22, '3M': 66, '6M': 132, '1Y': 252 };
 
 interface StockDetail {
   symbol: string;
@@ -48,9 +51,19 @@ interface Props {
 
 export default function StockDetail({ symbol, onBack }: Props) {
   const [activeTab, setActiveTab] = useState<'overview' | 'financials' | 'dividends' | 'technical' | 'news'>('overview');
+  const [timeframe, setTimeframe] = useState<keyof typeof TIMEFRAMES>('3M');
   const [stockData, setStockData] = useState<StockDetail | null>(null);
   const [dividendHistory, setDividendHistory] = useState<DividendHistory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const chartPrice = stockData?.current_price || 100;
+  const series = useMemo(
+    () => genSeries(symbol + timeframe, TIMEFRAMES[timeframe], chartPrice),
+    [symbol, timeframe, chartPrice]
+  );
+  const ma20 = useMemo(() => sma(series, 20), [series]);
+  const ma50 = useMemo(() => sma(series, 50), [series]);
+  const rsi14 = useMemo(() => rsi(series), [series]);
 
   useEffect(() => {
     fetchStockDetail();
@@ -653,14 +666,66 @@ export default function StockDetail({ symbol, onBack }: Props) {
             {/* Technical Analysis Tab */}
             {activeTab === 'technical' && (
               <div className="space-y-6">
-                <h3 className="text-xl font-bold text-slate-900 mb-4">Technical Analysis</h3>
-                <div className="bg-slate-50 rounded-lg p-8 text-center">
-                  <Activity className="h-16 w-16 text-slate-300 mx-auto mb-4" />
-                  <p className="text-slate-600 text-lg mb-2">Technical indicators coming soon</p>
-                  <p className="text-slate-500 text-sm">
-                    RSI, MACD, Moving Averages, and other technical indicators will be available here
-                  </p>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white">Technical Analysis</h3>
+                  <div className="flex gap-1 bg-slate-100 dark:bg-slate-700 rounded-lg p-1">
+                    {Object.keys(TIMEFRAMES).map((tf) => (
+                      <button
+                        key={tf}
+                        onClick={() => setTimeframe(tf as keyof typeof TIMEFRAMES)}
+                        className={`px-3 py-1 text-sm font-semibold rounded-md transition-colors ${
+                          timeframe === tf ? 'bg-white dark:bg-slate-900 text-daman-blue-600 dark:text-daman-blue-300 shadow' : 'text-slate-500 dark:text-slate-400'
+                        }`}
+                      >
+                        {tf}
+                      </button>
+                    ))}
+                  </div>
                 </div>
+
+                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+                  <div className="flex items-baseline justify-between mb-2">
+                    <span className="text-2xl font-bold text-slate-900 dark:text-white">
+                      ${chartPrice.toFixed(2)}
+                    </span>
+                    {stockData && (
+                      <span className={`text-sm font-semibold ${stockData.change_percent >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                        {stockData.change_percent >= 0 ? '+' : ''}{stockData.change_percent?.toFixed(2)}%
+                      </span>
+                    )}
+                  </div>
+                  <PriceChart data={series} ma={ma20} positive={(stockData?.change_percent ?? 0) >= 0} height={240} />
+                  <div className="flex items-center justify-between mt-2 text-xs text-slate-400">
+                    <span>{timeframe} · price (line) + 20-period MA (dashed)</span>
+                    <span>Illustrative series</span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {[
+                    { label: 'SMA 20', value: `$${(ma20[ma20.length - 1] || chartPrice).toFixed(2)}` },
+                    { label: 'SMA 50', value: Number.isNaN(ma50[ma50.length - 1]) ? '—' : `$${ma50[ma50.length - 1].toFixed(2)}` },
+                    { label: 'RSI (14)', value: `${rsi14}`, accent: rsi14 >= 70 ? 'text-rose-600 dark:text-rose-400' : rsi14 <= 30 ? 'text-emerald-600 dark:text-emerald-400' : '' },
+                    { label: '52W Range', value: stockData ? `${Math.round(((chartPrice - stockData.fifty_two_week_low) / ((stockData.fifty_two_week_high - stockData.fifty_two_week_low) || 1)) * 100)}%` : '—' },
+                  ].map((c) => (
+                    <div key={c.label} className="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 border border-slate-200 dark:border-slate-700">
+                      <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">{c.label}</div>
+                      <div className={`text-lg font-bold text-slate-900 dark:text-white ${c.accent || ''}`}>{c.value}</div>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => askHermes(`Give me a technical read on ${symbol} — trend, key support/resistance, momentum (RSI is around ${rsi14}), and a swing-trade idea with risk levels.`)}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-daman-blue-600 to-daman-blue-800 text-white rounded-lg hover:from-daman-blue-700 hover:to-daman-blue-900 transition-all shadow-md"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  <span>Ask Hermes for a technical read</span>
+                </button>
+
+                <p className="text-xs text-slate-400">
+                  Chart is an illustrative series anchored to the latest price (no historical feed connected). Connect a market-data API for live history.
+                </p>
               </div>
             )}
 

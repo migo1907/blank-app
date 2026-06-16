@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Sparkles, Send, User, Trash2, MessageSquare } from 'lucide-react';
+import { Sparkles, Send, User, Trash2, MessageSquare, Mic } from 'lucide-react';
 import { streamChat, ChatTurn } from '../services/aiChatService';
 import { buildChatContext } from '../services/marketContext';
 
@@ -34,6 +34,39 @@ export default function HermesChat({ compact = false, seedPrompt }: { compact?: 
   const abortRef = useRef<(() => void) | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
   const seededRef = useRef<string | null>(null);
+  const recognitionRef = useRef<{ stop: () => void } | null>(null);
+  const [listening, setListening] = useState(false);
+
+  // Voice input via the Web Speech API (no backend). Feature-detected.
+  const SpeechRecognition =
+    typeof window !== 'undefined'
+      ? (window as unknown as { SpeechRecognition?: unknown; webkitSpeechRecognition?: unknown }).SpeechRecognition ||
+        (window as unknown as { webkitSpeechRecognition?: unknown }).webkitSpeechRecognition
+      : undefined;
+  const voiceSupported = Boolean(SpeechRecognition);
+
+  const toggleVoice = () => {
+    if (!voiceSupported) return;
+    if (listening) {
+      recognitionRef.current?.stop();
+      return;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rec = new (SpeechRecognition as any)();
+    rec.lang = 'en-US';
+    rec.interimResults = true;
+    rec.continuous = false;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    rec.onresult = (e: any) => {
+      const text = Array.from(e.results).map((r: any) => r[0].transcript).join('');
+      setInput(text);
+    };
+    rec.onend = () => setListening(false);
+    rec.onerror = () => setListening(false);
+    recognitionRef.current = rec;
+    rec.start();
+    setListening(true);
+  };
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -154,11 +187,25 @@ export default function HermesChat({ compact = false, seedPrompt }: { compact?: 
               <Trash2 className="h-5 w-5" />
             </button>
           )}
+          {voiceSupported && (
+            <button
+              onClick={toggleVoice}
+              title={listening ? 'Stop listening' : 'Speak to Hermes'}
+              aria-label="Voice input"
+              className={`shrink-0 p-2.5 rounded-lg transition-colors ${
+                listening
+                  ? 'bg-rose-500 text-white animate-pulse'
+                  : 'text-slate-400 hover:text-daman-blue-600 hover:bg-slate-100 dark:hover:bg-slate-700'
+              }`}
+            >
+              <Mic className="h-5 w-5" />
+            </button>
+          )}
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && send(input)}
-            placeholder="Ask Hermes…"
+            placeholder={listening ? 'Listening…' : 'Ask Hermes…'}
             className="flex-1 px-4 py-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white focus:outline-none focus:border-daman-blue-500"
           />
           <button
