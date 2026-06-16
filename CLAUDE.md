@@ -75,7 +75,7 @@ These are permanent agreements — never override, skip, or work around them und
 
 
 - FastAPI backend on Railway (Python 3.13)
-- Scheduler: 5 jobs — signal every 15min, breaking news every 2min, system check every 60min, macro refresh every 60min, daily brief at 08:00 UTC
+- Scheduler: 5 jobs — signal every 15min, breaking news every 2min, system check every 60min, macro refresh every 60min, daily brief at 09:00 UTC (1 PM Dubai / UTC+4)
 - ML: AdaptiveKNN + RandomForest + GradientBoosting, pool-aware (9 pools)
 - `get_rf(pool)` and `get_gbm(pool)` always take a pool argument
 - Features: 25 features (F1-F25), all computed in Pine Script and sent via webhook

@@ -942,7 +942,7 @@ async def _hourly_system_check() -> None:
 
 
 async def _daily_market_brief() -> None:
-    """Send daily technical market brief to Telegram at 08:00 UTC Mon-Fri (London open)."""
+    """Send daily technical market brief to Telegram at 09:00 UTC (1 PM Dubai) Mon-Fri."""
     if _dt.now(_tz.utc).weekday() >= 5:
         return
     try:
@@ -1713,8 +1713,8 @@ def start_scheduler() -> AsyncIOScheduler:
     _scheduler.add_job(_hourly_system_check, trigger="interval", hours=1, id="hourly_system_check", replace_existing=True)
     _scheduler.add_job(_macro_refresh_cycle, trigger="interval", hours=1, id="macro_refresh_cycle", replace_existing=True,
                        start_date=_dt.now(_tz.utc) + _td(seconds=20))
-    # Daily technical market brief — fires at 08:00 UTC (London open) Mon-Fri.
-    _scheduler.add_job(_daily_market_brief, trigger="cron", day_of_week="mon-fri", hour=8, minute=0,
+    # Daily technical market brief — fires at 09:00 UTC (1 PM Dubai / UTC+4) Mon-Fri.
+    _scheduler.add_job(_daily_market_brief, trigger="cron", day_of_week="mon-fri", hour=9, minute=0,
                        id="daily_market_brief", replace_existing=True, misfire_grace_time=3600)
     # ONE daily performance report — fires at 16:15 ET (after NY session close).
     # DST-safe via America/New_York so it always fires 15 min after market close.
@@ -1775,8 +1775,8 @@ def start_scheduler() -> AsyncIOScheduler:
         now_min   = tz_now.hour * 60 + tz_now.minute
         return sched_min <= now_min < sched_min + 240
 
-    # Daily market brief — 08:00 UTC
-    if _is_weekday and _missed(8, 0, _now):
+    # Daily market brief — 09:00 UTC (1 PM Dubai)
+    if _is_weekday and _missed(9, 0, _now):
         print("[scheduler] Startup catch-up: daily market brief.")
         _scheduler.add_job(_daily_market_brief, trigger="date", run_date=_now + _td(seconds=30),
                            id="daily_brief_catchup", replace_existing=True)

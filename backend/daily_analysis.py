@@ -1,6 +1,6 @@
 """
 Daily technical analysis commentary for SPY, QQQ, XAUUSD.
-Runs at 08:00 UTC every weekday. Sends a clean price-level brief to Telegram.
+Runs at 09:00 UTC (1 PM Dubai / UTC+4) every weekday.
 
 Price source priority:
   1. GitHub raw daily_levels.json — pre-fetched by GitHub Actions at 07:50 UTC via TradingView
@@ -9,7 +9,7 @@ Price source priority:
 """
 import os
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import anthropic
 import httpx
 
@@ -192,6 +192,64 @@ def _format_levels_for_prompt(levels: dict, label: str, decimals: int) -> str:
     )
 
 
+def _fetch_todays_high_impact_events() -> str:
+    """
+    Fetch today's high-impact economic events from Finnhub calendar.
+    Returns a formatted string for the brief, or "" if none / unavailable.
+    """
+    from news_fetcher import FINNHUB_KEY, _FINNHUB_CALENDAR_URL
+    if not FINNHUB_KEY:
+        return ""
+    try:
+        now   = datetime.now(timezone.utc)
+        today = now.date().isoformat()
+        # Look at today + tomorrow so late-US events (like FOMC) are visible at 09:00 UTC
+        until = (now + timedelta(days=1)).date().isoformat()
+        with httpx.Client(timeout=10) as client:
+            resp = client.get(_FINNHUB_CALENDAR_URL, params={
+                "from": today, "to": until, "token": FINNHUB_KEY,
+            })
+            resp.raise_for_status()
+            events = resp.json().get("economicCalendar", []) or []
+    except Exception as e:
+        if "403" not in str(e):
+            print(f"[daily_brief] calendar fetch failed: {e}")
+        return ""
+
+    HIGH_IMPACT = {"high"}
+    dubai_tz_offset = timedelta(hours=4)
+    lines = []
+    for ev in events:
+        if (ev.get("impact") or "").lower() not in HIGH_IMPACT:
+            continue
+        if (ev.get("country") or "").upper() not in ("US", "USA", ""):
+            continue
+        try:
+            ts_utc = datetime.fromisoformat(ev.get("time", "").replace(" ", "T"))
+            if ts_utc.tzinfo is None:
+                ts_utc = ts_utc.replace(tzinfo=timezone.utc)
+        except Exception:
+            continue
+        # Only today's events (UTC date)
+        if ts_utc.date() != now.date():
+            continue
+        ts_dubai = ts_utc + dubai_tz_offset
+        time_str = ts_dubai.strftime("%I:%M %p")
+        name     = ev.get("event", "Event")
+        estimate = ev.get("estimate")
+        actual   = ev.get("actual")
+        detail   = ""
+        if actual is not None:
+            detail = f" · Actual: {actual}"
+        elif estimate is not None:
+            detail = f" · Est: {estimate}"
+        lines.append(f"  • {time_str} — {name}{detail}")
+
+    if not lines:
+        return ""
+    return "📆 <b>High-Impact Events Today (Dubai time):</b>\n" + "\n".join(lines)
+
+
 def generate_daily_brief() -> str | None:
     """
     Fetch price levels (JSON → TradingView live → yfinance) and generate daily brief via Claude.
@@ -237,11 +295,14 @@ def generate_daily_brief() -> str | None:
     else:
         session_label = "After-hours"
 
+    calendar_block = _fetch_todays_high_impact_events()
+    calendar_section = f"\n\n{calendar_block}" if calendar_block else ""
+
     msg = (
         f"📅 <b>DAILY MARKET Technical BRIEF — {weekday}, {date_str}</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━\n\n"
-        f"{analysis}\n\n"
+        f"{analysis}{calendar_section}\n\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
-        f"⏰ {now.strftime('%H:%M UTC')} | {session_label}"
+        f"⏰ {now.strftime('%H:%M UTC')} | 1:00 PM Dubai | {session_label}"
     )
     return msg
