@@ -1,0 +1,16 @@
+# Netlify deploy config for the DAMAN platform.
+# In Netlify: New site → import this repo → set "Base directory" to `daman-platform`.
+# (command/publish below are relative to that base.)
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# SPA fallback so deep links resolve to the app shell.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
