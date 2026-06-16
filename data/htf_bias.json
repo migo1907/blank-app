@@ -115,5 +115,32 @@
     "ml_score": 0.125,
     "stored_at": "2026-06-16T14:30:01.740882+00:00",
     "expires_at": "2026-06-16T16:30:01.740890+00:00"
+  },
+  "IBKR_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "IBKR",
+    "trigger": "RSI",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-16T14:30:02.275784+00:00",
+    "expires_at": "2026-06-16T16:30:02.275799+00:00"
+  },
+  "HOOD_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "HOOD",
+    "trigger": "RSI",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-16T14:30:04.533687+00:00",
+    "expires_at": "2026-06-16T16:30:04.533701+00:00"
+  },
+  "SMCI_60": {
+    "direction": "SHORT",
+    "timeframe": "60",
+    "symbol": "SMCI",
+    "trigger": "FVG",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-16T14:30:05.994039+00:00",
+    "expires_at": "2026-06-16T18:30:05.994057+00:00"
   }
 }
