@@ -1,8 +1,8 @@
 {
-  "timestamp": "2026-06-16T10:21:19.551359+00:00",
+  "timestamp": "2026-06-16T10:36:36.365229+00:00",
   "signal": "NEUTRAL",
   "confidence": 0.0,
-  "news_score": -0.1224,
+  "news_score": -0.1273,
   "velocity": "CONFLICTED",
   "breaking_count": 10,
   "trades_total": 500,
@@ -13,10 +13,5 @@
   "macro_label": "NEUTRAL",
   "equity_macro_bias": -0.0415,
   "equity_macro_label": "NEUTRAL",
-  "scheduler": "running",
-  "last_inspection": "2026-06-16T10:30:51.292201+00:00",
-  "inspection_checks": 34,
-  "inspection_fixes": 0,
-  "inspection_warnings": 15,
-  "startup_at": "2026-06-16T10:36:07.685608+00:00"
+  "scheduler": "running"
 }
