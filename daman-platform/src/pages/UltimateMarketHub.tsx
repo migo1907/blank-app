@@ -379,7 +379,7 @@ export default function UltimateMarketHub() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-50 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-8 transition-colors duration-200">
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
@@ -389,14 +389,14 @@ export default function UltimateMarketHub() {
                 <Layers className="h-8 w-8 text-white" />
               </div>
               <div>
-                <h1 className="text-4xl font-bold text-slate-900">Ultimate Market Hub</h1>
-                <p className="text-slate-600 mt-1">Advanced screening, real-time movers, and professional analysis tools</p>
+                <h1 className="text-4xl font-bold text-slate-900 dark:text-white">Ultimate Market Hub</h1>
+                <p className="text-slate-600 dark:text-slate-400 mt-1">Advanced screening, real-time movers, and professional analysis tools</p>
               </div>
             </div>
 
             <div className="flex items-center space-x-3">
-              <button className="px-4 py-2 bg-white border-2 border-slate-200 rounded-lg hover:border-daman-blue-500 transition-all shadow-sm">
-                <Bell className="h-5 w-5 text-slate-600" />
+              <button className="px-4 py-2 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-lg hover:border-daman-blue-500 transition-all shadow-sm">
+                <Bell className="h-5 w-5 text-slate-600 dark:text-slate-400" />
               </button>
               <button
                 onClick={exportResults}
@@ -410,13 +410,13 @@ export default function UltimateMarketHub() {
           </div>
 
           {/* View Tabs */}
-          <div className="flex space-x-2 bg-white rounded-xl p-2 shadow-md border border-slate-200 overflow-x-auto">
+          <div className="flex space-x-2 bg-white dark:bg-slate-800 rounded-xl p-2 shadow-md border border-slate-200 dark:border-slate-700 overflow-x-auto">
             <button
               onClick={() => setActiveView('overview')}
               className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-semibold transition-all whitespace-nowrap ${
                 activeView === 'overview'
                   ? 'bg-gradient-to-r from-daman-blue-600 to-daman-blue-700 text-white shadow-lg'
-                  : 'text-slate-600 hover:bg-slate-50'
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50'
               }`}
             >
               <Globe className="h-5 w-5" />
@@ -427,7 +427,7 @@ export default function UltimateMarketHub() {
               className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-semibold transition-all ${
                 activeView === 'compare'
                   ? 'bg-gradient-to-r from-daman-blue-600 to-daman-blue-700 text-white shadow-lg'
-                  : 'text-slate-600 hover:bg-slate-50'
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50'
               }`}
             >
               <Target className="h-5 w-5" />
@@ -443,7 +443,7 @@ export default function UltimateMarketHub() {
               className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-semibold transition-all whitespace-nowrap ${
                 activeView === 'heatmap'
                   ? 'bg-gradient-to-r from-daman-blue-600 to-daman-blue-700 text-white shadow-lg'
-                  : 'text-slate-600 hover:bg-slate-50'
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50'
               }`}
             >
               <Calendar className="h-5 w-5" />
@@ -454,7 +454,7 @@ export default function UltimateMarketHub() {
               className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-semibold transition-all whitespace-nowrap ${
                 activeView === 'events'
                   ? 'bg-gradient-to-r from-daman-blue-600 to-daman-blue-700 text-white shadow-lg'
-                  : 'text-slate-600 hover:bg-slate-50'
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50'
               }`}
             >
               <Globe className="h-5 w-5" />
@@ -471,7 +471,7 @@ export default function UltimateMarketHub() {
 
         {/* Scanner View (formerly Compare) */}
         {activeView === 'compare' && (
-          <div className="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-6">
             {!isScannerUnlocked ? (
               <PasswordProtection
                 onUnlock={() => setIsScannerUnlocked(true)}
@@ -480,19 +480,19 @@ export default function UltimateMarketHub() {
               />
             ) : (
               <>
-                <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center space-x-2">
+                <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6 flex items-center space-x-2">
                   <Target className="h-7 w-7 text-daman-blue-600" />
                   <span>Scanner Tools</span>
                 </h2>
 
                 {/* Scanner Tabs */}
-                <div className="flex space-x-2 mb-6 border-b border-slate-200">
+                <div className="flex space-x-2 mb-6 border-b border-slate-200 dark:border-slate-700">
                   <button
                     onClick={() => setScannerTab('signals')}
                     className={`px-6 py-3 font-semibold transition-all ${
                       scannerTab === 'signals'
                         ? 'border-b-2 border-daman-blue-600 text-daman-blue-600'
-                        : 'text-slate-600 hover:text-slate-900'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
                     }`}
                   >
                     Stock Signals
@@ -502,7 +502,7 @@ export default function UltimateMarketHub() {
                     className={`px-6 py-3 font-semibold transition-all ${
                       scannerTab === 'search'
                         ? 'border-b-2 border-daman-blue-600 text-daman-blue-600'
-                        : 'text-slate-600 hover:text-slate-900'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
                     }`}
                   >
                     Stock Search
@@ -512,7 +512,7 @@ export default function UltimateMarketHub() {
                     className={`px-6 py-3 font-semibold transition-all ${
                       scannerTab === 'spx-flow'
                         ? 'border-b-2 border-daman-blue-600 text-daman-blue-600'
-                        : 'text-slate-600 hover:text-slate-900'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
                     }`}
                   >
                     SPX Options Flow
@@ -522,7 +522,7 @@ export default function UltimateMarketHub() {
                     className={`px-6 py-3 font-semibold transition-all ${
                       scannerTab === 'stocks'
                         ? 'border-b-2 border-daman-blue-600 text-daman-blue-600'
-                        : 'text-slate-600 hover:text-slate-900'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
                     }`}
                   >
                     Stocks
@@ -532,7 +532,7 @@ export default function UltimateMarketHub() {
                     className={`px-6 py-3 font-semibold transition-all ${
                       scannerTab === 'ibkr'
                         ? 'border-b-2 border-daman-blue-600 text-daman-blue-600'
-                        : 'text-slate-600 hover:text-slate-900'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
                     }`}
                   >
                     IBKR Options Chain
@@ -542,7 +542,7 @@ export default function UltimateMarketHub() {
                     className={`px-6 py-3 font-semibold transition-all ${
                       scannerTab === 'fundamental'
                         ? 'border-b-2 border-daman-blue-600 text-daman-blue-600'
-                        : 'text-slate-600 hover:text-slate-900'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
                     }`}
                   >
                     Fundamental
@@ -590,11 +590,11 @@ export default function UltimateMarketHub() {
 
         {/* Earnings Calendar View */}
         {activeView === 'heatmap' && (
-          <div className="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-6">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-2xl font-bold text-slate-900 mb-1">Earnings Calendar</h2>
-                <p className="text-sm text-slate-600">This Week's Earnings Announcements</p>
+                <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">Earnings Calendar</h2>
+                <p className="text-sm text-slate-600 dark:text-slate-400">This Week's Earnings Announcements</p>
               </div>
               <button
                 onClick={loadEarningsCalendar}
@@ -616,15 +616,15 @@ export default function UltimateMarketHub() {
             </div>
 
             {isLoadingEarnings ? (
-              <div className="text-center py-12 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
+              <div className="text-center py-12 bg-slate-50 dark:bg-slate-900 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700">
                 <Clock className="h-16 w-16 text-daman-blue-600 mx-auto mb-4 animate-spin" />
-                <p className="text-slate-600 text-lg mb-2">Loading earnings calendar...</p>
+                <p className="text-slate-600 dark:text-slate-400 text-lg mb-2">Loading earnings calendar...</p>
               </div>
             ) : earningsCalendar.length === 0 ? (
-              <div className="text-center py-12 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
+              <div className="text-center py-12 bg-slate-50 dark:bg-slate-900 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700">
                 <Calendar className="h-16 w-16 text-slate-300 mx-auto mb-4" />
-                <p className="text-slate-600 text-lg mb-2">No earnings data available</p>
-                <p className="text-slate-500 text-sm">Click Refresh to load this week's earnings</p>
+                <p className="text-slate-600 dark:text-slate-400 text-lg mb-2">No earnings data available</p>
+                <p className="text-slate-500 dark:text-slate-400 text-sm">Click Refresh to load this week's earnings</p>
               </div>
             ) : (
               <div className="space-y-6">
@@ -636,7 +636,7 @@ export default function UltimateMarketHub() {
                   const displayDate = new Date(year, month - 1, dayNum);
 
                   return (
-                    <div key={day.date} className="border-2 border-slate-200 rounded-xl overflow-hidden">
+                    <div key={day.date} className="border-2 border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
                       <div className="bg-gradient-to-r from-daman-blue-600 to-daman-blue-700 px-6 py-4">
                         <div className="flex items-center justify-between">
                           <div>
@@ -657,8 +657,8 @@ export default function UltimateMarketHub() {
                               <div className="bg-orange-100 p-2 rounded-lg">
                                 <Clock className="h-5 w-5 text-orange-600" />
                               </div>
-                              <h4 className="font-bold text-slate-900 text-lg">Before Market Open</h4>
-                              <span className="text-sm text-slate-500">({day.bmo.length})</span>
+                              <h4 className="font-bold text-slate-900 dark:text-white text-lg">Before Market Open</h4>
+                              <span className="text-sm text-slate-500 dark:text-slate-400">({day.bmo.length})</span>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                               {day.bmo.map((event) => (
@@ -666,17 +666,17 @@ export default function UltimateMarketHub() {
                                   <div className="flex items-start justify-between mb-2">
                                     <div className="font-bold text-orange-900 text-lg">{event.symbol}</div>
                                     {event.lastPrice && (
-                                      <div className="text-sm font-semibold text-slate-700">${event.lastPrice.toFixed(2)}</div>
+                                      <div className="text-sm font-semibold text-slate-700 dark:text-slate-300">${event.lastPrice.toFixed(2)}</div>
                                     )}
                                   </div>
-                                  <div className="text-sm text-slate-700 mb-2 line-clamp-2">{event.name}</div>
+                                  <div className="text-sm text-slate-700 dark:text-slate-300 mb-2 line-clamp-2">{event.name}</div>
                                   {event.estimatedEPS && (
-                                    <div className="text-xs text-slate-600">
+                                    <div className="text-xs text-slate-600 dark:text-slate-400">
                                       Est. EPS: <span className="font-semibold">${event.estimatedEPS.toFixed(2)}</span>
                                     </div>
                                   )}
                                   {event.marketCap && (
-                                    <div className="text-xs text-slate-500 mt-1">
+                                    <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                                       MCap: ${(event.marketCap / 1000000000).toFixed(1)}B
                                     </div>
                                   )}
@@ -692,8 +692,8 @@ export default function UltimateMarketHub() {
                               <div className="bg-purple-100 p-2 rounded-lg">
                                 <Clock className="h-5 w-5 text-purple-600" />
                               </div>
-                              <h4 className="font-bold text-slate-900 text-lg">After Market Close</h4>
-                              <span className="text-sm text-slate-500">({day.amc.length})</span>
+                              <h4 className="font-bold text-slate-900 dark:text-white text-lg">After Market Close</h4>
+                              <span className="text-sm text-slate-500 dark:text-slate-400">({day.amc.length})</span>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                               {day.amc.map((event) => (
@@ -701,17 +701,17 @@ export default function UltimateMarketHub() {
                                   <div className="flex items-start justify-between mb-2">
                                     <div className="font-bold text-purple-900 text-lg">{event.symbol}</div>
                                     {event.lastPrice && (
-                                      <div className="text-sm font-semibold text-slate-700">${event.lastPrice.toFixed(2)}</div>
+                                      <div className="text-sm font-semibold text-slate-700 dark:text-slate-300">${event.lastPrice.toFixed(2)}</div>
                                     )}
                                   </div>
-                                  <div className="text-sm text-slate-700 mb-2 line-clamp-2">{event.name}</div>
+                                  <div className="text-sm text-slate-700 dark:text-slate-300 mb-2 line-clamp-2">{event.name}</div>
                                   {event.estimatedEPS && (
-                                    <div className="text-xs text-slate-600">
+                                    <div className="text-xs text-slate-600 dark:text-slate-400">
                                       Est. EPS: <span className="font-semibold">${event.estimatedEPS.toFixed(2)}</span>
                                     </div>
                                   )}
                                   {event.marketCap && (
-                                    <div className="text-xs text-slate-500 mt-1">
+                                    <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                                       MCap: ${(event.marketCap / 1000000000).toFixed(1)}B
                                     </div>
                                   )}
@@ -727,8 +727,8 @@ export default function UltimateMarketHub() {
                               <div className="bg-blue-100 p-2 rounded-lg">
                                 <Clock className="h-5 w-5 text-blue-600" />
                               </div>
-                              <h4 className="font-bold text-slate-900 text-lg">During Trading Hours</h4>
-                              <span className="text-sm text-slate-500">({day.during.length})</span>
+                              <h4 className="font-bold text-slate-900 dark:text-white text-lg">During Trading Hours</h4>
+                              <span className="text-sm text-slate-500 dark:text-slate-400">({day.during.length})</span>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                               {day.during.map((event) => (
@@ -736,17 +736,17 @@ export default function UltimateMarketHub() {
                                   <div className="flex items-start justify-between mb-2">
                                     <div className="font-bold text-blue-900 text-lg">{event.symbol}</div>
                                     {event.lastPrice && (
-                                      <div className="text-sm font-semibold text-slate-700">${event.lastPrice.toFixed(2)}</div>
+                                      <div className="text-sm font-semibold text-slate-700 dark:text-slate-300">${event.lastPrice.toFixed(2)}</div>
                                     )}
                                   </div>
-                                  <div className="text-sm text-slate-700 mb-2 line-clamp-2">{event.name}</div>
+                                  <div className="text-sm text-slate-700 dark:text-slate-300 mb-2 line-clamp-2">{event.name}</div>
                                   {event.estimatedEPS && (
-                                    <div className="text-xs text-slate-600">
+                                    <div className="text-xs text-slate-600 dark:text-slate-400">
                                       Est. EPS: <span className="font-semibold">${event.estimatedEPS.toFixed(2)}</span>
                                     </div>
                                   )}
                                   {event.marketCap && (
-                                    <div className="text-xs text-slate-500 mt-1">
+                                    <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                                       MCap: ${(event.marketCap / 1000000000).toFixed(1)}B
                                     </div>
                                   )}
@@ -782,7 +782,7 @@ export default function UltimateMarketHub() {
 
         {/* Event Calendar View */}
         {activeView === 'events' && (
-          <div className="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-6">
             <EventCalendar />
           </div>
         )}

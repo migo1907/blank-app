@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Newspaper, Clock, TrendingUp, RefreshCw, ExternalLink, Activity, AlertCircle, Zap } from 'lucide-react';
+import { Newspaper, Clock, TrendingUp, RefreshCw, ExternalLink, Activity, AlertCircle, Zap, Search, X } from 'lucide-react';
 import NewsCard from '../components/NewsCard';
+import Skeleton from '../components/Skeleton';
+import NewsletterSignup from '../components/NewsletterSignup';
 import { supabase } from '../lib/supabase';
 
 interface NewsArticle {
@@ -20,6 +22,7 @@ export default function NewsFeed() {
   const [news, setNews] = useState<NewsArticle[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [query, setQuery] = useState('');
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
 
@@ -157,14 +160,23 @@ export default function NewsFeed() {
   ];
 
   const filteredNews = useMemo(() => {
-    if (selectedCategory === 'all') {
-      return news;
-    }
+    let list = news;
     if (selectedCategory === 'Breaking') {
-      return news.filter(article => article.isBreaking);
+      list = list.filter(article => article.isBreaking);
+    } else if (selectedCategory !== 'all') {
+      list = list.filter(article => article.category === selectedCategory);
     }
-    return news.filter(article => article.category === selectedCategory);
-  }, [news, selectedCategory]);
+    const q = query.trim().toLowerCase();
+    if (q) {
+      list = list.filter(
+        (a) =>
+          a.title.toLowerCase().includes(q) ||
+          a.description.toLowerCase().includes(q) ||
+          a.source.toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }, [news, selectedCategory, query]);
 
   // Breaking news from Financial Juice - only show red label news (within 30 minutes)
   const breakingNews = useMemo(() => {
@@ -208,19 +220,19 @@ export default function NewsFeed() {
   }, [lastUpdate, AUTO_REFRESH_INTERVAL]);
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
           <div className="mb-4 md:mb-0">
             <div className="flex items-center space-x-3 mb-2">
               <Newspaper className="h-8 w-8 text-daman-blue-600" />
-              <h1 className="text-3xl font-bold text-slate-900">Financial News Feed</h1>
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Financial News Feed</h1>
             </div>
-            <p className="text-slate-600">
+            <p className="text-slate-600 dark:text-slate-400">
               Live updates from 15+ premium sources: Bloomberg, Reuters, WSJ, CNBC, Financial Times, TechCrunch & more
             </p>
             <div className="flex items-center space-x-4 mt-2 text-sm">
-              <div className="flex items-center space-x-2 text-slate-500">
+              <div className="flex items-center space-x-2 text-slate-500 dark:text-slate-400">
                 <Clock className="h-4 w-4" />
                 <span>Last updated: {lastUpdate.toLocaleTimeString()}</span>
               </div>
@@ -238,7 +250,7 @@ export default function NewsFeed() {
               className={`px-4 py-2 rounded-lg font-medium text-sm transition-all border-2 ${
                 autoRefreshEnabled
                   ? 'bg-green-50 border-green-300 text-green-700'
-                  : 'bg-slate-100 border-slate-300 text-slate-600'
+                  : 'bg-slate-100 dark:bg-slate-700 border-slate-300 text-slate-600 dark:text-slate-400'
               }`}
             >
               {autoRefreshEnabled ? 'Auto-refresh: ON' : 'Auto-refresh: OFF'}
@@ -280,7 +292,7 @@ export default function NewsFeed() {
                     href={article.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block bg-white bg-opacity-10 hover:bg-opacity-20 rounded-lg p-3 transition-all"
+                    className="block bg-white dark:bg-slate-800 bg-opacity-10 hover:bg-opacity-20 rounded-lg p-3 transition-all"
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -308,10 +320,26 @@ export default function NewsFeed() {
         )}
 
         {/* Category Filter */}
-        <div className="mb-6 bg-white rounded-xl shadow-md border border-slate-200 p-4">
-          <div className="flex items-center space-x-2 mb-3">
-            <TrendingUp className="h-5 w-5 text-daman-blue-600" />
-            <h3 className="text-lg font-bold text-slate-900">Filter by Sector</h3>
+        <div className="mb-6 bg-white dark:bg-slate-800 rounded-xl shadow-md border border-slate-200 dark:border-slate-700 p-4">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-3">
+            <div className="flex items-center space-x-2">
+              <TrendingUp className="h-5 w-5 text-daman-blue-600" />
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Filter by Sector</h3>
+            </div>
+            <div className="relative md:w-72">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search headlines…"
+                className="w-full pl-9 pr-9 py-2 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-daman-blue-500"
+              />
+              {query && (
+                <button onClick={() => setQuery('')} aria-label="Clear search" className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
           </div>
           <div className="flex flex-wrap gap-2">
             {categories.map((category) => (
@@ -321,7 +349,7 @@ export default function NewsFeed() {
                 className={`px-4 py-2 rounded-lg font-medium text-sm transition-all border-2 ${
                   selectedCategory === category
                     ? 'bg-daman-blue-600 border-daman-blue-600 text-white shadow-md'
-                    : 'bg-white border-slate-200 text-slate-700 hover:border-daman-blue-300 hover:bg-daman-blue-50'
+                    : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-daman-blue-300 hover:bg-daman-blue-50'
                 } ${category === 'Breaking' ? 'border-red-500 text-red-600 hover:bg-red-50' : ''} ${
                   selectedCategory === category && category === 'Breaking' ? 'bg-red-600 border-red-600 text-white' : ''
                 }`}
@@ -335,29 +363,41 @@ export default function NewsFeed() {
 
         {/* Stats Bar */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-xl shadow-md border border-slate-200 p-4">
-            <div className="text-sm text-slate-600 mb-1">Total Articles</div>
-            <div className="text-2xl font-bold text-slate-900">{news.length}</div>
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md border border-slate-200 dark:border-slate-700 p-4">
+            <div className="text-sm text-slate-600 dark:text-slate-400 mb-1">Total Articles</div>
+            <div className="text-2xl font-bold text-slate-900 dark:text-white">{news.length}</div>
           </div>
-          <div className="bg-white rounded-xl shadow-md border border-slate-200 p-4">
-            <div className="text-sm text-slate-600 mb-1">Breaking News</div>
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md border border-slate-200 dark:border-slate-700 p-4">
+            <div className="text-sm text-slate-600 dark:text-slate-400 mb-1">Breaking News</div>
             <div className="text-2xl font-bold text-red-600">{news.filter(a => a.isBreaking).length}</div>
           </div>
-          <div className="bg-white rounded-xl shadow-md border border-slate-200 p-4">
-            <div className="text-sm text-slate-600 mb-1">Selected Category</div>
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md border border-slate-200 dark:border-slate-700 p-4">
+            <div className="text-sm text-slate-600 dark:text-slate-400 mb-1">Selected Category</div>
             <div className="text-2xl font-bold text-daman-blue-600">{filteredNews.length}</div>
           </div>
-          <div className="bg-white rounded-xl shadow-md border border-slate-200 p-4">
-            <div className="text-sm text-slate-600 mb-1">Premium Sources</div>
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md border border-slate-200 dark:border-slate-700 p-4">
+            <div className="text-sm text-slate-600 dark:text-slate-400 mb-1">Premium Sources</div>
             <div className="text-2xl font-bold text-green-600">15+</div>
           </div>
         </div>
 
+        {/* Newsletter signup */}
+        <div className="mb-6">
+          <NewsletterSignup title="Daily Market Wrap-Up & News Digest" />
+        </div>
+
         {/* News Grid */}
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Activity className="h-12 w-12 animate-spin text-daman-blue-600" />
-            <span className="ml-3 text-slate-600 text-lg">Loading latest news...</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[0, 1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+                <Skeleton className="h-40 w-full mb-4" />
+                <Skeleton className="h-4 w-20 mb-3" />
+                <Skeleton className="h-5 w-full mb-2" />
+                <Skeleton className="h-5 w-4/5 mb-4" />
+                <Skeleton className="h-4 w-32" />
+              </div>
+            ))}
           </div>
         ) : filteredNews.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -377,11 +417,11 @@ export default function NewsFeed() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-12 bg-white rounded-xl shadow-md border border-slate-200">
+          <div className="text-center py-12 bg-white dark:bg-slate-800 rounded-xl shadow-md border border-slate-200 dark:border-slate-700">
             <AlertCircle className="h-16 w-16 text-slate-300 mx-auto mb-4" />
-            <p className="text-slate-600 text-lg">No articles found in this category</p>
+            <p className="text-slate-600 dark:text-slate-400 text-lg">No articles match your filters</p>
             <button
-              onClick={() => setSelectedCategory('all')}
+              onClick={() => { setSelectedCategory('all'); setQuery(''); }}
               className="mt-4 px-6 py-2 bg-daman-blue-600 text-white rounded-lg hover:bg-daman-blue-700 transition-all"
             >
               View All News
