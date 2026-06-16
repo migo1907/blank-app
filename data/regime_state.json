@@ -12,13 +12,13 @@
       "VOLATILE": 0.0
     },
     "method": "hmm",
-    "updated_at": "2026-06-16T17:48:22.630232+00:00"
+    "updated_at": "2026-06-16T18:48:20.062710+00:00"
   },
   "SPY": {
     "asset": "SPY",
     "regime": "RANGING",
     "confidence": 0.998,
-    "transition_prob": 0.075,
+    "transition_prob": 0.076,
     "next_regime": "RANGING",
     "shifting": false,
     "probs": {
@@ -27,7 +27,7 @@
       "VOLATILE": 0.0
     },
     "method": "hmm",
-    "updated_at": "2026-06-16T17:48:23.451574+00:00"
+    "updated_at": "2026-06-16T18:48:21.151577+00:00"
   },
   "QQQ": {
     "asset": "QQQ",
@@ -39,9 +39,9 @@
     "probs": {
       "TRENDING_BULL": 0.999,
       "RANGING": 0.001,
-      "VOLATILE": 0.001
+      "VOLATILE": 0.0
     },
     "method": "hmm",
-    "updated_at": "2026-06-16T17:48:24.280012+00:00"
+    "updated_at": "2026-06-16T18:48:22.087801+00:00"
   }
 }
