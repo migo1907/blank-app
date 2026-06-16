@@ -308,12 +308,14 @@ async def _news_signal_cycle() -> None:
             f"velocity={signal['news_velocity']} ×{signal['velocity_mult']}"
         )
 
-        # ── Send direction alert — only on explicit LONG/SHORT flip with confidence > 0 ──
+        # ── Send direction alert — only on explicit LONG/SHORT flip with real confidence ──
+        # Thin-pool bypass signals floor at 0.30 — suppress those from individual alerts;
+        # they appear in market intelligence only. Require >= 0.50 for a standalone alert.
         new_dir  = signal["direction"]
         new_conf = signal.get("confidence", 0.0)
         direction_changed = (
             new_dir not in ("NEUTRAL", "") and
-            new_conf > 0 and
+            new_conf >= 0.50 and
             new_dir != _last_sent_direction and
             not _startup_cycle
         )
@@ -347,7 +349,7 @@ async def _news_signal_cycle() -> None:
 
             spy_changed = (
                 spy_dir not in ("NEUTRAL", "") and
-                spy_conf > 0 and
+                spy_conf >= 0.50 and
                 spy_dir != _last_sent_direction_spy and
                 not _startup_cycle
             )
@@ -392,7 +394,7 @@ async def _news_signal_cycle() -> None:
 
             qqq_changed = (
                 qqq_dir not in ("NEUTRAL", "") and
-                qqq_conf > 0 and
+                qqq_conf >= 0.50 and
                 qqq_dir != _last_sent_direction_qqq and
                 not _startup_cycle
             )
