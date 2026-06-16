@@ -25098,13 +25098,13 @@
     "direction": "SHORT",
     "trigger": "RSI",
     "entry_price": 4326.32,
-    "exit_price": 4325.8,
-    "outcome": "PARTIAL",
-    "ml_outcome": "WIN",
+    "exit_price": 4324.1683,
+    "outcome": "WIN",
+    "ml_outcome": "TP1_HIT",
     "mfe": -0.52,
-    "tp_stage": "SL_TP1",
+    "tp_stage": "TP1",
     "timeframe": "2",
-    "pnl_pct": 0.012,
+    "pnl_pct": 0.0497,
     "ml_bull_score": 0.625,
     "regime": "NORMAL",
     "session": "ASIAN",
@@ -25134,8 +25134,8 @@
     "f24_fvgq": 0.0,
     "f25_tod": 0.887,
     "f26_stoch": -0.4931,
-    "id": "bbfa0620",
+    "id": "b332cd10",
     "pool": "XAUUSD_2M",
-    "created_at": "2026-06-16T04:26:04.142250+00:00"
+    "created_at": "2026-06-16T04:26:02.770077+00:00"
   }
 ]
