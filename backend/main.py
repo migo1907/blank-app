@@ -50,12 +50,12 @@ def _tod_sine() -> float:
 
 WEBHOOK_SECRET    = os.environ.get("WEBHOOK_SECRET", "")
 VALID_POOLS = {
-    "XAUUSD_2M", "XAUUSD_5M", "XAUUSD_30M", "XAUUSD_1H",
-    "STOCKS_MOMENTUM_15M", "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_4H",
-    "STOCKS_QUALITY_15M",  "STOCKS_QUALITY_30M",  "STOCKS_QUALITY_4H",
-    "STOCKS_INDEX_15M",    "STOCKS_INDEX_30M",    "STOCKS_INDEX_4H",
-    "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",      "STOCKS_QQQ_4H",
-    "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",   "STOCKS_SPX500_4H",
+    "XAUUSD_2M", "XAUUSD_5M", "XAUUSD_15M", "XAUUSD_30M", "XAUUSD_1H",
+    "STOCKS_MOMENTUM_15M", "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_1H", "STOCKS_MOMENTUM_4H",
+    "STOCKS_QUALITY_15M",  "STOCKS_QUALITY_30M",  "STOCKS_QUALITY_1H",  "STOCKS_QUALITY_4H",
+    "STOCKS_INDEX_15M",    "STOCKS_INDEX_30M",    "STOCKS_INDEX_1H",    "STOCKS_INDEX_4H",
+    "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",      "STOCKS_QQQ_1H",      "STOCKS_QQQ_4H",
+    "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",   "STOCKS_SPX500_1H",   "STOCKS_SPX500_4H",
 }
 RAILWAY_API_TOKEN  = os.environ.get("RAILWAY_API_TOKEN", "")
 RAILWAY_PROJECT_ID = os.environ.get("RAILWAY_PROJECT_ID", "")
@@ -71,12 +71,12 @@ async def lifespan(app: FastAPI):
     print("[startup] Priming RF + GBM ensembles for all pools…")
     from ml_ensemble import get_rf, get_gbm
     from db import recent_outcomes
-    for _pool in ["XAUUSD_2M", "XAUUSD_5M", "XAUUSD_30M", "XAUUSD_1H",
-                  "STOCKS_MOMENTUM_15M", "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_4H",
-                  "STOCKS_QUALITY_15M",  "STOCKS_QUALITY_30M",  "STOCKS_QUALITY_4H",
-                  "STOCKS_INDEX_15M",    "STOCKS_INDEX_30M",    "STOCKS_INDEX_4H",
-                  "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",      "STOCKS_QQQ_4H",
-                  "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",   "STOCKS_SPX500_4H"]:
+    for _pool in ["XAUUSD_2M", "XAUUSD_5M", "XAUUSD_15M", "XAUUSD_30M", "XAUUSD_1H",
+                  "STOCKS_MOMENTUM_15M", "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_1H", "STOCKS_MOMENTUM_4H",
+                  "STOCKS_QUALITY_15M",  "STOCKS_QUALITY_30M",  "STOCKS_QUALITY_1H",  "STOCKS_QUALITY_4H",
+                  "STOCKS_INDEX_15M",    "STOCKS_INDEX_30M",    "STOCKS_INDEX_1H",    "STOCKS_INDEX_4H",
+                  "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",      "STOCKS_QQQ_1H",      "STOCKS_QQQ_4H",
+                  "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",   "STOCKS_SPX500_1H",   "STOCKS_SPX500_4H"]:
         _hist = recent_outcomes(_pool, limit=500)
         if len(_hist) >= 50:
             get_rf(_pool).retrain(_hist)
@@ -103,12 +103,12 @@ async def lifespan(app: FastAPI):
 
     print("[startup] Resyncing pool win/loss counters…")
     from db import resync_pool_counters
-    for _pool in ["XAUUSD_2M", "XAUUSD_5M", "XAUUSD_30M", "XAUUSD_1H",
-                  "STOCKS_MOMENTUM_15M", "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_4H",
-                  "STOCKS_QUALITY_15M",  "STOCKS_QUALITY_30M",  "STOCKS_QUALITY_4H",
-                  "STOCKS_INDEX_15M",    "STOCKS_INDEX_30M",    "STOCKS_INDEX_4H",
-                  "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",      "STOCKS_QQQ_4H",
-                  "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",   "STOCKS_SPX500_4H"]:
+    for _pool in ["XAUUSD_2M", "XAUUSD_5M", "XAUUSD_15M", "XAUUSD_30M", "XAUUSD_1H",
+                  "STOCKS_MOMENTUM_15M", "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_1H", "STOCKS_MOMENTUM_4H",
+                  "STOCKS_QUALITY_15M",  "STOCKS_QUALITY_30M",  "STOCKS_QUALITY_1H",  "STOCKS_QUALITY_4H",
+                  "STOCKS_INDEX_15M",    "STOCKS_INDEX_30M",    "STOCKS_INDEX_1H",    "STOCKS_INDEX_4H",
+                  "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",      "STOCKS_QQQ_1H",      "STOCKS_QQQ_4H",
+                  "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",   "STOCKS_SPX500_1H",   "STOCKS_SPX500_4H"]:
         resync_pool_counters(_pool)
 
     print("[startup] Verifying data branch is writable…")

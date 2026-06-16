@@ -916,7 +916,7 @@ def generate_signal(
         bear_score = 0.5
 
     # ── RF + GBM scores ─────────────────────────────────────────────────────────────
-    feat_list      = current_features.as_list() if current_features else [0.0] * 25
+    feat_list      = current_features.as_list() if current_features else [0.0] * 26
     rf_win_prob    = rf.predict(feat_list)
     gbm_win_prob   = gbm.predict(feat_list)
 
