@@ -177,9 +177,15 @@ def _technical_context(name: str, decimals: int) -> dict | None:
         if df is None:
             continue
         try:
-            highs  = [float(x) for x in df["High"].tolist()]
-            lows   = [float(x) for x in df["Low"].tolist()]
-            closes = [float(x) for x in df["Close"].tolist()]
+            import math as _math
+            # Drop rows with any NaN in H/L/C — yfinance occasionally returns partial rows
+            rows = [(float(h), float(l), float(c))
+                    for h, l, c in zip(df["High"], df["Low"], df["Close"])
+                    if not (_math.isnan(float(h)) or _math.isnan(float(l)) or _math.isnan(float(c)))]
+            if len(rows) < 60:
+                continue
+            highs, lows, closes = zip(*rows)
+            highs, lows, closes = list(highs), list(lows), list(closes)
             last   = closes[-1]
 
             def _ma(n: int) -> float | None:
