@@ -45,15 +45,6 @@ _YF_LIVE = {
     "QQQ":    ["QQQ"],
 }
 
-# Daily-bar HISTORY lookup for the directional read (trend/momentum/range). Gold uses
-# GC=F (continuous futures) FIRST — it is reliable on Yahoo from cloud IPs and tracks
-# gold's DIRECTION exactly (MA stacking, momentum %, RSI are all direction-based, not
-# absolute price), so the futures basis is irrelevant here. Spot symbols are fallbacks.
-_YF_HIST = {
-    "XAUUSD": ["GC=F", "XAUUSD=X", "XAU=X"],
-    "SPY":    ["SPY"],
-    "QQQ":    ["QQQ"],
-}
 
 SYMBOLS_TV = {
     "XAUUSD": ("XAUUSD", "ICMARKETS", 2, "XAUUSD 🥇"),
@@ -158,110 +149,110 @@ def _technical_context(name: str, decimals: int) -> dict | None:
     momentum, RSI band, range position, ATR-based expected range, and a single
     composite directional bias (0–100% bullish). Self-contained — no DB writes,
     no dependency on intraday heartbeat features. Returns None if data unavailable.
+
+    Uses market_data.fetch_daily() which already chains yfinance → Stooq fallback,
+    so we get reliable data even when Yahoo is blocking Railway's cloud IP.
+    Ticker mapping: XAUUSD→GC=F (yfinance) / xauusd (Stooq), SPY/QQQ direct.
     """
-    if not _YF_AVAILABLE:
+    import math as _math
+    from market_data import fetch_daily, STOOQ_SYMBOLS
+
+    # Map our asset names to the ticker fetch_daily() understands
+    _HIST_TICKER = {"XAUUSD": "GC=F", "SPY": "SPY", "QQQ": "QQQ"}
+    ticker = _HIST_TICKER.get(name)
+    if not ticker:
         return None
-    import time as _time
-    for sym in _YF_HIST.get(name, []):
-        df = None
-        for attempt in range(3):  # Yahoo history is occasionally flaky — retry before giving up
-            try:
-                df = yf.Ticker(sym).history(period="1y", interval="1d")
-                if df is not None and len(df) >= 60:
-                    break
-                df = None
-            except Exception as e:
-                print(f"[daily] technical context {sym} attempt {attempt+1} failed: {e}")
-                df = None
-            _time.sleep(1.0 * (attempt + 1))
-        if df is None:
-            continue
-        try:
-            import math as _math
-            # Drop rows with any NaN in H/L/C — yfinance occasionally returns partial rows
-            rows = [(float(h), float(l), float(c))
-                    for h, l, c in zip(df["High"], df["Low"], df["Close"])
-                    if not (_math.isnan(float(h)) or _math.isnan(float(l)) or _math.isnan(float(c)))]
-            if len(rows) < 60:
-                continue
-            highs, lows, closes = zip(*rows)
-            highs, lows, closes = list(highs), list(lows), list(closes)
-            last   = closes[-1]
 
-            def _ma(n: int) -> float | None:
-                return sum(closes[-n:]) / n if len(closes) >= n else None
+    try:
+        df = fetch_daily(ticker, period="1y")
+    except Exception as e:
+        print(f"[daily] technical context {name} fetch failed: {e}")
+        return None
 
-            ma20, ma50, ma200 = _ma(20), _ma(50), _ma(200)
+    if df is None or len(df) < 60:
+        print(f"[daily] technical context {name}: insufficient data ({len(df) if df is not None else 0} bars)")
+        return None
 
-            # 20-day momentum %
-            mom20 = ((last / closes[-21]) - 1.0) * 100 if len(closes) >= 21 else 0.0
+    try:
+        # Drop rows with any NaN in H/L/C
+        rows = [(float(h), float(l), float(c))
+                for h, l, c in zip(df["High"], df["Low"], df["Close"])
+                if not (_math.isnan(float(h)) or _math.isnan(float(l)) or _math.isnan(float(c)))]
+        if len(rows) < 60:
+            print(f"[daily] technical context {name}: too many NaN rows ({len(rows)} clean bars)")
+            return None
+        highs, lows, closes = zip(*rows)
+        highs, lows, closes = list(highs), list(lows), list(closes)
+        last = closes[-1]
 
-            rsi = _rsi(closes) or 50.0
+        def _ma(n: int) -> float | None:
+            return sum(closes[-n:]) / n if len(closes) >= n else None
 
-            # Range position over the last 60 sessions (0 = at lows, 100 = at highs)
-            win_hi = max(highs[-60:])
-            win_lo = min(lows[-60:])
-            rng_pos = ((last - win_lo) / (win_hi - win_lo) * 100) if win_hi > win_lo else 50.0
+        ma20, ma50, ma200 = _ma(20), _ma(50), _ma(200)
 
-            # ATR(14) on daily bars → typical daily range
-            trs = []
-            for i in range(1, len(closes)):
-                tr = max(highs[i] - lows[i],
-                         abs(highs[i] - closes[i - 1]),
-                         abs(lows[i] - closes[i - 1]))
-                trs.append(tr)
-            atr = sum(trs[-14:]) / 14 if len(trs) >= 14 else (sum(trs) / len(trs) if trs else 0.0)
+        mom20 = ((last / closes[-21]) - 1.0) * 100 if len(closes) >= 21 else 0.0
+        rsi = _rsi(closes) or 50.0
 
-            # Trend alignment score (0–1): price vs MAs + MA stacking
-            checks, hits = 0, 0
-            for m in (ma20, ma50, ma200):
-                if m is not None:
-                    checks += 1
-                    hits += 1 if last > m else 0
-            if ma20 and ma50:
-                checks += 1; hits += 1 if ma20 > ma50 else 0
-            if ma50 and ma200:
-                checks += 1; hits += 1 if ma50 > ma200 else 0
-            trend_score = (hits / checks) if checks else 0.5
+        win_hi = max(highs[-60:])
+        win_lo = min(lows[-60:])
+        rng_pos = ((last - win_lo) / (win_hi - win_lo) * 100) if win_hi > win_lo else 50.0
 
-            def _clamp(v, lo=-1.0, hi=1.0):
-                return max(lo, min(hi, v))
+        trs = []
+        for i in range(1, len(closes)):
+            tr = max(highs[i] - lows[i],
+                     abs(highs[i] - closes[i - 1]),
+                     abs(lows[i] - closes[i - 1]))
+            trs.append(tr)
+        atr = sum(trs[-14:]) / 14 if len(trs) >= 14 else (sum(trs) / len(trs) if trs else 0.0)
 
-            # Composite directional bias (0–1 bullish)
-            bias = (
-                0.50
-                + 0.25 * (trend_score * 2 - 1)
-                + 0.15 * _clamp(mom20 / 10.0)
-                + 0.10 * _clamp((rsi - 50) / 30.0)
-            )
-            bias = max(0.02, min(0.98, bias))
+        checks, hits = 0, 0
+        for m in (ma20, ma50, ma200):
+            if m is not None:
+                checks += 1
+                hits += 1 if last > m else 0
+        if ma20 and ma50:
+            checks += 1; hits += 1 if ma20 > ma50 else 0
+        if ma50 and ma200:
+            checks += 1; hits += 1 if ma50 > ma200 else 0
+        trend_score = (hits / checks) if checks else 0.5
 
-            fmt = f"{{:.{decimals}f}}"
-            trend_words = (
-                "Uptrend" if trend_score >= 0.7 else
-                "Downtrend" if trend_score <= 0.3 else
-                "Mixed"
-            )
-            rsi_band = (
-                "overbought" if rsi >= 70 else
-                "oversold" if rsi <= 30 else
-                "neutral"
-            )
-            return {
-                "bias_pct":   round(bias * 100),
-                "direction":  "Bullish" if bias >= 0.5 else "Bearish",
-                "trend":      trend_words,
-                "ma20":       fmt.format(ma20) if ma20 else "n/a",
-                "ma50":       fmt.format(ma50) if ma50 else "n/a",
-                "ma200":      fmt.format(ma200) if ma200 else "n/a",
-                "mom20":      f"{mom20:+.1f}",
-                "rsi":        round(rsi),
-                "rsi_band":   rsi_band,
-                "range_pos":  round(rng_pos),
-                "atr":        fmt.format(atr),
-            }
-        except Exception as e:
-            print(f"[daily] technical context {sym} failed: {e}")
+        def _clamp(v, lo=-1.0, hi=1.0):
+            return max(lo, min(hi, v))
+
+        bias = (
+            0.50
+            + 0.25 * (trend_score * 2 - 1)
+            + 0.15 * _clamp(mom20 / 10.0)
+            + 0.10 * _clamp((rsi - 50) / 30.0)
+        )
+        bias = max(0.02, min(0.98, bias))
+
+        fmt = f"{{:.{decimals}f}}"
+        trend_words = (
+            "Uptrend" if trend_score >= 0.7 else
+            "Downtrend" if trend_score <= 0.3 else
+            "Mixed"
+        )
+        rsi_band = (
+            "overbought" if rsi >= 70 else
+            "oversold" if rsi <= 30 else
+            "neutral"
+        )
+        return {
+            "bias_pct":   round(bias * 100),
+            "direction":  "Bullish" if bias >= 0.5 else "Bearish",
+            "trend":      trend_words,
+            "ma20":       fmt.format(ma20) if ma20 else "n/a",
+            "ma50":       fmt.format(ma50) if ma50 else "n/a",
+            "ma200":      fmt.format(ma200) if ma200 else "n/a",
+            "mom20":      f"{mom20:+.1f}",
+            "rsi":        round(rsi),
+            "rsi_band":   rsi_band,
+            "range_pos":  round(rng_pos),
+            "atr":        fmt.format(atr),
+        }
+    except Exception as e:
+        print(f"[daily] technical context {name} failed: {e}")
     return None
 
 
