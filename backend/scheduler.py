@@ -19,7 +19,8 @@ _webhook_ok:      int = 0   # count of successful trade webhooks since last hour
 _intel_active:    bool = False  # True while market is in an elevated-activity regime (alert already sent)
 _shock_sent:      dict = {}     # headline_hash → monotonic time; suppresses duplicate shock alerts for 4h
 _fj_expiry_alert_at: float = 0.0  # monotonic time of last FJ-session-expired alert; throttles to 1/12h
-_brief_sent_date: object = None  # date the daily market brief was last sent (guards against double-fire)
+_brief_sent_date:  object = None  # date the daily market brief was last sent (guards against double-fire)
+_report_sent_date: object = None  # date the daily performance report was last sent (guards against double-fire)
 
 _SEEN_HEADLINES_PATH = "data/seen_headlines.json"
 _SEEN_HEADLINES_MAX  = 500
@@ -972,7 +973,12 @@ async def _daily_trade_count_report() -> None:
     Consolidated across all pools — XAUUSD + all stocks.
     No other daily brief fires; this is the only end-of-day message.
     """
+    global _report_sent_date
     from datetime import datetime, timezone, date
+    today = datetime.now(timezone.utc).date()
+    if today == _report_sent_date:
+        print("[daily_report] Already sent today — skipping.")
+        return
     if datetime.now(timezone.utc).weekday() >= 5:
         return
     try:
@@ -1106,6 +1112,7 @@ async def _daily_trade_count_report() -> None:
             f"⏰ {now_utc.strftime('%H:%M UTC')}"
         )
         await send_text(msg)
+        _report_sent_date = today
         print(f"[daily_report] Performance report sent — {tot} trades today, TP={tp} SL={sl} P={par}.")
     except Exception as e:
         print(f"[daily_report] Error: {e}")
@@ -1794,8 +1801,9 @@ def start_scheduler() -> AsyncIOScheduler:
                            id="daily_brief_catchup", replace_existing=True)
 
     # Daily performance report — fires at end of NY session: 16:15 ET (≈20:15 UTC).
-    # Catch-up window: 60 min. Fires on restart only if Railway was down at session close.
-    if _is_weekday and _missed(16, 15, _now_ny, window_min=60):
+    # Catch-up window: 30 min (16:15–16:45 ET only). _report_sent_date guards against
+    # double-fire within the same process; this window is the cross-deploy protection.
+    if _is_weekday and _missed(16, 15, _now_ny, window_min=30):
         print("[scheduler] Startup catch-up: daily performance report (within 60min of 16:15 ET).")
         _scheduler.add_job(_daily_trade_count_report, trigger="date", run_date=_now + _td(seconds=45),
                            id="daily_report_catchup", replace_existing=True)
