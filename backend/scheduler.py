@@ -1784,9 +1784,11 @@ def start_scheduler() -> AsyncIOScheduler:
         return sched_min <= now_min < sched_min + window_min
 
     # Daily market brief — fires at 09:00 UTC (1 PM Dubai) via cron.
-    # Catch-up: on any restart after 09:00 UTC, fire immediately if not yet sent today.
-    # The _daily_market_brief guard (_brief_sent_date) prevents double-fire.
-    if _is_weekday and _missed(9, 0, _now, window_min=900):  # 09:00–00:00 UTC
+    # Catch-up window: 4 hours (09:00–13:00 UTC only). Outside that window a restart
+    # is a routine redeploy — don't re-send. _brief_sent_date guards against double-fire
+    # within the same process, but resets on restart so this window is the only cross-
+    # deploy protection.
+    if _is_weekday and _missed(9, 0, _now, window_min=240):  # 09:00–13:00 UTC only
         print("[scheduler] Startup catch-up: daily market brief (past 09:00 UTC, not yet sent today).")
         _scheduler.add_job(_daily_market_brief, trigger="date", run_date=_now + _td(seconds=30),
                            id="daily_brief_catchup", replace_existing=True)
