@@ -2,46 +2,46 @@
   "XAUUSD": {
     "asset": "XAUUSD",
     "regime": "TRENDING_BULL",
-    "confidence": 0.999,
-    "transition_prob": 0.011,
+    "confidence": 0.997,
+    "transition_prob": 0.013,
     "next_regime": "TRENDING_BULL",
     "shifting": false,
     "probs": {
-      "RANGING": 0.001,
-      "TRENDING_BULL": 0.999,
+      "RANGING": 0.003,
+      "TRENDING_BULL": 0.997,
       "VOLATILE": 0.0
     },
     "method": "hmm",
-    "updated_at": "2026-06-16T14:06:27.052662+00:00"
+    "updated_at": "2026-06-16T14:17:15.030494+00:00"
   },
   "SPY": {
     "asset": "SPY",
     "regime": "RANGING",
-    "confidence": 0.957,
-    "transition_prob": 0.1,
+    "confidence": 0.959,
+    "transition_prob": 0.099,
     "next_regime": "RANGING",
     "shifting": false,
     "probs": {
-      "RANGING": 0.957,
-      "VOLATILE": 0.043,
+      "RANGING": 0.959,
+      "VOLATILE": 0.041,
       "TRENDING_BEAR": 0.0
     },
     "method": "hmm",
-    "updated_at": "2026-06-16T14:06:28.811154+00:00"
+    "updated_at": "2026-06-16T14:17:16.408948+00:00"
   },
   "QQQ": {
     "asset": "QQQ",
     "regime": "TRENDING_BULL",
-    "confidence": 0.943,
-    "transition_prob": 0.157,
+    "confidence": 0.901,
+    "transition_prob": 0.168,
     "next_regime": "TRENDING_BULL",
     "shifting": false,
     "probs": {
-      "TRENDING_BULL": 0.943,
-      "RANGING": 0.057,
+      "TRENDING_BULL": 0.901,
+      "RANGING": 0.099,
       "VOLATILE": 0.0
     },
     "method": "hmm",
-    "updated_at": "2026-06-16T14:06:30.222822+00:00"
+    "updated_at": "2026-06-16T14:17:17.875168+00:00"
   }
 }
