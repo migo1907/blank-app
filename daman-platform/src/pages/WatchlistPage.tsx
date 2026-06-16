@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Eye, Plus, X, Bell, BellOff, TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
+import Skeleton from '../components/Skeleton';
 
 interface WatchlistStock {
   symbol: string;
@@ -330,18 +331,39 @@ export default function WatchlistPage() {
           )}
         </div>
 
-        {stocks.length === 0 ? (
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-12 text-center">
+        {loading && stocks.length === 0 ? (
+          <div className="grid grid-cols-1 gap-4">
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-6"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <Skeleton className="h-8 w-28" />
+                  <Skeleton className="h-6 w-20" />
+                </div>
+                <Skeleton className="h-9 w-40 mb-4" />
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {[0, 1, 2, 3].map((j) => (
+                    <Skeleton key={j} className="h-10 w-full" />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : stocks.length === 0 ? (
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-12 text-center animate-fadeIn">
             <Eye className="h-16 w-16 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
             <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">No Stocks in Watchlist</h3>
             <p className="text-slate-600 dark:text-slate-400 mb-6">Add your first stock to start monitoring with price alerts</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4">
-            {stocks.map((stock) => (
+            {stocks.map((stock, idx) => (
               <div
                 key={stock.symbol}
-                className="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-6 hover:shadow-2xl transition-all"
+                style={{ animationDelay: `${idx * 60}ms` }}
+                className="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-6 hover:shadow-2xl hover:-translate-y-0.5 transition-all animate-fadeIn"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">

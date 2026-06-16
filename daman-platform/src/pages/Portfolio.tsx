@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { PieChart, TrendingUp, TrendingDown, DollarSign, Plus, X, RefreshCw } from 'lucide-react';
+import Reveal from '../components/Reveal';
+import Skeleton from '../components/Skeleton';
 
 interface Position {
   id: string;
@@ -348,8 +350,23 @@ export default function Portfolio() {
           )}
         </div>
 
-        {positions.length === 0 ? (
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-12 text-center">
+        {loading && positions.length === 0 ? (
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-6 md:p-8">
+            <Skeleton className="h-5 w-40 mb-6" />
+            <div className="space-y-4">
+              {[0, 1, 2, 3, 4].map((i) => (
+                <div key={i} className="flex items-center justify-between gap-4">
+                  <Skeleton className="h-6 w-20" />
+                  <Skeleton className="h-6 w-16 hidden sm:block" />
+                  <Skeleton className="h-6 w-24" />
+                  <Skeleton className="h-6 w-24 hidden md:block" />
+                  <Skeleton className="h-6 w-20" />
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : positions.length === 0 ? (
+          <Reveal className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-12 text-center">
             <PieChart className="h-16 w-16 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
             <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">No Positions Yet</h3>
             <p className="text-slate-600 dark:text-slate-400 mb-6">Start tracking your portfolio by adding your first position</p>
@@ -360,7 +377,7 @@ export default function Portfolio() {
               <Plus className="h-5 w-5" />
               <span>Add First Position</span>
             </button>
-          </div>
+          </Reveal>
         ) : (
           <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
             <div className="overflow-x-auto">
@@ -378,8 +395,12 @@ export default function Portfolio() {
                   </tr>
                 </thead>
                 <tbody>
-                  {positions.map((position) => (
-                    <tr key={position.id} className="border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900/50">
+                  {positions.map((position, idx) => (
+                    <tr
+                      key={position.id}
+                      style={{ animationDelay: `${idx * 50}ms` }}
+                      className="border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors animate-fadeIn"
+                    >
                       <td className="px-6 py-4 font-bold text-slate-900 dark:text-white">{position.symbol}</td>
                       <td className="px-6 py-4 text-right text-slate-900 dark:text-white">{position.quantity}</td>
                       <td className="px-6 py-4 text-right font-medium text-slate-900 dark:text-white">

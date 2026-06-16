@@ -111,7 +111,7 @@ export default function SettingsPage() {
           </div>
 
           <div className="space-y-6">
-            <div className="bg-slate-50 dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
+            <div className="bg-slate-50 dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-700 animate-slideUp" style={{ animationDelay: '0ms' }}>
               <div className="flex items-center space-x-2 mb-4">
                 <Bell className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                 <h3 className="font-bold text-lg text-slate-900 dark:text-white">Notifications</h3>
@@ -171,7 +171,7 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <div className="bg-slate-50 dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
+            <div className="bg-slate-50 dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-700 animate-slideUp" style={{ animationDelay: '90ms' }}>
               <div className="flex items-center space-x-2 mb-4">
                 <Palette className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                 <h3 className="font-bold text-lg text-slate-900 dark:text-white">Appearance</h3>
@@ -211,7 +211,7 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <div className="bg-slate-50 dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
+            <div className="bg-slate-50 dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-700 animate-slideUp" style={{ animationDelay: '180ms' }}>
               <div className="flex items-center space-x-2 mb-4">
                 <Database className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                 <h3 className="font-bold text-lg text-slate-900 dark:text-white">Data & Performance</h3>
