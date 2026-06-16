@@ -18,13 +18,13 @@
     "expires_at": "2026-06-16T16:00:04.104546+00:00"
   },
   "TSLL_30": {
-    "direction": "LONG",
+    "direction": "SHORT",
     "timeframe": "30",
     "symbol": "TSLL",
-    "trigger": "LIQ",
-    "ml_score": 0.75,
-    "stored_at": "2026-06-16T14:00:05.311310+00:00",
-    "expires_at": "2026-06-16T16:00:05.311331+00:00"
+    "trigger": "RSI",
+    "ml_score": 0.25,
+    "stored_at": "2026-06-16T14:30:08.797973+00:00",
+    "expires_at": "2026-06-16T16:30:08.797987+00:00"
   },
   "NOW_30": {
     "direction": "LONG",
@@ -142,5 +142,14 @@
     "ml_score": 0.5,
     "stored_at": "2026-06-16T14:30:05.994039+00:00",
     "expires_at": "2026-06-16T18:30:05.994057+00:00"
+  },
+  "MSFT_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "MSFT",
+    "trigger": "FVG",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-16T14:30:06.267108+00:00",
+    "expires_at": "2026-06-16T16:30:06.267125+00:00"
   }
 }
