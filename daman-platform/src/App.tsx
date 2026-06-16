@@ -107,8 +107,19 @@ function App() {
           </div>
 
           {isMenuOpen && (
-            <div className="md:hidden bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700">
+            <div className="md:hidden bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 animate-slideUp">
               <div className="px-4 pt-2 pb-4 space-y-2">
+                <button
+                  onClick={toggleTheme}
+                  className="flex items-center justify-between w-full px-4 py-2 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                >
+                  <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+                  {theme === 'dark' ? (
+                    <Sun className="h-5 w-5 text-slate-300" />
+                  ) : (
+                    <Moon className="h-5 w-5 text-slate-700" />
+                  )}
+                </button>
                 {navigation.map((item) => (
                   <button
                     key={item.id}

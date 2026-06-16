@@ -30,20 +30,20 @@ export default function MobileBottomNav({ currentPage, onNavigate, onMenuClick }
               key={item.id}
               onClick={() => onNavigate(item.id)}
               className={`
-                flex flex-col items-center justify-center space-y-1 transition-colors
+                relative flex flex-col items-center justify-center space-y-1 transition-colors
                 min-h-[44px] min-w-[44px] p-2
                 ${isActive
-                  ? 'text-blue-600 bg-blue-50'
-                  : 'text-slate-600 hover:text-blue-600 hover:bg-slate-50'
+                  ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-700/50'
                 }
               `}
               aria-label={item.label}
               aria-current={isActive ? 'page' : undefined}
             >
-              <Icon className="h-5 w-5" />
+              <Icon className={`h-5 w-5 transition-transform ${isActive ? 'scale-110' : ''}`} />
               <span className="text-xs font-medium">{item.label}</span>
               {isActive && (
-                <div className="absolute top-0 left-0 right-0 h-0.5 bg-blue-600" />
+                <div className="absolute top-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-400" />
               )}
             </button>
           );
@@ -51,7 +51,7 @@ export default function MobileBottomNav({ currentPage, onNavigate, onMenuClick }
 
         <button
           onClick={onMenuClick}
-          className="flex flex-col items-center justify-center space-y-1 text-slate-600 hover:text-blue-600 hover:bg-slate-50 transition-colors min-h-[44px] min-w-[44px] p-2"
+          className="flex flex-col items-center justify-center space-y-1 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors min-h-[44px] min-w-[44px] p-2"
           aria-label="Open menu"
         >
           <Menu className="h-5 w-5" />
