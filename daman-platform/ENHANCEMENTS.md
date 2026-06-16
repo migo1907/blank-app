@@ -69,3 +69,17 @@ npm run dev            # http://localhost:5173
 | `src/components/MarketPulse.tsx` | Homepage index-snapshot section |
 
 All animations honor `prefers-reduced-motion`.
+
+## Platform-wide AI & app upgrades
+- **Ask Hermes everywhere** — a global event bus (`hermesBus`) lets any surface pop
+  open the streaming chat seeded with context. Live on **Stock Detail**, every
+  **Watchlist** card, and every **Portfolio** row.
+- **Dark mode** completed for the **Market Overview** and **News** sections (were
+  light-only) — the whole app is now dark-mode clean.
+- **News feed** upgraded: skeleton loaders, live keyword search, newsletter signup.
+- **Newsletter / Daily Wrap-Up** signup (`NewsletterSignup`) on the News tab + AI wrap-up.
+- **Installable PWA** — "Add to Home Screen" prompt (`InstallPrompt`); manifest scoped
+  for the GitHub Pages base path.
+- **Auto-deploy** — every push publishes to GitHub Pages
+  (`.github/workflows/deploy-pages.yml`) → https://migo1907.github.io/blank-app/.
+- Fixed a real bug: Stock Detail "Back" button (wrong prop) now works.
