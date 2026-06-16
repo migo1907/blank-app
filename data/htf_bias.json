@@ -117,13 +117,13 @@
     "expires_at": "2026-06-16T16:30:01.740890+00:00"
   },
   "IBKR_30": {
-    "direction": "SHORT",
+    "direction": "LONG",
     "timeframe": "30",
     "symbol": "IBKR",
-    "trigger": "RSI",
-    "ml_score": 0.375,
-    "stored_at": "2026-06-16T14:30:02.275784+00:00",
-    "expires_at": "2026-06-16T16:30:02.275799+00:00"
+    "trigger": "FVG",
+    "ml_score": 0.75,
+    "stored_at": "2026-06-16T17:00:48.471431+00:00",
+    "expires_at": "2026-06-16T19:00:48.471450+00:00"
   },
   "HOOD_30": {
     "direction": "SHORT",
