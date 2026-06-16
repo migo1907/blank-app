@@ -1,0 +1,26 @@
+name: Daily Market Commentary Email
+
+# Sends Hermes's daily wrap-up to subscribers via the Supabase edge function.
+# One-time setup (repo Settings → Secrets and variables → Actions):
+#   - SUPABASE_FUNCTIONS_URL  e.g. https://<project>.supabase.co/functions/v1
+#   - DAILY_EMAIL_SECRET      same value you set on the function
+# Plus, on the Supabase function: RESEND_API_KEY, RESEND_FROM, DAILY_EMAIL_SECRET.
+
+on:
+  schedule:
+    - cron: "0 12 * * 1-5" # 12:00 UTC, Mon–Fri
+  workflow_dispatch:
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger daily commentary
+        run: |
+          if [ -z "${{ secrets.SUPABASE_FUNCTIONS_URL }}" ]; then
+            echo "SUPABASE_FUNCTIONS_URL not set — skipping."; exit 0
+          fi
+          STATUS=$(curl -s -o /tmp/resp.txt -w "%{http_code}" --max-time 60 \
+            "${{ secrets.SUPABASE_FUNCTIONS_URL }}/send-daily-commentary?secret=${{ secrets.DAILY_EMAIL_SECRET }}")
+          echo "HTTP $STATUS"; cat /tmp/resp.txt
+          test "$STATUS" = "200"

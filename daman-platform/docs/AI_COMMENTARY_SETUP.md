@@ -53,11 +53,22 @@ Browser (AIStrategist page)
   is balanced and risk-aware, and trade ideas always include risk management.
 - **Audio:** generated client-side from the model's `audio_script` via the Web Speech API.
 
-## Email delivery (subscriptions)
-Storing subscribers is included; **sending** the daily email is not — wire the
-`commentary_subscribers` table to your email provider (e.g. a scheduled Edge Function
-that calls the wrap-up function and sends via Resend/SendGrid). This is intentionally
-left to your infrastructure choice.
+## Email delivery (subscriptions) — now included
+A scheduled sender is built in: `supabase/functions/send-daily-commentary`.
+It reads active `commentary_subscribers`, generates today's wrap-up, and emails it
+via **Resend**.
+
+**Enable it:**
+1. Create a Resend account + API key (https://resend.com), verify a sending domain.
+2. Set function secrets:
+   ```bash
+   supabase secrets set DAILY_EMAIL_SECRET=<your-secret> RESEND_API_KEY=<key> RESEND_FROM="Hermes <hermes@yourdomain.com>"
+   supabase functions deploy send-daily-commentary
+   ```
+3. Schedule it. The repo ships `.github/workflows/daily-commentary.yml` (12:00 UTC
+   weekdays). Add repo secrets `SUPABASE_FUNCTIONS_URL` (`https://<project>.supabase.co/functions/v1`)
+   and `DAILY_EMAIL_SECRET`. (Or use Supabase scheduled functions / pg_cron.)
+4. Test now: `curl "<functions-url>/send-daily-commentary?secret=<your-secret>"`.
 
 ## Files
 | File | Role |
