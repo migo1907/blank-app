@@ -34,8 +34,23 @@ _LEVELS_URL = (
 )
 
 # yfinance tickers for live price lookup
+# Live PRICE lookup (absolute price + gap). Gold uses SPOT only (XAUUSD=X / XAU=X) —
+# never futures, whose basis premium ($5–30 over spot) would create a false gap vs
+# prev close. If spot is down on Yahoo (frequent "possibly delisted" from Railway IPs),
+# _fetch_live_price returns None and the caller falls back to TradingView spot
+# (levels["current"]) — still spot, never futures.
 _YF_LIVE = {
-    "XAUUSD": ["XAUUSD=X", "GC=F"],
+    "XAUUSD": ["XAUUSD=X", "XAU=X"],
+    "SPY":    ["SPY"],
+    "QQQ":    ["QQQ"],
+}
+
+# Daily-bar HISTORY lookup for the directional read (trend/momentum/range). Gold uses
+# GC=F (continuous futures) FIRST — it is reliable on Yahoo from cloud IPs and tracks
+# gold's DIRECTION exactly (MA stacking, momentum %, RSI are all direction-based, not
+# absolute price), so the futures basis is irrelevant here. Spot symbols are fallbacks.
+_YF_HIST = {
+    "XAUUSD": ["GC=F", "XAUUSD=X", "XAU=X"],
     "SPY":    ["SPY"],
     "QQQ":    ["QQQ"],
 }
@@ -147,7 +162,7 @@ def _technical_context(name: str, decimals: int) -> dict | None:
     if not _YF_AVAILABLE:
         return None
     import time as _time
-    for sym in _YF_LIVE.get(name, []):
+    for sym in _YF_HIST.get(name, []):
         df = None
         for attempt in range(3):  # Yahoo history is occasionally flaky — retry before giving up
             try:
@@ -497,6 +512,11 @@ def generate_daily_brief() -> str | None:
         live_price = _fetch_live_price(name, decimals)
         if live_price:
             print(f"[daily] {name}: live price = {live_price}")
+        elif levels.get("current"):
+            # Yahoo spot down (common for gold from cloud IPs) — fall back to the
+            # TradingView spot captured in daily_levels. Still spot, never futures.
+            live_price = round(float(levels["current"]), decimals)
+            print(f"[daily] {name}: live price from TradingView spot = {live_price}")
         else:
             print(f"[daily] {name}: live price unavailable — using prev close")
         tech = _technical_context(name, decimals)
