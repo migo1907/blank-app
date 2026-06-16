@@ -74,6 +74,37 @@ These are permanent agreements — never override, skip, or work around them und
 - **isTF30 bucket:** ✅ implemented 2026-06-08 — 30M now has dedicated ATR multipliers (TP1×2.2, TP2×3.8, TP3×6.0, SL×2.2, trail×1.0)
 
 
+## Daily Market Brief — Permanent Specification
+- **Schedule:** 09:00 UTC every weekday = **1:00 PM Dubai (UTC+4)**. Never change this without updating CLAUDE.md and scheduler.py together.
+- **Manual trigger:** `GET /daily-brief?secret=gold2026` — use if Railway restarted after 09:00 UTC and brief was missed.
+- **Startup catch-up:** fires automatically on restart if current UTC time is 09:00–20:00 UTC Mon-Fri (full trading day window, never re-fires after 20:00 UTC to avoid stale EOD brief).
+- **Misfire prevention:** catch-up window is intentionally wide (11h). The brief is idempotent — triggering it twice sends twice, so manual trigger should only be used if no brief was received.
+- **Data pipeline (in order):**
+  1. Pivot levels — `data/daily_levels.json` from GitHub (written by GitHub Actions at 07:50 UTC from TradingView ICMARKETS/AMEX/NASDAQ prev-day OHLC)
+  2. Live price at send time — yfinance `fast_info.last_price` (includes pre-market for SPY/QQQ, live spot for XAUUSD)
+  3. Gap analysis — live price vs prev close, absolute + %, flags >0.2% as significant
+  4. Macro bias — gold only, from `market_macro.py` (FRED real yield + dollar + COT + GLD)
+  5. High-impact economic calendar — Finnhub US events today only, shown in Dubai time
+- **Brief format (Telegram, HTML parse mode):**
+  ```
+  📅 MORNING MARKET BRIEF — {Weekday}, {DD Mon YYYY}
+  ━━━━━━━━━━━━━━━━━━━━
+  📊 Market Tone: [1-line cross-asset tone]
+  🥇 XAUUSD
+  Live: $X,XXX.XX  |  Prev close: $X,XXX.XX  |  Gap: +/-X.XX (+/-X.XX%)
+  Pivot: $X,XXX.XX — price is [above/below] pivot → [bullish/bearish] intraday bias
+  Watch: $X,XXX / $X,XXX / $X,XXX
+  📈 Bull: [trigger] → targets $X,XXX then $X,XXX
+  📉 Bear: [trigger] → targets $X,XXX then $X,XXX
+  [same block for SPY and QQQ]
+  📆 Key Events Today (Dubai time):
+    • HH:MM AM/PM — Event Name · Est: X.X%
+  ━━━━━━━━━━━━━━━━━━━━
+  ⏰ HH:MM UTC | 1:00 PM Dubai | Pre-market
+  ```
+- **Model:** `claude-haiku-4-5-20251001`, max_tokens=1200
+- **File:** `backend/daily_analysis.py` — `generate_daily_brief()` is the entry point
+
 - FastAPI backend on Railway (Python 3.13)
 - Scheduler: 5 jobs — signal every 15min, breaking news every 2min, system check every 60min, macro refresh every 60min, daily brief at 09:00 UTC (1 PM Dubai / UTC+4)
 - ML: AdaptiveKNN + RandomForest + GradientBoosting, pool-aware (9 pools)

@@ -1769,14 +1769,16 @@ def start_scheduler() -> AsyncIOScheduler:
     _is_weekday = _now_ny.weekday() < 5
     _is_monday  = _now_ny.weekday() == 0
 
-    def _missed(sched_h: int, sched_m: int, tz_now) -> bool:
-        """True if scheduled time passed today and startup is within 4 hours after."""
+    def _missed(sched_h: int, sched_m: int, tz_now, window_min: int = 240) -> bool:
+        """True if scheduled time passed today and startup is within window_min after."""
         sched_min = sched_h * 60 + sched_m
         now_min   = tz_now.hour * 60 + tz_now.minute
-        return sched_min <= now_min < sched_min + 240
+        return sched_min <= now_min < sched_min + window_min
 
     # Daily market brief — 09:00 UTC (1 PM Dubai)
-    if _is_weekday and _missed(9, 0, _now):
+    # Catch-up window: 09:00–20:00 UTC (660 min) — covers any redeploy during the trading day.
+    # Beyond 20:00 UTC (midnight Dubai) the brief would be stale so it's suppressed.
+    if _is_weekday and _missed(9, 0, _now, window_min=660):
         print("[scheduler] Startup catch-up: daily market brief.")
         _scheduler.add_job(_daily_market_brief, trigger="date", run_date=_now + _td(seconds=30),
                            id="daily_brief_catchup", replace_existing=True)
