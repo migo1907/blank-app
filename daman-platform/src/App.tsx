@@ -1,14 +1,26 @@
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { Globe, Shield, Menu, X, Moon, Sun } from 'lucide-react';
-import HomePage from './pages/HomePage';
-import MarketOverviewWithTabs from './pages/MarketOverviewWithTabs';
-import Portfolio from './pages/Portfolio';
-import WatchlistPage from './pages/WatchlistPage';
-import SettingsPage from './pages/SettingsPage';
 import DamanLogo from './components/DamanLogo';
 import MobileBottomNav from './components/MobileBottomNav';
 import { ToastProvider } from './components/ToastContainer';
 import { useTheme } from './contexts/ThemeContext';
+
+// Lazy-load pages so the initial bundle only ships what first paint needs.
+// Each page becomes its own chunk, fetched on demand when navigated to.
+const HomePage = lazy(() => import('./pages/HomePage'));
+const MarketOverviewWithTabs = lazy(() => import('./pages/MarketOverviewWithTabs'));
+const Portfolio = lazy(() => import('./pages/Portfolio'));
+const WatchlistPage = lazy(() => import('./pages/WatchlistPage'));
+const SettingsPage = lazy(() => import('./pages/SettingsPage'));
+
+// Lightweight fallback shown while a page chunk loads.
+function PageLoader() {
+  return (
+    <div className="flex items-center justify-center min-h-[60vh]" role="status" aria-label="Loading">
+      <div className="h-10 w-10 rounded-full border-4 border-slate-200 dark:border-slate-700 border-t-blue-600 animate-spin" />
+    </div>
+  );
+}
 
 function App() {
   const { theme, toggleTheme } = useTheme();
@@ -117,11 +129,16 @@ function App() {
         </nav>
 
         <main>
-          {currentPage === 'home' && <HomePage onNavigate={handleNavigation} />}
-          {currentPage === 'market-overview' && <MarketOverviewWithTabs />}
-          {currentPage === 'portfolio' && <Portfolio />}
-          {currentPage === 'watchlist' && <WatchlistPage />}
-          {currentPage === 'settings' && <SettingsPage />}
+          {/* key forces a remount per page so the fade-in transition replays on navigation */}
+          <Suspense fallback={<PageLoader />}>
+            <div key={currentPage} className="animate-fadeIn">
+              {currentPage === 'home' && <HomePage onNavigate={handleNavigation} />}
+              {currentPage === 'market-overview' && <MarketOverviewWithTabs />}
+              {currentPage === 'portfolio' && <Portfolio />}
+              {currentPage === 'watchlist' && <WatchlistPage />}
+              {currentPage === 'settings' && <SettingsPage />}
+            </div>
+          </Suspense>
         </main>
 
         <MobileBottomNav
