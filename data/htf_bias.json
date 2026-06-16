@@ -63,13 +63,13 @@
     "expires_at": "2026-06-16T16:00:11.532241+00:00"
   },
   "PATH_30": {
-    "direction": "LONG",
+    "direction": "SHORT",
     "timeframe": "30",
     "symbol": "PATH",
     "trigger": "LIQ",
-    "ml_score": 0.375,
-    "stored_at": "2026-06-16T14:00:14.317309+00:00",
-    "expires_at": "2026-06-16T16:00:14.317339+00:00"
+    "ml_score": 0.5,
+    "stored_at": "2026-06-16T20:00:46.130680+00:00",
+    "expires_at": "2026-06-16T22:00:46.130706+00:00"
   },
   "SMCI_30": {
     "direction": "SHORT",
@@ -304,5 +304,23 @@
     "ml_score": 0.5,
     "stored_at": "2026-06-16T20:00:23.060824+00:00",
     "expires_at": "2026-06-17T00:00:23.060842+00:00"
+  },
+  "UPST_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "UPST",
+    "trigger": "LIQ",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-16T20:00:46.083291+00:00",
+    "expires_at": "2026-06-16T22:00:46.083314+00:00"
+  },
+  "TNA_60": {
+    "direction": "SHORT",
+    "timeframe": "60",
+    "symbol": "TNA",
+    "trigger": "FVG",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-16T20:01:03.739479+00:00",
+    "expires_at": "2026-06-17T00:01:03.739495+00:00"
   }
 }
