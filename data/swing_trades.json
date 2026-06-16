@@ -27,32 +27,6 @@
       "opened_at": "2026-06-15T20:43:18.696954+00:00"
     },
     {
-      "id": "AMD-2026-06-15",
-      "ticker": "AMD",
-      "entry_date": "2026-06-15",
-      "entry_price": 547.26,
-      "atr": 35.58,
-      "tp": 618.43,
-      "sl": 511.68,
-      "combined_score": 0.693,
-      "features": {
-        "combined_score": 0.693,
-        "fund_score": 0.441,
-        "tech_score": 1.0,
-        "rsi": 57.1,
-        "rel_strength_pct": 20.0,
-        "target_upside_pct": -10.46,
-        "last_surprise_pct": 5.82,
-        "revenue_growth_pct": 37.8,
-        "earnings_growth_pct": 91.2,
-        "insider_net_buy": -1.0,
-        "short_pct_float": 2.7,
-        "news_7d": 247.0,
-        "imminent_earnings": 0.0
-      },
-      "opened_at": "2026-06-15T20:43:19.023437+00:00"
-    },
-    {
       "id": "GE-2026-06-15",
       "ticker": "GE",
       "entry_date": "2026-06-15",
@@ -209,5 +183,39 @@
       "opened_at": "2026-06-16T20:35:39.016911+00:00"
     }
   ],
-  "closed": []
+  "closed": [
+    {
+      "id": "AMD-2026-06-15",
+      "ticker": "AMD",
+      "entry_date": "2026-06-15",
+      "entry_price": 547.26,
+      "atr": 35.58,
+      "tp": 618.43,
+      "sl": 511.68,
+      "combined_score": 0.693,
+      "features": {
+        "combined_score": 0.693,
+        "fund_score": 0.441,
+        "tech_score": 1.0,
+        "rsi": 57.1,
+        "rel_strength_pct": 20.0,
+        "target_upside_pct": -10.46,
+        "last_surprise_pct": 5.82,
+        "revenue_growth_pct": 37.8,
+        "earnings_growth_pct": 91.2,
+        "insider_net_buy": -1.0,
+        "short_pct_float": 2.7,
+        "news_7d": 247.0,
+        "imminent_earnings": 0.0
+      },
+      "opened_at": "2026-06-15T20:43:19.023437+00:00",
+      "exit_date": "2026-06-16",
+      "exit_price": 511.68,
+      "outcome": "LOSS",
+      "pnl_pct": -6.5,
+      "bars_held": 1,
+      "label": 0,
+      "closed_at": "2026-06-16T20:45:01.530443+00:00"
+    }
+  ]
 }
