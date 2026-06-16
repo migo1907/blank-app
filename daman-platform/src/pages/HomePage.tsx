@@ -4,6 +4,7 @@ import NewsTicker from '../components/NewsTicker';
 import MarketMoversTicker from '../components/MarketMoversTicker';
 import FeatureModal from '../components/FeatureModal';
 import MarketPulse from '../components/MarketPulse';
+import MarketHeatmap from '../components/MarketHeatmap';
 import Reveal from '../components/Reveal';
 import AnimatedCounter from '../components/AnimatedCounter';
 import { featureDetails, FeatureDetail } from '../data/featureDetails';
@@ -68,6 +69,8 @@ export default function HomePage({ onNavigate }: HomePageProps) {
       <MarketMoversTicker />
 
       <MarketPulse onNavigate={onNavigate} />
+
+      <MarketHeatmap />
 
       <section className="py-20 bg-gradient-to-b from-slate-50 via-slate-100 to-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -9,6 +9,7 @@ import Skeleton from '../components/Skeleton';
 import HermesChat from '../components/HermesChat';
 import ShareButtons from '../components/ShareButtons';
 import NewsletterSignup from '../components/NewsletterSignup';
+import { askHermes } from '../lib/hermesBus';
 import { useSpeech } from '../hooks/useSpeech';
 import { buildMarketContext, readPortfolio, enrichHoldings } from '../services/marketContext';
 import {
@@ -16,7 +17,7 @@ import {
   MarketWrapUp, PortfolioAnalysis, TickerResearch, CommentaryResult,
 } from '../services/aiCommentaryService';
 
-type Tab = 'wrapup' | 'research' | 'portfolio' | 'chat';
+type Tab = 'wrapup' | 'research' | 'compare' | 'portfolio' | 'chat';
 
 // Plain-text serializers for Copy/Share.
 function wrapUpToText(w: MarketWrapUp): string {
@@ -138,6 +139,9 @@ export default function AIStrategist() {
   const [research, setResearch] = useState<CommentaryResult<TickerResearch> | null>(null);
   const [researchLoading, setResearchLoading] = useState(false);
 
+  const [compare, setCompare] = useState<{ a: CommentaryResult<TickerResearch>; b: CommentaryResult<TickerResearch> } | null>(null);
+  const [compareLoading, setCompareLoading] = useState(false);
+
   const loadResearch = async (ticker: string) => {
     const sym = ticker.toUpperCase().trim();
     if (!sym) return;
@@ -145,6 +149,17 @@ export default function AIStrategist() {
     const ctx = await buildMarketContext();
     setResearch(await getTickerResearch(sym, ctx));
     setResearchLoading(false);
+  };
+
+  const loadCompare = async (symA: string, symB: string) => {
+    const a = symA.toUpperCase().trim();
+    const b = symB.toUpperCase().trim();
+    if (!a || !b) return;
+    setCompareLoading(true);
+    const ctx = await buildMarketContext();
+    const [ra, rb] = await Promise.all([getTickerResearch(a, ctx), getTickerResearch(b, ctx)]);
+    setCompare({ a: ra, b: rb });
+    setCompareLoading(false);
   };
 
   const loadWrap = async () => {
@@ -188,7 +203,7 @@ export default function AIStrategist() {
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-2 mt-6 border-b border-slate-200 dark:border-slate-700">
+          <div className="flex gap-2 mt-6 border-b border-slate-200 dark:border-slate-700 overflow-x-auto scrollbar-hide">
             <button
               onClick={() => setTab('wrapup')}
               className={`relative flex items-center gap-2 px-4 py-3 text-sm font-semibold transition-colors ${
@@ -206,6 +221,15 @@ export default function AIStrategist() {
             >
               <Search className="h-4 w-4" /> Ticker Research
               {tab === 'research' && <span className="absolute left-0 right-0 -bottom-px h-0.5 bg-daman-blue-600" />}
+            </button>
+            <button
+              onClick={() => setTab('compare')}
+              className={`relative flex items-center gap-2 px-4 py-3 text-sm font-semibold whitespace-nowrap transition-colors ${
+                tab === 'compare' ? 'text-daman-blue-600 dark:text-daman-blue-300' : 'text-slate-500 dark:text-slate-400 hover:text-daman-blue-600'
+              }`}
+            >
+              <TrendingUp className="h-4 w-4" /> Compare
+              {tab === 'compare' && <span className="absolute left-0 right-0 -bottom-px h-0.5 bg-daman-blue-600" />}
             </button>
             <button
               onClick={() => setTab('portfolio')}
@@ -230,6 +254,7 @@ export default function AIStrategist() {
 
         {tab === 'wrapup' && <WrapUpTab wrap={wrap} loading={wrapLoading} onGenerate={loadWrap} />}
         {tab === 'research' && <ResearchTab research={research} loading={researchLoading} onSearch={loadResearch} />}
+        {tab === 'compare' && <CompareTab compare={compare} loading={compareLoading} onCompare={loadCompare} />}
         {tab === 'portfolio' && (
           <PortfolioTab port={port} loading={portLoading} error={portError} onGenerate={loadPortfolio} />
         )}
@@ -496,6 +521,80 @@ function PortfolioTab({
           )}
 
           <p className="text-xs text-slate-500 dark:text-slate-400 italic px-2">{port.data.disclaimer}</p>
+        </>
+      )}
+    </div>
+  );
+}
+
+function CompareColumn({ res }: { res: CommentaryResult<TickerResearch> }) {
+  const d = res.data;
+  return (
+    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xl font-bold text-slate-900 dark:text-white">{d.ticker}</span>
+        <span className={`text-xs font-bold px-2 py-0.5 rounded uppercase ${ratingStyles[d.rating] || ratingStyles.hold}`}>{d.rating}</span>
+      </div>
+      <p className="text-sm text-slate-700 dark:text-slate-300 mb-3">{d.one_liner}</p>
+      <div className="space-y-2 text-sm">
+        <div><span className="font-semibold text-daman-blue-600 dark:text-daman-blue-300">Fundamental:</span> <span className="text-slate-700 dark:text-slate-300">{d.fundamental.summary}</span></div>
+        <div><span className="font-semibold text-daman-blue-600 dark:text-daman-blue-300">Technical ({d.technical.trend}):</span> <span className="text-slate-700 dark:text-slate-300">{d.technical.summary}</span></div>
+      </div>
+      <div className="grid grid-cols-2 gap-2 mt-3 text-xs">
+        <div>
+          <div className="font-semibold text-emerald-600 dark:text-emerald-400 mb-1">Bull</div>
+          <ul className="space-y-1 text-slate-600 dark:text-slate-400">{d.bull_case.slice(0, 3).map((b, i) => <li key={i}>• {b}</li>)}</ul>
+        </div>
+        <div>
+          <div className="font-semibold text-rose-600 dark:text-rose-400 mb-1">Bear</div>
+          <ul className="space-y-1 text-slate-600 dark:text-slate-400">{d.bear_case.slice(0, 3).map((b, i) => <li key={i}>• {b}</li>)}</ul>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CompareTab({
+  compare, loading, onCompare,
+}: {
+  compare: { a: CommentaryResult<TickerResearch>; b: CommentaryResult<TickerResearch> } | null;
+  loading: boolean;
+  onCompare: (a: string, b: string) => void;
+}) {
+  const [a, setA] = useState('');
+  const [b, setB] = useState('');
+
+  return (
+    <div className="space-y-4">
+      <Reveal className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+        <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Compare two stocks</h2>
+        <p className="text-slate-600 dark:text-slate-400 text-sm mb-4">Side-by-side fundamentals + technicals, with a Hermes verdict.</p>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <input value={a} onChange={(e) => setA(e.target.value.toUpperCase())} placeholder="Ticker A (e.g. AAPL)" className="flex-1 px-4 py-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white focus:outline-none focus:border-daman-blue-500" />
+          <span className="self-center text-slate-400 font-bold">vs</span>
+          <input value={b} onChange={(e) => setB(e.target.value.toUpperCase())} placeholder="Ticker B (e.g. MSFT)" className="flex-1 px-4 py-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white focus:outline-none focus:border-daman-blue-500" />
+          <button onClick={() => onCompare(a, b)} disabled={loading || !a.trim() || !b.trim()} className="bg-daman-blue-600 hover:bg-daman-blue-700 disabled:opacity-50 text-white font-semibold px-5 py-2.5 rounded-lg transition-colors">
+            Compare
+          </button>
+        </div>
+      </Reveal>
+
+      {loading && <LoadingState />}
+
+      {compare && !loading && (
+        <>
+          <div className="grid md:grid-cols-2 gap-4">
+            <CompareColumn res={compare.a} />
+            <CompareColumn res={compare.b} />
+          </div>
+          <Reveal className="text-center">
+            <button
+              onClick={() => askHermes(`Compare ${compare.a.data.ticker} vs ${compare.b.data.ticker} — which is the better buy right now and why? Cover valuation, growth, technicals, and risk.`)}
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-daman-blue-600 to-daman-blue-800 text-white font-semibold px-6 py-3 rounded-lg shadow-lg transition-all hover:-translate-y-0.5"
+            >
+              <Sparkles className="h-5 w-5" /> Ask Hermes: which is the better buy?
+            </button>
+          </Reveal>
         </>
       )}
     </div>
