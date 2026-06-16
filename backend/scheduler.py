@@ -19,6 +19,7 @@ _webhook_ok:      int = 0   # count of successful trade webhooks since last hour
 _intel_active:    bool = False  # True while market is in an elevated-activity regime (alert already sent)
 _shock_sent:      dict = {}     # headline_hash → monotonic time; suppresses duplicate shock alerts for 4h
 _fj_expiry_alert_at: float = 0.0  # monotonic time of last FJ-session-expired alert; throttles to 1/12h
+_brief_sent_date: object = None  # date the daily market brief was last sent (guards against double-fire)
 
 _SEEN_HEADLINES_PATH = "data/seen_headlines.json"
 _SEEN_HEADLINES_MAX  = 500
@@ -943,6 +944,11 @@ async def _hourly_system_check() -> None:
 
 async def _daily_market_brief() -> None:
     """Send daily technical market brief to Telegram at 09:00 UTC (1 PM Dubai) Mon-Fri."""
+    global _brief_sent_date
+    today = _dt.now(_tz.utc).date()
+    if today == _brief_sent_date:
+        print("[daily_brief] Already sent today — skipping.")
+        return
     if _dt.now(_tz.utc).weekday() >= 5:
         return
     try:
@@ -951,6 +957,7 @@ async def _daily_market_brief() -> None:
         msg = await asyncio.to_thread(generate_daily_brief)
         if msg:
             await send_text(msg)
+            _brief_sent_date = today
             print("[daily_brief] Sent to Telegram.")
         else:
             print("[daily_brief] generate_daily_brief returned None — nothing sent.")
@@ -1775,11 +1782,11 @@ def start_scheduler() -> AsyncIOScheduler:
         now_min   = tz_now.hour * 60 + tz_now.minute
         return sched_min <= now_min < sched_min + window_min
 
-    # Daily market brief — fires ONLY at 09:00 UTC (1 PM Dubai).
-    # Catch-up window: 60 min. If restart missed it by >1h, no brief fires that day
-    # (use /daily-brief?secret=gold2026 manually if needed — do not send a stale brief).
-    if _is_weekday and _missed(9, 0, _now, window_min=60):
-        print("[scheduler] Startup catch-up: daily market brief (within 60min of 09:00 UTC).")
+    # Daily market brief — fires at 09:00 UTC (1 PM Dubai) via cron.
+    # Catch-up: on any restart after 09:00 UTC, fire immediately if not yet sent today.
+    # The _daily_market_brief guard (_brief_sent_date) prevents double-fire.
+    if _is_weekday and _missed(9, 0, _now, window_min=900):  # 09:00–00:00 UTC
+        print("[scheduler] Startup catch-up: daily market brief (past 09:00 UTC, not yet sent today).")
         _scheduler.add_job(_daily_market_brief, trigger="date", run_date=_now + _td(seconds=30),
                            id="daily_brief_catchup", replace_existing=True)
 
