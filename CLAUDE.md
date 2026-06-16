@@ -80,30 +80,32 @@ These are permanent agreements — never override, skip, or work around them und
 - **Startup catch-up (fully automatic):** on any Railway restart after 09:00 UTC on a weekday, the brief fires automatically within 30 seconds IF it has not already been sent today. `_brief_sent_date` guard in `_daily_market_brief()` prevents double-fire if cron already ran before the restart.
 - **No manual intervention needed** under any normal restart scenario — the system is self-healing.
 - **Data pipeline (in order):**
-  1. Pivot levels — `data/daily_levels.json` from GitHub (written by GitHub Actions at 07:50 UTC from TradingView ICMARKETS/AMEX/NASDAQ prev-day OHLC)
-  2. Live price at send time — yfinance `fast_info.last_price` (includes pre-market for SPY/QQQ, live spot for XAUUSD)
+  1. Pivot levels — `data/daily_levels.json` from GitHub (written by GitHub Actions at **07:50 UTC** Mon-Fri from TradingView ICMARKETS/AMEX/NASDAQ prev-day OHLC)
+  2. Live price at send time — yfinance `fast_info.last_price` (pre-market for SPY/QQQ, spot for XAUUSD). Falls back to TradingView spot in `levels["current"]` if Yahoo gold spot is down (frequent from cloud IPs). Never uses GC=F futures for displayed price.
   3. Gap analysis — live price vs prev close, absolute + %, flags >0.2% as significant
-  4. Macro bias — gold only, from `market_macro.py` (FRED real yield + dollar + COT + GLD)
-  5. High-impact economic calendar — Finnhub US events today only, shown in Dubai time
+  4. Directional read — `_technical_context()` in `daily_analysis.py`: MA trend stacking (20/50/200), 20-day momentum %, Wilder RSI, 60-day range position, ATR. Composite bias ∈ [0,1]. **Source never disclosed** — shown in brief as "the desk's own read", never names models/indicators.
+  5. Macro bias — gold only, from `market_macro.py` (FRED real yield + dollar + COT + GLD)
+  6. Economic calendar — **Finnhub** (US high-impact events) + **Forex Factory** (`https://nfs.faireconomy.media/ff_calendar_thisweek.json`, impact=high, country=USD). Merged, deduped by (minute, name prefix), sorted, shown in Dubai time (+4h).
 - **Brief format (Telegram, HTML parse mode):**
   ```
   📅 MORNING MARKET BRIEF — {Weekday}, {DD Mon YYYY}
-  ━━━━━━━━━━━━━━━━━━━━
-  📊 Market Tone: [1-line cross-asset tone]
+  ──────────────────────
   🥇 XAUUSD
-  Live: $X,XXX.XX  |  Prev close: $X,XXX.XX  |  Gap: +/-X.XX (+/-X.XX%)
-  Pivot: $X,XXX.XX — price is [above/below] pivot → [bullish/bearish] intraday bias
-  Watch: $X,XXX / $X,XXX / $X,XXX
-  📈 Bull: [trigger] → targets $X,XXX then $X,XXX
-  📉 Bear: [trigger] → targets $X,XXX then $X,XXX
-  [same block for SPY and QQQ]
-  📆 Key Events Today (Dubai time):
-    • HH:MM AM/PM — Event Name · Est: X.X%
-  ━━━━━━━━━━━━━━━━━━━━
-  ⏰ HH:MM UTC | 1:00 PM Dubai | Pre-market
+  $X,XXX.XX [↑/↓] ... · Prev close $X,XXX.XX
+  🎯 Bias: Bullish/Bearish NN% · Uptrend/Downtrend/Mixed · Momentum +/-X.X%
+  📍 Pivot $X,XXX.XX · [Above → Bullish / Below → Bearish]
+  🔴 R1 / R2 / R3   🟢 S1 / S2 / S3
+  📈 Bull: [trigger] → $X,XXX then $X,XXX
+  📉 Bear: [trigger] → $X,XXX then $X,XXX
+  [same for SPY 📈 / QQQ 📊]
+  📆 Key Events Today (Dubai time): ...
   ```
 - **Model:** `claude-haiku-4-5-20251001`, max_tokens=1200
 - **File:** `backend/daily_analysis.py` — `generate_daily_brief()` is the entry point
+- **Yahoo ticker split (CRITICAL — do not merge back):**
+  - `_YF_LIVE` = live price lookup — gold uses spot only (`XAUUSD=X`, `XAU=X`). Never futures here — GC=F basis premium creates false gap vs prev close.
+  - `_YF_HIST` = daily-bar history for direction read — gold uses `GC=F` FIRST (reliable from Railway cloud IPs), spot as fallback. Direction math is basis-insensitive.
+  - `XAUUSD=X` is frequently "possibly delisted" on Yahoo from cloud IPs — always ensure GC=F is first in `_YF_HIST`.
 
 - FastAPI backend on Railway (Python 3.13)
 - Scheduler: 5 jobs — signal every 15min, breaking news every 2min, system check every 60min, macro refresh every 60min, daily brief at 09:00 UTC (1 PM Dubai / UTC+4)
@@ -112,7 +114,7 @@ These are permanent agreements — never override, skip, or work around them und
 - Features: 25 features (F1-F25), all computed in Pine Script and sent via webhook
 - **Phase 2 — F26:** Stochastic (%K/%D) — ✅ implemented 2026-06-11 — Pine Script + backend expanded to 26 fields
 - XAUUSD data: TVC:GOLD scanner (spot, ~$1-3 from ICMARKETS) + GC=F prev day H/L/C → pivot levels
-- Daily levels written to `data/daily_levels.json` by GitHub Actions (11:50 UTC Mon-Fri), fetched at runtime from GitHub raw URL
+- Daily levels written to `data/daily_levels.json` by GitHub Actions (**07:50 UTC** Mon-Fri, changed from 11:50 UTC on 2026-06-16 to run before the 09:00 UTC brief)
 
 ## Market Macro Intelligence (`market_macro.py`)
 - Fills gold's real macro-driver blind spots beyond headline sentiment. Refreshed hourly, persisted to `data/market_macro.json`, loaded on startup.
