@@ -1,0 +1,69 @@
+{
+  "name": "Daman Financial Platform - Stock Market Analysis & Trading",
+  "short_name": "Daman Financial",
+  "description": "Professional trading platform with real-time market data, advanced stock screener, and comprehensive analysis tools",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logo (2).svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["finance", "business", "productivity"],
+  "screenshots": [
+    {
+      "src": "/screenshots/home.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Home Screen"
+    },
+    {
+      "src": "/screenshots/screener.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Advanced Stock Screener"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Market Hub",
+      "short_name": "Markets",
+      "description": "View market movers and data",
+      "url": "/?page=hub",
+      "icons": [{ "src": "/logo (2).svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Stock Screener",
+      "short_name": "Screen",
+      "description": "Screen stocks with advanced filters",
+      "url": "/?page=hub",
+      "icons": [{ "src": "/logo (2).svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Market News",
+      "short_name": "News",
+      "description": "Latest financial news",
+      "url": "/?page=market",
+      "icons": [{ "src": "/logo (2).svg", "sizes": "96x96" }]
+    }
+  ],
+  "share_target": {
+    "action": "/share",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "prefer_related_applications": false
+}
