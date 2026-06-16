@@ -16,5 +16,14 @@
     "ml_score": 0.25,
     "stored_at": "2026-06-16T11:30:07.233215+00:00",
     "expires_at": "2026-06-16T13:30:07.233229+00:00"
+  },
+  "XAUUSD_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "XAUUSD",
+    "trigger": "FVG",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-16T13:02:00.842620+00:00",
+    "expires_at": "2026-06-16T15:02:00.842636+00:00"
   }
 }
