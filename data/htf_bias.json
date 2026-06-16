@@ -1,13 +1,4 @@
 {
-  "US500_30": {
-    "direction": "LONG",
-    "timeframe": "30",
-    "symbol": "US500",
-    "trigger": "BOS",
-    "ml_score": 0.25,
-    "stored_at": "2026-06-16T11:30:07.233215+00:00",
-    "expires_at": "2026-06-16T13:30:07.233229+00:00"
-  },
   "XAUUSD_30": {
     "direction": "LONG",
     "timeframe": "30",
@@ -97,5 +88,14 @@
     "ml_score": 0.5,
     "stored_at": "2026-06-16T14:00:38.997600+00:00",
     "expires_at": "2026-06-16T16:00:38.997621+00:00"
+  },
+  "AMD_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "AMD",
+    "trigger": "FVG",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-16T14:30:00.460791+00:00",
+    "expires_at": "2026-06-16T16:30:00.460806+00:00"
   }
 }
