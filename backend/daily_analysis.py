@@ -146,11 +146,22 @@ def _technical_context(name: str, decimals: int) -> dict | None:
     """
     if not _YF_AVAILABLE:
         return None
+    import time as _time
     for sym in _YF_LIVE.get(name, []):
+        df = None
+        for attempt in range(3):  # Yahoo history is occasionally flaky — retry before giving up
+            try:
+                df = yf.Ticker(sym).history(period="1y", interval="1d")
+                if df is not None and len(df) >= 60:
+                    break
+                df = None
+            except Exception as e:
+                print(f"[daily] technical context {sym} attempt {attempt+1} failed: {e}")
+                df = None
+            _time.sleep(1.0 * (attempt + 1))
+        if df is None:
+            continue
         try:
-            df = yf.Ticker(sym).history(period="1y", interval="1d")
-            if df is None or len(df) < 60:
-                continue
             highs  = [float(x) for x in df["High"].tolist()]
             lows   = [float(x) for x in df["Low"].tolist()]
             closes = [float(x) for x in df["Close"].tolist()]
