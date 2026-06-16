@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { X, Mail, Lock, User } from 'lucide-react';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 interface AuthModalProps {
   onClose: () => void;
@@ -13,16 +14,43 @@ export default function AuthModal({ onClose, onAuthSuccess }: AuthModalProps) {
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [info, setInfo] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setLoading(true);
+    setInfo('');
 
-    setTimeout(() => {
+    if (!isSupabaseConfigured) {
+      setError('Accounts need Supabase configured. Add VITE_SUPABASE_URL/ANON_KEY to enable sign-in.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      if (isLogin) {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        onAuthSuccess();
+      } else {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { full_name: fullName } },
+        });
+        if (error) throw error;
+        if (data.session) {
+          onAuthSuccess();
+        } else {
+          setInfo('Account created — check your email to confirm, then sign in.');
+          setIsLogin(true);
+        }
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Authentication failed.');
+    } finally {
       setLoading(false);
-      onAuthSuccess();
-    }, 1000);
+    }
   };
 
   return (
@@ -50,8 +78,18 @@ export default function AuthModal({ onClose, onAuthSuccess }: AuthModalProps) {
           </div>
 
           {error && (
-            <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+            <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
               {error}
+            </div>
+          )}
+          {info && (
+            <div className="mb-6 bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg text-sm">
+              {info}
+            </div>
+          )}
+          {!isSupabaseConfigured && (
+            <div className="mb-6 bg-amber-50 border border-amber-200 text-amber-700 px-4 py-3 rounded-lg text-sm">
+              Demo mode — sign-in activates once Supabase keys are configured.
             </div>
           )}
 

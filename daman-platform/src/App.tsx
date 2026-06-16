@@ -5,6 +5,7 @@ import MobileBottomNav from './components/MobileBottomNav';
 import BackToTop from './components/BackToTop';
 import FloatingHermes from './components/FloatingHermes';
 import InstallPrompt from './components/InstallPrompt';
+import AccountMenu from './components/AccountMenu';
 import CommandPalette from './components/CommandPalette';
 import { ToastProvider } from './components/ToastContainer';
 import { useTheme } from './contexts/ThemeContext';
@@ -101,6 +102,7 @@ function App() {
                     />
                   </button>
                 ))}
+                <AccountMenu />
                 <a
                   href="https://www.clientam.com/sso/Login?partnerID=ds2020"
                   target="_blank"
@@ -156,6 +158,7 @@ function App() {
                     {item.name}
                   </button>
                 ))}
+                <AccountMenu mobile />
                 <a
                   href="https://www.clientam.com/sso/Login?partnerID=ds2020"
                   target="_blank"
