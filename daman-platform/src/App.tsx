@@ -2,6 +2,7 @@ import { useState, lazy, Suspense } from 'react';
 import { Globe, Shield, Menu, X, Moon, Sun } from 'lucide-react';
 import DamanLogo from './components/DamanLogo';
 import MobileBottomNav from './components/MobileBottomNav';
+import BackToTop from './components/BackToTop';
 import { ToastProvider } from './components/ToastContainer';
 import { useTheme } from './contexts/ThemeContext';
 
@@ -69,13 +70,19 @@ function App() {
                   <button
                     key={item.id}
                     onClick={() => handleNavigation(item.id)}
-                    className={`text-sm font-medium transition-colors ${
+                    className={`group relative text-sm font-medium transition-colors pb-1 ${
                       currentPage === item.id
-                        ? 'text-blue-600 border-b-2 border-blue-600'
+                        ? 'text-blue-600'
                         : 'text-slate-700 dark:text-slate-300 hover:text-blue-600'
                     }`}
                   >
                     {item.name}
+                    {/* Animated underline: full width when active, grows on hover otherwise */}
+                    <span
+                      className={`pointer-events-none absolute left-0 -bottom-0 h-0.5 bg-blue-600 transition-all duration-300 ${
+                        currentPage === item.id ? 'w-full' : 'w-0 group-hover:w-full'
+                      }`}
+                    />
                   </button>
                 ))}
                 <a
@@ -146,6 +153,8 @@ function App() {
           onNavigate={handleNavigation}
           onMenuClick={() => setIsMenuOpen(!isMenuOpen)}
         />
+
+        <BackToTop />
 
         <footer className="bg-slate-900 text-white mt-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

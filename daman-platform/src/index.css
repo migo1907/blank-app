@@ -82,6 +82,13 @@
     }
   }
 
+  /* Sweep used by the Skeleton loading placeholder */
+  @keyframes skeletonSweep {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
   .animate-fadeIn {
     animation: fadeIn 0.2s ease-out;
   }

@@ -3,6 +3,9 @@ import { Globe, Shield, TrendingUp, BarChart3, Zap, Lock } from 'lucide-react';
 import NewsTicker from '../components/NewsTicker';
 import MarketMoversTicker from '../components/MarketMoversTicker';
 import FeatureModal from '../components/FeatureModal';
+import MarketPulse from '../components/MarketPulse';
+import Reveal from '../components/Reveal';
+import AnimatedCounter from '../components/AnimatedCounter';
 import { featureDetails, FeatureDetail } from '../data/featureDetails';
 
 interface HomePageProps {
@@ -64,40 +67,43 @@ export default function HomePage({ onNavigate }: HomePageProps) {
       <NewsTicker />
       <MarketMoversTicker />
 
+      <MarketPulse onNavigate={onNavigate} />
+
       <section className="py-20 bg-gradient-to-b from-slate-50 via-slate-100 to-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+          <Reveal className="text-center mb-16">
             <h2 className="text-4xl font-bold text-slate-900 mb-4">
               Everything You Need to Trade Successfully
             </h2>
             <p className="text-xl text-slate-600 max-w-3xl mx-auto">
               Professional trading tools, real-time data, and comprehensive market coverage designed for serious traders.
             </p>
-          </div>
+          </Reveal>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => {
               const Icon = feature.icon;
               return (
-                <button
-                  key={index}
-                  onClick={() => handleFeatureClick(feature.title)}
-                  className="bg-white rounded-xl p-8 hover:shadow-xl transition-all hover:-translate-y-1 border border-slate-200 hover:border-daman-blue-300 text-left cursor-pointer group focus:outline-none focus:ring-2 focus:ring-daman-blue-500 focus:ring-offset-2"
-                >
-                  <div className="bg-daman-blue-100 w-14 h-14 rounded-lg flex items-center justify-center mb-6 group-hover:bg-daman-blue-200 transition-colors">
-                    <Icon className="h-7 w-7 text-daman-blue-600" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-slate-900 mb-3 group-hover:text-daman-blue-700 transition-colors">
-                    {feature.title}
-                  </h3>
-                  <p className="text-slate-700 leading-relaxed mb-4">{feature.description}</p>
-                  <div className="text-daman-blue-600 font-medium text-sm flex items-center">
-                    Learn more
-                    <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                </button>
+                <Reveal key={index} delay={index * 80} className="h-full">
+                  <button
+                    onClick={() => handleFeatureClick(feature.title)}
+                    className="w-full h-full bg-white rounded-xl p-8 hover:shadow-xl transition-all hover:-translate-y-1 border border-slate-200 hover:border-daman-blue-300 text-left cursor-pointer group focus:outline-none focus:ring-2 focus:ring-daman-blue-500 focus:ring-offset-2"
+                  >
+                    <div className="bg-daman-blue-100 w-14 h-14 rounded-lg flex items-center justify-center mb-6 group-hover:bg-daman-blue-200 transition-colors">
+                      <Icon className="h-7 w-7 text-daman-blue-600" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-slate-900 mb-3 group-hover:text-daman-blue-700 transition-colors">
+                      {feature.title}
+                    </h3>
+                    <p className="text-slate-700 leading-relaxed mb-4">{feature.description}</p>
+                    <div className="text-daman-blue-600 font-medium text-sm flex items-center">
+                      Learn more
+                      <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </button>
+                </Reveal>
               );
             })}
           </div>
@@ -154,19 +160,25 @@ export default function HomePage({ onNavigate }: HomePageProps) {
             <div className="bg-slate-800 rounded-2xl p-8 border border-slate-700">
               <h3 className="text-2xl font-bold mb-6 text-daman-blue-300">Market Coverage</h3>
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-slate-900 rounded-lg p-4 border border-slate-700">
-                  <div className="text-3xl font-bold text-white mb-1">24+</div>
+                <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 transition-transform hover:-translate-y-1">
+                  <div className="text-3xl font-bold text-white mb-1">
+                    <AnimatedCounter value={24} suffix="+" />
+                  </div>
                   <div className="text-slate-400 text-sm">Countries</div>
                 </div>
-                <div className="bg-slate-900 rounded-lg p-4 border border-slate-700">
-                  <div className="text-3xl font-bold text-white mb-1">150+</div>
+                <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 transition-transform hover:-translate-y-1">
+                  <div className="text-3xl font-bold text-white mb-1">
+                    <AnimatedCounter value={150} suffix="+" />
+                  </div>
                   <div className="text-slate-400 text-sm">Global Exchanges</div>
                 </div>
-                <div className="bg-slate-900 rounded-lg p-4 border border-slate-700">
-                  <div className="text-3xl font-bold text-white mb-1">50K+</div>
+                <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 transition-transform hover:-translate-y-1">
+                  <div className="text-3xl font-bold text-white mb-1">
+                    <AnimatedCounter value={50} suffix="K+" />
+                  </div>
                   <div className="text-slate-400 text-sm">Tradable Securities</div>
                 </div>
-                <div className="bg-slate-900 rounded-lg p-4 border border-slate-700">
+                <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 transition-transform hover:-translate-y-1">
                   <div className="text-3xl font-bold text-white mb-1">24/5</div>
                   <div className="text-slate-400 text-sm">Trading Access</div>
                 </div>
