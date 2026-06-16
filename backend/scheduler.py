@@ -1775,17 +1775,18 @@ def start_scheduler() -> AsyncIOScheduler:
         now_min   = tz_now.hour * 60 + tz_now.minute
         return sched_min <= now_min < sched_min + window_min
 
-    # Daily market brief — 09:00 UTC (1 PM Dubai)
-    # Catch-up window: 09:00–20:00 UTC (660 min) — covers any redeploy during the trading day.
-    # Beyond 20:00 UTC (midnight Dubai) the brief would be stale so it's suppressed.
-    if _is_weekday and _missed(9, 0, _now, window_min=660):
-        print("[scheduler] Startup catch-up: daily market brief.")
+    # Daily market brief — fires ONLY at 09:00 UTC (1 PM Dubai).
+    # Catch-up window: 60 min. If restart missed it by >1h, no brief fires that day
+    # (use /daily-brief?secret=gold2026 manually if needed — do not send a stale brief).
+    if _is_weekday and _missed(9, 0, _now, window_min=60):
+        print("[scheduler] Startup catch-up: daily market brief (within 60min of 09:00 UTC).")
         _scheduler.add_job(_daily_market_brief, trigger="date", run_date=_now + _td(seconds=30),
                            id="daily_brief_catchup", replace_existing=True)
 
-    # Daily performance report — 16:15 ET
-    if _is_weekday and _missed(16, 15, _now_ny):
-        print("[scheduler] Startup catch-up: daily performance report.")
+    # Daily performance report — fires at end of NY session: 16:15 ET (≈20:15 UTC).
+    # Catch-up window: 60 min. Fires on restart only if Railway was down at session close.
+    if _is_weekday and _missed(16, 15, _now_ny, window_min=60):
+        print("[scheduler] Startup catch-up: daily performance report (within 60min of 16:15 ET).")
         _scheduler.add_job(_daily_trade_count_report, trigger="date", run_date=_now + _td(seconds=45),
                            id="daily_report_catchup", replace_existing=True)
 

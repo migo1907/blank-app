@@ -77,8 +77,8 @@ These are permanent agreements — never override, skip, or work around them und
 ## Daily Market Brief — Permanent Specification
 - **Schedule:** 09:00 UTC every weekday = **1:00 PM Dubai (UTC+4)**. Never change this without updating CLAUDE.md and scheduler.py together.
 - **Manual trigger:** `GET /daily-brief?secret=gold2026` — use if Railway restarted after 09:00 UTC and brief was missed.
-- **Startup catch-up:** fires automatically on restart if current UTC time is 09:00–20:00 UTC Mon-Fri (full trading day window, never re-fires after 20:00 UTC to avoid stale EOD brief).
-- **Misfire prevention:** catch-up window is intentionally wide (11h). The brief is idempotent — triggering it twice sends twice, so manual trigger should only be used if no brief was received.
+- **Startup catch-up:** fires automatically on restart ONLY if restart happens within 60 minutes of 09:00 UTC (09:00–10:00 UTC). If Railway missed it by more than 1 hour, NO catch-up fires — use manual trigger instead. Never send a stale brief hours after the scheduled time.
+- **Misfire prevention:** if you did not receive the brief by 10:00 UTC (2 PM Dubai), trigger manually. The brief should arrive at 1 PM Dubai, not at a random restart time.
 - **Data pipeline (in order):**
   1. Pivot levels — `data/daily_levels.json` from GitHub (written by GitHub Actions at 07:50 UTC from TradingView ICMARKETS/AMEX/NASDAQ prev-day OHLC)
   2. Live price at send time — yfinance `fast_info.last_price` (includes pre-market for SPY/QQQ, live spot for XAUUSD)
