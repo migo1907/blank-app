@@ -181,6 +181,50 @@ const portfolioSchema = {
   ],
 };
 
+const tickerSchema = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    ticker: { type: "string" },
+    company: { type: "string", description: "Best-known company/asset name for the ticker." },
+    rating: { type: "string", enum: ["strong-buy", "buy", "hold", "reduce", "sell"] },
+    one_liner: { type: "string", description: "One-sentence thesis." },
+    fundamental: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        summary: { type: "string" },
+        valuation: { type: "string" },
+        growth_profitability: { type: "string" },
+        balance_sheet: { type: "string" },
+      },
+      required: ["summary", "valuation", "growth_profitability", "balance_sheet"],
+    },
+    technical: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        trend: { type: "string", enum: ["uptrend", "downtrend", "range", "reversal"] },
+        summary: { type: "string" },
+        support: { type: "string" },
+        resistance: { type: "string" },
+        momentum: { type: "string", description: "RSI/MACD/moving-average read." },
+      },
+      required: ["trend", "summary", "support", "resistance", "momentum"],
+    },
+    bull_case: { type: "array", items: { type: "string" } },
+    bear_case: { type: "array", items: { type: "string" } },
+    catalysts: { type: "array", items: { type: "string" } },
+    risks: { type: "array", items: { type: "string" } },
+    audio_script: { type: "string", description: "Spoken-word summary (~120-180 words) for text-to-speech." },
+    disclaimer: { type: "string" },
+  },
+  required: [
+    "ticker", "company", "rating", "one_liner", "fundamental", "technical",
+    "bull_case", "bear_case", "catalysts", "risks", "audio_script", "disclaimer",
+  ],
+};
+
 const SYSTEM_PROMPT = `You are "Hermes", the senior markets strategist for DAMAN Securities — a sharp, balanced, institutional-grade voice.
 
 Your analysis is loaded with BOTH fundamentals (valuation, earnings, growth, margins, balance sheet, macro: rates, inflation, the dollar, growth, central-bank policy) AND technicals (trend, support/resistance, moving averages, RSI/MACD, volume, breadth, sector rotation).
@@ -260,6 +304,18 @@ ${marketData ? JSON.stringify(marketData, null, 2) : "(none provided)"}
 Assess diversification and overall risk, rate each holding, and give actionable (educational) suggestions with rationale. Fill every field of the schema.`;
 }
 
+function buildTickerPrompt(ticker: string, marketData: unknown): string {
+  return `Produce a research deep-dive on the ticker "${ticker}" — FUNDAMENTAL and TECHNICAL.
+
+Market snapshot for context:
+${marketData ? JSON.stringify(marketData, null, 2) : "(none provided)"}
+
+Give a balanced rating, a one-line thesis, fundamental view (valuation, growth/profitability,
+balance sheet), technical view (trend, support/resistance, momentum), an explicit bull case and
+bear case, catalysts, and risks. Do not fabricate exact prices you weren't given — describe levels
+qualitatively if needed. Fill every field of the schema.`;
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });
@@ -288,6 +344,16 @@ Deno.serve(async (req: Request) => {
     if (mode === "portfolio") {
       schema = portfolioSchema;
       prompt = buildPortfolioPrompt(body.holdings ?? [], body.marketData);
+    } else if (mode === "ticker") {
+      const ticker = String(body.ticker || "").toUpperCase().trim();
+      if (!ticker) {
+        return new Response(
+          JSON.stringify({ success: false, error: "missing_ticker", message: "Provide a ticker symbol." }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      schema = tickerSchema;
+      prompt = buildTickerPrompt(ticker, body.marketData);
     } else {
       schema = wrapupSchema;
       prompt = buildWrapupPrompt(body.marketData, body.focus);

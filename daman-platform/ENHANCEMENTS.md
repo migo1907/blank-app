@@ -48,8 +48,15 @@ npm run dev            # http://localhost:5173
   holdings, with diversification/risk and actionable suggestions.
 - **Audio commentary** — browser text-to-speech narration of the AI's `audio_script`.
 - **Daily subscription** — email opt-in for daily commentary (Supabase-backed).
-- Runs server-side in a Supabase Edge Function (key never hits the browser), with
-  structured JSON output and a graceful demo fallback. **Setup:** `docs/AI_COMMENTARY_SETUP.md`.
+- **Ticker Research** — type any symbol for a Claude deep-dive: rating, fundamentals,
+  technicals, explicit bull/bear case, catalysts, risks (+ audio).
+- **Ask Hermes chat** — streaming (live-typing) conversational assistant, available
+  as a tab *and* a global floating button on every page; persists across sessions and
+  stays portfolio-aware.
+- **Copy / Share** on all AI output (clipboard + native share on mobile).
+- Runs server-side in Supabase Edge Functions (`ai-market-commentary`, `ai-chat`) — the
+  key never hits the browser — with structured JSON output and a graceful demo fallback.
+  **Setup:** `docs/AI_COMMENTARY_SETUP.md`.
 
 ## Reusable building blocks added
 | File | Purpose |

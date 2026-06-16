@@ -2,21 +2,46 @@ import { useState } from 'react';
 import {
   Sparkles, TrendingUp, TrendingDown, Activity, Volume2, Pause, Play, Square,
   AlertTriangle, Eye, Briefcase, RefreshCw, Mail, CheckCircle2, Bot,
-  MessageSquare,
+  MessageSquare, Search,
 } from 'lucide-react';
 import Reveal from '../components/Reveal';
 import Skeleton from '../components/Skeleton';
 import HermesChat from '../components/HermesChat';
+import ShareButtons from '../components/ShareButtons';
 import { useSpeech } from '../hooks/useSpeech';
 import { buildMarketContext, readPortfolio, enrichHoldings } from '../services/marketContext';
 import {
-  getMarketWrapUp, getPortfolioAnalysis, MarketWrapUp, PortfolioAnalysis, CommentaryResult,
+  getMarketWrapUp, getPortfolioAnalysis, getTickerResearch,
+  MarketWrapUp, PortfolioAnalysis, TickerResearch, CommentaryResult,
 } from '../services/aiCommentaryService';
 import {
   subscribe, getLocalSubscription, unsubscribe, isValidEmail,
 } from '../services/commentarySubscriptionService';
 
-type Tab = 'wrapup' | 'portfolio' | 'chat';
+type Tab = 'wrapup' | 'research' | 'portfolio' | 'chat';
+
+// Plain-text serializers for Copy/Share.
+function wrapUpToText(w: MarketWrapUp): string {
+  return [
+    `DAMAN — Market Wrap-Up (${w.market_tone.toUpperCase()})`,
+    w.headline, '', w.executive_summary, '',
+    `TECHNICAL: ${w.technical_analysis.overview}`,
+    `MACRO: ${w.macro_backdrop}`, '',
+    'SWING IDEAS:',
+    ...w.swing_trade_ideas.map((s) => `• ${s.ticker} ${s.direction.toUpperCase()} — ${s.thesis} (entry ${s.entry_zone}, stop ${s.stop}, targets ${s.targets})`),
+    '', 'KEY RISKS:', ...w.key_risks.map((r) => `• ${r}`), '', w.disclaimer,
+  ].join('\n');
+}
+function researchToText(r: TickerResearch): string {
+  return [
+    `DAMAN — ${r.ticker} research (${r.rating.toUpperCase()})`,
+    r.one_liner, '',
+    `FUNDAMENTAL: ${r.fundamental.summary}`,
+    `TECHNICAL (${r.technical.trend}): ${r.technical.summary}`, '',
+    'BULL CASE:', ...r.bull_case.map((b) => `• ${b}`),
+    'BEAR CASE:', ...r.bear_case.map((b) => `• ${b}`), '', r.disclaimer,
+  ].join('\n');
+}
 
 const toneStyles: Record<string, string> = {
   bullish: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
@@ -112,6 +137,18 @@ export default function AIStrategist() {
   const [portLoading, setPortLoading] = useState(false);
   const [portError, setPortError] = useState<string | null>(null);
 
+  const [research, setResearch] = useState<CommentaryResult<TickerResearch> | null>(null);
+  const [researchLoading, setResearchLoading] = useState(false);
+
+  const loadResearch = async (ticker: string) => {
+    const sym = ticker.toUpperCase().trim();
+    if (!sym) return;
+    setResearchLoading(true);
+    const ctx = await buildMarketContext();
+    setResearch(await getTickerResearch(sym, ctx));
+    setResearchLoading(false);
+  };
+
   const loadWrap = async () => {
     setWrapLoading(true);
     const ctx = await buildMarketContext();
@@ -164,6 +201,15 @@ export default function AIStrategist() {
               {tab === 'wrapup' && <span className="absolute left-0 right-0 -bottom-px h-0.5 bg-daman-blue-600" />}
             </button>
             <button
+              onClick={() => setTab('research')}
+              className={`relative flex items-center gap-2 px-4 py-3 text-sm font-semibold transition-colors ${
+                tab === 'research' ? 'text-daman-blue-600 dark:text-daman-blue-300' : 'text-slate-500 dark:text-slate-400 hover:text-daman-blue-600'
+              }`}
+            >
+              <Search className="h-4 w-4" /> Ticker Research
+              {tab === 'research' && <span className="absolute left-0 right-0 -bottom-px h-0.5 bg-daman-blue-600" />}
+            </button>
+            <button
               onClick={() => setTab('portfolio')}
               className={`relative flex items-center gap-2 px-4 py-3 text-sm font-semibold transition-colors ${
                 tab === 'portfolio' ? 'text-daman-blue-600 dark:text-daman-blue-300' : 'text-slate-500 dark:text-slate-400 hover:text-daman-blue-600'
@@ -185,6 +231,7 @@ export default function AIStrategist() {
         </div>
 
         {tab === 'wrapup' && <WrapUpTab wrap={wrap} loading={wrapLoading} onGenerate={loadWrap} />}
+        {tab === 'research' && <ResearchTab research={research} loading={researchLoading} onSearch={loadResearch} />}
         {tab === 'portfolio' && (
           <PortfolioTab port={port} loading={portLoading} error={portError} onGenerate={loadPortfolio} />
         )}
@@ -228,8 +275,9 @@ function WrapUpTab({
               <span className={`text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide ${toneStyles[wrap.data.market_tone] || toneStyles.neutral}`}>
                 {wrap.data.market_tone}
               </span>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-wrap">
                 {wrap.demo && <DemoBadge />}
+                <ShareButtons text={wrapUpToText(wrap.data)} title="DAMAN — Market Wrap-Up" />
                 <button onClick={onGenerate} className="inline-flex items-center gap-1.5 text-sm text-daman-blue-600 dark:text-daman-blue-300 hover:underline">
                   <RefreshCw className="h-4 w-4" /> Regenerate
                 </button>
@@ -450,6 +498,112 @@ function PortfolioTab({
           )}
 
           <p className="text-xs text-slate-500 dark:text-slate-400 italic px-2">{port.data.disclaimer}</p>
+        </>
+      )}
+    </div>
+  );
+}
+
+function ResearchTab({
+  research, loading, onSearch,
+}: {
+  research: CommentaryResult<TickerResearch> | null;
+  loading: boolean;
+  onSearch: (t: string) => void;
+}) {
+  const [sym, setSym] = useState('');
+  const examples = ['AAPL', 'NVDA', 'TSLA', 'MSFT', 'SPY'];
+
+  return (
+    <div className="space-y-4">
+      <Reveal className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+        <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Research any ticker</h2>
+        <p className="text-slate-600 dark:text-slate-400 text-sm mb-4">Fundamental + technical deep-dive with a bull/bear case — by Claude.</p>
+        <div className="flex gap-2">
+          <input
+            value={sym}
+            onChange={(e) => setSym(e.target.value.toUpperCase())}
+            onKeyDown={(e) => e.key === 'Enter' && onSearch(sym)}
+            placeholder="Enter a symbol, e.g. AAPL"
+            className="flex-1 px-4 py-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white focus:outline-none focus:border-daman-blue-500"
+          />
+          <button
+            onClick={() => onSearch(sym)}
+            disabled={loading || !sym.trim()}
+            className="inline-flex items-center gap-2 bg-daman-blue-600 hover:bg-daman-blue-700 disabled:opacity-50 text-white font-semibold px-5 py-2.5 rounded-lg transition-colors"
+          >
+            <Search className="h-4 w-4" /> Research
+          </button>
+        </div>
+        <div className="flex flex-wrap gap-2 mt-3">
+          {examples.map((e) => (
+            <button key={e} onClick={() => { setSym(e); onSearch(e); }} className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-daman-blue-100 dark:hover:bg-slate-600 transition-colors">
+              {e}
+            </button>
+          ))}
+        </div>
+      </Reveal>
+
+      {loading && <LoadingState />}
+
+      {research && !loading && (
+        <>
+          <Reveal className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl font-bold text-slate-900 dark:text-white">{research.data.ticker}</span>
+                <span className={`text-xs font-bold px-2.5 py-1 rounded uppercase ${ratingStyles[research.data.rating] || ratingStyles.hold}`}>{research.data.rating}</span>
+              </div>
+              <div className="flex items-center gap-3 flex-wrap">
+                {research.demo && <DemoBadge />}
+                <ShareButtons text={researchToText(research.data)} title={`DAMAN — ${research.data.ticker}`} />
+              </div>
+            </div>
+            <p className="text-slate-500 dark:text-slate-400 text-sm mb-1">{research.data.company}</p>
+            <p className="text-slate-800 dark:text-slate-200 font-medium mb-4">{research.data.one_liner}</p>
+            <AudioBar script={research.data.audio_script} />
+          </Reveal>
+
+          <Section title="Fundamental View" icon={<TrendingUp className="h-5 w-5 text-daman-blue-600" />}>
+            <p className="text-slate-700 dark:text-slate-300 mb-3">{research.data.fundamental.summary}</p>
+            <dl className="grid sm:grid-cols-3 gap-3 text-sm">
+              <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-3 border border-slate-200 dark:border-slate-700"><dt className="text-slate-400 mb-1">Valuation</dt><dd className="text-slate-700 dark:text-slate-300">{research.data.fundamental.valuation}</dd></div>
+              <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-3 border border-slate-200 dark:border-slate-700"><dt className="text-slate-400 mb-1">Growth &amp; Profitability</dt><dd className="text-slate-700 dark:text-slate-300">{research.data.fundamental.growth_profitability}</dd></div>
+              <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-3 border border-slate-200 dark:border-slate-700"><dt className="text-slate-400 mb-1">Balance Sheet</dt><dd className="text-slate-700 dark:text-slate-300">{research.data.fundamental.balance_sheet}</dd></div>
+            </dl>
+          </Section>
+
+          <Section title="Technical View" icon={<Activity className="h-5 w-5 text-daman-blue-600" />}>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xs font-bold px-2 py-0.5 rounded bg-daman-blue-100 text-daman-blue-700 dark:bg-daman-blue-900/30 dark:text-daman-blue-300 capitalize">{research.data.technical.trend}</span>
+            </div>
+            <p className="text-slate-700 dark:text-slate-300 mb-3">{research.data.technical.summary}</p>
+            <dl className="grid grid-cols-3 gap-3 text-sm">
+              <div><dt className="text-slate-400">Support</dt><dd className="text-slate-700 dark:text-slate-300">{research.data.technical.support}</dd></div>
+              <div><dt className="text-slate-400">Resistance</dt><dd className="text-slate-700 dark:text-slate-300">{research.data.technical.resistance}</dd></div>
+              <div><dt className="text-slate-400">Momentum</dt><dd className="text-slate-700 dark:text-slate-300">{research.data.technical.momentum}</dd></div>
+            </dl>
+          </Section>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <Section title="Bull Case" icon={<TrendingUp className="h-5 w-5 text-emerald-600" />}>
+              <ul className="space-y-2">{research.data.bull_case.map((b, i) => <li key={i} className="flex gap-2 text-sm text-slate-700 dark:text-slate-300"><span className="text-emerald-500">▲</span> {b}</li>)}</ul>
+            </Section>
+            <Section title="Bear Case" icon={<TrendingDown className="h-5 w-5 text-rose-600" />}>
+              <ul className="space-y-2">{research.data.bear_case.map((b, i) => <li key={i} className="flex gap-2 text-sm text-slate-700 dark:text-slate-300"><span className="text-rose-500">▼</span> {b}</li>)}</ul>
+            </Section>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <Section title="Catalysts" icon={<Sparkles className="h-5 w-5 text-daman-blue-600" />}>
+              <ul className="space-y-2">{research.data.catalysts.map((c, i) => <li key={i} className="flex gap-2 text-sm text-slate-700 dark:text-slate-300"><span className="text-daman-blue-500">•</span> {c}</li>)}</ul>
+            </Section>
+            <Section title="Risks" icon={<AlertTriangle className="h-5 w-5 text-amber-600" />}>
+              <ul className="space-y-2">{research.data.risks.map((r, i) => <li key={i} className="flex gap-2 text-sm text-slate-700 dark:text-slate-300"><span className="text-amber-500">•</span> {r}</li>)}</ul>
+            </Section>
+          </div>
+
+          <p className="text-xs text-slate-500 dark:text-slate-400 italic px-2">{research.data.disclaimer}</p>
         </>
       )}
     </div>

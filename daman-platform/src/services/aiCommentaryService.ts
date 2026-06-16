@@ -62,6 +62,21 @@ export interface PortfolioAnalysis {
   disclaimer: string;
 }
 
+export interface TickerResearch {
+  ticker: string;
+  company: string;
+  rating: 'strong-buy' | 'buy' | 'hold' | 'reduce' | 'sell';
+  one_liner: string;
+  fundamental: { summary: string; valuation: string; growth_profitability: string; balance_sheet: string };
+  technical: { trend: 'uptrend' | 'downtrend' | 'range' | 'reversal'; summary: string; support: string; resistance: string; momentum: string };
+  bull_case: string[];
+  bear_case: string[];
+  catalysts: string[];
+  risks: string[];
+  audio_script: string;
+  disclaimer: string;
+}
+
 export interface CommentaryResult<T> {
   data: T;
   generatedAt: string;
@@ -127,6 +142,56 @@ export async function getPortfolioAnalysis(
   } catch {
     return { data: DEMO_PORTFOLIO, generatedAt: new Date().toISOString(), demo: true };
   }
+}
+
+export async function getTickerResearch(
+  ticker: string,
+  marketData?: unknown
+): Promise<CommentaryResult<TickerResearch>> {
+  const sym = ticker.toUpperCase().trim();
+  try {
+    const json = await callFunction({ mode: 'ticker', ticker: sym, marketData });
+    if (json.success && json.data) {
+      return {
+        data: json.data as TickerResearch,
+        generatedAt: json.generated_at || new Date().toISOString(),
+        demo: false,
+        model: json.model,
+      };
+    }
+    return { data: demoTicker(sym), generatedAt: new Date().toISOString(), demo: true, note: json.message };
+  } catch {
+    return { data: demoTicker(sym), generatedAt: new Date().toISOString(), demo: true };
+  }
+}
+
+function demoTicker(sym: string): TickerResearch {
+  return {
+    ticker: sym,
+    company: `${sym} (sample report)`,
+    rating: 'hold',
+    one_liner: `${sym} is a quality name whose risk/reward looks balanced at current levels — wait for a better entry or confirmation.`,
+    fundamental: {
+      summary: `${sym} shows a solid franchise with durable demand, though the valuation already reflects much of the optimism.`,
+      valuation: 'Trades at a premium to its sector on forward earnings; justified only if growth re-accelerates.',
+      growth_profitability: 'Revenue growth is steady with healthy margins; watch for any deceleration in the core segment.',
+      balance_sheet: 'Healthy balance sheet with manageable leverage and solid free cash flow.',
+    },
+    technical: {
+      trend: 'uptrend',
+      summary: `${sym} is in a constructive uptrend but extended above shorter-term moving averages.`,
+      support: 'rising 50-day moving average / prior breakout',
+      resistance: 'recent swing high',
+      momentum: 'RSI elevated but not extreme; MACD positive — momentum intact, mind mean-reversion risk.',
+    },
+    bull_case: ['Leadership and durable demand', 'Margin expansion potential', 'Constructive technical trend'],
+    bear_case: ['Premium valuation leaves little margin for error', 'Sensitive to a rate-driven multiple compression', 'Extended short-term — pullback risk'],
+    catalysts: ['Next earnings report', 'Product/segment updates', 'Macro: rates & sector rotation'],
+    risks: ['Multiple compression if growth slows', 'Broad market drawdown', 'Company-specific execution risk'],
+    audio_script: `Here's a quick read on ${sym}. It's a quality franchise in a constructive uptrend, but the valuation is full and the stock is a bit extended short term, so the risk and reward look balanced here. The bull case rests on durable demand and margin expansion; the bear case is that a premium multiple leaves little room for error if growth slows or rates rise. Watch the next earnings report and the broader rate backdrop. This is educational analysis, not personalized financial advice.`,
+    disclaimer:
+      'This is AI-generated research for educational purposes only and is NOT personalized investment advice. Trading involves substantial risk of loss.',
+  };
 }
 
 // ---- Demo content (clearly labelled as sample, not live AI) -------------------
