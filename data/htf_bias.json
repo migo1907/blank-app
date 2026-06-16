@@ -25,5 +25,14 @@
     "ml_score": 0.5,
     "stored_at": "2026-06-16T01:00:12.447732+00:00",
     "expires_at": "2026-06-16T03:00:12.447754+00:00"
+  },
+  "XAUUSD_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "XAUUSD",
+    "trigger": "LIQ",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-16T01:32:00.871424+00:00",
+    "expires_at": "2026-06-16T03:32:00.871439+00:00"
   }
 }
