@@ -27,12 +27,13 @@ function loadHistory(): ChatTurn[] {
  * history across sessions, and sends fresh market + portfolio context every turn
  * so follow-ups stay portfolio-aware.
  */
-export default function HermesChat({ compact = false }: { compact?: boolean }) {
+export default function HermesChat({ compact = false, seedPrompt }: { compact?: boolean; seedPrompt?: string }) {
   const [messages, setMessages] = useState<ChatTurn[]>(loadHistory);
   const [input, setInput] = useState('');
   const [streaming, setStreaming] = useState(false);
   const abortRef = useRef<(() => void) | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
+  const seededRef = useRef<string | null>(null);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -49,6 +50,15 @@ export default function HermesChat({ compact = false }: { compact?: boolean }) {
   }, [messages, streaming]);
 
   useEffect(() => () => abortRef.current?.(), []);
+
+  // Auto-send a seeded question (e.g. "Ask Hermes about AAPL") exactly once.
+  useEffect(() => {
+    if (seedPrompt && seedPrompt !== seededRef.current && !streaming) {
+      seededRef.current = seedPrompt;
+      send(seedPrompt);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seedPrompt]);
 
   const clear = () => {
     abortRef.current?.();

@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Sparkles, X } from 'lucide-react';
 import HermesChat from './HermesChat';
+import { onAskHermes } from '../lib/hermesBus';
 
 /**
  * Global floating "Ask Hermes" launcher — available on every page.
@@ -9,6 +10,10 @@ import HermesChat from './HermesChat';
  */
 export default function FloatingHermes() {
   const [open, setOpen] = useState(false);
+  const [seed, setSeed] = useState<string | undefined>();
+
+  // Open + seed a question when any page calls askHermes(...).
+  useEffect(() => onAskHermes((prompt) => { setSeed(prompt); setOpen(true); }), []);
 
   return (
     <>
@@ -36,7 +41,7 @@ export default function FloatingHermes() {
             </button>
           </div>
           <div className="flex-1 min-h-0">
-            <HermesChat compact />
+            <HermesChat compact seedPrompt={seed} />
           </div>
         </div>
       )}

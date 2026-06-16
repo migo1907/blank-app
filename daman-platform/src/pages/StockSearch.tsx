@@ -17,7 +17,7 @@ export default function StockSearch() {
             <span>←</span>
             <span>Back to Search</span>
           </button>
-          <StockDetail symbol={selectedStock} onClose={() => setSelectedStock(null)} />
+          <StockDetail symbol={selectedStock} onBack={() => setSelectedStock(null)} />
         </div>
       </div>
     );

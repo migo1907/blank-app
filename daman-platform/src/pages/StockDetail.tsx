@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import {
   ArrowLeft, TrendingUp, TrendingDown, Building2, Users, Globe,
   Calendar, DollarSign, BarChart3, Download, Share2, BookOpen,
-  Newspaper, Activity, Award, Target
+  Newspaper, Activity, Award, Target, Sparkles
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { askHermes } from '../lib/hermesBus';
 
 interface StockDetail {
   symbol: string;
@@ -302,7 +303,14 @@ export default function StockDetail({ symbol, onBack }: Props) {
               </div>
             </div>
 
-            <div className="mt-6 flex items-center space-x-3">
+            <div className="mt-6 flex items-center flex-wrap gap-3">
+              <button
+                onClick={() => askHermes(`Give me your take on ${symbol}${stockData?.name ? ` (${stockData.name})` : ''} — fundamentals and technicals, with a bull and bear case.`)}
+                className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-daman-blue-600 to-daman-blue-800 text-white rounded-lg hover:from-daman-blue-700 hover:to-daman-blue-900 transition-all shadow-md"
+              >
+                <Sparkles className="h-4 w-4" />
+                <span>Ask Hermes about {symbol}</span>
+              </button>
               <button
                 onClick={exportToCSV}
                 className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all"
