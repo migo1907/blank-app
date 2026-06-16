@@ -3,6 +3,8 @@ import react from '@vitejs/plugin-react';
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  // "/" for Netlify/Vercel/local; "/blank-app/" for GitHub Pages (set via BASE_PATH).
+  base: process.env.BASE_PATH || '/',
   plugins: [react()],
   optimizeDeps: {
     exclude: ['lucide-react'],
