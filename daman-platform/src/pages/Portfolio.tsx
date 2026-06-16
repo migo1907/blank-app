@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { PieChart, TrendingUp, TrendingDown, DollarSign, Plus, X, RefreshCw } from 'lucide-react';
+import { PieChart, TrendingUp, TrendingDown, DollarSign, Plus, X, RefreshCw, Sparkles } from 'lucide-react';
 import Reveal from '../components/Reveal';
 import Skeleton from '../components/Skeleton';
+import { askHermes } from '../lib/hermesBus';
 
 interface Position {
   id: string;
@@ -437,12 +438,21 @@ export default function Portfolio() {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <button
-                          onClick={() => removePosition(position.id)}
-                          className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                        >
-                          <X className="h-5 w-5" />
-                        </button>
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => askHermes(`Give me your take on ${position.symbol} — fundamentals and technicals, with a bull and bear case. I hold ${position.quantity} shares at avg cost $${position.avg_cost.toFixed(2)}, currently $${position.current_price.toFixed(2)}.`)}
+                            className="p-2 text-daman-blue-600 hover:bg-daman-blue-50 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                            title="Ask Hermes about this position"
+                          >
+                            <Sparkles className="h-5 w-5" />
+                          </button>
+                          <button
+                            onClick={() => removePosition(position.id)}
+                            className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                          >
+                            <X className="h-5 w-5" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

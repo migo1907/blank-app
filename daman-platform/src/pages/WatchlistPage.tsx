@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Eye, Plus, X, Bell, BellOff, TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
+import { Eye, Plus, X, Bell, BellOff, TrendingUp, TrendingDown, RefreshCw, Sparkles } from 'lucide-react';
 import Skeleton from '../components/Skeleton';
+import { askHermes } from '../lib/hermesBus';
 
 interface WatchlistStock {
   symbol: string;
@@ -405,6 +406,13 @@ export default function WatchlistPage() {
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => askHermes(`Give me your take on ${stock.symbol} — fundamentals and technicals, with a bull and bear case. Current price around $${stock.price.toFixed(2)}.`)}
+                      className="p-2 text-daman-blue-600 hover:bg-daman-blue-50 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                      title="Ask Hermes about this stock"
+                    >
+                      <Sparkles className="h-5 w-5" />
+                    </button>
                     {stock.alertEnabled ? (
                       <button
                         onClick={() => removeAlert(stock.symbol)}
