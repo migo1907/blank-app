@@ -366,16 +366,49 @@ def _format_levels_for_prompt(name: str, levels: dict, live_price: float | None,
     )
 
 
-def _fetch_todays_high_impact_events() -> str:
+def _ff_calendar_events(now: datetime) -> list[tuple]:
     """
-    Fetch today's high-impact economic events from Finnhub calendar.
-    Returns a formatted string for the brief, or "" if none / unavailable.
+    Today's high-impact USD events from the free Forex Factory weekly JSON feed.
+    Returns list of (ts_utc, name, detail) tuples. Empty on any failure.
     """
+    url = "https://nfs.faireconomy.media/ff_calendar_thisweek.json"
+    try:
+        with httpx.Client(timeout=10) as client:
+            resp = client.get(url, headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            })
+            resp.raise_for_status()
+            data = resp.json() or []
+    except Exception as e:
+        print(f"[daily_brief] Forex Factory calendar fetch failed: {e}")
+        return []
+
+    out = []
+    for ev in data:
+        if (ev.get("impact") or "").lower() != "high":
+            continue
+        if (ev.get("country") or "").upper() not in ("USD", "US", "USA"):
+            continue
+        try:
+            ts_utc = datetime.fromisoformat(ev.get("date", "")).astimezone(timezone.utc)
+        except Exception:
+            continue
+        if ts_utc.date() != now.date():
+            continue
+        name     = ev.get("title", "Event")
+        forecast = ev.get("forecast") or ""
+        actual   = ev.get("actual") or ""
+        detail   = f" · Actual: {actual}" if actual else (f" · Est: {forecast}" if forecast else "")
+        out.append((ts_utc, name, detail))
+    return out
+
+
+def _finnhub_calendar_events(now: datetime) -> list[tuple]:
+    """Today's high-impact US events from Finnhub. Returns (ts_utc, name, detail) tuples."""
     from news_fetcher import FINNHUB_KEY, _FINNHUB_CALENDAR_URL
     if not FINNHUB_KEY:
-        return ""
+        return []
     try:
-        now   = datetime.now(timezone.utc)
         today = now.date().isoformat()
         until = (now + timedelta(days=1)).date().isoformat()
         with httpx.Client(timeout=10) as client:
@@ -386,11 +419,10 @@ def _fetch_todays_high_impact_events() -> str:
             events = resp.json().get("economicCalendar", []) or []
     except Exception as e:
         if "403" not in str(e):
-            print(f"[daily_brief] calendar fetch failed: {e}")
-        return ""
+            print(f"[daily_brief] Finnhub calendar fetch failed: {e}")
+        return []
 
-    dubai_tz_offset = timedelta(hours=4)
-    lines = []
+    out = []
     for ev in events:
         if (ev.get("impact") or "").lower() != "high":
             continue
@@ -404,21 +436,39 @@ def _fetch_todays_high_impact_events() -> str:
             continue
         if ts_utc.date() != now.date():
             continue
-        ts_dubai = ts_utc + dubai_tz_offset
-        time_str = ts_dubai.strftime("%I:%M %p")
         name     = ev.get("event", "Event")
         estimate = ev.get("estimate")
         actual   = ev.get("actual")
-        detail   = ""
-        if actual is not None:
-            detail = f" · Actual: {actual}"
-        elif estimate is not None:
-            detail = f" · Est: {estimate}"
-        lines.append(f"  • {time_str} — {name}{detail}")
+        detail   = f" · Actual: {actual}" if actual is not None else (f" · Est: {estimate}" if estimate is not None else "")
+        out.append((ts_utc, name, detail))
+    return out
 
-    if not lines:
+
+def _fetch_todays_high_impact_events() -> str:
+    """
+    Merge today's high-impact US economic events from Finnhub + Forex Factory.
+    De-duplicated, sorted by time, shown in Dubai time. Returns "" if none.
+    """
+    now = datetime.now(timezone.utc)
+    events = _finnhub_calendar_events(now) + _ff_calendar_events(now)
+    if not events:
         return ""
-    return "📆 <b>Key Events Today (Dubai time):</b>\n" + "\n".join(lines)
+
+    dubai_tz_offset = timedelta(hours=4)
+    seen  = set()
+    rows  = []  # (ts_utc, line) for stable time sort
+    for ts_utc, name, detail in sorted(events, key=lambda e: e[0]):
+        # Dedup across sources by minute + normalized name prefix
+        key = (ts_utc.strftime("%H:%M"), name.strip().lower()[:18])
+        if key in seen:
+            continue
+        seen.add(key)
+        time_str = (ts_utc + dubai_tz_offset).strftime("%I:%M %p")
+        rows.append(f"  • {time_str} — {name}{detail}")
+
+    if not rows:
+        return ""
+    return "📆 <b>Key Events Today (Dubai time):</b>\n" + "\n".join(rows)
 
 
 def generate_daily_brief() -> str | None:
