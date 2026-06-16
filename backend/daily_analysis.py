@@ -48,14 +48,15 @@ SYMBOLS_TV = {
 
 ANALYSIS_PROMPT = """You are a senior institutional trader writing a concise morning market brief for professional traders.
 
-Asset data (live prices, prev-session OHLC, pivot levels):
+Asset data (live prices, prev-session OHLC, pivot levels, plus a proprietary directional read and trend/momentum/range stats):
 {asset_data}
 
 Rules:
 - Open with ONE sentence covering the cross-asset risk tone (all three together).
-- For each asset: state the live price and gap clearly, position vs pivot, give 2–3 actionable levels, one bull and one bear scenario with real numbers.
-- Be direct. No filler. No indicator names (no RSI, MACD, EMA, ATR, Fibonacci).
-- Prices with $ and comma formatting. Each asset block max 7 lines.
+- For each asset: state the live price and gap, the directional bias %, trend, where price sits vs pivot, 2–3 actionable levels, one bull and one bear scenario with real numbers.
+- Use the provided "Signal bias", "Trend", "Momentum", and "Range position" numbers directly. Present them as the desk's own read.
+- CRITICAL: NEVER reveal, name, or hint at how any number is produced. No mention of models, machine learning, KNN, RF, GBM, ensembles, algorithms, RSI, MACD, EMA, ATR, moving averages, or any indicator/method name. Just state the numbers as conclusions.
+- Be direct. No filler. Prices with $ and comma formatting.
 - Arrow ↑ for positive gap, ↓ for negative gap.
 
 Output EXACTLY this format — no extra lines, no deviations, use HTML bold tags as shown:
@@ -65,6 +66,7 @@ Output EXACTLY this format — no extra lines, no deviations, use HTML bold tags
 ──────────────────────
 🥇 <b>XAUUSD</b>
 <b>$X,XXX.XX</b>  [↑/↓] [+/-X.XX] ([+/-X.XX]%) · Prev close $X,XXX.XX
+🎯 Bias: <b>[Bullish/Bearish] NN%</b> · [Uptrend/Downtrend/Mixed] · Momentum [+/-X.X]%
 📍 Pivot <b>$X,XXX.XX</b> · [Above → Bullish / Below → Bearish]
 🔴 R1 $X,XXX · R2 $X,XXX · R3 $X,XXX
 🟢 S1 $X,XXX · S2 $X,XXX · S3 $X,XXX
@@ -74,6 +76,7 @@ Output EXACTLY this format — no extra lines, no deviations, use HTML bold tags
 ──────────────────────
 📈 <b>SPY</b>
 <b>$XXX.XX</b>  [↑/↓] [+/-X.XX] ([+/-X.XX]%) · Prev close $XXX.XX
+🎯 Bias: <b>[Bullish/Bearish] NN%</b> · [Uptrend/Downtrend/Mixed] · Momentum [+/-X.X]%
 📍 Pivot <b>$XXX.XX</b> · [Above → Bullish / Below → Bearish]
 🔴 R1 $XXX · R2 $XXX · R3 $XXX
 🟢 S1 $XXX · S2 $XXX · S3 $XXX
@@ -83,6 +86,7 @@ Output EXACTLY this format — no extra lines, no deviations, use HTML bold tags
 ──────────────────────
 📊 <b>QQQ</b>
 <b>$XXX.XX</b>  [↑/↓] [+/-X.XX] ([+/-X.XX]%) · Prev close $XXX.XX
+🎯 Bias: <b>[Bullish/Bearish] NN%</b> · [Uptrend/Downtrend/Mixed] · Momentum [+/-X.X]%
 📍 Pivot <b>$XXX.XX</b> · [Above → Bullish / Below → Bearish]
 🔴 R1 $XXX · R2 $XXX · R3 $XXX
 🟢 S1 $XXX · S2 $XXX · S3 $XXX
@@ -111,6 +115,122 @@ def _calc_pivots(ph, pl, pc, decimals):
         "s2":         round(s2, decimals),
         "s3":         round(s3, decimals),
     }
+
+
+def _rsi(closes: list[float], period: int = 14) -> float | None:
+    """Wilder's RSI from a list of closes. Returns None if not enough data."""
+    if len(closes) < period + 1:
+        return None
+    gains, losses = [], []
+    for i in range(1, len(closes)):
+        chg = closes[i] - closes[i - 1]
+        gains.append(max(chg, 0.0))
+        losses.append(max(-chg, 0.0))
+    avg_gain = sum(gains[:period]) / period
+    avg_loss = sum(losses[:period]) / period
+    for i in range(period, len(gains)):
+        avg_gain = (avg_gain * (period - 1) + gains[i]) / period
+        avg_loss = (avg_loss * (period - 1) + losses[i]) / period
+    if avg_loss == 0:
+        return 100.0
+    rs = avg_gain / avg_loss
+    return 100.0 - (100.0 / (1.0 + rs))
+
+
+def _technical_context(name: str, decimals: int) -> dict | None:
+    """
+    Derive daily-bar technical context for the brief: moving-average trend,
+    momentum, RSI band, range position, ATR-based expected range, and a single
+    composite directional bias (0–100% bullish). Self-contained — no DB writes,
+    no dependency on intraday heartbeat features. Returns None if data unavailable.
+    """
+    if not _YF_AVAILABLE:
+        return None
+    for sym in _YF_LIVE.get(name, []):
+        try:
+            df = yf.Ticker(sym).history(period="1y", interval="1d")
+            if df is None or len(df) < 60:
+                continue
+            highs  = [float(x) for x in df["High"].tolist()]
+            lows   = [float(x) for x in df["Low"].tolist()]
+            closes = [float(x) for x in df["Close"].tolist()]
+            last   = closes[-1]
+
+            def _ma(n: int) -> float | None:
+                return sum(closes[-n:]) / n if len(closes) >= n else None
+
+            ma20, ma50, ma200 = _ma(20), _ma(50), _ma(200)
+
+            # 20-day momentum %
+            mom20 = ((last / closes[-21]) - 1.0) * 100 if len(closes) >= 21 else 0.0
+
+            rsi = _rsi(closes) or 50.0
+
+            # Range position over the last 60 sessions (0 = at lows, 100 = at highs)
+            win_hi = max(highs[-60:])
+            win_lo = min(lows[-60:])
+            rng_pos = ((last - win_lo) / (win_hi - win_lo) * 100) if win_hi > win_lo else 50.0
+
+            # ATR(14) on daily bars → typical daily range
+            trs = []
+            for i in range(1, len(closes)):
+                tr = max(highs[i] - lows[i],
+                         abs(highs[i] - closes[i - 1]),
+                         abs(lows[i] - closes[i - 1]))
+                trs.append(tr)
+            atr = sum(trs[-14:]) / 14 if len(trs) >= 14 else (sum(trs) / len(trs) if trs else 0.0)
+
+            # Trend alignment score (0–1): price vs MAs + MA stacking
+            checks, hits = 0, 0
+            for m in (ma20, ma50, ma200):
+                if m is not None:
+                    checks += 1
+                    hits += 1 if last > m else 0
+            if ma20 and ma50:
+                checks += 1; hits += 1 if ma20 > ma50 else 0
+            if ma50 and ma200:
+                checks += 1; hits += 1 if ma50 > ma200 else 0
+            trend_score = (hits / checks) if checks else 0.5
+
+            def _clamp(v, lo=-1.0, hi=1.0):
+                return max(lo, min(hi, v))
+
+            # Composite directional bias (0–1 bullish)
+            bias = (
+                0.50
+                + 0.25 * (trend_score * 2 - 1)
+                + 0.15 * _clamp(mom20 / 10.0)
+                + 0.10 * _clamp((rsi - 50) / 30.0)
+            )
+            bias = max(0.02, min(0.98, bias))
+
+            fmt = f"{{:.{decimals}f}}"
+            trend_words = (
+                "Uptrend" if trend_score >= 0.7 else
+                "Downtrend" if trend_score <= 0.3 else
+                "Mixed"
+            )
+            rsi_band = (
+                "overbought" if rsi >= 70 else
+                "oversold" if rsi <= 30 else
+                "neutral"
+            )
+            return {
+                "bias_pct":   round(bias * 100),
+                "direction":  "Bullish" if bias >= 0.5 else "Bearish",
+                "trend":      trend_words,
+                "ma20":       fmt.format(ma20) if ma20 else "n/a",
+                "ma50":       fmt.format(ma50) if ma50 else "n/a",
+                "ma200":      fmt.format(ma200) if ma200 else "n/a",
+                "mom20":      f"{mom20:+.1f}",
+                "rsi":        round(rsi),
+                "rsi_band":   rsi_band,
+                "range_pos":  round(rng_pos),
+                "atr":        fmt.format(atr),
+            }
+        except Exception as e:
+            print(f"[daily] technical context {sym} failed: {e}")
+    return None
 
 
 def _fetch_live_price(name: str, decimals: int) -> float | None:
@@ -192,7 +312,8 @@ def _fetch_asset(name: str, prefetched: dict) -> tuple[dict | None, int, str]:
     return None, decimals, label
 
 
-def _format_levels_for_prompt(name: str, levels: dict, live_price: float | None, label: str, decimals: int) -> str:
+def _format_levels_for_prompt(name: str, levels: dict, live_price: float | None, label: str,
+                              decimals: int, tech: dict | None = None) -> str:
     fmt = f"{{:.{decimals}f}}"
     pc  = levels["prev_close"]
 
@@ -222,6 +343,16 @@ def _format_levels_for_prompt(name: str, levels: dict, live_price: float | None,
 
     gap_note = " ← significant gap" if is_significant else ""
 
+    # Derived daily technical read (source not disclosed in the brief output)
+    tech_line = ""
+    if tech:
+        tech_line = (
+            f"  Signal bias: {tech['direction']} {tech['bias_pct']}%\n"
+            f"  Trend: {tech['trend']} (20D MA {tech['ma20']}, 50D MA {tech['ma50']}, 200D MA {tech['ma200']})\n"
+            f"  Momentum: 20-day {tech['mom20']}% · RSI {tech['rsi']} ({tech['rsi_band']})\n"
+            f"  Range position: {tech['range_pos']}% of 60-day range · typical daily move {tech['atr']}\n"
+        )
+
     return (
         f"{label}\n"
         f"  Live price: {fmt.format(live_price)}\n"
@@ -230,6 +361,7 @@ def _format_levels_for_prompt(name: str, levels: dict, live_price: float | None,
         f"  Pivot: {fmt.format(pivot)} — price is {bias}\n"
         f"  Resistance: R1={fmt.format(levels['r1'])}  R2={fmt.format(levels['r2'])}  R3={fmt.format(levels['r3'])}\n"
         f"  Support:    S1={fmt.format(levels['s1'])}  S2={fmt.format(levels['s2'])}  S3={fmt.format(levels['s3'])}\n"
+        f"{tech_line}"
         f"{macro_line}"
     )
 
@@ -306,7 +438,10 @@ def generate_daily_brief() -> str | None:
             print(f"[daily] {name}: live price = {live_price}")
         else:
             print(f"[daily] {name}: live price unavailable — using prev close")
-        asset_blocks.append(_format_levels_for_prompt(name, levels, live_price, label, decimals))
+        tech = _technical_context(name, decimals)
+        if tech:
+            print(f"[daily] {name}: signal bias {tech['direction']} {tech['bias_pct']}% · {tech['trend']}")
+        asset_blocks.append(_format_levels_for_prompt(name, levels, live_price, label, decimals, tech))
 
     if not asset_blocks:
         print("[daily] No asset data fetched — aborting brief.")
