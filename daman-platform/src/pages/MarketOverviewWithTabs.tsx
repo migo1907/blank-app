@@ -1,8 +1,19 @@
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { TrendingUp, Search, Newspaper } from 'lucide-react';
-import UltimateMarketHub from './UltimateMarketHub';
-import StockSearch from './StockSearch';
-import NewsFeed from './NewsFeed';
+
+// Lazy-load each tab so the Market Overview page only ships the active tab's
+// code. The default "overview" tab loads first; Search/News load on click.
+const UltimateMarketHub = lazy(() => import('./UltimateMarketHub'));
+const StockSearch = lazy(() => import('./StockSearch'));
+const NewsFeed = lazy(() => import('./NewsFeed'));
+
+function TabLoader() {
+  return (
+    <div className="flex items-center justify-center py-24" role="status" aria-label="Loading">
+      <div className="h-10 w-10 rounded-full border-4 border-slate-200 dark:border-slate-700 border-t-blue-600 animate-spin" />
+    </div>
+  );
+}
 
 export default function MarketOverviewWithTabs() {
   const [activeTab, setActiveTab] = useState<'overview' | 'search' | 'news'>('overview');
@@ -49,11 +60,14 @@ export default function MarketOverviewWithTabs() {
         </div>
       </div>
 
-      <div>
-        {activeTab === 'overview' && <UltimateMarketHub />}
-        {activeTab === 'search' && <StockSearch />}
-        {activeTab === 'news' && <NewsFeed />}
-      </div>
+      <Suspense fallback={<TabLoader />}>
+        {/* key replays the fade transition when switching tabs */}
+        <div key={activeTab} className="animate-fadeIn">
+          {activeTab === 'overview' && <UltimateMarketHub />}
+          {activeTab === 'search' && <StockSearch />}
+          {activeTab === 'news' && <NewsFeed />}
+        </div>
+      </Suspense>
     </div>
   );
 }
