@@ -181,6 +181,32 @@
         "imminent_earnings": 0.0
       },
       "opened_at": "2026-06-16T20:35:39.016911+00:00"
+    },
+    {
+      "id": "AMD-2026-06-17",
+      "ticker": "AMD",
+      "entry_date": "2026-06-17",
+      "entry_price": 512.48,
+      "atr": 36.28,
+      "tp": 585.03,
+      "sl": 476.2,
+      "combined_score": 0.706,
+      "features": {
+        "combined_score": 0.706,
+        "fund_score": 0.466,
+        "tech_score": 1.0,
+        "rsi": 49.1,
+        "rel_strength_pct": 9.6,
+        "target_upside_pct": -4.39,
+        "last_surprise_pct": 5.82,
+        "revenue_growth_pct": 37.8,
+        "earnings_growth_pct": 91.2,
+        "insider_net_buy": -1.0,
+        "short_pct_float": 2.7,
+        "news_7d": 248.0,
+        "imminent_earnings": 0.0
+      },
+      "opened_at": "2026-06-17T20:35:41.589787+00:00"
     }
   ],
   "closed": [
