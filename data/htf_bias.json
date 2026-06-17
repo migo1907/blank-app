@@ -232,5 +232,23 @@
     "ml_score": 0.75,
     "stored_at": "2026-06-17T15:30:19.599675+00:00",
     "expires_at": "2026-06-17T19:30:19.599694+00:00"
+  },
+  "US500_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "US500",
+    "trigger": "FVG",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-17T17:30:07.594138+00:00",
+    "expires_at": "2026-06-17T19:30:07.594159+00:00"
+  },
+  "SMCI_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "SMCI",
+    "trigger": "BOS",
+    "ml_score": 0.75,
+    "stored_at": "2026-06-17T17:30:11.893076+00:00",
+    "expires_at": "2026-06-17T19:30:11.893091+00:00"
   }
 }
