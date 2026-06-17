@@ -1,5 +1,29 @@
 # blank-app — Claude Code Notes
 
+## Roadmap
+
+### Phase 1 — Foundation ✅ Complete
+- 26-feature pipeline (F1–F26), Pine Script v6, unified webhook
+- AdaptiveKNN + RandomForest + GradientBoosting + LightGBM (joint_gold + joint_stocks)
+- HMM regime detection, MTF confluence, macro intelligence (FRED + COT + GLD)
+- Pool architecture: 9 pools × up to 4 timeframes
+- Daily market brief (09:00 UTC), swing brain (fundamental + technical screener)
+- Swing paper-trade tracker (training data pipeline for future swing ML)
+
+### Phase 2 — Intelligence Layers ✅ Complete
+- F26 Stochastic (%K/%D) added to Pine Script + backend
+- Swing addon: fundamental_data (archetype-aware), earnings_call monitor, swing_narrative (Haiku prose)
+- Adaptive Pine Script (ai_mlm_26.pine) seeded from backend weights (52W/73L baseline)
+- Post-event volatility state, equity macro (VIX + yield curve)
+- checkpoint-v3 tag (SHA 9dae7bdec)
+
+### Phase 3 — Calibration & Quality (Pending)
+- **Isotonic calibration** — per-pool, wraps RF/GBM raw `predict_proba` output. Fits during hourly retrain, saved alongside weights file, applied at inference before the 0.50 send threshold. Trigger: ≥150 closed trades per pool. Already eligible: XAUUSD_2M (~1,156), XAUUSD_5M (~356), STOCKS_MOMENTUM_15M (~349), STOCKS_QUALITY_15M (~206), STOCKS_MOMENTUM_30M (~175), STOCKS_QUALITY_30M (~118).
+- **Walk-forward validation** — rolling OOS split before each retrain to get honest OOS accuracy (currently trains + evaluates on same window).
+- **Swing ML ensemble** — auto-enables when ≥50 closed swing paper trades accumulated (cold-start self-resolving). Uncomment 2 lines in scheduler.py ~L1668-1669.
+
+
+
 ## Railway
 - **Production URL:** https://blank-app-production-a8bd.up.railway.app
 - **Health:** https://blank-app-production-a8bd.up.railway.app/health
