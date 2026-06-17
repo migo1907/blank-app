@@ -132,9 +132,7 @@ bool  higherLow = low > low[1] and low[1] < low[2] and close < maShort
 bool  lowerHigh = high < high[1] and high[1] > high[2] and close > maShort
 float f14 = higherLow ? 0.7 : lowerHigh ? -0.7 : 0.0
 int   utcHour = hour(time, "UTC")
-float f15 = (utcHour >= 13 and utcHour < 17) ? 1.0 :
-            (utcHour >= 8  and utcHour < 13) ? 0.8 :
-            (utcHour >= 17 and utcHour < 22) ? 0.3 : -0.5
+float f15 = ((utcHour >= 13 and utcHour < 17) ? 1.0 : (utcHour >= 8 and utcHour < 13) ? 0.8 : (utcHour >= 17 and utcHour < 22) ? 0.3 : -0.5)
 bool  bullAlign = ma50_1h > ma200_1h and close > ma50_4h
 bool  bearAlign = ma50_1h < ma200_1h and close < ma50_4h
 float f16 = bullAlign ? 1.0 : bearAlign ? -1.0 : 0.0
@@ -349,9 +347,7 @@ signalTier(bullScore, bearScore) =>
      top >= 0.625 ? "⭐⭐ GOOD" :
      top >= 0.55  ? "⭐ MODERATE" : "– WEAK"
 
-string sessLabel = (utcHour >= 13 and utcHour < 17) ? "NY+Lon Overlap" :
-                   (utcHour >= 8  and utcHour < 13) ? "London" :
-                   (utcHour >= 17 and utcHour < 22) ? "NY Late" : "Asian"
+string sessLabel = ((utcHour >= 13 and utcHour < 17) ? "NY+Lon Overlap" : (utcHour >= 8 and utcHour < 13) ? "London" : (utcHour >= 17 and utcHour < 22) ? "NY Late" : "Asian")
 
 // ═══════════════════════════════════════════════════════════════════
 // DASHBOARD
