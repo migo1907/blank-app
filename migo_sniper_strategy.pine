@@ -50,6 +50,7 @@ float closeFrac      = input.float(0.33, "Confirm candle close in top/bottom fra
 bool momoEntry       = input.bool(true, "Momentum breakout entry (catch strong moves)", group="Signal Filters")
 int  brkLen          = input.int(10,   "Breakout lookback (bars)", minval=3, group="Signal Filters")
 bool noCtFilterLowTF = input.bool(false, "No counter-trend filter on 5m & lower (scalp both ways)", group="Signal Filters")
+bool useMacroTrend   = input.bool(true, "Only trade in 200 EMA direction (macro trend)", group="Signal Filters")
 bool confirmOnClose  = input.bool(true, "Confirm signals on bar close (no repaint)", group="Signal Filters")
 bool useQuality      = input.bool(true, "Require minimum signal quality score", group="Signal Quality")
 int  minScore        = input.int(65,   "Minimum quality score (0-100)", minval=0, maxval=100, group="Signal Quality")
@@ -230,8 +231,13 @@ int  effMinScore = minScore + (baseMin <= 2 ? 15 : baseMin <= 5 ? 10 : 0)
 bool qualLong  = (not useQuality) or scoreLong  >= effMinScore
 bool qualShort = (not useQuality) or scoreShort >= effMinScore
 
-bool buySignal  = filtersOK and (baseLong  or brkLong)  and qualLong
-bool sellSignal = filtersOK and (baseShort or brkShort) and qualShort
+// Macro-trend gate: only long above the 200 EMA, only short below it — kills the
+// counter-trend trades that bled in BOTH regimes (validated uptrend + downtrend).
+bool macroLong  = (not useMacroTrend) or close > maLong
+bool macroShort = (not useMacroTrend) or close < maLong
+
+bool buySignal  = filtersOK and (baseLong  or brkLong)  and qualLong  and macroLong
+bool sellSignal = filtersOK and (baseShort or brkShort) and qualShort and macroShort
 
 bool barOK  = (not confirmOnClose) or barstate.isconfirmed
 bool doBuy  = buySignal  and strategy.position_size <= 0 and barOK
