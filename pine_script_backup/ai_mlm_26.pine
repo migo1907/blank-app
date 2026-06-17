@@ -6,9 +6,17 @@ indicator("AI MLM 26", overlay=true, max_labels_count=500, max_bars_back=510, ma
 // Shows Lorentzian KNN signal quality, entry/TP/SL historically,
 // and a live dashboard table. NO alerts, NO webhook, NO heartbeat.
 //
-// Updated: 2026-06-17
+// Updated: 2026-06-17  [CONSERVATIVE MODE]
 // Backend snapshot: 52W / 73L on XAUUSD (2026-06-03 checkpoint)
 // System total: 500 trades · 40.0% win rate across all 26 pools
+//
+// Conservative upgrades vs previous version:
+//   mlMinScore  0.55 → 0.65  (65% ML conviction required)
+//   adxThr      20   → 25    (stronger trend required)
+//   atrRR       0.75 → 0.85  (catches more ATR compression)
+//   emaBandPct  0.3  → 0.5%  (EMAs must be more separated)
+//   Sideways    3→4 conditions: added BB squeeze (width < 75% of 20-bar avg)
+//   Kernel      2-bar → 3-bar consistency required
 //
 // What the ML learned (feature importance by final weight):
 //   STRONGEST  : F6  Williams %R        → 1.507  (best reversal sensor)
@@ -48,7 +56,8 @@ bool  autoTF      = true
 int   mlK         = 8
 int   mlDepth_inp = 300
 int   mlLag       = 4
-float mlMinScore  = 0.55
+// Conservative mode — raised from 0.55: requires 65% ML conviction before signaling
+float mlMinScore  = 0.65
 float learnRate   = 0.05
 float winReward   = 0.15
 float lossPenalty = 0.20
@@ -63,9 +72,10 @@ bool  useVWAP     = true
 bool  useNewFeats = true
 bool  useKernel   = true
 int   adxLen      = 14
-float adxThr      = 20.0
-float atrRR       = 0.75
-float emaBandPct  = 0.3
+// Conservative thresholds — tightened vs defaults (20 / 0.75 / 0.3)
+float adxThr      = 25.0   // ADX must be >25 to qualify as trending
+float atrRR       = 0.85   // ATR must be >85% of its 20-bar SMA (catches more compression)
+float emaBandPct  = 0.5    // EMA50/EMA200 gap must be >0.5% to count as separated
 
 // ── Auto-TF overrides (always on) ────────────────────────────────
 int   mlDepth    = isTF2 ? 150 : isTF5 ? 250 : isTF15 ? 350 : isTF30 ? 400 : 500
@@ -100,11 +110,14 @@ float stochD   = ta.sma(stochK, 3)
 float ma50_4h  = request.security(syminfo.tickerid, "240", ta.ema(close, 50))
 [dxyEma5, dxyEma20] = request.security("DXY", timeframe.period, [ta.ema(close, 5), ta.ema(close, 20)])
 
-// Regime
-bool adxFlat      = adxVal < adxThr
-bool atrCompressed = atr < atrSma * atrRR
-bool emaTooClose  = math.abs(maShort - maLong) / maLong * 100.0 < emaBandPct
-bool isSideways   = (adxFlat ? 1 : 0) + (atrCompressed ? 1 : 0) + (emaTooClose ? 1 : 0) >= 2
+// Regime — 4-condition sideways detector (2/4 majority blocks a signal)
+bool  adxFlat       = adxVal < adxThr
+bool  atrCompressed = atr < atrSma * atrRR
+bool  emaTooClose   = math.abs(maShort - maLong) / maLong * 100.0 < emaBandPct
+float bbWidth       = math.max(bbUp - bbLow_, 0.0001) / math.max(bbMid, 0.0001)
+bool  bbSqueeze     = bbWidth < ta.sma(bbWidth, 20) * 0.75  // BB width < 75% of its 20-bar avg
+// 2 of 4 conditions = sideways (was 2/3 — adding BB squeeze makes this harder to dodge)
+bool isSideways   = (adxFlat ? 1 : 0) + (atrCompressed ? 1 : 0) + (emaTooClose ? 1 : 0) + (bbSqueeze ? 1 : 0) >= 2
 string mainTrend  = close > ma50_1h and rsi_1h > 50 ? "UPTREND" : close < ma50_1h and rsi_1h < 50 ? "DOWNTREND" : "SIDEWAYS"
 
 // Swing structure
@@ -270,8 +283,9 @@ rqKernel(src, h, alpha, window) =>
     den > 0.0 ? num / den : src[0]
 
 float kernelEst = useKernel ? rqKernel(close, kH, kAlpha, kWin) : maShort
-bool  kernelUp  = kernelEst > kernelEst[2]
-bool  kernelDown = kernelEst < kernelEst[2]
+// Conservative: kernel must be consistently trending for 3 bars (was 2) to fire
+bool  kernelUp   = kernelEst > kernelEst[2] and kernelEst[1] > kernelEst[3]
+bool  kernelDown = kernelEst < kernelEst[2] and kernelEst[1] < kernelEst[3]
 
 // ═══════════════════════════════════════════════════════════════════
 // KNN CLASSIFIER
@@ -562,8 +576,10 @@ if showDash and barstate.islast
 
     // Context
     hdr(15, "── Context ──")
+    int swCount = (adxFlat?1:0) + (atrCompressed?1:0) + (emaTooClose?1:0) + (bbSqueeze?1:0)
+    string regStr = isSideways ? "⚠ SIDEWAYS (" + str.tostring(swCount) + "/4)" : mainTrend
     cellL(16, "Regime",    colBg)
-    cellR(16, isSideways ? "⚠ SIDEWAYS" : mainTrend, regClr)
+    cellR(16, regStr, regClr)
 
 // ── Trend lines on chart (toggleable) ────────────────────────────
 plot(showTrend ? kernelEst : na, "Kernel", color=color.new(color.purple, 40), linewidth=2, display=display.none)
