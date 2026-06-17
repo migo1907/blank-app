@@ -66,10 +66,10 @@
     "direction": "SHORT",
     "timeframe": "60",
     "symbol": "MSFT",
-    "trigger": "FVG",
-    "ml_score": 0.75,
-    "stored_at": "2026-06-17T14:30:05.667101+00:00",
-    "expires_at": "2026-06-17T18:30:05.667116+00:00"
+    "trigger": "BOS",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-17T19:30:14.230123+00:00",
+    "expires_at": "2026-06-17T23:30:14.230138+00:00"
   },
   "MSFT_30": {
     "direction": "SHORT",
