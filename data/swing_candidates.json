@@ -1,109 +1,19 @@
 {
   "candidates": [
     {
-      "ticker": "META",
-      "combined_score": NaN,
-      "fundamental": {
-        "ticker": "META",
-        "archetype": "growth_tech",
-        "earnings": {
-          "next_days": 43,
-          "last_surprise_pct": 56.79,
-          "imminent": false
-        },
-        "analyst": {
-          "recommendation": "strong_buy",
-          "target_upside_pct": 37.45,
-          "num_analysts": 59
-        },
-        "insider": {
-          "net_buy_signal": -1.0,
-          "buy_count": 0,
-          "sell_count": 7
-        },
-        "institutional": {
-          "inst_held_pct": 79.3
-        },
-        "growth": {
-          "revenue_growth_pct": 33.1,
-          "earnings_growth_pct": 62.4
-        },
-        "short": {
-          "short_pct_float": 1.5
-        },
-        "advanced": {
-          "piotroski_f": 5,
-          "altman_z": 8.66,
-          "rule_of_40": 45.0,
-          "fcf_yield_pct": 1.68,
-          "peg": 0.86,
-          "roe_pct": 32.9,
-          "roa_pct": 16.4,
-          "price_to_book": 6.25,
-          "pe_ratio": 21.8,
-          "forward_pe": 16.6
-        },
-        "earnings_call": {
-          "reported": false,
-          "date": null,
-          "days_ago": null,
-          "surprise_pct": null,
-          "rev_beat_pct": null,
-          "guidance": "none",
-          "buyback": false,
-          "dividend_raise": false,
-          "tone": 0.0,
-          "note": "",
-          "score_delta": 0.0,
-          "updated_at": "2026-06-16T20:30:32.357017+00:00"
-        },
-        "news": {
-          "news_7d": 249,
-          "headlines": [
-            "Meta Threads Reaches 500 Million Monthly Users",
-            "Meta Pushes Threads Deeper Into Communities",
-            "Threads Hits 500 Million Users as Meta Advances Toward 1 Billion Goal",
-            "Meta Stock Rises as Threads Hits 500 Million Monthly Users",
-            "Mark Zuckerberg\u2019s Ringside Seat is Becoming A Big Problem for Anthropic"
-          ],
-          "sentiment": 0.0
-        },
-        "edgar_insider": {
-          "form4_count": 42
-        },
-        "rss_news": {
-          "rss_news_7d": 0
-        },
-        "score": 0.653,
-        "updated_at": "2026-06-16T20:30:28.864087+00:00"
-      },
-      "technical": {
-        "score": NaN,
-        "rsi": 39.4,
-        "trend": "NEUTRAL",
-        "rel_strength_pct": 2.7,
-        "entry": 600.21,
-        "atr": 21.19,
-        "stop": 579.02,
-        "t1": 642.58,
-        "t2": 663.77
-      },
-      "updated_at": "2026-06-16T20:30:35.600721+00:00"
-    },
-    {
       "ticker": "LLY",
-      "combined_score": 0.791,
+      "combined_score": 0.777,
       "fundamental": {
         "ticker": "LLY",
         "archetype": "healthcare",
         "earnings": {
-          "next_days": 50,
+          "next_days": 49,
           "last_surprise_pct": 25.9,
           "imminent": false
         },
         "analyst": {
           "recommendation": "buy",
-          "target_upside_pct": 11.45,
+          "target_upside_pct": 12.5,
           "num_analysts": 29
         },
         "insider": {
@@ -125,13 +35,13 @@
           "piotroski_f": 7,
           "altman_z": 7.25,
           "rule_of_40": null,
-          "fcf_yield_pct": 0.91,
-          "peg": 1.51,
+          "fcf_yield_pct": 0.92,
+          "peg": 1.5,
           "roe_pct": 107.5,
           "roa_pct": 20.7,
-          "price_to_book": 32.15,
-          "pe_ratio": 39.9,
-          "forward_pe": 25.2
+          "price_to_book": 31.85,
+          "pe_ratio": 39.5,
+          "forward_pe": 25.0
         },
         "earnings_call": {
           "reported": false,
@@ -145,16 +55,16 @@
           "tone": 0.0,
           "note": "",
           "score_delta": 0.0,
-          "updated_at": "2026-06-16T20:31:11.516547+00:00"
+          "updated_at": "2026-06-17T20:31:14.357222+00:00"
         },
         "news": {
-          "news_7d": 124,
+          "news_7d": 104,
           "headlines": [
-            "Can Retatrutide Extend Eli Lilly and Co (LLY)\u2019s Lead in Weight Loss Market?",
-            "Novo Nordisk to File Oral Wegovy in China",
-            "Eli Lilly\u2019s hottest drugs face a quiet new threat",
-            "Sector Update: Healthcare Stocks Advance in Afternoon Trading",
-            "Eli Lilly vs. Novo Nordisk: Better Obesity Drug Stock?"
+            "J&J Skips GLP-1 Race, Targets No. 1 Cancer Spot By 2030",
+            "Eli Lilly Stock's Trillion-Dollar Question",
+            "The Number That Could Test Johnson & Johnson Stock",
+            "Jim Cramer on Eli Lilly: \u201cI Want You to Stay in the Stock\u201d",
+            "Eli Lilly (LLY) Halves $2.7 Billion Germany Investment Over Europe Drug Pricing"
           ],
           "sentiment": 0.0
         },
@@ -162,203 +72,23 @@
           "form4_count": 14
         },
         "rss_news": {
-          "rss_news_7d": 4
+          "rss_news_7d": 5
         },
-        "score": 0.623,
-        "updated_at": "2026-06-16T20:31:08.158280+00:00"
+        "score": 0.594,
+        "updated_at": "2026-06-17T20:31:10.969742+00:00"
       },
       "technical": {
-        "score": 0.996,
-        "rsi": 57.4,
+        "score": 1.0,
+        "rsi": 46.8,
         "trend": "BULL",
-        "rel_strength_pct": 6.1,
-        "entry": 1122.5,
-        "atr": 41.16,
-        "stop": 1081.34,
-        "t1": 1204.83,
-        "t2": 1245.99
+        "rel_strength_pct": 6.7,
+        "entry": 1112.0,
+        "atr": 37.69,
+        "stop": 1074.31,
+        "t1": 1187.39,
+        "t2": 1225.08
       },
-      "updated_at": "2026-06-16T20:31:15.176072+00:00"
-    },
-    {
-      "ticker": "UNH",
-      "combined_score": NaN,
-      "fundamental": {
-        "ticker": "UNH",
-        "archetype": "healthcare",
-        "earnings": {
-          "next_days": 30,
-          "last_surprise_pct": 9.52,
-          "imminent": false
-        },
-        "analyst": {
-          "recommendation": "buy",
-          "target_upside_pct": 3.03,
-          "num_analysts": 26
-        },
-        "insider": {
-          "net_buy_signal": -1.0,
-          "buy_count": 0,
-          "sell_count": 1
-        },
-        "institutional": {
-          "inst_held_pct": 85.9
-        },
-        "growth": {
-          "revenue_growth_pct": 2.0,
-          "earnings_growth_pct": 0.7
-        },
-        "short": {
-          "short_pct_float": 2.4
-        },
-        "advanced": {
-          "piotroski_f": 6,
-          "altman_z": 4.62,
-          "rule_of_40": null,
-          "fcf_yield_pct": 4.78,
-          "peg": 1.42,
-          "roe_pct": 12.2,
-          "roa_pct": 3.8,
-          "price_to_book": 3.78,
-          "pe_ratio": 30.7,
-          "forward_pe": 19.5
-        },
-        "earnings_call": {
-          "reported": false,
-          "date": null,
-          "days_ago": null,
-          "surprise_pct": null,
-          "rev_beat_pct": null,
-          "guidance": "none",
-          "buyback": false,
-          "dividend_raise": false,
-          "tone": 0.0,
-          "note": "",
-          "score_delta": 0.0,
-          "updated_at": "2026-06-16T20:31:38.257640+00:00"
-        },
-        "news": {
-          "news_7d": 42,
-          "headlines": [
-            "Top dow jones movers in Tuesday's session",
-            "Why Did UnitedHealth Stock Choose Pain Over Growth?",
-            "Many Hedge Funds Bought Up This Stock Last Quarter \u2014 And You\u2019ve Probably Never Heard of It",
-            "Discover which dow jones stocks are making waves on Monday.",
-            "CNBC Markets Now: June 15, 2026"
-          ],
-          "sentiment": 0.0
-        },
-        "edgar_insider": {
-          "form4_count": 29
-        },
-        "rss_news": {
-          "rss_news_7d": 0
-        },
-        "score": 0.116,
-        "updated_at": "2026-06-16T20:31:34.785022+00:00"
-      },
-      "technical": {
-        "score": NaN,
-        "rsi": 71.0,
-        "trend": "NEUTRAL",
-        "rel_strength_pct": 1.5,
-        "entry": 407.65,
-        "atr": 9.71,
-        "stop": 397.94,
-        "t1": 427.06,
-        "t2": 436.77
-      },
-      "updated_at": "2026-06-16T20:31:41.237286+00:00"
-    },
-    {
-      "ticker": "MRK",
-      "combined_score": NaN,
-      "fundamental": {
-        "ticker": "MRK",
-        "archetype": "healthcare",
-        "earnings": {
-          "next_days": 49,
-          "last_surprise_pct": 13.15,
-          "imminent": false
-        },
-        "analyst": {
-          "recommendation": "buy",
-          "target_upside_pct": 17.22,
-          "num_analysts": 27
-        },
-        "insider": {
-          "net_buy_signal": -1.0,
-          "buy_count": 0,
-          "sell_count": 5
-        },
-        "institutional": {
-          "inst_held_pct": 82.3
-        },
-        "growth": {
-          "revenue_growth_pct": 4.9,
-          "earnings_growth_pct": null
-        },
-        "short": {
-          "short_pct_float": 1.2
-        },
-        "advanced": {
-          "piotroski_f": 4,
-          "altman_z": 7.48,
-          "rule_of_40": null,
-          "fcf_yield_pct": 4.94,
-          "peg": 5.34,
-          "roe_pct": 18.9,
-          "roa_pct": 12.6,
-          "price_to_book": 6.2,
-          "pe_ratio": 32.4,
-          "forward_pe": 12.0
-        },
-        "earnings_call": {
-          "reported": false,
-          "date": null,
-          "days_ago": null,
-          "surprise_pct": null,
-          "rev_beat_pct": null,
-          "guidance": "none",
-          "buyback": false,
-          "dividend_raise": false,
-          "tone": 0.0,
-          "note": "",
-          "score_delta": 0.0,
-          "updated_at": "2026-06-16T20:33:01.009203+00:00"
-        },
-        "news": {
-          "news_7d": 60,
-          "headlines": [
-            "FDA Accepts Gilead's Filing for Weekly Oral Yeztugo for HIV Prevention",
-            "Jetstream Venture Fund Secures Position in Rejuvenate Bio, Investing Alongside Industry Giant Merck",
-            "AstraZeneca Stock Down 7% in 3 Months: Should You Buy, Sell or Hold?",
-            "Nivi, Inc. and MSD Collaborate to Expand HPV Disease Awareness and Cervical Cancer Prevention Through AI-Powered Platfor",
-            "Protillion Biosciences Announces Drug Discovery Collaboration with Merck"
-          ],
-          "sentiment": 0.0
-        },
-        "edgar_insider": {
-          "form4_count": 40
-        },
-        "rss_news": {
-          "rss_news_7d": 0
-        },
-        "score": 0.152,
-        "updated_at": "2026-06-16T20:32:57.602988+00:00"
-      },
-      "technical": {
-        "score": NaN,
-        "rsi": 40.1,
-        "trend": "NEUTRAL",
-        "rel_strength_pct": -2.3,
-        "entry": 115.17,
-        "atr": 3.21,
-        "stop": 111.96,
-        "t1": 121.59,
-        "t2": 124.8
-      },
-      "updated_at": "2026-06-16T20:33:04.323125+00:00"
+      "updated_at": "2026-06-17T20:31:17.832790+00:00"
     },
     {
       "ticker": "AMD",
@@ -367,13 +97,13 @@
         "ticker": "AMD",
         "archetype": "growth_tech",
         "earnings": {
-          "next_days": 49,
+          "next_days": 48,
           "last_surprise_pct": 5.82,
           "imminent": false
         },
         "analyst": {
           "recommendation": "strong_buy",
-          "target_upside_pct": -3.41,
+          "target_upside_pct": -4.39,
           "num_analysts": 48
         },
         "insider": {
@@ -395,13 +125,13 @@
           "piotroski_f": 8,
           "altman_z": 10.15,
           "rule_of_40": 57.0,
-          "fcf_yield_pct": 0.87,
-          "peg": 1.32,
+          "fcf_yield_pct": 0.86,
+          "peg": 1.22,
           "roe_pct": 8.1,
           "roa_pct": 3.6,
-          "price_to_book": 12.83,
-          "pe_ratio": 168.5,
-          "forward_pe": 38.7
+          "price_to_book": 12.96,
+          "pe_ratio": 171.4,
+          "forward_pe": 39.1
         },
         "earnings_call": {
           "reported": false,
@@ -415,43 +145,313 @@
           "tone": 0.0,
           "note": "",
           "score_delta": 0.0,
-          "updated_at": "2026-06-16T20:33:20.902528+00:00"
+          "updated_at": "2026-06-17T20:33:20.103549+00:00"
         },
         "news": {
           "news_7d": 248,
           "headlines": [
-            "HPE Flexes Juniper Muscles In AI Networking At Discover Event",
-            "AMD and Rackspace Sign 30 MW AI Compute Deal for Regulated Enterprises",
-            "What's going on in today's session: S&P500 movers",
-            "Advanced Micro Devices Inc (AMD) and Imperial College Team Up",
-            "New AI Memory Deal Sends AMD Shares Higher"
+            "RXT Stock Surges To 4-Year Highs \u2014 Wall Street Highlights Multi-Industry Growth Potential After AMD Deal",
+            "Advanced Micro Devices (AMD): The Best Debt-Free American Stock to Invest In",
+            "Why It Is Time to Stop Buying Chip Stocks",
+            "INTC, ARM, AMD Stocks Gain Today \u2014 Bernstein Supercharges AI Chip Bull Case",
+            "Intel, SpaceX, Robinhood, Carvana, and More Stocks That Explain Today\u2019s Market"
           ],
           "sentiment": 0.0
         },
         "edgar_insider": {
-          "form4_count": 19
+          "form4_count": 20
         },
         "rss_news": {
           "rss_news_7d": 0
         },
-        "score": 0.465,
-        "updated_at": "2026-06-16T20:33:17.499820+00:00"
+        "score": 0.466,
+        "updated_at": "2026-06-17T20:33:16.636864+00:00"
       },
       "technical": {
         "score": 1.0,
-        "rsi": 51.7,
+        "rsi": 49.1,
         "trend": "BULL",
-        "rel_strength_pct": 14.9,
-        "entry": 507.29,
-        "atr": 36.88,
-        "stop": 470.41,
-        "t1": 581.05,
-        "t2": 617.93
+        "rel_strength_pct": 9.6,
+        "entry": 512.48,
+        "atr": 36.28,
+        "stop": 476.2,
+        "t1": 585.03,
+        "t2": 621.3
       },
-      "updated_at": "2026-06-16T20:33:24.451825+00:00"
+      "updated_at": "2026-06-17T20:33:23.434422+00:00"
+    },
+    {
+      "ticker": "GE",
+      "combined_score": 0.669,
+      "fundamental": {
+        "ticker": "GE",
+        "archetype": "industrial",
+        "earnings": {
+          "next_days": 29,
+          "last_surprise_pct": 16.31,
+          "imminent": false
+        },
+        "analyst": {
+          "recommendation": "strong_buy",
+          "target_upside_pct": -1.13,
+          "num_analysts": 21
+        },
+        "insider": {
+          "net_buy_signal": 0.0,
+          "buy_count": 0,
+          "sell_count": 0
+        },
+        "institutional": {
+          "inst_held_pct": 81.0
+        },
+        "growth": {
+          "revenue_growth_pct": 24.7,
+          "earnings_growth_pct": -1.8
+        },
+        "short": {
+          "short_pct_float": 1.3
+        },
+        "advanced": {
+          "piotroski_f": 6,
+          "altman_z": 3.6,
+          "rule_of_40": null,
+          "fcf_yield_pct": 1.52,
+          "peg": 8.46,
+          "roe_pct": 45.4,
+          "roa_pct": 4.9,
+          "price_to_book": 20.63,
+          "pe_ratio": 44.4,
+          "forward_pe": 41.1
+        },
+        "earnings_call": {
+          "reported": false,
+          "date": null,
+          "days_ago": null,
+          "surprise_pct": null,
+          "rev_beat_pct": null,
+          "guidance": "none",
+          "buyback": false,
+          "dividend_raise": false,
+          "tone": 0.0,
+          "note": "",
+          "score_delta": 0.0,
+          "updated_at": "2026-06-17T20:34:26.079654+00:00"
+        },
+        "news": {
+          "news_7d": 43,
+          "headlines": [
+            "BETA Technologies (BETA) Reports Q1 2026 Results with $3.9B Aircraft Backlog",
+            "Montreal company plans to build a plant for small modular reactor parts east of Toronto in supply chain deal",
+            "SpaceX is sucking the oxygen out of the new space trade",
+            "Can GE Aerospace Boost Margin Performance Amid Cost Pressures?",
+            "GE Vernova Inc. (GEV) is Attracting Investor Attention: Here is What You Should Know"
+          ],
+          "sentiment": 0.0
+        },
+        "edgar_insider": {
+          "form4_count": 17
+        },
+        "rss_news": {
+          "rss_news_7d": 29
+        },
+        "score": 0.469,
+        "updated_at": "2026-06-17T20:34:22.703485+00:00"
+      },
+      "technical": {
+        "score": 0.914,
+        "rsi": 69.8,
+        "trend": "BULL",
+        "rel_strength_pct": 13.7,
+        "entry": 357.03,
+        "atr": 11.16,
+        "stop": 345.87,
+        "t1": 379.35,
+        "t2": 390.51
+      },
+      "updated_at": "2026-06-17T20:34:29.572671+00:00"
+    },
+    {
+      "ticker": "IBM",
+      "combined_score": 0.647,
+      "fundamental": {
+        "ticker": "IBM",
+        "archetype": "growth_tech",
+        "earnings": {
+          "next_days": 35,
+          "last_surprise_pct": 5.45,
+          "imminent": false
+        },
+        "analyst": {
+          "recommendation": "buy",
+          "target_upside_pct": 10.54,
+          "num_analysts": 21
+        },
+        "insider": {
+          "net_buy_signal": 1.0,
+          "buy_count": 3,
+          "sell_count": 0
+        },
+        "institutional": {
+          "inst_held_pct": 65.6
+        },
+        "growth": {
+          "revenue_growth_pct": 9.5,
+          "earnings_growth_pct": 14.2
+        },
+        "short": {
+          "short_pct_float": 3.6
+        },
+        "advanced": {
+          "piotroski_f": 7,
+          "altman_z": 7.35,
+          "rule_of_40": 28.5,
+          "fcf_yield_pct": 5.3,
+          "peg": 2.53,
+          "roe_pct": 35.8,
+          "roa_pct": 5.4,
+          "price_to_book": 7.48,
+          "pe_ratio": 23.2,
+          "forward_pe": 19.5
+        },
+        "earnings_call": {
+          "reported": false,
+          "date": null,
+          "days_ago": null,
+          "surprise_pct": null,
+          "rev_beat_pct": null,
+          "guidance": "none",
+          "buyback": false,
+          "dividend_raise": false,
+          "tone": 0.0,
+          "note": "",
+          "score_delta": 0.0,
+          "updated_at": "2026-06-17T20:35:36.303139+00:00"
+        },
+        "news": {
+          "news_7d": 82,
+          "headlines": [
+            "PLTR Stock: What Does Its Valuation Imply?",
+            "Explore the top gainers and losers within the dow jones index in today's session.",
+            "Oracle Stock's High Stakes Gamble",
+            "WQTM: The Quantum Computing Trade Wall Street Is Missing",
+            "Startling Statistics Find Nearly 7 out of 10 Executives Put Speed Ahead of AI Security"
+          ],
+          "sentiment": 0.0
+        },
+        "edgar_insider": {
+          "form4_count": 14
+        },
+        "rss_news": {
+          "rss_news_7d": 1
+        },
+        "score": 0.358,
+        "updated_at": "2026-06-17T20:35:32.007842+00:00"
+      },
+      "technical": {
+        "score": 1.0,
+        "rsi": 49.3,
+        "trend": "BULL",
+        "rel_strength_pct": 11.7,
+        "entry": 262.35,
+        "atr": 16.12,
+        "stop": 246.23,
+        "t1": 294.59,
+        "t2": 310.71
+      },
+      "updated_at": "2026-06-17T20:35:39.316205+00:00"
+    },
+    {
+      "ticker": "CAT",
+      "combined_score": 0.586,
+      "fundamental": {
+        "ticker": "CAT",
+        "archetype": "industrial",
+        "earnings": {
+          "next_days": 48,
+          "last_surprise_pct": 19.3,
+          "imminent": false
+        },
+        "analyst": {
+          "recommendation": "buy",
+          "target_upside_pct": 0.21,
+          "num_analysts": 26
+        },
+        "insider": {
+          "net_buy_signal": -1.0,
+          "buy_count": 0,
+          "sell_count": 4
+        },
+        "institutional": {
+          "inst_held_pct": 72.9
+        },
+        "growth": {
+          "revenue_growth_pct": 22.2,
+          "earnings_growth_pct": 30.2
+        },
+        "short": {
+          "short_pct_float": 2.0
+        },
+        "advanced": {
+          "piotroski_f": 6,
+          "altman_z": 5.63,
+          "rule_of_40": null,
+          "fcf_yield_pct": 0.86,
+          "peg": 2.24,
+          "roe_pct": 51.3,
+          "roa_pct": 8.5,
+          "price_to_book": 23.6,
+          "pe_ratio": 47.7,
+          "forward_pe": 31.8
+        },
+        "earnings_call": {
+          "reported": false,
+          "date": null,
+          "days_ago": null,
+          "surprise_pct": null,
+          "rev_beat_pct": null,
+          "guidance": "none",
+          "buyback": false,
+          "dividend_raise": false,
+          "tone": 0.0,
+          "note": "",
+          "score_delta": 0.0,
+          "updated_at": "2026-06-17T20:35:21.169496+00:00"
+        },
+        "news": {
+          "news_7d": 64,
+          "headlines": [
+            "Explore the top gainers and losers within the dow jones index in today's session.",
+            "Dow Achieves a New Milestone: 4 Blue-Chip Stocks to Buy",
+            "3 Stocks That Declared Dividend Hikes Recently Amid Geopolitical Tensions",
+            "Caterpillar (CAT) Is Recasting Its Growth Story With A $63 Billion AI Backlog",
+            "Tesla booted from the \u2018Magnificent Seven\u2019 by a top fund manager. Here is the tech giant he\u2019s crowned."
+          ],
+          "sentiment": 0.0
+        },
+        "edgar_insider": {
+          "form4_count": 27
+        },
+        "rss_news": {
+          "rss_news_7d": 11
+        },
+        "score": 0.261,
+        "updated_at": "2026-06-17T20:35:17.744874+00:00"
+      },
+      "technical": {
+        "score": 0.984,
+        "rsi": 61.2,
+        "trend": "BULL",
+        "rel_strength_pct": 4.4,
+        "entry": 955.92,
+        "atr": 36.3,
+        "stop": 919.62,
+        "t1": 1028.51,
+        "t2": 1064.81
+      },
+      "updated_at": "2026-06-17T20:35:24.790073+00:00"
     }
   ],
   "scanned": 50,
   "top_n": 5,
-  "updated_at": "2026-06-16T20:35:36.035800+00:00"
+  "updated_at": "2026-06-17T20:35:39.316251+00:00"
 }
