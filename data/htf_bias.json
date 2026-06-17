@@ -77,8 +77,8 @@
     "symbol": "XAUUSD",
     "trigger": "BOS",
     "ml_score": 0.375,
-    "stored_at": "2026-06-17T14:02:01.746078+00:00",
-    "expires_at": "2026-06-17T16:02:01.746094+00:00"
+    "stored_at": "2026-06-17T14:32:02.646859+00:00",
+    "expires_at": "2026-06-17T16:32:02.646871+00:00"
   },
   "SPY_60": {
     "direction": "LONG",
@@ -169,5 +169,23 @@
     "ml_score": 0.625,
     "stored_at": "2026-06-17T14:30:21.235909+00:00",
     "expires_at": "2026-06-17T16:30:21.235932+00:00"
+  },
+  "MSTR_60": {
+    "direction": "SHORT",
+    "timeframe": "60",
+    "symbol": "MSTR",
+    "trigger": "BOS",
+    "ml_score": 0.75,
+    "stored_at": "2026-06-17T14:30:23.737565+00:00",
+    "expires_at": "2026-06-17T18:30:23.737587+00:00"
+  },
+  "HTZ_60": {
+    "direction": "SHORT",
+    "timeframe": "60",
+    "symbol": "HTZ",
+    "trigger": "BOS",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-17T14:30:25.212360+00:00",
+    "expires_at": "2026-06-17T18:30:25.212369+00:00"
   }
 }
