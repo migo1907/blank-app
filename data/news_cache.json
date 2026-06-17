@@ -1,1354 +1,5 @@
 [
   {
-    "source": "Investing.com Forex",
-    "headline": "Dollar eases slightly a day ahead of Fed rate decision; Yen weakens after BoJ hike",
-    "url": "https://www.investing.com/news/forex-news/asia-fx-steady-amid-iran-peace-hopes-boj-hikes-rates-to-31yr-high-rba-on-tap-4743824",
-    "sentiment_score": -0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "dollar strength",
-      "Fed rate decision",
-      "BoJ"
-    ],
-    "fetched_at": "2026-06-17T18:17:33.435201+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Sterling today: Pound steadies as dollar shrugs off oil sell-off ahead of FOMC",
-    "url": "https://www.investing.com/news/forex-news/sterling-today-pound-steadies-as-dollar-shrugs-off-oil-selloff-ahead-of-fomc-4744764",
-    "sentiment_score": -0.35,
-    "impact": "MEDIUM",
-    "keywords": [
-      "dollar",
-      "FOMC",
-      "rate decision"
-    ],
-    "fetched_at": "2026-06-17T18:17:33.435201+00:00"
-  },
-  {
-    "source": "Mining.com",
-    "headline": "China could retaliate against threats to critical metal security: analysts",
-    "url": "https://www.mining.com/china-could-retaliate-against-threats-to-critical-metal-security-analysts/",
-    "sentiment_score": 0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "China",
-      "critical metals",
-      "retaliation"
-    ],
-    "fetched_at": "2026-06-17T18:17:33.435201+00:00"
-  },
-  {
-    "source": "Mining.com",
-    "headline": "Fortuna wins key approval for Senegal gold project",
-    "url": "https://www.mining.com/fortuna-wins-key-approval-for-senegal-gold-project/",
-    "sentiment_score": 0.2,
-    "impact": "LOW",
-    "keywords": [
-      "mining approval",
-      "supply",
-      "production"
-    ],
-    "fetched_at": "2026-06-17T18:17:33.435201+00:00"
-  },
-  {
-    "source": "Mining.com",
-    "headline": "Switzerland loses its shine as central bank gold vault",
-    "url": "https://www.mining.com/switzerland-loses-its-shine-as-central-bank-gold-vault/",
-    "sentiment_score": -0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "central bank",
-      "gold demand",
-      "diversification"
-    ],
-    "fetched_at": "2026-06-17T18:17:33.435201+00:00"
-  },
-  {
-    "source": "Mining.com",
-    "headline": "Barclays sees gold pullback as \u2018reset\u2019, keeps bullish outlook",
-    "url": "https://www.mining.com/barclays-sees-gold-pullback-as-reset-keeps-bullish-outlook/",
-    "sentiment_score": 0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "bullish outlook",
-      "pullback",
-      "accumulation"
-    ],
-    "fetched_at": "2026-06-17T18:17:33.435201+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Israel launches fresh airstrikes in Lebanon; Trump says he could still restart war - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxPSklNM1g3ZG9QYmFoMkJRS3o2T2ZRMTJ1azE5eG1YLU5TUXdEY1F5TkFBU01GMUt1UUstcHRrekJsOHBmRURqd2NTMVpzVVFoQlRPWHNvUVVQLU5ZRkJsNzZKNURTd01PQ1pubzFrR0UzdlMzbXU2RXBwLU9fT25GSU80UkRVcUlpWE9MOGhxYW4yS1lIbDJ3UkR5anJudnZPcDhhOHhqN3JxcWM?oc=5",
-    "sentiment_score": 0.7,
-    "impact": "HIGH",
-    "keywords": [
-      "geopolitical tension",
-      "safe haven",
-      "conflict escalation"
-    ],
-    "fetched_at": "2026-06-17T18:17:33.435201+00:00"
-  },
-  {
-    "source": "CNBC",
-    "headline": "JetBlue to reduce Newark, LaGuardia footprint as it forges ahead in Fort Lauderdale",
-    "url": "https://www.cnbc.com/2026/06/17/jetblue-to-reduce-newark-laguardia-footprint-as-it-expands-in-florida.html",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "airline",
-      "restructuring",
-      "unrelated"
-    ],
-    "fetched_at": "2026-06-17T18:17:33.435201+00:00"
-  },
-  {
-    "source": "CNBC",
-    "headline": "3 of our stocks striking gold and 3 others hitting the skids over the past 3 weeks",
-    "url": "https://www.cnbc.com/2026/06/17/3-of-our-stocks-striking-gold-and-3-others-hitting-the-skids-over-the-past-3-weeks.html",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "stock performance",
-      "equities",
-      "unrelated"
-    ],
-    "fetched_at": "2026-06-17T18:17:33.435201+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "BMW shares sink after profit warning highlights China and Iran risk - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMiugFBVV95cUxOTVBHYTAycFp5MmdoVGNRbE12eWJzT0c5U1NPbURoNmxHQUJZcEdEaHJ5MGU1dDhFUUw0cV9ZM0VpMGIzWk5XY1pqcFpoblJCM3NBektPRzh2clF4OW9JWnRTa25kMkk3a1NmRlVySXNubUZWUjE4bTBBTlV5MEtMd1FQajR0THZyeXdnZ0xlaFk0YXI1ZV9GZTk2b3YzMjd4aEZtZXkybnZXdXRoNDZtZDNJbFhzUVNQWlE?oc=5",
-    "sentiment_score": 0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "China weakness",
-      "geopolitical risk",
-      "economic slowdown"
-    ],
-    "fetched_at": "2026-06-17T18:17:33.435201+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Trump's Iran war weighs on G7 economies, but don't expect hard talk in France - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMisgFBVV95cUxQQ0RTSmJmU2ltSllOMFYxQi02VlY2MzJJa2d2NnpELXU0WmRaYVYwSFJRVW1OZFVzUjhRUWJRRnNlbmF2d09nTVdhYzQySEtGODRIMFhTS1B3bnlsU0hlbEtSVmtORG5LSnRCRFhMelJpZld4N2JkQzNPZHFENXlkVXI0MW5SV3pqRjZRU2FUN2R0VHdiamJYa1JKcVdtSDcxdTA4d1lUenY3VDRSMHN4QS1B?oc=5",
-    "sentiment_score": 0.6,
-    "impact": "HIGH",
-    "keywords": [
-      "geopolitical risk",
-      "economic uncertainty",
-      "safe haven demand"
-    ],
-    "fetched_at": "2026-06-17T18:17:33.435201+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Has Trump achieved his goals in the war with Iran? - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMinAFBVV95cUxQU2loLVdUWXl3ZlBzRDNsT0dZVkFVajIyNGF1X041VlNlV0JBdkluNGpmVmZ5NzFzNWJKaDM2QU5UMTIzZGhvZFZ1dWsyeWlqdGZZV3N1TlY2Ykl5MnlWaXJEclUwTDZOX1VjeVpKS00ydEVwdHk1OHBvY25EdVlVOUJQdkNTR3J4SkxSd0d2VmxOUHBRYU1qM0dCaFQ?oc=5",
-    "sentiment_score": 0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "geopolitical outcome",
-      "risk sentiment",
-      "uncertainty"
-    ],
-    "fetched_at": "2026-06-17T18:17:33.435201+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Stocks edge up as oil hovers near 3-month lows ahead of Warsh debut - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMigwFBVV95cUxQOU5DMTRIOHpLY0VUdlJ6RW1fcEhveWNmVmZaNFo0YkdfNmN0a0VZN1JHMDcxVFdlMl81aVpWQV8td2hxb1dZcldhVE5USmVqeEhDNDA4Yk5RSDBpWnBuN3FTblFLMUxEa3poLTZsR3pfMmNfUENaOVZDRjVFNGl5V0l6MA?oc=5",
-    "sentiment_score": -0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "lower oil prices",
-      "inflation pressure",
-      "risk appetite"
-    ],
-    "fetched_at": "2026-06-17T18:17:33.435201+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Gold holds ground with spotlight on Fed meet, US-Iran deal details - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxOZmo2a0piWUpISXJxNEJNWlprT0NaYUx4OU1pZzZ6QUp3dUZCdGlsTUQxNlhZaG9WaXVNT1I2ZWxUb2RUSERFZ3ZpSVktbGN6N1JNUFdZdUplNEJsMWdPX1d0bi03b0lWVGk3TjBaYkJBY3NNQXJpazhpYmNhVndseV9wNXVuSW1IRDlMMTZBTVROeFdBRmkwa0s4Yk9hWHZVcGlmLVdUVXZEdw?oc=5",
-    "sentiment_score": 0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "Fed meeting",
-      "monetary policy",
-      "US-Iran tensions"
-    ],
-    "fetched_at": "2026-06-17T18:17:33.435201+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Oil rises on US-Iran deal doubts; IEA warns of supply glut - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMiygFBVV95cUxNenNvdC1DbGktWE0tRE5scUJEblVjSy1HVWROZkNNQ3lqT290eXhQV0R5MXhxYUhHYlBaN1lqdl95QUpEaHRaX0lOY3h2aEJSblJxYldFODhXWGFwN3dlOV9xbFFWTnpJNUlTUkJkaG9nWjRUUEpSemE2N09VWFVtNFRnT2RSQ3lKV094RjN5MkNYZlRIOURlZWJhREdaLWc2bVhiV2hCNUlYaTZrTUdXWkpKRnBTLWo1QVVEcDBIbGFWdGFqczhubmVR?oc=5",
-    "sentiment_score": -0.2,
-    "impact": "LOW",
-    "keywords": [
-      "oil prices",
-      "supply concerns",
-      "inflation"
-    ],
-    "fetched_at": "2026-06-17T18:17:33.435201+00:00"
-  },
-  {
-    "source": "CNBC",
-    "headline": "Databricks sales growth tops 80%, but margin are shrinking from swarm of AI agents",
-    "url": "https://www.cnbc.com/2026/06/16/databricks-revenue-growth-tops-80percent-to-6point9-billion-annualized.html",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "technology",
-      "AI",
-      "earnings",
-      "unrelated"
-    ],
-    "fetched_at": "2026-06-17T18:17:33.435201+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Norway's Equinor doubles share buyback as Iran war boosts cash flow - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxOZVYyTlJlM1VDVktyUGV4WlYzbEs1UWhsOWNqejlOanJPNUNrN2V2ZzN3SUxxRDVEdVRWeXoxRWZCeTBNeVE0aVA3emE0c3VySGhvUEI5YlJwMU5BZU5CZlJqRWo3bFZqNnl6X3BpZjNYNmFsNTNkN2dzczM3ZHpPMWVGcHVkT29hZHkybzVnU2ZJclNaNmpueHotX3d3MDl5UlJTdzd6LVF6RUU?oc=5",
-    "sentiment_score": -0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "risk appetite",
-      "commodity strength",
-      "safe haven unwinding"
-    ],
-    "fetched_at": "2026-06-17T18:17:33.435201+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "BMW lowers profit outlook due to China downturn, Iran war double whammy - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxOeFJVT1dCYVNyQnQ2VzVWTGRlOU5TSUZYS2tON2RkLVZNQ3FmU005Q1ZJVTd6VXRtOG1jQ2VRUUZ0OU1pN1p3X3FoS0J1cE9yM2tZTEdYbWZmNklwV1JVMDAyLTdrUUF2aVF4TzRPRFM2TTZILU5NOElVZ2xtRzF1RWZlQkV4Z1RuakpPWW1KWWtrUzhPSE0tOW1USQ?oc=5",
-    "sentiment_score": 0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "geopolitical risk",
-      "economic headwinds",
-      "uncertainty"
-    ],
-    "fetched_at": "2026-06-17T18:17:33.435201+00:00"
-  },
-  {
-    "source": "CNBC",
-    "headline": "Jim Cramer: Why we're headed back to pre-Iran war oil prices and what it means",
-    "url": "https://www.cnbc.com/2026/06/16/jim-cramer-why-were-headed-back-to-pre-iran-war-oil-prices-and-what-it-means.html",
-    "sentiment_score": -0.5,
-    "impact": "HIGH",
-    "keywords": [
-      "lower oil prices",
-      "risk-on sentiment",
-      "inflation easing"
-    ],
-    "fetched_at": "2026-06-17T18:17:33.435201+00:00"
-  },
-  {
-    "source": "CNBC",
-    "headline": "Jim Cramer debates his next move on a software stock on an 11 day losing streak",
-    "url": "https://www.cnbc.com/2026/06/16/jim-cramer-debates-his-next-move-on-a-software-stock-on-an-11-day-losing-streak.html",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "software stock",
-      "equity analysis",
-      "unrelated"
-    ],
-    "fetched_at": "2026-06-17T18:17:33.435201+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "ECB will be proactive against high inflation even after Iran deal, Lane says - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMitAFBVV95cUxOT2lsQ01zNGpfblZQQnlTaUFFeUZfbUdCVWlBREtRcDNjRUhhaEtLejJ6UnFZaFR1TjJNaWk3TFBrNW5kMnhMSTd3M2FRcF9lTXdWVUUzOXd0dU9FVGxabFowTHgzQkJjSElXdEx5VUpJbVRoQ0NXSHRMaDdmbnp2VXZhVnp5UXdQRnczT0R6VlA0Z2oyRWNjNzREX1ZwVC1sSUpTd0hMQk9PTGlUMndXS1kzVHc?oc=5",
-    "sentiment_score": -0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "hawkish ECB",
-      "inflation fight",
-      "rate expectations"
-    ],
-    "fetched_at": "2026-06-17T18:17:33.435201+00:00"
-  },
-  {
-    "source": "CNBC",
-    "headline": "Treasury yields fall ahead of Kevin Warsh's first Fed meeting",
-    "url": "https://www.cnbc.com/2026/06/16/treasury-yields-investors-await-warsh-first-fed-meeting.html",
-    "sentiment_score": 0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "lower yields",
-      "rate expectations",
-      "Fed guidance"
-    ],
-    "fetched_at": "2026-06-17T18:17:33.435201+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Indian rupee extends gains; US-Iran peace agreement details, Fed guidance awaited - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMirwFBVV95cUxPd0c2VjNXb250alRscjNDSThUNXZ6aVRoMUp2S2FhNUEyOGRoaWFyY0haSWRUcEw3VTNVUUNFV1pEOXRXV2g5WHdGTXVNNmhVdVAtRW5lNnpBX0NKTVk5aFgwdXRiVEFHXzR6bTJhZ19zdW9zd2dDZWJiU0VUSlVOTG95MmlLOUpKbXItdTNwRHJIREJEbVVqYnBFOEFCaUlMOUVzb2lsaUt3aGVpLXk4?oc=5",
-    "sentiment_score": 0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "geopolitical uncertainty",
-      "peace deal",
-      "Fed policy"
-    ],
-    "fetched_at": "2026-06-17T18:17:33.435201+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Gold rises over 1% as US-Iran peace deal optimism eases rate hike bets - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMipAFBVV95cUxOSkNDWks4bTBLM1E5aXc4V0hBOWF4OHJpdUpBY0ZZSF9SaU1fVmFwRUdEalB2YmdUUVlObmJhYTlQSE92cFJYUGtKd1I0eHNoODQycHFuVEhjZDJUaE1Kc2FsY3RkcW5ia0JWVlU3MnFpUkpvei1OcHcwNmpsTWd4NUFTZHM2X0N5SDVOR3hLTEJjd3BQVDR5dWVpd043WXB2dDhmVA?oc=5",
-    "sentiment_score": 0.75,
-    "impact": "HIGH",
-    "keywords": [
-      "peace deal",
-      "rate hike easing",
-      "geopolitical"
-    ],
-    "fetched_at": "2026-06-17T18:17:33.435201+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Is the Iran war just an energy shock - or a turning point? - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMiugFBVV95cUxPb0FRWE5MTXBpNWRsVmZGc0ZLUS1nbG56MXVZeEU2SlBqN2Z4VTVmNmlyRzF6TW96SlpfZkZXdFlycmFHalhaMy1OckdpajR2end5OXAzVUNzRTFaQURzQmw4ZWN5LVgweXVGRnB1ZndRREdOSl9NMFNJQjZoOXc5ZXliX0tpNENwVktxVU5kWTJRaTZTckhvMHc3ak1NTDF0OHNDZ3JrWEEyUkFQWm1LNmV4dFlLQS1Semc?oc=5",
-    "sentiment_score": 0.55,
-    "impact": "MEDIUM",
-    "keywords": [
-      "geopolitical risk",
-      "energy shock",
-      "safe-haven"
-    ],
-    "fetched_at": "2026-06-17T18:17:33.435201+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Dollar drifts, no respite for yen after BOJ hikes rates as expected - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMirAFBVV95cUxQUUExX2IzZ1JzLWdOMUlBdFlyMmJCVS1KeDFLTlZ6RjRDYlBCcE1ZMG4zaTJYOVg0ZGlvdmlpWUNTdUlaOC1vRmhJalJCZTBrWTRVMzEyNEZjZTJzRDB1WDl2eFlrdU0xSFdFNlY5eDNJV0RLYTFvUGlfSS1CQXlUUzdON0hlR1BKbXhOY1dIR3JxcDdMMUVzcVRpTnN6LWZJZWR6clQ0ZE40Ykdr?oc=5",
-    "sentiment_score": -0.45,
-    "impact": "MEDIUM",
-    "keywords": [
-      "strong dollar",
-      "BOJ hike",
-      "yen weakness"
-    ],
-    "fetched_at": "2026-06-17T18:17:33.435201+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "JPMorgan's Michele: I think it's possible to have two rate hikes this year.",
-    "url": "https://www.financialjuice.com/News/9640667/JPMorgans-Michele-I-think-its-possible-to-have-two-rate-hikes-this-year.aspx?xy=rss",
-    "sentiment_score": -0.7,
-    "impact": "HIGH",
-    "keywords": [
-      "rate hikes",
-      "tightening",
-      "hawkish"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Short-term interest-rate futures are now pricing a bigger chance of a Fed hike than a hold by September.",
-    "url": "https://www.financialjuice.com/News/9640666/Short-term-interest-rate-futures-are-now-pricing-a-bigger-chance-of-a-Fed-hike-than-a-hold-by-September.aspx?xy=rss",
-    "sentiment_score": -0.8,
-    "impact": "HIGH",
-    "keywords": [
-      "Fed hike",
-      "tightening",
-      "pricing"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "JPMorgan's Michele: The Fed is telling us that we're not at neutral.",
-    "url": "https://www.financialjuice.com/News/9640665/JPMorgans-Michele-The-Fed-is-telling-us-that-were-not-at-neutral.aspx?xy=rss",
-    "sentiment_score": -0.6,
-    "impact": "HIGH",
-    "keywords": [
-      "not neutral",
-      "restrictive policy",
-      "hawkish"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "FOMC Press Conference with new Chair Warsh - WATCH LIVE",
-    "url": "https://www.financialjuice.com/News/9640643/FOMC-Press-Conference-with-new-Chair-Warsh---WATCH-LIVE.aspx?xy=rss",
-    "sentiment_score": -0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "Fed decision",
-      "Warsh",
-      "uncertainty"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Fed's Chair Warsh did not submit a dot on the SEP dot plot.",
-    "url": "https://www.financialjuice.com/News/9640642/Feds-Chair-Warsh-did-not-submit-a-dot-on-the-SEP-dot-plot.aspx?xy=rss",
-    "sentiment_score": -0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "Warsh",
-      "hawkish signal",
-      "dot plot"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Pimco Global Economic Advisor Clarida: Fed getting the US ready for rate hikes.",
-    "url": "https://www.financialjuice.com/News/9640641/Pimco-Global-Economic-Advisor-Clarida-Fed-getting-the-US-ready-for-rate-hikes.aspx?xy=rss",
-    "sentiment_score": -0.7,
-    "impact": "HIGH",
-    "keywords": [
-      "rate hikes",
-      "tightening",
-      "hawkish"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Pimco Global Economic Advisor Clarida: Not surprised Warsh did not submit a dot.",
-    "url": "https://www.financialjuice.com/News/9640640/Pimco-Global-Economic-Advisor-Clarida-Not-surprised-Warsh-did-not-submit-a-dot.aspx?xy=rss",
-    "sentiment_score": -0.3,
-    "impact": "LOW",
-    "keywords": [
-      "dot plot",
-      "Warsh",
-      "expectations"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "JPMorgan Head of Global Fixed Income Michele: Nobody on FOMC thinks inflation will be transitory.",
-    "url": "https://www.financialjuice.com/News/9640639/JPMorgan-Head-of-Global-Fixed-Income-Michele-Nobody-on-FOMC-thinks-inflation-will-be-transitory.aspx?xy=rss",
-    "sentiment_score": -0.6,
-    "impact": "HIGH",
-    "keywords": [
-      "inflation",
-      "no transitory",
-      "hawkish"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "JPMorgan Head of Global Fixed Income Michele: Didn't think half would project a rate hike.",
-    "url": "https://www.financialjuice.com/News/9640638/JPMorgan-Head-of-Global-Fixed-Income-Michele-Didnt-think-half-would-project-a-rate-hike.aspx?xy=rss",
-    "sentiment_score": -0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "rate hike projections",
-      "FOMC",
-      "hawkish"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Traders fully price in a quarter-point Fed rate hike by the year-end.",
-    "url": "https://www.financialjuice.com/News/9640637/Traders-fully-price-in-a-quarter-point-Fed-rate-hike-by-the-year-end.aspx?xy=rss",
-    "sentiment_score": -0.8,
-    "impact": "HIGH",
-    "keywords": [
-      "Fed hike",
-      "pricing",
-      "tightening"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "MarketWatch Top",
-    "headline": "I\u2019m 20, and I\u2019ll be watching Kevin Warsh and the Fed today. Here\u2019s why you should, too.",
-    "url": "https://www.marketwatch.com/story/im-20-and-ill-be-watching-kevin-warsh-and-the-fed-this-week-heres-why-you-should-too-73c3e34d?mod=mw_rss_topstories",
-    "sentiment_score": -0.4,
-    "impact": "LOW",
-    "keywords": [
-      "Warsh",
-      "Fed",
-      "anticipation"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "MarketWatch Top",
-    "headline": "Historic NBA Finals ratings and Fox\u2019s $22 billion Roku deal show live sports are key to winning the streaming wars",
-    "url": "https://www.marketwatch.com/story/record-world-cup-nba-finals-ratings-show-live-sports-are-tvs-most-valuable-asset-82c2a970?mod=mw_rss_topstories",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "sports",
-      "streaming",
-      "unrelated"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "MarketWatch Top",
-    "headline": "Here\u2019s how stocks performed under different Fed chairs \u2014 and how much influence Warsh really has",
-    "url": "https://www.marketwatch.com/story/heres-how-stocks-performed-under-different-fed-chairs-and-how-much-influence-warsh-really-has-e8a10d87?mod=mw_rss_topstories",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "stocks",
-      "Warsh",
-      "unrelated"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "Investing.com Comm",
-    "headline": "Philadelphia Fed Manufacturing Index and jobless claims due Thursday",
-    "url": "https://www.investing.com/news/stock-market-news/philadelphia-fed-manufacturing-index-and-jobless-claims-due-thursday-93CH-4748015",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "economic data",
-      "manufacturing",
-      "neutral"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Dollar inches up ahead of first Fed rate decision under new chair Warsh",
-    "url": "https://www.investing.com/news/forex-news/asia-fx-dollar-muted-ahead-of-fed-decision-iran-truce-details-eyed-4746467",
-    "sentiment_score": -0.6,
-    "impact": "HIGH",
-    "keywords": [
-      "dollar strength",
-      "Fed decision",
-      "rate hike"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Sterling today: Pound holds above $1.34 as dollar firms before Fed verdict",
-    "url": "https://www.investing.com/news/forex-news/sterling-today-pound-holds-above-134-as-dollar-firms-before-fed-verdict-4747284",
-    "sentiment_score": -0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "dollar strength",
-      "Fed decision",
-      "DXY"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "U.S. treasury yields firm ahead of Warsh\u2019s debut as Eurozone debt extends rally",
-    "url": "https://www.investing.com/news/forex-news/euro-zone-yields-continue-downfall-as-peace-deal-details-trickles-4746540",
-    "sentiment_score": -0.6,
-    "impact": "HIGH",
-    "keywords": [
-      "yields firm",
-      "Fed decision",
-      "tightening"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Merz at G7: China\u2019s currency undervalued by up to 30%",
-    "url": "https://www.investing.com/news/forex-news/merz-at-g7-chinas-currency-undervalued-by-up-to-30-93CH-4746889",
-    "sentiment_score": 0.1,
-    "impact": "LOW",
-    "keywords": [
-      "China yuan",
-      "currency",
-      "geopolitical"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Dollar eases slightly a day ahead of Fed rate decision; Yen weakens after BoJ hike",
-    "url": "https://www.investing.com/news/forex-news/asia-fx-steady-amid-iran-peace-hopes-boj-hikes-rates-to-31yr-high-rba-on-tap-4743824",
-    "sentiment_score": -0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "dollar",
-      "Fed decision",
-      "yen weakness"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Sterling today: Pound steadies as dollar shrugs off oil sell-off ahead of FOMC",
-    "url": "https://www.investing.com/news/forex-news/sterling-today-pound-steadies-as-dollar-shrugs-off-oil-selloff-ahead-of-fomc-4744764",
-    "sentiment_score": -0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "dollar strength",
-      "FOMC",
-      "Fed decision"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "Mining.com",
-    "headline": "China could retaliate against threats to critical metal security: analysts",
-    "url": "https://www.mining.com/china-could-retaliate-against-threats-to-critical-metal-security-analysts/",
-    "sentiment_score": 0.7,
-    "impact": "HIGH",
-    "keywords": [
-      "China",
-      "critical metals",
-      "retaliation"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "Mining.com",
-    "headline": "Fortuna wins key approval for Senegal gold project",
-    "url": "https://www.mining.com/fortuna-wins-key-approval-for-senegal-gold-project/",
-    "sentiment_score": 0.2,
-    "impact": "LOW",
-    "keywords": [
-      "gold production",
-      "project approval"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "Mining.com",
-    "headline": "Switzerland loses its shine as central bank gold vault",
-    "url": "https://www.mining.com/switzerland-loses-its-shine-as-central-bank-gold-vault/",
-    "sentiment_score": -0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "central bank",
-      "gold reserves",
-      "vault"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "Mining.com",
-    "headline": "Barclays sees gold pullback as \u2018reset\u2019, keeps bullish outlook",
-    "url": "https://www.mining.com/barclays-sees-gold-pullback-as-reset-keeps-bullish-outlook/",
-    "sentiment_score": 0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "bullish outlook",
-      "pullback",
-      "reset"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Israel launches fresh airstrikes in Lebanon; Trump says he could still restart war - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxPSklNM1g3ZG9QYmFoMkJRS3o2T2ZRMTJ1azE5eG1YLU5TUXdEY1F5TkFBU01GMUt1UUstcHRrekJsOHBmRURqd2NTMVpzVVFoQlRPWHNvUVVQLU5ZRkJsNzZKNURTd01PQ1pubzFrR0UzdlMzbXU2RXBwLU9fT25GSU80UkRVcUlpWE9MOGhxYW4yS1lIbDJ3UkR5anJudnZPcDhhOHhqN3JxcWM?oc=5",
-    "sentiment_score": 0.8,
-    "impact": "HIGH",
-    "keywords": [
-      "geopolitical risk",
-      "Middle East",
-      "conflict"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "CNBC",
-    "headline": "JetBlue to reduce Newark, LaGuardia footprint as it forges ahead in Fort Lauderdale",
-    "url": "https://www.cnbc.com/2026/06/17/jetblue-to-reduce-newark-laguardia-footprint-as-it-expands-in-florida.html",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "airline",
-      "footprint",
-      "unrelated"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "CNBC",
-    "headline": "3 of our stocks striking gold and 3 others hitting the skids over the past 3 weeks",
-    "url": "https://www.cnbc.com/2026/06/17/3-of-our-stocks-striking-gold-and-3-others-hitting-the-skids-over-the-past-3-weeks.html",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "stock performance",
-      "unrelated"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "BMW shares sink after profit warning highlights China and Iran risk - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMiugFBVV95cUxOTVBHYTAycFp5MmdoVGNRbE12eWJzT0c5U1NPbURoNmxHQUJZcEdEaHJ5MGU1dDhFUUw0cV9ZM0VpMGIzWk5XY1pqcFpoblJCM3NBektPRzh2clF4OW9JWnRTa25kMkk3a1NmRlVySXNubUZWUjE4bTBBTlV5MEtMd1FQajR0THZyeXdnZ0xlaFk0YXI1ZV9GZTk2b3YzMjd4aEZtZXkybnZXdXRoNDZtZDNJbFhzUVNQWlE?oc=5",
-    "sentiment_score": 0.6,
-    "impact": "MEDIUM",
-    "keywords": [
-      "China downturn",
-      "geopolitical",
-      "risk"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Trump's Iran war weighs on G7 economies, but don't expect hard talk in France - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMisgFBVV95cUxQQ0RTSmJmU2ltSllOMFYxQi02VlY2MzJJa2d2NnpELXU0WmRaYVYwSFJRVW1OZFVzUjhRUWJRRnNlbmF2d09nTVdhYzQySEtGODRIMFhTS1B3bnlsU0hlbEtSVmtORG5LSnRCRFhMelJpZld4N2JkQzNPZHFENXlkVXI0MW5SV3pqRjZRU2FUN2R0VHdiamJYa1JKcVdtSDcxdTA4d1lUenY3VDRSMHN4QS1B?oc=5",
-    "sentiment_score": 0.7,
-    "impact": "MEDIUM",
-    "keywords": [
-      "Iran war",
-      "geopolitical",
-      "G7"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Has Trump achieved his goals in the war with Iran? - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMinAFBVV95cUxQU2loLVdUWXl3ZlBzRDNsT0dZVkFVajIyNGF1X041VlNlV0JBdkluNGpmVmZ5NzFzNWJKaDM2QU5UMTIzZGhvZFZ1dWsyeWlqdGZZV3N1TlY2Ykl5MnlWaXJEclUwTDZOX1VjeVpKS00ydEVwdHk1OHBvY25EdVlVOUJQdkNTR3J4SkxSd0d2VmxOUHBRYU1qM0dCaFQ?oc=5",
-    "sentiment_score": 0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "Iran war",
-      "Trump",
-      "geopolitical"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Stocks edge up as oil hovers near 3-month lows ahead of Warsh debut - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMigwFBVV95cUxQOU5DMTRIOHpLY0VUdlJ6RW1fcEhveWNmVmZaNFo0YkdfNmN0a0VZN1JHMDcxVFdlMl81aVpWQV8td2hxb1dZcldhVE5USmVqeEhDNDA4Yk5RSDBpWnBuN3FTblFLMUxEa3poLTZsR3pfMmNfUENaOVZDRjVFNGl5V0l6MA?oc=5",
-    "sentiment_score": -0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "oil prices",
-      "risk-off fade",
-      "equities"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Gold holds ground with spotlight on Fed meet, US-Iran deal details - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxOZmo2a0piWUpISXJxNEJNWlprT0NaYUx4OU1pZzZ6QUp3dUZCdGlsTUQxNlhZaG9WaXVNT1I2ZWxUb2RUSERFZ3ZpSVktbGN6N1JNUFdZdUplNEJsMWdPX1d0bi03b0lWVGk3TjBaYkJBY3NNQXJpazhpYmNhVndseV9wNXVuSW1IRDlMMTZBTVROeFdBRmkwa0s4Yk9hWHZVcGlmLVdUVXZEdw?oc=5",
-    "sentiment_score": 0.6,
-    "impact": "MEDIUM",
-    "keywords": [
-      "Fed meeting",
-      "USD weakness",
-      "support"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Oil rises on US-Iran deal doubts; IEA warns of supply glut - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMiygFBVV95cUxNenNvdC1DbGktWE0tRE5scUJEblVjSy1HVWROZkNNQ3lqT290eXhQV0R5MXhxYUhHYlBaN1lqdl95QUpEaHRaX0lOY3h2aEJSblJxYldFODhXWGFwN3dlOV9xbFFWTnpJNUlTUkJkaG9nWjRUUEpSemE2N09VWFVtNFRnT2RSQ3lKV094RjN5MkNYZlRIOURlZWJhREdaLWc2bVhiV2hCNUlYaTZrTUdXWkpKRnBTLWo1QVVEcDBIbGFWdGFqczhubmVR?oc=5",
-    "sentiment_score": -0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "oil rally",
-      "risk appetite",
-      "USD strength"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "CNBC",
-    "headline": "Databricks sales growth tops 80%, but margin are shrinking from swarm of AI agents",
-    "url": "https://www.cnbc.com/2026/06/16/databricks-revenue-growth-tops-80percent-to-6point9-billion-annualized.html",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "tech stocks",
-      "unrelated"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Norway's Equinor doubles share buyback as Iran war boosts cash flow - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxOZVYyTlJlM1VDVktyUGV4WlYzbEs1UWhsOWNqejlOanJPNUNrN2V2ZzN3SUxxRDVEdVRWeXoxRWZCeTBNeVE0aVA3emE0c3VySGhvUEI5YlJwMU5BZU5CZlJqRWo3bFZqNnl6X3BpZjNYNmFsNTNkN2dzczM3ZHpPMWVGcHVkT29hZHkybzVnU2ZJclNaNmpueHotX3d3MDl5UlJTdzd6LVF6RUU?oc=5",
-    "sentiment_score": -0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "oil prices",
-      "risk-on",
-      "USD strength"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "BMW lowers profit outlook due to China downturn, Iran war double whammy - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxOeFJVT1dCYVNyQnQ2VzVWTGRlOU5TSUZYS2tON2RkLVZNQ3FmU005Q1ZJVTd6VXRtOG1jQ2VRUUZ0OU1pN1p3X3FoS0J1cE9yM2tZTEdYbWZmNklwV1JVMDAyLTdrUUF2aVF4TzRPRFM2TTZILU5NOElVZ2xtRzF1RWZlQkV4Z1RuakpPWW1KWWtrUzhPSE0tOW1USQ?oc=5",
-    "sentiment_score": 0.6,
-    "impact": "MEDIUM",
-    "keywords": [
-      "China downturn",
-      "geopolitical",
-      "risk"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "CNBC",
-    "headline": "Jim Cramer: Why we're headed back to pre-Iran war oil prices and what it means",
-    "url": "https://www.cnbc.com/2026/06/16/jim-cramer-why-were-headed-back-to-pre-iran-war-oil-prices-and-what-it-means.html",
-    "sentiment_score": -0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "oil prices",
-      "risk sentiment",
-      "USD"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "CNBC",
-    "headline": "Jim Cramer debates his next move on a software stock on an 11 day losing streak",
-    "url": "https://www.cnbc.com/2026/06/16/jim-cramer-debates-his-next-move-on-a-software-stock-on-an-11-day-losing-streak.html",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "stock analysis",
-      "unrelated"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "ECB will be proactive against high inflation even after Iran deal, Lane says - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMitAFBVV95cUxOT2lsQ01zNGpfblZQQnlTaUFFeUZfbUdCVWlBREtRcDNjRUhhaEtLejJ6UnFZaFR1TjJNaWk3TFBrNW5kMnhMSTd3M2FRcF9lTXdWVUUzOXd0dU9FVGxabFowTHgzQkJjSElXdEx5VUpJbVRoQ0NXSHRMaDdmbnp2VXZhVnp5UXdQRnczT0R6VlA0Z2oyRWNjNzREX1ZwVC1sSUpTd0hMQk9PTGlUMndXS1kzVHc?oc=5",
-    "sentiment_score": -0.6,
-    "impact": "MEDIUM",
-    "keywords": [
-      "ECB hawkish",
-      "rate hikes",
-      "USD strength"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "CNBC",
-    "headline": "Treasury yields fall ahead of Kevin Warsh's first Fed meeting",
-    "url": "https://www.cnbc.com/2026/06/16/treasury-yields-investors-await-warsh-first-fed-meeting.html",
-    "sentiment_score": 0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "yield decline",
-      "USD weakness",
-      "Fed dovish"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Indian rupee extends gains; US-Iran peace agreement details, Fed guidance awaited - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMirwFBVV95cUxPd0c2VjNXb250alRscjNDSThUNXZ6aVRoMUp2S2FhNUEyOGRoaWFyY0haSWRUcEw3VTNVUUNFV1pEOXRXV2g5WHdGTXVNNmhVdVAtRW5lNnpBX0NKTVk5aFgwdXRiVEFHXzR6bTJhZ19zdW9zd2dDZWJiU0VUSlVOTG95MmlLOUpKbXItdTNwRHJIREJEbVVqYnBFOEFCaUlMOUVzb2lsaUt3aGVpLXk4?oc=5",
-    "sentiment_score": 0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "US-Iran peace",
-      "Fed guidance",
-      "rupee strength"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Gold rises over 1% as US-Iran peace deal optimism eases rate hike bets - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMipAFBVV95cUxOSkNDWks4bTBLM1E5aXc4V0hBOWF4OHJpdUpBY0ZZSF9SaU1fVmFwRUdEalB2YmdUUVlObmJhYTlQSE92cFJYUGtKd1I0eHNoODQycHFuVEhjZDJUaE1Kc2FsY3RkcW5ia0JWVlU3MnFpUkpvei1OcHcwNmpsTWd4NUFTZHM2X0N5SDVOR3hLTEJjd3BQVDR5dWVpd043WXB2dDhmVA?oc=5",
-    "sentiment_score": 0.7,
-    "impact": "HIGH",
-    "keywords": [
-      "peace deal",
-      "rate hike easing",
-      "geopolitical relief"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Is the Iran war just an energy shock - or a turning point? - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMiugFBVV95cUxPb0FRWE5MTXBpNWRsVmZGc0ZLUS1nbG56MXVZeEU2SlBqN2Z4VTVmNmlyRzF6TW96SlpfZkZXdFlycmFHalhaMy1OckdpajR2end5OXAzVUNzRTFaQURzQmw4ZWN5LVgweXVGRnB1ZndRREdOSl9NMFNJQjZoOXc5ZXliX0tpNENwVktxVU5kWTJRaTZTckhvMHc3ak1NTDF0OHNDZ3JrWEEyUkFQWm1LNmV4dFlLQS1Semc?oc=5",
-    "sentiment_score": 0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "Iran conflict",
-      "energy shock",
-      "geopolitical risk"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Dollar drifts, no respite for yen after BOJ hikes rates as expected - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMirAFBVV95cUxQUUExX2IzZ1JzLWdOMUlBdFlyMmJCVS1KeDFLTlZ6RjRDYlBCcE1ZMG4zaTJYOVg0ZGlvdmlpWUNTdUlaOC1vRmhJalJCZTBrWTRVMzEyNEZjZTJzRDB1WDl2eFlrdU0xSFdFNlY5eDNJV0RLYTFvUGlfSS1CQXlUUzdON0hlR1BKbXhOY1dIR3JxcDdMMUVzcVRpTnN6LWZJZWR6clQ0ZE40Ykdr?oc=5",
-    "sentiment_score": -0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "dollar strength",
-      "BOJ rate hike",
-      "yen weakness"
-    ],
-    "fetched_at": "2026-06-17T18:32:13.731257+00:00"
-  },
-  {
-    "source": "ForexLive",
-    "headline": "Warsh Q&A: I see no reason to revisit 2% inflation goal until we have delivered",
-    "url": "https://investinglive.com/centralbank/warsh-qa-i-see-no-reason-to-revisit-2-inflation-goal-until-we-have-delivered-20260617/",
-    "sentiment_score": -0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "inflation target",
-      "hawkish",
-      "2% goal"
-    ],
-    "fetched_at": "2026-06-17T18:47:30.195345+00:00"
-  },
-  {
-    "source": "ForexLive",
-    "headline": "Where are the market levels as Warsh begins his press conference",
-    "url": "https://investinglive.com/news/where-are-the-markets-as-warsh-begins-his-press-conference-20260617/",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "market levels",
-      "technical",
-      "neutral"
-    ],
-    "fetched_at": "2026-06-17T18:47:30.195345+00:00"
-  },
-  {
-    "source": "ForexLive",
-    "headline": "Fed Chair Warsh: We recognize that inflation has been running \"well ahead\" of 2%",
-    "url": "https://investinglive.com/centralbank/fed-chair-warsh-we-recognize-that-inflation-has-been-running-well-ahead-of-2-20260617/",
-    "sentiment_score": -0.6,
-    "impact": "HIGH",
-    "keywords": [
-      "inflation",
-      "hawkish",
-      "above target"
-    ],
-    "fetched_at": "2026-06-17T18:47:30.195345+00:00"
-  },
-  {
-    "source": "ForexLive",
-    "headline": "Markets shift in a hawkish direction after the FOMC statement and dot plot",
-    "url": "https://investinglive.com/stocks/markets-shift-in-a-hawkish-direction-after-the-fomc-statement-and-dot-plot-20260617/",
-    "sentiment_score": -0.7,
-    "impact": "HIGH",
-    "keywords": [
-      "hawkish shift",
-      "rates higher",
-      "tighter policy"
-    ],
-    "fetched_at": "2026-06-17T18:47:30.195345+00:00"
-  },
-  {
-    "source": "ForexLive",
-    "headline": "The full FOMC statement from the June 2026 meeting.",
-    "url": "https://investinglive.com/centralbank/the-full-fomc-statement-from-the-june-2026-meeting-20260617/",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "statement",
-      "reference",
-      "informational"
-    ],
-    "fetched_at": "2026-06-17T18:47:30.195345+00:00"
-  },
-  {
-    "source": "ForexLive",
-    "headline": "FOMC June 2026 dot plot sees end of year target at 3.8% vs 3.4% in March 2026",
-    "url": "https://investinglive.com/centralbank/fomc-june-2026-dot-plot-sees-end-of-year-target-at-38-vs-34-in-march-2026-20260617/",
-    "sentiment_score": -0.8,
-    "impact": "HIGH",
-    "keywords": [
-      "higher rate expectations",
-      "dot plot hawkish",
-      "2026 projections"
-    ],
-    "fetched_at": "2026-06-17T18:47:30.195345+00:00"
-  },
-  {
-    "source": "ForexLive",
-    "headline": "Federal Reserve rate decision: No change to the Fed funds target, as expected",
-    "url": "https://investinglive.com/centralbank/federal-reserve-rate-decision-no-change-to-the-fed-funds-target-as-expected-20260617/",
-    "sentiment_score": -0.2,
-    "impact": "MEDIUM",
-    "keywords": [
-      "no change",
-      "hold steady",
-      "stable policy"
-    ],
-    "fetched_at": "2026-06-17T18:47:30.195345+00:00"
-  },
-  {
-    "source": "ForexLive",
-    "headline": "For reference: The FOMC statement from the April 28-29 meeting",
-    "url": "https://investinglive.com/centralbank/for-reference-the-fomc-statement-from-the-april-28-29-meeting-20260617/",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "reference",
-      "historical",
-      "informational"
-    ],
-    "fetched_at": "2026-06-17T18:47:30.195345+00:00"
-  },
-  {
-    "source": "ForexLive",
-    "headline": "US releases the formal text of the Iran agreement, which has already been signed",
-    "url": "https://investinglive.com/news/us-releases-the-formal-text-of-the-iran-agreement-which-has-already-been-signed-20260617/",
-    "sentiment_score": 0.2,
-    "impact": "LOW",
-    "keywords": [
-      "Iran agreement",
-      "geopolitical",
-      "risk asset"
-    ],
-    "fetched_at": "2026-06-17T18:47:30.195345+00:00"
-  },
-  {
-    "source": "ForexLive",
-    "headline": "FOMC preview: Why this is one for the headline traders",
-    "url": "https://investinglive.com/centralbank/fomc-preview-why-this-is-one-for-the-headline-traders-20260617/",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "preview",
-      "headline trading",
-      "informational"
-    ],
-    "fetched_at": "2026-06-17T18:47:30.195345+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Fed's Chair Warsh: I don't want to prejudge the outcomes of the communications review.",
-    "url": "https://www.financialjuice.com/News/9640735/Feds-Chair-Warsh-I-dont-want-to-prejudge-the-outcomes-of-the-communications-review.aspx?xy=rss",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "communications",
-      "neutral stance",
-      "open-minded"
-    ],
-    "fetched_at": "2026-06-17T18:47:30.195345+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Fed's Chair Warsh: For me, submitting a dot is not helpful in the conduct of policy.",
-    "url": "https://www.financialjuice.com/News/9640734/Feds-Chair-Warsh-For-me-submitting-a-dot-is-not-helpful-in-the-conduct-of-policy.aspx?xy=rss",
-    "sentiment_score": 0.1,
-    "impact": "LOW",
-    "keywords": [
-      "dot plot skepticism",
-      "dovish signal",
-      "flexibility"
-    ],
-    "fetched_at": "2026-06-17T18:47:30.195345+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Fed's Chair Warsh: The level of Fed restriction is uneven.",
-    "url": "https://www.financialjuice.com/News/9640733/Feds-Chair-Warsh-The-level-of-Fed-restriction-is-uneven.aspx?xy=rss",
-    "sentiment_score": 0.2,
-    "impact": "MEDIUM",
-    "keywords": [
-      "uneven restriction",
-      "dovish",
-      "policy uncertainty"
-    ],
-    "fetched_at": "2026-06-17T18:47:30.195345+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Fed's Chair Warsh: I am pretty open minded.",
-    "url": "https://www.financialjuice.com/News/9640732/Feds-Chair-Warsh-I-am-pretty-open-minded-.aspx?xy=rss",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "open-minded",
-      "neutral",
-      "non-committal"
-    ],
-    "fetched_at": "2026-06-17T18:47:30.195345+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Fed's Chair Warsh: I expect by year-end there will be a broad review of communications, press conferences, dots, and meetings.",
-    "url": "https://www.financialjuice.com/News/9640731/Feds-Chair-Warsh-I-expect-by-year-end-there-will-be-a-broad-review-of-communications-press-conferences-dots-and-meetings.aspx?xy=rss",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "communications review",
-      "future policy",
-      "informational"
-    ],
-    "fetched_at": "2026-06-17T18:47:30.195345+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Fed's Chair Warsh: Policymakers don't feel bound by their dots. I did not hear tons of conviction on the projection submissions.",
-    "url": "https://www.financialjuice.com/News/9640721/Feds-Chair-Warsh-Policymakers-dont-feel-bound-by-their-dots-I-did-not-hear-tons-of-conviction-on-the-projection-submissions.aspx?xy=rss",
-    "sentiment_score": 0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "dovish",
-      "dot plot unreliable",
-      "policy flexibility"
-    ],
-    "fetched_at": "2026-06-17T18:47:30.195345+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Fed's Chair Warsh noted that dot plot submissions came in with pencils that have big erasers.",
-    "url": "https://www.financialjuice.com/News/9640720/Feds-Chair-Warsh-noted-that-dot-plot-submissions-came-in-with-pencils-that-have-big-erasers.aspx?xy=rss",
-    "sentiment_score": 0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "dovish",
-      "dot plot uncertainty",
-      "flexibility"
-    ],
-    "fetched_at": "2026-06-17T18:47:30.195345+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Fed's Chair Warsh asked about the future of the dot plot: We've got a task for that.",
-    "url": "https://www.financialjuice.com/News/9640719/Feds-Chair-Warsh-asked-about-the-future-of-the-dot-plot-Weve-got-a-task-for-that.aspx?xy=rss",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "dot plot future",
-      "neutral",
-      "under review"
-    ],
-    "fetched_at": "2026-06-17T18:47:30.195345+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Fed's Chair Warsh: Fed policy appears to be restrictive vis-\u00e0-vis the housing market, but not financial markets.",
-    "url": "https://www.financialjuice.com/News/9640718/Feds-Chair-Warsh-Fed-policy-appears-to-be-restrictive-vis-%c3%a0-vis-the-housing-market-but-not-financial-markets.aspx?xy=rss",
-    "sentiment_score": 0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "dovish",
-      "housing pressure",
-      "uneven restriction"
-    ],
-    "fetched_at": "2026-06-17T18:47:30.195345+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Fed's Chair Warsh, asked about the future of policy: We've dropped forward guidance.",
-    "url": "https://www.financialjuice.com/News/9640717/Feds-Chair-Warsh-asked-about-the-future-of-policy-Weve-dropped-forward-guidance.aspx?xy=rss",
-    "sentiment_score": 0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "dovish",
-      "no forward guidance",
-      "flexibility"
-    ],
-    "fetched_at": "2026-06-17T18:47:30.195345+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Fed's Chair Warsh: We have the capability and the commitment to deliver 2% inflation.",
-    "url": "https://www.financialjuice.com/News/9640716/Feds-Chair-Warsh-We-have-the-capability-and-the-commitment-to-deliver-2-inflation.aspx?xy=rss",
-    "sentiment_score": -0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "inflation target",
-      "hawkish commitment",
-      "2% goal"
-    ],
-    "fetched_at": "2026-06-17T18:47:30.195345+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Fed's Chair Warsh: The 2% goal will be outside the scope of the inflation task force.",
-    "url": "https://www.financialjuice.com/News/9640715/Feds-Chair-Warsh-The-2-goal-will-be-outside-the-scope-of-the-inflation-task-force.aspx?xy=rss",
-    "sentiment_score": -0.2,
-    "impact": "LOW",
-    "keywords": [
-      "inflation framework",
-      "task force",
-      "independence"
-    ],
-    "fetched_at": "2026-06-17T18:47:30.195345+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Fed's Chair Warsh: I see no reason until we have delivered the 2% goal, to revisit that goal.",
-    "url": "https://www.financialjuice.com/News/9640714/Feds-Chair-Warsh-I-see-no-reason-until-we-have-delivered-the-2-goal-to-revisit-that-goal.aspx?xy=rss",
-    "sentiment_score": -0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "hawkish",
-      "2% inflation",
-      "no rate cuts"
-    ],
-    "fetched_at": "2026-06-17T18:47:30.195345+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Fed's Chair Warsh: 2% inflation is the Fed's longheld objective.",
-    "url": "https://www.financialjuice.com/News/9640713/Feds-Chair-Warsh-2-inflation-is-the-Feds-longheld-objective.aspx?xy=rss",
-    "sentiment_score": -0.2,
-    "impact": "LOW",
-    "keywords": [
-      "inflation objective",
-      "Fed policy",
-      "commitment"
-    ],
-    "fetched_at": "2026-06-17T18:47:30.195345+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Fed's Chair Warsh: I expect to see some results by fall, the conclusion of task forces by the year-end.",
-    "url": "https://www.financialjuice.com/News/9640712/Feds-Chair-Warsh-I-expect-to-see-some-results-by-fall-the-conclusion-of-task-forces-by-the-year-end.aspx?xy=rss",
-    "sentiment_score": -0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "policy review",
-      "structural changes",
-      "hawkish"
-    ],
-    "fetched_at": "2026-06-17T18:47:30.195345+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Fed's Chair Warsh: Task forces to begin work in the next couple of weeks.",
-    "url": "https://www.financialjuice.com/News/9640711/Feds-Chair-Warsh-Task-forces-to-begin-work-in-the-next-couple-of-weeks.aspx?xy=rss",
-    "sentiment_score": -0.1,
-    "impact": "LOW",
-    "keywords": [
-      "task force",
-      "implementation",
-      "neutral"
-    ],
-    "fetched_at": "2026-06-17T18:47:30.195345+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Fed's Chair Warsh: The task force on inflation frameworks will examine drivers of inflation.",
-    "url": "https://www.financialjuice.com/News/9640710/Feds-Chair-Warsh-The-task-force-on-inflation-frameworks-will-examine-drivers-of-inflation.aspx?xy=rss",
-    "sentiment_score": -0.2,
-    "impact": "LOW",
-    "keywords": [
-      "inflation analysis",
-      "framework review",
-      "neutral"
-    ],
-    "fetched_at": "2026-06-17T18:47:30.195345+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Fed's Chair Warsh: The task force on productivity and jobs will survey the reach of AI and other general-purpose tech.",
-    "url": "https://www.financialjuice.com/News/9640709/Feds-Chair-Warsh-The-task-force-on-productivity-and-jobs-will-survey-the-reach-of-AI-and-other-general-purpose-tech.aspx?xy=rss",
-    "sentiment_score": -0.1,
-    "impact": "LOW",
-    "keywords": [
-      "AI productivity",
-      "jobs analysis",
-      "neutral"
-    ],
-    "fetched_at": "2026-06-17T18:47:30.195345+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Fed's Chair Warsh: The data task force will consider new data sources and methodological changes.",
-    "url": "https://www.financialjuice.com/News/9640708/Feds-Chair-Warsh-The-data-task-force-will-consider-new-data-sources-and-methodological-changes.aspx?xy=rss",
-    "sentiment_score": -0.1,
-    "impact": "LOW",
-    "keywords": [
-      "data methodology",
-      "technical review",
-      "neutral"
-    ],
-    "fetched_at": "2026-06-17T18:47:30.195345+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Fed's Chair Warsh: I expect the communications task force to recommend an SEP change.",
-    "url": "https://www.financialjuice.com/News/9640707/Feds-Chair-Warsh-I-expect-the-communications-task-force-to-recommend-an-SEP-change.aspx?xy=rss",
-    "sentiment_score": -0.2,
-    "impact": "LOW",
-    "keywords": [
-      "communications",
-      "transparency",
-      "SEP changes"
-    ],
-    "fetched_at": "2026-06-17T18:47:30.195345+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Fed's Chair Warsh: The balance sheet task force will review the benefits and risks of the ample reserves regime.",
-    "url": "https://www.financialjuice.com/News/9640706/Feds-Chair-Warsh-The-balance-sheet-task-force-will-review-the-benefits-and-risks-of-the-ample-reserves-regime.aspx?xy=rss",
-    "sentiment_score": -0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "balance sheet",
-      "ample reserves",
-      "policy review"
-    ],
-    "fetched_at": "2026-06-17T18:47:30.195345+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Fed's Chair Warsh: I expect to propose changes, including to the summary of projections.",
-    "url": "https://www.financialjuice.com/News/9640705/Feds-Chair-Warsh-I-expect-to-propose-changes-including-to-the-summary-of-projections.aspx?xy=rss",
-    "sentiment_score": -0.2,
-    "impact": "LOW",
-    "keywords": [
-      "projections",
-      "forward guidance",
-      "neutral"
-    ],
-    "fetched_at": "2026-06-17T18:47:30.195345+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Fed's Chair Warsh: Task forces will ultimately propose next steps.",
-    "url": "https://www.financialjuice.com/News/9640704/Feds-Chair-Warsh-Task-forces-will-ultimately-propose-next-steps.aspx?xy=rss",
-    "sentiment_score": -0.1,
-    "impact": "LOW",
-    "keywords": [
-      "task force",
-      "implementation",
-      "neutral"
-    ],
-    "fetched_at": "2026-06-17T18:47:30.195345+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Fed's Chair Warsh: Task forces include inflation frameworks.",
-    "url": "https://www.financialjuice.com/News/9640703/Feds-Chair-Warsh-Task-forces-include-inflation-frameworks.aspx?xy=rss",
-    "sentiment_score": -0.1,
-    "impact": "LOW",
-    "keywords": [
-      "inflation frameworks",
-      "structural",
-      "neutral"
-    ],
-    "fetched_at": "2026-06-17T18:47:30.195345+00:00"
-  },
-  {
     "source": "FinancialJuice",
     "headline": "Fed's Chair Warsh: Task forces will be supported by Fed staff.",
     "url": "https://www.financialjuice.com/News/9640702/Feds-Chair-Warsh-Task-forces-will-be-supported-by-Fed-staff.aspx?xy=rss",
@@ -2590,5 +1241,1345 @@
       "accumulation"
     ],
     "fetched_at": "2026-06-17T19:02:55.495619+00:00"
+  },
+  {
+    "source": "ForexLive",
+    "headline": "How has the technical view changed after the FOMC rate decision?",
+    "url": "https://investinglive.com/technical-analysis/what-has-the-usd-done-post-the-fomc-rate-decision-20260617/",
+    "sentiment_score": -0.6,
+    "impact": "MEDIUM",
+    "keywords": [
+      "technical analysis",
+      "rate decision",
+      "market direction"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "ForexLive",
+    "headline": "Warsh Q&A: I see no reason to revisit 2% inflation goal until we have delivered",
+    "url": "https://investinglive.com/centralbank/warsh-qa-i-see-no-reason-to-revisit-2-inflation-goal-until-we-have-delivered-20260617/",
+    "sentiment_score": -0.7,
+    "impact": "HIGH",
+    "keywords": [
+      "inflation target",
+      "hawkish",
+      "2% goal"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "ForexLive",
+    "headline": "Where are the market levels as Warsh begins his press conference",
+    "url": "https://investinglive.com/news/where-are-the-markets-as-warsh-begins-his-press-conference-20260617/",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "market levels",
+      "press conference"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "ForexLive",
+    "headline": "Fed Chair Warsh: We recognize that inflation has been running \"well ahead\" of 2%",
+    "url": "https://investinglive.com/centralbank/fed-chair-warsh-we-recognize-that-inflation-has-been-running-well-ahead-of-2-20260617/",
+    "sentiment_score": -0.8,
+    "impact": "HIGH",
+    "keywords": [
+      "inflation",
+      "well ahead",
+      "hawkish"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "ForexLive",
+    "headline": "Markets shift in a hawkish direction after the FOMC statement and dot plot",
+    "url": "https://investinglive.com/stocks/markets-shift-in-a-hawkish-direction-after-the-fomc-statement-and-dot-plot-20260617/",
+    "sentiment_score": -0.7,
+    "impact": "HIGH",
+    "keywords": [
+      "hawkish",
+      "FOMC",
+      "dot plot"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "ForexLive",
+    "headline": "The full FOMC statement from the June 2026 meeting.",
+    "url": "https://investinglive.com/centralbank/the-full-fomc-statement-from-the-june-2026-meeting-20260617/",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "FOMC statement",
+      "reference"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "ForexLive",
+    "headline": "FOMC June 2026 dot plot sees end of year target at 3.8% vs 3.4% in March 2026",
+    "url": "https://investinglive.com/centralbank/fomc-june-2026-dot-plot-sees-end-of-year-target-at-38-vs-34-in-march-2026-20260617/",
+    "sentiment_score": -0.9,
+    "impact": "HIGH",
+    "keywords": [
+      "dot plot",
+      "rate hike",
+      "3.8%"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "ForexLive",
+    "headline": "Federal Reserve rate decision: No change to the Fed funds target, as expected",
+    "url": "https://investinglive.com/centralbank/federal-reserve-rate-decision-no-change-to-the-fed-funds-target-as-expected-20260617/",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "no change",
+      "expected",
+      "Fed funds"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "ForexLive",
+    "headline": "For reference: The FOMC statement from the April 28-29 meeting",
+    "url": "https://investinglive.com/centralbank/for-reference-the-fomc-statement-from-the-april-28-29-meeting-20260617/",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "reference",
+      "April meeting"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "ForexLive",
+    "headline": "US releases the formal text of the Iran agreement, which has already been signed",
+    "url": "https://investinglive.com/news/us-releases-the-formal-text-of-the-iran-agreement-which-has-already-been-signed-20260617/",
+    "sentiment_score": 0.3,
+    "impact": "MEDIUM",
+    "keywords": [
+      "Iran agreement",
+      "geopolitical",
+      "shipping"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "IRNA on MOU Text: During this period, ships traffic will return to prewar levels.",
+    "url": "https://www.financialjuice.com/News/9640830/IRNA-on-MOU-Text-During-this-period-ships-traffic-will-return-to-prewar-levels.aspx",
+    "sentiment_score": 0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "shipping",
+      "Hormuz",
+      "tensions"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Chair Warsh ends first press conference.",
+    "url": "https://www.financialjuice.com/News/9640829/Feds-Chair-Warsh-ends-first-press-conference.aspx",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "press conference",
+      "end"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Trump ends remarks to reporters.",
+    "url": "https://www.financialjuice.com/News/9640828/Trump-ends-remarks-to-reporters.aspx",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "Trump remarks"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "IRNA on MOU Text: The US is going to immediately start lifting the naval blockade on Iran after signing, complete end of blockade within 30 days.",
+    "url": "https://www.financialjuice.com/News/9640827/IRNA-on-MOU-Text-The-US-is-going-to-immediately-start-lifting-the-naval-blockade-on-Iran-after-signing-complete-end-of-blockade-within-30-days.aspx",
+    "sentiment_score": 0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "naval blockade",
+      "Iran",
+      "geopolitical"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Trump: I may put russian oil sanctions back on.",
+    "url": "https://www.financialjuice.com/News/9640826/Trump-I-may-put-russian-oil-sanctions-back-on.aspx",
+    "sentiment_score": -0.3,
+    "impact": "MEDIUM",
+    "keywords": [
+      "Russian oil",
+      "sanctions",
+      "supply"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Trump: I didn't discuss Greenland at the G7, but I should.",
+    "url": "https://www.financialjuice.com/News/9640820/Trump-I-didnt-discuss-Greenland-at-the-G7-but-I-should.aspx",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "Greenland",
+      "G7"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Iraq increases Rumaila oilfield output by 300,000 bpd, reaching 650,000 bpd as export operations recover - Document and oilfield officials.",
+    "url": "https://www.financialjuice.com/News/9640817/Iraq-increases-Rumaila-oilfield-output-by-300000-bpd-reaching-650000-bpd-as-export-operations-recover---Document-and-oilfield-officials.aspx",
+    "sentiment_score": -0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "oil output",
+      "supply increase",
+      "Iraq"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Trump on Iran: 60 days is not a hard deadline for a final agreement.",
+    "url": "https://www.financialjuice.com/News/9640816/Trump-on-Iran-60-days-is-not-a-hard-deadline-for-a-final-agreement.aspx",
+    "sentiment_score": 0.2,
+    "impact": "LOW",
+    "keywords": [
+      "Iran",
+      "deadline",
+      "negotiations"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Irna on MOU Text: Iran will engage with Oman to determine future administration and maritime services in the Strait of Hormuz.",
+    "url": "https://www.financialjuice.com/News/9640815/Irna-on-MOU-Text-Iran-will-engage-with-Oman-to-determine-future-administration-and-maritime-services-in-the-Strait-of-Hormuz.aspx",
+    "sentiment_score": 0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "Strait of Hormuz",
+      "Iran",
+      "maritime"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Iraq's Southern Crude output rises by about 500,000 bpd to 1.5 mln bpd as more tankers reach export terminals - Document and three oil officials.",
+    "url": "https://www.financialjuice.com/News/9640814/Iraqs-Southern-Crude-output-rises-by-about-500000-bpd-to-15-mln-bpd-as-more-tankers-reach-export-terminals---Document-and-three-oil-officials.aspx",
+    "sentiment_score": -0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "oil production",
+      "supply increase",
+      "Iraq"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Trump: I view the USMCA as possibly expiring immediately.",
+    "url": "https://www.financialjuice.com/News/9640813/Trump-I-view-the-USMCA-as-possibly-expiring-immediately.aspx",
+    "sentiment_score": -0.6,
+    "impact": "MEDIUM",
+    "keywords": [
+      "trade",
+      "uncertainty",
+      "USMCA"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Trump: USMCA won't be sticking around. It gets terminated.",
+    "url": "https://www.financialjuice.com/News/9640812/Trump-USMCA-wont-be-sticking-around-It-gets-terminated.aspx",
+    "sentiment_score": -0.6,
+    "impact": "MEDIUM",
+    "keywords": [
+      "trade",
+      "termination",
+      "USMCA"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Trump: The US would do better without the USMCA agreement. I am thinking maybe we won't be able to make a deal. Would rather leave it unsigned.",
+    "url": "https://www.financialjuice.com/News/9640811/Trump-The-US-would-do-better-without-the-USMCA-agreement-I-am-thinking-maybe-we-wont-be-able-to-make-a-deal-Would-rather-leave-it-unsigned.aspx",
+    "sentiment_score": -0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "trade",
+      "deal collapse",
+      "uncertainty"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Chair Warsh: The committee thought labor markets were stable. Some thought it was trending better than that.",
+    "url": "https://www.financialjuice.com/News/9640810/Feds-Chair-Warsh-The-committee-thought-labor-markets-were-stable-Some-thought-it-was-trending-better-than-that.aspx",
+    "sentiment_score": -0.3,
+    "impact": "LOW",
+    "keywords": [
+      "labor market",
+      "stable",
+      "Fed"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Trump on Chinese Cars: The US doesn't have problems that Europe has.",
+    "url": "https://www.financialjuice.com/News/9640809/Trump-on-Chinese-Cars-The-US-doesnt-have-problems-that-Europe-has.aspx",
+    "sentiment_score": -0.1,
+    "impact": "LOW",
+    "keywords": [
+      "tariffs",
+      "trade",
+      "confidence"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Chair Warsh: I have devoted most of my time to monetary policy in the first three weeks.",
+    "url": "https://www.financialjuice.com/News/9640808/Feds-Chair-Warsh-I-have-devoted-most-of-my-time-to-monetary-policy-in-the-first-three-weeks.aspx",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "monetary policy",
+      "neutral",
+      "administration"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "IRNA on MOU Text: Dissolving of nuclear-enriched material to take place under mutual agreement and supervision of the IAEA.",
+    "url": "https://www.financialjuice.com/News/9640807/IRNA-on-MOU-Text-Dissolving-of-nuclear-enriched-material-to-take-place-under-mutual-agreement-and-supervision-of-the-IAEA.aspx",
+    "sentiment_score": 0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "Iran",
+      "nuclear",
+      "stability"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Trump: Nuclear dust is less important than nonproliferation.",
+    "url": "https://www.financialjuice.com/News/9640806/Trump-Nuclear-dust-is-less-important-than-nonproliferation.aspx",
+    "sentiment_score": 0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "Iran",
+      "nonproliferation",
+      "geopolitical"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Trump: If other countries have ballistic missiles, it's 'a little bit unfair' for Iran to have none.",
+    "url": "https://www.financialjuice.com/News/9640805/Trump-If-other-countries-have-ballistic-missiles-its-a-little-bit-unfair-for-Iran-to-have-none.aspx",
+    "sentiment_score": 0.3,
+    "impact": "MEDIUM",
+    "keywords": [
+      "Iran",
+      "ballistic missiles",
+      "fairness"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Trump: We're probably keeping the military in the Gulf a while.",
+    "url": "https://www.financialjuice.com/News/9640804/Trump-Were-probably-keeping-the-military-in-the-Gulf-a-while.aspx",
+    "sentiment_score": -0.2,
+    "impact": "LOW",
+    "keywords": [
+      "military",
+      "Gulf",
+      "geopolitical"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Iran's Official News Agency on MOU text: Iran and the US agree to resolve the status of stockpiled enriched material through a mutually agreed mechanism.",
+    "url": "https://www.financialjuice.com/News/9640803/Irans-Official-News-Agency-on-MOU-text-Iran-and-the-US-agree-to-resolve-the-status-of-stockpiled-enriched-material-through-a-mutually-agreed-mechanism.aspx",
+    "sentiment_score": 0.6,
+    "impact": "MEDIUM",
+    "keywords": [
+      "Iran deal",
+      "agreement",
+      "enriched material"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Chair Warsh: A new communication framework by the year-end wouldn't surprise.",
+    "url": "https://www.financialjuice.com/News/9640802/Feds-Chair-Warsh-A-new-communication-framework-by-the-year-end-wouldnt-surprise.aspx",
+    "sentiment_score": 0.1,
+    "impact": "LOW",
+    "keywords": [
+      "Fed",
+      "communication",
+      "framework"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Trump: Iran deal signed over the next 48 hours. Iran is signing in final form, but not yet determined.",
+    "url": "https://www.financialjuice.com/News/9640801/Trump-Iran-deal-signed-over-the-next-48-hours-Iran-is-signing-in-final-form-but-not-yet-determined.aspx",
+    "sentiment_score": 0.7,
+    "impact": "MEDIUM",
+    "keywords": [
+      "Iran deal",
+      "imminent",
+      "geopolitical"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Trump on Fed raising rates possibly: It could happen.",
+    "url": "https://www.financialjuice.com/News/9640800/Trump-on-Fed-raising-rates-possibly-It-could-happen.aspx",
+    "sentiment_score": -0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "Fed",
+      "rate hike",
+      "hawkish"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Trump on Fed: Alright, that they held rates, whatever.",
+    "url": "https://www.financialjuice.com/News/9640799/Trump-on-Fed-Alright-that-they-held-rates-whatever.aspx",
+    "sentiment_score": -0.2,
+    "impact": "LOW",
+    "keywords": [
+      "Fed",
+      "rates",
+      "neutral"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Chair Warsh: My read of what I heard in the room, reflected in projections, was that half of colleagues felt rates should be lower and half should be higher.",
+    "url": "https://www.financialjuice.com/News/9640798/Feds-Chair-Warsh-My-read-of-what-I-heard-in-the-room-reflected-in-projections-was-that-half-of-colleagues-felt-rates-should-be-lower-and-half-should-be-higher.aspx",
+    "sentiment_score": 0.3,
+    "impact": "MEDIUM",
+    "keywords": [
+      "Fed",
+      "divided",
+      "dovish tilt"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Iran's Official News Agency on MOU text: The two parties commit to reach a final deal in 60 days of negotiation that can be prolonged.",
+    "url": "https://www.financialjuice.com/News/9640797/Irans-Official-News-Agency-on-MOU-text-The-two-parties-commit-to-reach-a-final-deal-in-60-days-of-negotiation-that-can-be-prolonged.aspx",
+    "sentiment_score": 0.6,
+    "impact": "MEDIUM",
+    "keywords": [
+      "Iran deal",
+      "final agreement",
+      "geopolitical"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Iran's Official News Agency on MOU text: The two countries not to interfere in each other's internal affairs.",
+    "url": "https://www.financialjuice.com/News/9640796/Irans-Official-News-Agency-on-MOU-text-The-two-countries-not-to-interfere-in-each-others-internal-affairs.aspx",
+    "sentiment_score": 0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "Iran",
+      "non-interference",
+      "stability"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Iran's Official News Agency releases the text of the interim US-Iran agreement",
+    "url": "https://www.financialjuice.com/News/9640795/Irans-Official-News-Agency-releases-the-text-of-the-interim-US-Iran-agreement.aspx",
+    "sentiment_score": 0.7,
+    "impact": "HIGH",
+    "keywords": [
+      "Iran",
+      "MOU",
+      "geopolitical"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Chair Warsh: Ambition is not to overhaul the system of national accounts.",
+    "url": "https://www.financialjuice.com/News/9640794/Feds-Chair-Warsh-Ambition-is-not-to-overhaul-the-system-of-national-accounts.aspx",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "Fed",
+      "accounting",
+      "neutral"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Chair Warsh: The demand side on AI is being counted. I am less certain about the supply side.",
+    "url": "https://www.financialjuice.com/News/9640777/Feds-Chair-Warsh-The-demand-side-on-AI-is-being-counted-I-am-less-certain-about-the-supply-side.aspx",
+    "sentiment_score": -0.3,
+    "impact": "MEDIUM",
+    "keywords": [
+      "AI supply concerns",
+      "economic uncertainty",
+      "growth headwinds"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Chair Warsh: None of the 19 at the table felt we needed to tighten today.",
+    "url": "https://www.financialjuice.com/News/9640776/Feds-Chair-Warsh-None-of-the-19-at-the-table-felt-we-needed-to-tighten-today.aspx",
+    "sentiment_score": 0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "no tightening",
+      "dovish hold",
+      "pause signal"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Chair Warsh: We have work to do on the price stability front.",
+    "url": "https://www.financialjuice.com/News/9640775/Feds-Chair-Warsh-We-have-work-to-do-on-the-price-stability-front.aspx",
+    "sentiment_score": -0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "price stability",
+      "inflation focus",
+      "hawkish concern"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Chair Warsh: I don't believe we have a cruel choice between full employment and stable prices.",
+    "url": "https://www.financialjuice.com/News/9640774/Feds-Chair-Warsh-I-dont-believe-we-have-a-cruel-choice-between-full-employment-and-stable-prices.aspx",
+    "sentiment_score": 0.2,
+    "impact": "LOW",
+    "keywords": [
+      "dual mandate",
+      "balanced approach",
+      "dovish tilt"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Chair Warsh: It is hard to say policy is restrictive anywhere but in housing.",
+    "url": "https://www.financialjuice.com/News/9640773/Feds-Chair-Warsh-It-is-hard-to-say-policy-is-restrictive-anywhere-but-in-housing.aspx",
+    "sentiment_score": -0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "restrictive policy",
+      "housing weakness",
+      "limited tightening"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Chair Warsh: The committee discussed productivity today, AI came up. AI is filled with a huge opportunity and risks.",
+    "url": "https://www.financialjuice.com/News/9640772/Feds-Chair-Warsh-The-committee-discussed-productivity-today-AI-came-up-AI-is-filled-with-a-huge-opportunity-and-risks.aspx",
+    "sentiment_score": -0.2,
+    "impact": "LOW",
+    "keywords": [
+      "AI risks",
+      "productivity",
+      "growth uncertainty"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Chair Warsh: What happens in the Middle East does have an effect on our day job, even though it isn't our responsibility.",
+    "url": "https://www.financialjuice.com/News/9640770/Feds-Chair-Warsh-What-happens-in-the-Middle-East-does-have-an-effect-on-our-day-job-even-though-it-isnt-our-responsibility.aspx",
+    "sentiment_score": 0.1,
+    "impact": "LOW",
+    "keywords": [
+      "geopolitical risk",
+      "Middle East",
+      "energy prices"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Chair Warsh: Weekly meetings with the Treasury Secretary are very useful. I have met with Bessent three times so far. The Fed needs to have a wide lens but a narrow remit.",
+    "url": "https://www.financialjuice.com/News/9640769/Feds-Chair-Warsh-Weekly-meetings-with-the-Treasury-Secretary-are-very-useful-I-have-met-with-Bessent-three-times-so-far-The-Fed-needs-to-have-a-wide-lens-but-a-narrow-remit.aspx",
+    "sentiment_score": -0.1,
+    "impact": "LOW",
+    "keywords": [
+      "Treasury coordination",
+      "policy alignment",
+      "governance"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Chair Warsh: The Fed's job is to ensure no second-round price effects.",
+    "url": "https://www.financialjuice.com/News/9640768/Feds-Chair-Warsh-The-Feds-job-is-to-ensure-no-second-round-price-effects.aspx",
+    "sentiment_score": -0.3,
+    "impact": "MEDIUM",
+    "keywords": [
+      "inflation control",
+      "second-round effects",
+      "hawkish focus"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Chair Warsh asked if he had had conversations with Trump: I don't have anything for you.",
+    "url": "https://www.financialjuice.com/News/9640767/Feds-Chair-Warsh-asked-if-he-had-had-conversations-with-Trump-I-dont-have-anything-for-you.aspx",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "Trump",
+      "political neutrality",
+      "no comment"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Chair Warsh: We need to make sure changes in oil, eggs, beef, etc don't broaden in the economy.",
+    "url": "https://www.financialjuice.com/News/9640766/Feds-Chair-Warsh-We-need-to-make-sure-changes-in-oil-eggs-beef-etc-dont-broaden-in-the-economy.aspx",
+    "sentiment_score": -0.2,
+    "impact": "LOW",
+    "keywords": [
+      "commodity prices",
+      "inflation broadening",
+      "price control"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Chair Warsh: Fed can't have a significant effect on particular prices",
+    "url": "https://www.financialjuice.com/News/9640765/Feds-Chair-Warsh-Fed-cant-have-a-significant-effect-on-particular-prices.aspx",
+    "sentiment_score": -0.1,
+    "impact": "LOW",
+    "keywords": [
+      "limited Fed power",
+      "market realism",
+      "policy constraints"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Chair Warsh: This is a lot of change for financial markets to digest. I wouldn't be particularly intrigued by how markets react in the first minutes or days.",
+    "url": "https://www.financialjuice.com/News/9640764/Feds-Chair-Warsh-This-is-a-lot-of-change-for-financial-markets-to-digest-I-wouldnt-be-particularly-intrigued-by-how-markets-react-in-the-first-minutes-or-days.aspx",
+    "sentiment_score": 0.1,
+    "impact": "LOW",
+    "keywords": [
+      "market digestion",
+      "volatility normal",
+      "patience"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Chair Warsh: I am not going to offer commentary on market reaction today. We've given markets a new chapter for the Central Bank.",
+    "url": "https://www.financialjuice.com/News/9640763/Feds-Chair-Warsh-I-am-not-going-to-offer-commentary-on-market-reaction-today-Weve-given-markets-a-new-chapter-for-the-Central-Bank.aspx",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "market reaction",
+      "policy narrative",
+      "neutrality"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Chair Warsh on Task Forces: We are not outsourcing decisions. Task forces will make recommendations.",
+    "url": "https://www.financialjuice.com/News/9640762/Feds-Chair-Warsh-on-Task-Forces-We-are-not-outsourcing-decisions-Task-forces-will-make-recommendations.aspx",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "Fed governance",
+      "task forces",
+      "decision-making"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Chair Warsh: There is one proposal on the table, very little discussion on it, and no discussion of any other proposals. We had a good family fight on it.",
+    "url": "https://www.financialjuice.com/News/9640760/Feds-Chair-Warsh-There-is-one-proposal-on-the-table-very-little-discussion-on-it-and-no-discussion-of-any-other-proposals-We-had-a-good-family-fight-on-it.aspx",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "internal debate",
+      "policy discussion",
+      "governance"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Brent Crude futures settle at $79.55/bbl, up 59 cents, 0.75%.",
+    "url": "https://www.financialjuice.com/News/9640759/Brent-Crude-futures-settle-at-7955bbl-up-59-cents-075.aspx",
+    "sentiment_score": -0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "oil rally",
+      "energy prices",
+      "risk-on sentiment"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Iran's Foreign Ministry Spokesperson: The US has committed to cancel all types of sanctions on Iran based on a schedule that will be discussed in upcoming talks - SNN.",
+    "url": "https://www.financialjuice.com/News/9640758/Irans-Foreign-Ministry-Spokesperson-The-US-has-committed-to-cancel-all-types-of-sanctions-on-Iran-based-on-a-schedule-that-will-be-discussed-in-upcoming-talks---SNN.aspx",
+    "sentiment_score": 0.3,
+    "impact": "MEDIUM",
+    "keywords": [
+      "Iran sanctions relief",
+      "geopolitical de-escalation",
+      "energy supply"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Chair Warsh: Financial market prices are the most important source of information to guide central bankers.",
+    "url": "https://www.financialjuice.com/News/9640757/Feds-Chair-Warsh-Financial-market-prices-are-the-most-important-source-of-information-to-guide-central-bankers.aspx",
+    "sentiment_score": -0.2,
+    "impact": "LOW",
+    "keywords": [
+      "market prices",
+      "Fed guidance",
+      "data-driven policy"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Chair Warsh: Markets perform best when reacting to incoming data. Financial markets act less efficiently when they are worried about how the Fed will react to the data.",
+    "url": "https://www.financialjuice.com/News/9640756/Feds-Chair-Warsh-Markets-perform-best-when-reacting-to-incoming-data-Financial-markets-act-less-efficiently-when-they-are-worried-about-how-the-Fed-will-react-to-the-data.aspx",
+    "sentiment_score": 0.2,
+    "impact": "LOW",
+    "keywords": [
+      "data-dependent",
+      "market efficiency",
+      "dovish signal"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Chair Warsh: I am open-minded, there are new analytic techniques, new private sector data, and reforms for official sector data.",
+    "url": "https://www.financialjuice.com/News/9640755/Feds-Chair-Warsh-I-am-open-minded-there-are-new-analytic-techniques-new-private-sector-data-and-reforms-for-official-sector-data.aspx",
+    "sentiment_score": 0.2,
+    "impact": "LOW",
+    "keywords": [
+      "data methodology",
+      "Fed reform",
+      "analytics"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Chair Warsh: I would be open-minded if the Fed data task force had recommendations on how to improve official statistics. Private companies are working with real-time information.",
+    "url": "https://www.financialjuice.com/News/9640754/Feds-Chair-Warsh-I-would-be-open-minded-if-the-Fed-data-task-force-had-recommendations-on-how-to-improve-official-statistics-Private-companies-are-working-with-real-time-information.aspx",
+    "sentiment_score": 0.2,
+    "impact": "LOW",
+    "keywords": [
+      "data quality",
+      "statistics",
+      "Fed task force"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Chair Warsh: Most data we consume have old-fashioned survey methods.",
+    "url": "https://www.financialjuice.com/News/9640753/Feds-Chair-Warsh-Most-data-we-consume-have-old-fashioned-survey-methods.aspx",
+    "sentiment_score": 0.1,
+    "impact": "LOW",
+    "keywords": [
+      "survey methods",
+      "data collection",
+      "Fed"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Chair Warsh: We've missed the inflation goal for five years, we're going to fix it.",
+    "url": "https://www.financialjuice.com/News/9640752/Feds-Chair-Warsh-Weve-missed-the-inflation-goal-for-five-years-were-going-to-fix-it.aspx",
+    "sentiment_score": -0.3,
+    "impact": "MEDIUM",
+    "keywords": [
+      "inflation target",
+      "hawkish",
+      "price stability"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Chair Warsh: There are some changes to come, they may be worthy of press conferences.",
+    "url": "https://www.financialjuice.com/News/9640751/Feds-Chair-Warsh-There-are-some-changes-to-come-they-may-be-worthy-of-press-conferences.aspx",
+    "sentiment_score": 0.1,
+    "impact": "LOW",
+    "keywords": [
+      "communications",
+      "Fed policy",
+      "transparency"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Chair Warsh asked about the future of press conferences: They can be a very useful way of communicating, but I want to have something important to say for pressers.",
+    "url": "https://www.financialjuice.com/News/9640750/Feds-Chair-Warsh-asked-about-the-future-of-press-conferences-They-can-be-a-very-useful-way-of-communicating-but-I-want-to-have-something-important-to-say-for-pressers.aspx",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "press conferences",
+      "Fed communication",
+      "neutral"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Chair Warsh: I am impressed by the open-mindedness of colleagues over the last two days.",
+    "url": "https://www.financialjuice.com/News/9640736/Feds-Chair-Warsh-I-am-impressed-by-the-open-mindedness-of-colleagues-over-the-last-two-days.aspx",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "colleague collaboration",
+      "neutral",
+      "Fed"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Chair Warsh: I don't want to prejudge the outcomes of the communications review.",
+    "url": "https://www.financialjuice.com/News/9640735/Feds-Chair-Warsh-I-dont-want-to-prejudge-the-outcomes-of-the-communications-review.aspx",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "policy review",
+      "neutral",
+      "communications"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Chair Warsh: For me, submitting a dot is not helpful in the conduct of policy.",
+    "url": "https://www.financialjuice.com/News/9640734/Feds-Chair-Warsh-For-me-submitting-a-dot-is-not-helpful-in-the-conduct-of-policy.aspx",
+    "sentiment_score": 0.1,
+    "impact": "LOW",
+    "keywords": [
+      "Fed dots",
+      "forward guidance",
+      "policy"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Chair Warsh: The level of Fed restriction is uneven.",
+    "url": "https://www.financialjuice.com/News/9640733/Feds-Chair-Warsh-The-level-of-Fed-restriction-is-uneven.aspx",
+    "sentiment_score": -0.2,
+    "impact": "MEDIUM",
+    "keywords": [
+      "monetary restriction",
+      "hawkish",
+      "policy uneven"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "MarketWatch Top",
+    "headline": "Warsh launches his push to change how the Fed operates",
+    "url": "https://www.marketwatch.com/story/warsh-launches-his-push-to-change-how-the-fed-operates-3ddd9b90?mod=mw_rss_topstories",
+    "sentiment_score": -0.3,
+    "impact": "MEDIUM",
+    "keywords": [
+      "Fed reform",
+      "hawkish",
+      "operational change"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "MarketWatch Top",
+    "headline": "I\u2019m 20, and I\u2019ll be watching Kevin Warsh and the Fed today. Here\u2019s why you should, too.",
+    "url": "https://www.marketwatch.com/story/im-20-and-ill-be-watching-kevin-warsh-and-the-fed-this-week-heres-why-you-should-too-73c3e34d?mod=mw_rss_topstories",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "Warsh",
+      "Fed",
+      "media interest"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "MarketWatch Top",
+    "headline": "Historic NBA Finals ratings and Fox\u2019s $22 billion Roku deal show live sports are key to winning the streaming wars",
+    "url": "https://www.marketwatch.com/story/record-world-cup-nba-finals-ratings-show-live-sports-are-tvs-most-valuable-asset-82c2a970?mod=mw_rss_topstories",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "sports",
+      "streaming",
+      "unrelated"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "Investing.com Comm",
+    "headline": "Stocks turn lower after Fed\u2019s updated dot plot implies one rate hike this year",
+    "url": "https://www.investing.com/news/stock-market-news/us-stock-futures-edge-higher-with-fed-rate-decision-in-focus-4746197",
+    "sentiment_score": -0.6,
+    "impact": "HIGH",
+    "keywords": [
+      "rate hike",
+      "hawkish",
+      "dollar strength"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "Investing.com Comm",
+    "headline": "Philadelphia Fed Manufacturing Index and jobless claims due Thursday",
+    "url": "https://www.investing.com/news/stock-market-news/philadelphia-fed-manufacturing-index-and-jobless-claims-due-thursday-93CH-4748015",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "economic data",
+      "calendar",
+      "neutral"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Dollar jumps after Fed\u2019s updated dot plot hints at one rate hike this year",
+    "url": "https://www.investing.com/news/forex-news/asia-fx-dollar-muted-ahead-of-fed-decision-iran-truce-details-eyed-4746467",
+    "sentiment_score": -0.7,
+    "impact": "HIGH",
+    "keywords": [
+      "dollar strength",
+      "rate hike",
+      "hawkish"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Sterling today: Pound holds above $1.34 as dollar firms before Fed verdict",
+    "url": "https://www.investing.com/news/forex-news/sterling-today-pound-holds-above-134-as-dollar-firms-before-fed-verdict-4747284",
+    "sentiment_score": -0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "dollar strength",
+      "rate expectations",
+      "bearish gold"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "U.S. treasury yields firm ahead of Warsh\u2019s debut as Eurozone debt extends rally",
+    "url": "https://www.investing.com/news/forex-news/euro-zone-yields-continue-downfall-as-peace-deal-details-trickles-4746540",
+    "sentiment_score": -0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "yields rising",
+      "hawkish Fed",
+      "stronger dollar"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Merz at G7: China\u2019s currency undervalued by up to 30%",
+    "url": "https://www.investing.com/news/forex-news/merz-at-g7-chinas-currency-undervalued-by-up-to-30-93CH-4746889",
+    "sentiment_score": 0.1,
+    "impact": "LOW",
+    "keywords": [
+      "currency",
+      "geopolitics",
+      "trade"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Dollar eases slightly a day ahead of Fed rate decision; Yen weakens after BoJ hike",
+    "url": "https://www.investing.com/news/forex-news/asia-fx-steady-amid-iran-peace-hopes-boj-hikes-rates-to-31yr-high-rba-on-tap-4743824",
+    "sentiment_score": -0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "BoJ tightening",
+      "yen strength",
+      "rate hike"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Sterling today: Pound steadies as dollar shrugs off oil sell-off ahead of FOMC",
+    "url": "https://www.investing.com/news/forex-news/sterling-today-pound-steadies-as-dollar-shrugs-off-oil-selloff-ahead-of-fomc-4744764",
+    "sentiment_score": -0.3,
+    "impact": "MEDIUM",
+    "keywords": [
+      "dollar strength",
+      "FOMC",
+      "currency headwind"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "China could retaliate against threats to critical metal security: analysts",
+    "url": "https://www.mining.com/china-could-retaliate-against-threats-to-critical-metal-security-analysts/",
+    "sentiment_score": 0.6,
+    "impact": "MEDIUM",
+    "keywords": [
+      "critical metals",
+      "geopolitical tension",
+      "supply risk"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Fortuna wins key approval for Senegal gold project",
+    "url": "https://www.mining.com/fortuna-wins-key-approval-for-senegal-gold-project/",
+    "sentiment_score": 0.1,
+    "impact": "LOW",
+    "keywords": [
+      "gold mining",
+      "project approval",
+      "supply"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Switzerland loses its shine as central bank gold vault",
+    "url": "https://www.mining.com/switzerland-loses-its-shine-as-central-bank-gold-vault/",
+    "sentiment_score": -0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "central bank",
+      "gold demand",
+      "Switzerland"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Barclays sees gold pullback as \u2018reset\u2019, keeps bullish outlook",
+    "url": "https://www.mining.com/barclays-sees-gold-pullback-as-reset-keeps-bullish-outlook/",
+    "sentiment_score": 0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "bullish outlook",
+      "pullback",
+      "consolidation"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "Reuters",
+    "headline": "Israel launches fresh airstrikes in Lebanon; Trump says he could still restart war - Reuters",
+    "url": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxPSklNM1g3ZG9QYmFoMkJRS3o2T2ZRMTJ1azE5eG1YLU5TUXdEY1F5TkFBU01GMUt1UUstcHRrekJsOHBmRURqd2NTMVpzVVFoQlRPWHNvUVVQLU5ZRkJsNzZKNURTd01PQ1pubzFrR0UzdlMzbXU2RXBwLU9fT25GSU80UkRVcUlpWE9MOGhxYW4yS1lIbDJ3UkR5anJudnZPcDhhOHhqN3JxcWM?oc=5",
+    "sentiment_score": 0.7,
+    "impact": "HIGH",
+    "keywords": [
+      "geopolitical risk",
+      "Middle East",
+      "safe haven"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "CNBC",
+    "headline": "JetBlue to reduce Newark, LaGuardia footprint as it forges ahead in Fort Lauderdale",
+    "url": "https://www.cnbc.com/2026/06/17/jetblue-to-reduce-newark-laguardia-footprint-as-it-expands-in-florida.html",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "airline",
+      "unrelated"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "CNBC",
+    "headline": "3 of our stocks striking gold and 3 others hitting the skids over the past 3 weeks",
+    "url": "https://www.cnbc.com/2026/06/17/3-of-our-stocks-striking-gold-and-3-others-hitting-the-skids-over-the-past-3-weeks.html",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "equity performance",
+      "unrelated"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "Reuters",
+    "headline": "BMW shares sink after profit warning highlights China and Iran risk - Reuters",
+    "url": "https://news.google.com/rss/articles/CBMiugFBVV95cUxOTVBHYTAycFp5MmdoVGNRbE12eWJzT0c5U1NPbURoNmxHQUJZcEdEaHJ5MGU1dDhFUUw0cV9ZM0VpMGIzWk5XY1pqcFpoblJCM3NBektPRzh2clF4OW9JWnRTa25kMkk3a1NmRlVySXNubUZWUjE4bTBBTlV5MEtMd1FQajR0THZyeXdnZ0xlaFk0YXI1ZV9GZTk2b3YzMjd4aEZtZXkybnZXdXRoNDZtZDNJbFhzUVNQWlE?oc=5",
+    "sentiment_score": -0.2,
+    "impact": "MEDIUM",
+    "keywords": [
+      "risk sentiment",
+      "equities weakness",
+      "China"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "Reuters",
+    "headline": "Trump's Iran war weighs on G7 economies, but don't expect hard talk in France - Reuters",
+    "url": "https://news.google.com/rss/articles/CBMisgFBVV95cUxQQ0RTSmJmU2ltSllOMFYxQi02VlY2MzJJa2d2NnpELXU0WmRaYVYwSFJRVW1OZFVzUjhRUWJRRnNlbmF2d09nTVdhYzQySEtGODRIMFhTS1B3bnlsU0hlbEtSVmtORG5LSnRCRFhMelJpZld4N2JkQzNPZHFENXlkVXI0MW5SV3pqRjZRU2FUN2R0VHdiamJYa1JKcVdtSDcxdTA4d1lUenY3VDRSMHN4QS1B?oc=5",
+    "sentiment_score": 0.6,
+    "impact": "HIGH",
+    "keywords": [
+      "geopolitical conflict",
+      "Iran war",
+      "risk-off"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "Reuters",
+    "headline": "Has Trump achieved his goals in the war with Iran? - Reuters",
+    "url": "https://news.google.com/rss/articles/CBMinAFBVV95cUxQU2loLVdUWXl3ZlBzRDNsT0dZVkFVajIyNGF1X041VlNlV0JBdkluNGpmVmZ5NzFzNWJKaDM2QU5UMTIzZGhvZFZ1dWsyeWlqdGZZV3N1TlY2Ykl5MnlWaXJEclUwTDZOX1VjeVpKS00ydEVwdHk1OHBvY25EdVlVOUJQdkNTR3J4SkxSd0d2VmxOUHBRYU1qM0dCaFQ?oc=5",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "political analysis",
+      "unclear impact"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "Reuters",
+    "headline": "Stocks edge up as oil hovers near 3-month lows ahead of Warsh debut - Reuters",
+    "url": "https://news.google.com/rss/articles/CBMigwFBVV95cUxQOU5DMTRIOHpLY0VUdlJ6RW1fcEhveWNmVmZaNFo0YkdfNmN0a0VZN1JHMDcxVFdlMl81aVpWQV8td2hxb1dZcldhVE5USmVqeEhDNDA4Yk5RSDBpWnBuN3FTblFLMUxEa3poLTZsR3pfMmNfUENaOVZDRjVFNGl5V0l6MA?oc=5",
+    "sentiment_score": -0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "oil decline",
+      "risk appetite",
+      "equities rally"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "Reuters",
+    "headline": "Gold holds ground with spotlight on Fed meet, US-Iran deal details - Reuters",
+    "url": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxOZmo2a0piWUpISXJxNEJNWlprT0NaYUx4OU1pZzZ6QUp3dUZCdGlsTUQxNlhZaG9WaXVNT1I2ZWxUb2RUSERFZ3ZpSVktbGN6N1JNUFdZdUplNEJsMWdPX1d0bi03b0lWVGk3TjBaYkJBY3NNQXJpazhpYmNhVndseV9wNXVuSW1IRDlMMTZBTVROeFdBRmkwa0s4Yk9hWHZVcGlmLVdUVXZEdw?oc=5",
+    "sentiment_score": 0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "Fed meeting",
+      "Iran uncertainty",
+      "safe haven"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "Reuters",
+    "headline": "Oil rises on US-Iran deal doubts; IEA warns of supply glut - Reuters",
+    "url": "https://news.google.com/rss/articles/CBMiygFBVV95cUxNenNvdC1DbGktWE0tRE5scUJEblVjSy1HVWROZkNNQ3lqT290eXhQV0R5MXhxYUhHYlBaN1lqdl95QUpEaHRaX0lOY3h2aEJSblJxYldFODhXWGFwN3dlOV9xbFFWTnpJNUlTUkJkaG9nWjRUUEpSemE2N09VWFVtNFRnT2RSQ3lKV094RjN5MkNYZlRIOURlZWJhREdaLWc2bVhiV2hCNUlYaTZrTUdXWkpKRnBTLWo1QVVEcDBIbGFWdGFqczhubmVR?oc=5",
+    "sentiment_score": -0.3,
+    "impact": "MEDIUM",
+    "keywords": [
+      "oil supply",
+      "demand weakness",
+      "deflation signal"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "CNBC",
+    "headline": "Databricks sales growth tops 80%, but margin are shrinking from swarm of AI agents",
+    "url": "https://www.cnbc.com/2026/06/16/databricks-revenue-growth-tops-80percent-to-6point9-billion-annualized.html",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "tech stocks",
+      "unrelated"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "Reuters",
+    "headline": "Norway's Equinor doubles share buyback as Iran war boosts cash flow - Reuters",
+    "url": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxOZVYyTlJlM1VDVktyUGV4WlYzbEs1UWhsOWNqejlOanJPNUNrN2V2ZzN3SUxxRDVEdVRWeXoxRWZCeTBNeVE0aVA3emE0c3VySGhvUEI5YlJwMU5BZU5CZlJqRWo3bFZqNnl6X3BpZjNYNmFsNTNkN2dzczM3ZHpPMWVGcHVkT29hZHkybzVnU2ZJclNaNmpueHotX3d3MDl5UlJTdzd6LVF6RUU?oc=5",
+    "sentiment_score": -0.3,
+    "impact": "MEDIUM",
+    "keywords": [
+      "risk sentiment",
+      "energy profits",
+      "risk-on"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "Reuters",
+    "headline": "BMW lowers profit outlook due to China downturn, Iran war double whammy - Reuters",
+    "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxOeFJVT1dCYVNyQnQ2VzVWTGRlOU5TSUZYS2tON2RkLVZNQ3FmU005Q1ZJVTd6VXRtOG1jQ2VRUUZ0OU1pN1p3X3FoS0J1cE9yM2tZTEdYbWZmNklwV1JVMDAyLTdrUUF2aVF4TzRPRFM2TTZILU5NOElVZ2xtRzF1RWZlQkV4Z1RuakpPWW1KWWtrUzhPSE0tOW1USQ?oc=5",
+    "sentiment_score": -0.2,
+    "impact": "MEDIUM",
+    "keywords": [
+      "risk sentiment",
+      "equities weakness",
+      "China downturn"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "CNBC",
+    "headline": "Jim Cramer: Why we're headed back to pre-Iran war oil prices and what it means",
+    "url": "https://www.cnbc.com/2026/06/16/jim-cramer-why-were-headed-back-to-pre-iran-war-oil-prices-and-what-it-means.html",
+    "sentiment_score": -0.5,
+    "impact": "HIGH",
+    "keywords": [
+      "oil decline",
+      "inflation easing",
+      "deflation risk"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "CNBC",
+    "headline": "Jim Cramer debates his next move on a software stock on an 11 day losing streak",
+    "url": "https://www.cnbc.com/2026/06/16/jim-cramer-debates-his-next-move-on-a-software-stock-on-an-11-day-losing-streak.html",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "equity analysis",
+      "unrelated"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "Reuters",
+    "headline": "ECB will be proactive against high inflation even after Iran deal, Lane says - Reuters",
+    "url": "https://news.google.com/rss/articles/CBMitAFBVV95cUxOT2lsQ01zNGpfblZQQnlTaUFFeUZfbUdCVWlBREtRcDNjRUhhaEtLejJ6UnFZaFR1TjJNaWk3TFBrNW5kMnhMSTd3M2FRcF9lTXdWVUUzOXd0dU9FVGxabFowTHgzQkJjSElXdEx5VUpJbVRoQ0NXSHRMaDdmbnp2VXZhVnp5UXdQRnczT0R6VlA0Z2oyRWNjNzREX1ZwVC1sSUpTd0hMQk9PTGlUMndXS1kzVHc?oc=5",
+    "sentiment_score": -0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "inflation control",
+      "rate hikes",
+      "dollar strength"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "CNBC",
+    "headline": "Treasury yields fall ahead of Kevin Warsh's first Fed meeting",
+    "url": "https://www.cnbc.com/2026/06/16/treasury-yields-investors-await-warsh-first-fed-meeting.html",
+    "sentiment_score": 0.7,
+    "impact": "HIGH",
+    "keywords": [
+      "Treasury yields fall",
+      "Fed dovish",
+      "rate hike pause"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "Reuters",
+    "headline": "Indian rupee extends gains; US-Iran peace agreement details, Fed guidance awaited - Reuters",
+    "url": "https://news.google.com/rss/articles/CBMirwFBVV95cUxPd0c2VjNXb250alRscjNDSThUNXZ6aVRoMUp2S2FhNUEyOGRoaWFyY0haSWRUcEw3VTNVUUNFV1pEOXRXV2g5WHdGTXVNNmhVdVAtRW5lNnpBX0NKTVk5aFgwdXRiVEFHXzR6bTJhZ19zdW9zd2dDZWJiU0VUSlVOTG95MmlLOUpKbXItdTNwRHJIREJEbVVqYnBFOEFCaUlMOUVzb2lsaUt3aGVpLXk4?oc=5",
+    "sentiment_score": 0.6,
+    "impact": "MEDIUM",
+    "keywords": [
+      "geopolitical risk",
+      "rupee strength",
+      "risk-off sentiment"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "Reuters",
+    "headline": "Gold rises over 1% as US-Iran peace deal optimism eases rate hike bets - Reuters",
+    "url": "https://news.google.com/rss/articles/CBMipAFBVV95cUxOSkNDWks4bTBLM1E5aXc4V0hBOWF4OHJpdUpBY0ZZSF9SaU1fVmFwRUdEalB2YmdUUVlObmJhYTlQSE92cFJYUGtKd1I0eHNoODQycHFuVEhjZDJUaE1Kc2FsY3RkcW5ia0JWVlU3MnFpUkpvei1OcHcwNmpsTWd4NUFTZHM2X0N5SDVOR3hLTEJjd3BQVDR5dWVpd043WXB2dDhmVA?oc=5",
+    "sentiment_score": 0.8,
+    "impact": "HIGH",
+    "keywords": [
+      "peace deal",
+      "rate hike bets eased",
+      "safe-haven demand"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
+  },
+  {
+    "source": "Reuters",
+    "headline": "Is the Iran war just an energy shock - or a turning point? - Reuters",
+    "url": "https://news.google.com/rss/articles/CBMiugFBVV95cUxPb0FRWE5MTXBpNWRsVmZGc0ZLUS1nbG56MXVZeEU2SlBqN2Z4VTVmNmlyRzF6TW96SlpfZkZXdFlycmFHalhaMy1OckdpajR2end5OXAzVUNzRTFaQURzQmw4ZWN5LVgweXVGRnB1ZndRREdOSl9NMFNJQjZoOXc5ZXliX0tpNENwVktxVU5kWTJRaTZTckhvMHc3ak1NTDF0OHNDZ3JrWEEyUkFQWm1LNmV4dFlLQS1Semc?oc=5",
+    "sentiment_score": 0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "energy shock",
+      "geopolitical uncertainty",
+      "inflation implications"
+    ],
+    "fetched_at": "2026-06-17T19:17:27.210890+00:00"
   }
 ]
