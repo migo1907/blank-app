@@ -5,7 +5,23 @@ indicator("AI MLM 26", overlay=true, max_labels_count=500, max_bars_back=510, ma
 // AI MLM 26 — Read-Only ML Signal Quality Mirror
 // Shows Lorentzian KNN signal quality, entry/TP/SL historically,
 // and a live dashboard table. NO alerts, NO webhook, NO heartbeat.
-// Updated as ML training progresses.
+//
+// Updated: 2026-06-17
+// Backend snapshot: 52W / 73L on XAUUSD (2026-06-03 checkpoint)
+// System total: 500 trades · 40.0% win rate across all 26 pools
+//
+// What the ML learned (feature importance by final weight):
+//   STRONGEST  : F6  Williams %R        → 1.507  (best reversal sensor)
+//                F12 SMC Liquidity Sweep → 1.150  (sweep-and-reverse)
+//                F13 Range Midpoint      → 1.132  (mean-reversion anchor)
+//                F14 HL Structure        → 1.101  (higher-low/lower-high)
+//                F25 Time-of-Day Sine    → 1.123  (session timing matters)
+//                F3  ATR Expansion       → 1.043  (volatility context)
+//   WEAKEST    : F18 Volume Delta        → 0.443  (noisy on gold/spot)
+//                F4  BB Position         → 0.574  (weak standalone)
+//                F5  MACD Histogram      → 0.582  (too lagged)
+//                F1  RSI (raw)           → 0.665  (superseded by F23 slope)
+//   F26 Stochastic: cold-start 1.000 — added 2026-06-11, learning in progress
 // ═══════════════════════════════════════════════════════════════════
 
 // ── Timeframe auto-detection ─────────────────────────────────────
@@ -202,11 +218,28 @@ float f26_raw  = math.max(-1.0, math.min(1.0, (stochK - stochD) / 20.0))
 float f26      = useNewFeats ? f26_raw : 0.0
 
 // ═══════════════════════════════════════════════════════════════════
-// ADAPTIVE WEIGHTS — 26 elements
+// ADAPTIVE WEIGHTS — seeded from backend ML (weights.json 2026-06-03)
+// Self-updates from chart history on top of these priors.
+//
+// Rank (highest → most discriminative on XAUUSD):
+//   F6=1.507  F12=1.150  F13=1.132  F25=1.123  F14=1.101
+//   F19=1.038  F24=1.039  F3=1.043  F15=1.012  F10=0.931
+//   F17=0.888  F8=0.723   F9=0.721  F16=0.844  F2=0.812
+//   F21=0.831  F20=0.795  F7=0.677  F22=0.726  F23=0.746
+//   F11=0.657  F1=0.665   F5=0.582  F4=0.574   F18=0.443
+//   F26=1.000  (Stochastic — cold-start, added 2026-06-11)
 // ═══════════════════════════════════════════════════════════════════
-var float[] weights = array.new_float(26, 1.0)
-var int totalWins   = 0
-var int totalLosses = 0
+var float[] weights = array.from(
+    0.665, 0.812, 1.043, 0.574, 0.582,   // F1  F2  F3  F4  F5
+    1.507, 0.677, 0.723, 0.721, 0.931,   // F6  F7  F8  F9  F10
+    0.657, 1.150, 1.132, 1.101, 1.012,   // F11 F12 F13 F14 F15
+    0.844, 0.888, 0.443, 1.038, 0.795,   // F16 F17 F18 F19 F20
+    0.831, 0.726, 0.746, 1.039, 1.123,   // F21 F22 F23 F24 F25
+    1.000)                                // F26 Stochastic (learning)
+
+// Seed win/loss from backend snapshot (XAUUSD pool, 2026-06-03)
+var int totalWins   = 52
+var int totalLosses = 73
 
 clampW(w) => math.max(0.2, math.min(3.0, w))
 
@@ -308,7 +341,7 @@ if sigLong or sigShort
 
 // Label close[mlLag] bars ago — did stored signal work?
 if bar_index > mlLag + 5 and storedSig != 0
-    float priceNow  = close
+    float priceNow   = close
     float priceEntry = close[mlLag]
     bool  isWin  = storedSig == 1 ? priceNow > priceEntry : priceNow < priceEntry
     bool  isLoss = storedSig == 1 ? priceNow < priceEntry : priceNow > priceEntry
@@ -417,6 +450,19 @@ string sessLabel = (utcHour >= 13 and utcHour < 17) ? "NY+Lon Overlap" :
                    (utcHour >= 17 and utcHour < 22) ? "NY Late" : "Asian"
 
 // ═══════════════════════════════════════════════════════════════════
+// TOP FEATURES TABLE (shows which features ML trusts most right now)
+// ═══════════════════════════════════════════════════════════════════
+// Build a simple ranked snapshot of top-3 / bottom-1 weights
+float wF6  = array.get(weights, 5)
+float wF12 = array.get(weights, 11)
+float wF13 = array.get(weights, 12)
+float wF18 = array.get(weights, 17)   // typically lowest
+string topFeats = "W%R:" + str.tostring(wF6, "#.##") +
+                  "  Swp:" + str.tostring(wF12, "#.##") +
+                  "  Rng:" + str.tostring(wF13, "#.##") +
+                  "  Vol↓:" + str.tostring(wF18, "#.##")
+
+// ═══════════════════════════════════════════════════════════════════
 // DASHBOARD TABLE
 // ═══════════════════════════════════════════════════════════════════
 dashPosition() =>
@@ -424,7 +470,7 @@ dashPosition() =>
      dashPos == "Top Left"    ? position.top_left :
      dashPos == "Top Right"   ? position.top_right : position.bottom_left
 
-var table dash = table.new(dashPosition(), 2, 15,
+var table dash = table.new(dashPosition(), 2, 17,
                            bgcolor=color.new(color.black, 15),
                            border_color=color.new(color.gray, 60),
                            border_width=1, frame_color=color.new(color.gray, 40), frame_width=1)
@@ -474,6 +520,10 @@ if sigLong or sigShort
 // Regime
 color regClr  = isSideways ? colWarn : (mainTrend == "UPTREND" ? colBull : mainTrend == "DOWNTREND" ? colBear : colNeu)
 
+// F6 weight colour (green if ML trusts it above 1.2)
+color f6Col  = wF6  >= 1.2 ? colBull : wF6  >= 0.8 ? colNeu : colBear
+color f18Col = wF18 <= 0.5 ? colBear : colNeu
+
 if showDash and barstate.islast
     // Header
     hdr(0, "  AI MLM 26  ·  " + syminfo.ticker + " " + timeframe.period + "m")
@@ -503,12 +553,17 @@ if showDash and barstate.islast
     cellL(11, "Win Rate",  colBg)
     cellR(11, totalTrades > 0 ? str.tostring(winRate, "#.#") + "% (" + str.tostring(totalTrades) + ")" : "–", wrColor)
 
-    // Context (trimmed — no MTF/DXY)
-    hdr(12, "── Context ──")
-    cellL(13, "Regime",    colBg)
-    cellR(13, isSideways ? "⚠ SIDEWAYS" : mainTrend, regClr)
-    cellL(14, "Session",   colBg)
-    cellR(14, sessLabel,   colBg)
+    // ML feature insight — live weights on key features
+    hdr(12, "── ML Weights ──")
+    cellL(13, "W%R (F6)",   colBg)
+    cellR(13, str.tostring(wF6,  "#.###"), f6Col)
+    cellL(14, "VolDelta(F18)", colBg)
+    cellR(14, str.tostring(wF18, "#.###"), f18Col)
+
+    // Context
+    hdr(15, "── Context ──")
+    cellL(16, "Regime",    colBg)
+    cellR(16, isSideways ? "⚠ SIDEWAYS" : mainTrend, regClr)
 
 // ── Trend lines on chart (toggleable) ────────────────────────────
 plot(showTrend ? kernelEst : na, "Kernel", color=color.new(color.purple, 40), linewidth=2, display=display.none)
