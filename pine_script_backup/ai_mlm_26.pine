@@ -11,7 +11,7 @@ indicator("AI MLM 26", overlay=true, max_labels_count=500, max_bars_back=510, ma
 // System total: 500 trades · 40.0% win rate across all 26 pools
 //
 // Conservative upgrades vs previous version:
-//   mlMinScore  0.55 → 0.65  (65% ML conviction required)
+//   mlMinScore  0.55 → 0.62  (stays at 5/8 KNN vote with k=8 — same freq, healthier training)
 //   adxThr      20   → 25    (stronger trend required)
 //   atrRR       0.75 → 0.85  (catches more ATR compression)
 //   emaBandPct  0.3  → 0.5%  (EMAs must be more separated)
@@ -56,8 +56,10 @@ bool  autoTF      = true
 int   mlK         = 8
 int   mlDepth_inp = 300
 int   mlLag       = 4
-// Conservative mode — raised from 0.55: requires 65% ML conviction before signaling
-float mlMinScore  = 0.65
+// With k=8 neighbors the effective vote thresholds are 5/8=62.5% and 6/8=75%.
+// 0.65 silently required 6/8 (very few signals). 0.62 stays at 5/8 — same as
+// the original 0.55 in practice, so training data remains healthy.
+float mlMinScore  = 0.62
 float learnRate   = 0.05
 float winReward   = 0.15
 float lossPenalty = 0.20
