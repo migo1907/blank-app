@@ -105,32 +105,6 @@
       "opened_at": "2026-06-15T20:43:20.259940+00:00"
     },
     {
-      "id": "META-2026-06-16",
-      "ticker": "META",
-      "entry_date": "2026-06-16",
-      "entry_price": 600.21,
-      "atr": 21.19,
-      "tp": 642.58,
-      "sl": 579.02,
-      "combined_score": NaN,
-      "features": {
-        "combined_score": NaN,
-        "fund_score": 0.653,
-        "tech_score": NaN,
-        "rsi": 39.4,
-        "rel_strength_pct": 2.7,
-        "target_upside_pct": 37.45,
-        "last_surprise_pct": 56.79,
-        "revenue_growth_pct": 33.1,
-        "earnings_growth_pct": 62.4,
-        "insider_net_buy": -1.0,
-        "short_pct_float": 1.5,
-        "news_7d": 249.0,
-        "imminent_earnings": 0.0
-      },
-      "opened_at": "2026-06-16T20:35:38.268474+00:00"
-    },
-    {
       "id": "UNH-2026-06-16",
       "ticker": "UNH",
       "entry_date": "2026-06-16",
@@ -242,6 +216,39 @@
       "bars_held": 1,
       "label": 0,
       "closed_at": "2026-06-16T20:45:01.530443+00:00"
+    },
+    {
+      "id": "META-2026-06-16",
+      "ticker": "META",
+      "entry_date": "2026-06-16",
+      "entry_price": 600.21,
+      "atr": 21.19,
+      "tp": 642.58,
+      "sl": 579.02,
+      "combined_score": NaN,
+      "features": {
+        "combined_score": NaN,
+        "fund_score": 0.653,
+        "tech_score": NaN,
+        "rsi": 39.4,
+        "rel_strength_pct": 2.7,
+        "target_upside_pct": 37.45,
+        "last_surprise_pct": 56.79,
+        "revenue_growth_pct": 33.1,
+        "earnings_growth_pct": 62.4,
+        "insider_net_buy": -1.0,
+        "short_pct_float": 1.5,
+        "news_7d": 249.0,
+        "imminent_earnings": 0.0
+      },
+      "opened_at": "2026-06-16T20:35:38.268474+00:00",
+      "exit_date": "2026-06-17",
+      "exit_price": 579.02,
+      "outcome": "LOSS",
+      "pnl_pct": -3.53,
+      "bars_held": 1,
+      "label": 0,
+      "closed_at": "2026-06-17T20:45:02.763579+00:00"
     }
   ]
 }
