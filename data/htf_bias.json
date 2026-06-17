@@ -62,6 +62,15 @@
     "stored_at": "2026-06-17T14:00:28.954336+00:00",
     "expires_at": "2026-06-17T16:00:28.954359+00:00"
   },
+  "SPY_60": {
+    "direction": "LONG",
+    "timeframe": "60",
+    "symbol": "SPY",
+    "trigger": "LIQ",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-17T14:30:02.850829+00:00",
+    "expires_at": "2026-06-17T18:30:02.850849+00:00"
+  },
   "MSFT_60": {
     "direction": "SHORT",
     "timeframe": "60",
@@ -75,10 +84,10 @@
     "direction": "SHORT",
     "timeframe": "30",
     "symbol": "MSFT",
-    "trigger": "BOS",
+    "trigger": "FVG",
     "ml_score": 0.625,
-    "stored_at": "2026-06-17T18:30:07.463238+00:00",
-    "expires_at": "2026-06-17T20:30:07.463255+00:00"
+    "stored_at": "2026-06-17T14:30:06.313982+00:00",
+    "expires_at": "2026-06-17T16:30:06.313990+00:00"
   },
   "HOOD_30": {
     "direction": "LONG",
