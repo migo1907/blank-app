@@ -1,33 +1,41 @@
 {
-  "bias": 0.1354,
+  "bias": 0.109,
   "label": "NEUTRAL",
   "components": {
     "real_yield": 0.1333,
     "dollar": 0.3386,
-    "breakeven": -0.2
+    "breakeven": -0.2,
+    "cot": -0.062
   },
   "real_yield": 2.15,
   "dollar": 119.5073,
   "breakeven": 2.29,
-  "cot": null,
+  "cot": {
+    "report_date": "2026-06-09",
+    "spec_long": 207984,
+    "spec_short": 34147,
+    "spec_net": 173837,
+    "spec_net_prev": 176020,
+    "net_change": -2183
+  },
   "gld": {
     "date": "2026-06-17",
-    "price": 394.53,
+    "price": 390.06,
     "price_prev": 397.63,
-    "price_change": -3.1006,
+    "price_change": -7.57,
     "tonnes": null,
-    "tonnes_change": -3.1006,
+    "tonnes_change": -7.57,
     "source": "yfinance_proxy"
   },
   "dxy_break": {
-    "direction": "NONE",
-    "strength": 0.0,
-    "level": 99.97
+    "direction": "UP",
+    "strength": 0.14,
+    "level": 100.232
   },
-  "updated_at": "2026-06-17T18:17:43.396570+00:00",
+  "updated_at": "2026-06-17T19:17:24.793281+00:00",
   "sources_live": {
     "fred": true,
-    "cot": false,
+    "cot": true,
     "gld": true
   }
 }
