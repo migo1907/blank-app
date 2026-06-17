@@ -216,13 +216,13 @@
     "expires_at": "2026-06-18T01:30:50.489158+00:00"
   },
   "US500_240": {
-    "direction": "LONG",
+    "direction": "SHORT",
     "timeframe": "240",
     "symbol": "US500",
-    "trigger": "LIQ",
+    "trigger": "RSI",
     "ml_score": 0.5,
-    "stored_at": "2026-06-17T18:00:09.062532+00:00",
-    "expires_at": "2026-06-18T02:00:09.062547+00:00"
+    "stored_at": "2026-06-17T21:00:00.335347+00:00",
+    "expires_at": "2026-06-18T05:00:00.335355+00:00"
   },
   "SPY_30": {
     "direction": "SHORT",
