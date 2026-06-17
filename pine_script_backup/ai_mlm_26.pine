@@ -175,7 +175,7 @@ float f26 = math.max(-1.0, math.min(1.0, (stochK - stochD) / 20.0))
 // These do NOT change. This is what the ML learned on live trades.
 // Next update when backend accumulates significantly more trades.
 // ═══════════════════════════════════════════════════════════════════
-float[] weights = array.from(
+var float[] weights = array.from(
     0.665, 0.812, 1.043, 0.574, 0.582,   // F1  F2  F3  F4  F5
     1.507, 0.677, 0.723, 0.721, 0.931,   // F6  F7  F8  F9  F10
     0.657, 1.150, 1.132, 1.101, 1.012,   // F11 F12 F13 F14 F15
