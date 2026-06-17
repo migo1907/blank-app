@@ -2570,7 +2570,7 @@
     "mtf_confluence": "mtf:1/3\u26a0",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(PULLBACK_SHORT)\u00d70.95 | hmm:RANGING(1.00)\u00d71.00 | imkt:na\u00d71.00 | mtf:1/3\u26a0\u00d70.93 | evt:na\u00d71.00 | sess:ASIAN\u00d70.85 | confluence\u00d70.86 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-0.80) | news:neutral(+0.021) | macro:NEUTRAL(+0.109) | combined:-0.304 \u2192 conf:0.235 \u26a1 FOMC",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-17T06:02:56.859745+00:00",
     "created_at": "2026-06-17T05:32:58.152582+00:00",
     "id": 101
@@ -2598,7 +2598,7 @@
     "mtf_confluence": "mtf:3/3",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(TREND_FOLLOW)\u00d71.15 | hmm:RANGING(1.00)\u00d71.00 | imkt:na\u00d71.00 | mtf:3/3\u00d71.08 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.89 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.33) | news:neutral(+0.021) | macro:NEUTRAL(+0.146) | combined:+0.027 \u2192 conf:0.300 \u26a1 FOMC",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-17T06:02:59.670767+00:00",
     "created_at": "2026-06-17T05:33:01.117829+00:00",
     "id": 101
@@ -2626,7 +2626,7 @@
     "mtf_confluence": "mtf:3/3",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(TREND_FOLLOW)\u00d71.15 | hmm:TRENDING_BULL(0.82)\u00d71.04 | imkt:na\u00d71.00 | mtf:3/3\u00d71.08 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.84 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-0.63) | news:neutral(+0.021) | macro:NEUTRAL(+0.146) | combined:+0.027 \u2192 conf:0.300 \u26a1 FOMC",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-17T06:03:02.654246+00:00",
     "created_at": "2026-06-17T05:33:02.987821+00:00",
     "id": 101
@@ -2654,7 +2654,7 @@
     "mtf_confluence": "mtf:1/3\u26a0",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(PULLBACK_SHORT)\u00d70.95 | hmm:RANGING(1.00)\u00d71.00 | imkt:na\u00d71.00 | mtf:1/3\u26a0\u00d70.93 | evt:na\u00d71.00 | sess:ASIAN\u00d70.85 | confluence\u00d70.56 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-0.84) | news:neutral(+0.054) | macro:NEUTRAL(+0.109) | combined:-0.222 \u2192 conf:0.111 \u26a1 FOMC",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-17T06:17:49.431846+00:00",
     "created_at": "2026-06-17T05:47:49.848567+00:00",
     "id": 101
