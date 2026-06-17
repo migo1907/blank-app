@@ -36,13 +36,13 @@
     "expires_at": "2026-06-17T16:00:16.888113+00:00"
   },
   "PLUG_30": {
-    "direction": "LONG",
+    "direction": "SHORT",
     "timeframe": "30",
     "symbol": "PLUG",
-    "trigger": "RSI",
-    "ml_score": 0.375,
-    "stored_at": "2026-06-17T14:00:27.476288+00:00",
-    "expires_at": "2026-06-17T16:00:27.476303+00:00"
+    "trigger": "BOS",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-17T20:00:38.972771+00:00",
+    "expires_at": "2026-06-17T22:00:38.972790+00:00"
   },
   "HTZ_30": {
     "direction": "SHORT",
@@ -99,13 +99,13 @@
     "expires_at": "2026-06-17T21:00:05.584410+00:00"
   },
   "PLUG_60": {
-    "direction": "LONG",
+    "direction": "SHORT",
     "timeframe": "60",
     "symbol": "PLUG",
-    "trigger": "RSI",
-    "ml_score": 0.125,
-    "stored_at": "2026-06-17T14:30:17.616273+00:00",
-    "expires_at": "2026-06-17T18:30:17.616290+00:00"
+    "trigger": "BOS",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-17T20:00:39.422166+00:00",
+    "expires_at": "2026-06-18T00:00:39.422181+00:00"
   },
   "BLNK_30": {
     "direction": "SHORT",
@@ -394,5 +394,14 @@
     "ml_score": 0.375,
     "stored_at": "2026-06-17T20:00:28.646646+00:00",
     "expires_at": "2026-06-18T00:00:28.646661+00:00"
+  },
+  "MU_60": {
+    "direction": "SHORT",
+    "timeframe": "60",
+    "symbol": "MU",
+    "trigger": "RSI",
+    "ml_score": 0.25,
+    "stored_at": "2026-06-17T20:00:38.842065+00:00",
+    "expires_at": "2026-06-18T00:00:38.842079+00:00"
   }
 }
