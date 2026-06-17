@@ -358,5 +358,14 @@
     "ml_score": 0.5,
     "stored_at": "2026-06-17T19:30:07.306201+00:00",
     "expires_at": "2026-06-17T23:30:07.306221+00:00"
+  },
+  "PLTR_60": {
+    "direction": "SHORT",
+    "timeframe": "60",
+    "symbol": "PLTR",
+    "trigger": "FVG",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-17T19:30:08.337076+00:00",
+    "expires_at": "2026-06-17T23:30:08.337091+00:00"
   }
 }
