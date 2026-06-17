@@ -2626,7 +2626,7 @@
     "mtf_confluence": "mtf:2/3",
     "post_event": "evt:na",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:VOLATILE(VOLATILE)\u00d70.92 | hmm:RANGING(1.00)\u00d71.00 | imkt:na\u00d71.00 | mtf:2/3\u00d71.03 | evt:na\u00d71.00 | sess:NEW_YORK\u00d71.10 | confluence\u00d70.83 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.36) | news:neutral(+0.096) | macro:NEUTRAL(+0.109) | combined:+0.011 \u2192 conf:0.009 \u26a1 FOMC",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-17T18:32:16.278240+00:00",
     "created_at": "2026-06-17T18:02:17.817286+00:00",
     "id": 101
