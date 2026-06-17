@@ -4243,13 +4243,13 @@
     "direction": "SHORT",
     "trigger": "LIQ",
     "entry_price": 70.8,
-    "exit_price": 68.7418,
-    "outcome": "WIN",
-    "ml_outcome": "TP1_HIT",
+    "exit_price": 72.1,
+    "outcome": "PARTIAL",
+    "ml_outcome": "WIN",
     "mfe": -0.87,
-    "tp_stage": "TP1",
+    "tp_stage": "SL_TP1",
     "timeframe": "30",
-    "pnl_pct": 2.9071,
+    "pnl_pct": -1.8362,
     "ml_bull_score": 0.375,
     "regime": "TRENDING_BULL",
     "session": "NYSE_AFTERNOON",
@@ -4279,8 +4279,8 @@
     "f24_fvgq": 0.0,
     "f25_tod": -0.5,
     "f26_stoch": -1.0,
-    "id": "eca55cd3",
+    "id": "8e3a5960",
     "pool": "STOCKS_MOMENTUM_30M",
-    "created_at": "2026-06-17T18:30:13.706441+00:00"
+    "created_at": "2026-06-17T18:30:12.609934+00:00"
   }
 ]
