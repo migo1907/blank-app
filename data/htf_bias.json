@@ -31,9 +31,9 @@
     "timeframe": "30",
     "symbol": "META",
     "trigger": "BOS",
-    "ml_score": 0.625,
-    "stored_at": "2026-06-17T14:00:06.081272+00:00",
-    "expires_at": "2026-06-17T16:00:06.081294+00:00"
+    "ml_score": 0.5,
+    "stored_at": "2026-06-17T18:30:11.478288+00:00",
+    "expires_at": "2026-06-17T20:30:11.478327+00:00"
   },
   "GOOG_30": {
     "direction": "SHORT",
@@ -295,5 +295,14 @@
     "ml_score": 0.25,
     "stored_at": "2026-06-17T18:30:08.422066+00:00",
     "expires_at": "2026-06-17T22:30:08.422088+00:00"
+  },
+  "SOXL_60": {
+    "direction": "SHORT",
+    "timeframe": "60",
+    "symbol": "SOXL",
+    "trigger": "OB",
+    "ml_score": 0.25,
+    "stored_at": "2026-06-17T18:30:09.232623+00:00",
+    "expires_at": "2026-06-17T22:30:09.232644+00:00"
   }
 }
