@@ -278,6 +278,41 @@ def _fetch_live_price(name: str, decimals: int) -> float | None:
     return None
 
 
+def _refresh_prev_close(assets: dict) -> dict:
+    """
+    When daily_levels.json is stale (GH Actions missed this morning), pull the
+    previous completed session's H/L/C from yfinance and recalculate pivots.
+    Falls back to the stored values if yfinance is unavailable.
+    """
+    from market_data import fetch_daily
+    _TICKER_MAP = {"XAUUSD": "GC=F", "SPY": "SPY", "QQQ": "QQQ"}
+    _DECIMALS   = {"XAUUSD": 2,       "SPY": 2,      "QQQ": 2}
+    out = dict(assets)
+    for name, ticker in _TICKER_MAP.items():
+        if name not in out:
+            continue
+        try:
+            df = fetch_daily(ticker, period="5d")
+            if df is None or len(df) < 2:
+                continue
+            # Use the last fully-closed bar (iloc[-1] is today's incomplete bar
+            # only when markets are open; iloc[-2] is always the previous session)
+            prev = df.iloc[-2]
+            ph = float(prev["High"])
+            pl = float(prev["Low"])
+            pc = float(prev["Close"])
+            dec = _DECIMALS[name]
+            new_levels = _calc_pivots(ph, pl, pc, dec)
+            if "current" in out[name]:
+                new_levels["current"] = out[name]["current"]
+            old_pc = out[name].get("prev_close")
+            out[name] = new_levels
+            print(f"[daily] {name}: corrected prev_close {old_pc} → {pc:.2f} from yfinance")
+        except Exception as e:
+            print(f"[daily] {name}: could not refresh prev_close: {e}")
+    return out
+
+
 def _load_from_json() -> dict:
     """Fetch pre-fetched pivot levels from GitHub (written by GitHub Actions at 07:50 UTC)."""
     try:
@@ -286,7 +321,14 @@ def _load_from_json() -> dict:
         data = resp.json()
         fetched_at = data.get("fetched_at", "unknown")
         assets = data.get("assets", {})
-        if assets:
+        if not assets:
+            return {}
+        today_str = datetime.now(timezone.utc).date().isoformat()
+        fetched_date = (fetched_at or "")[:10]
+        if fetched_date != today_str:
+            print(f"[daily] WARNING: daily_levels.json stale (fetched {fetched_date}, today {today_str}) — refreshing prev_close from yfinance")
+            assets = _refresh_prev_close(assets)
+        else:
             print(f"[daily] Fetched pre-built levels from GitHub (fetched_at={fetched_at}): {list(assets.keys())}")
         return assets
     except Exception as e:
@@ -396,9 +438,12 @@ def _ff_calendar_events(now: datetime) -> list[tuple]:
     """
     url = "https://nfs.faireconomy.media/ff_calendar_thisweek.json"
     try:
-        with httpx.Client(timeout=10) as client:
+        with httpx.Client(timeout=12, follow_redirects=True) as client:
             resp = client.get(url, headers={
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+                "Accept": "application/json, text/plain, */*",
+                "Accept-Language": "en-US,en;q=0.9",
+                "Referer": "https://www.forexfactory.com/",
             })
             resp.raise_for_status()
             data = resp.json() or []
@@ -418,12 +463,45 @@ def _ff_calendar_events(now: datetime) -> list[tuple]:
             continue
         if ts_utc.date() != now.date():
             continue
-        name     = ev.get("title", "Event")
+        # FF JSON uses "title" for event name; fall back to "event" key
+        name     = ev.get("title") or ev.get("event") or "Event"
         forecast = ev.get("forecast") or ""
         actual   = ev.get("actual") or ""
         detail   = f" · Actual: {actual}" if actual else (f" · Est: {forecast}" if forecast else "")
         out.append((ts_utc, name, detail))
+
+    print(f"[daily_brief] Forex Factory: {len(out)} high-impact USD event(s) today")
     return out
+
+
+# FOMC rate decision dates for 2026 (second day of each meeting, 14:00 ET = 18:00 UTC / 19:00 UTC during winter)
+_FOMC_DATES_2026 = {
+    "2026-01-29": (18, 0),
+    "2026-03-19": (18, 0),
+    "2026-04-30": (18, 0),
+    "2026-06-17": (18, 0),
+    "2026-07-30": (18, 0),
+    "2026-09-17": (18, 0),
+    "2026-10-29": (18, 0),
+    "2026-12-10": (19, 0),  # winter time (UTC-5 ET → 19:00 UTC)
+}
+
+
+def _fomc_fallback(now: datetime) -> list[tuple]:
+    """
+    Hardcoded FOMC 2026 schedule as last-resort fallback when both Finnhub and
+    Forex Factory APIs return empty. Keeps the calendar section alive on Fed day.
+    """
+    today = now.date().isoformat()
+    if today not in _FOMC_DATES_2026:
+        return []
+    h, m = _FOMC_DATES_2026[today]
+    ts_utc = datetime(now.year, now.month, now.day, h, m, tzinfo=timezone.utc)
+    print(f"[daily_brief] FOMC fallback triggered for {today}")
+    return [
+        (ts_utc, "FOMC Rate Decision", ""),
+        (ts_utc + timedelta(minutes=30), "Fed Chair Press Conference", ""),
+    ]
 
 
 def _finnhub_calendar_events(now: datetime) -> list[tuple]:
@@ -474,6 +552,8 @@ def _fetch_todays_high_impact_events() -> str:
     """
     now = datetime.now(timezone.utc)
     events = _finnhub_calendar_events(now) + _ff_calendar_events(now)
+    if not events:
+        events = _fomc_fallback(now)
     if not events:
         return ""
 
