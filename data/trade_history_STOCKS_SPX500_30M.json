@@ -716,13 +716,13 @@
     "direction": "SHORT",
     "trigger": "OB",
     "entry_price": 7519.2,
-    "exit_price": 7503.0388,
-    "outcome": "WIN",
-    "ml_outcome": "TP1_HIT",
+    "exit_price": 7528.5,
+    "outcome": "PARTIAL",
+    "ml_outcome": "WIN",
     "mfe": 0.0,
-    "tp_stage": "TP1",
+    "tp_stage": "SL_TP2",
     "timeframe": "30",
-    "pnl_pct": 0.2149,
+    "pnl_pct": -0.1237,
     "ml_bull_score": 0.875,
     "regime": "NORMAL",
     "session": "NYSE_OPEN",
@@ -752,8 +752,8 @@
     "f24_fvgq": 0.0,
     "f25_tod": 0.6088,
     "f26_stoch": -1.0,
-    "id": "b142bd45",
+    "id": "5d977d59",
     "pool": "STOCKS_SPX500_30M",
-    "created_at": "2026-06-17T15:00:13.704954+00:00"
+    "created_at": "2026-06-17T15:00:10.822859+00:00"
   }
 ]
