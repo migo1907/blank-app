@@ -134,15 +134,6 @@
     "stored_at": "2026-06-17T14:30:25.212360+00:00",
     "expires_at": "2026-06-17T18:30:25.212369+00:00"
   },
-  "META_60": {
-    "direction": "SHORT",
-    "timeframe": "60",
-    "symbol": "META",
-    "trigger": "FVG",
-    "ml_score": 0.375,
-    "stored_at": "2026-06-17T15:30:02.265714+00:00",
-    "expires_at": "2026-06-17T19:30:02.265733+00:00"
-  },
   "CRM_60": {
     "direction": "SHORT",
     "timeframe": "60",
@@ -421,5 +412,23 @@
     "ml_score": 0.75,
     "stored_at": "2026-06-17T20:00:40.485709+00:00",
     "expires_at": "2026-06-18T00:00:40.485716+00:00"
+  },
+  "PLTR_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "PLTR",
+    "trigger": "FVG",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-17T20:00:40.809812+00:00",
+    "expires_at": "2026-06-17T22:00:40.809820+00:00"
+  },
+  "TNA_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "TNA",
+    "trigger": "FVG",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-17T20:00:41.373850+00:00",
+    "expires_at": "2026-06-17T22:00:41.373859+00:00"
   }
 }
