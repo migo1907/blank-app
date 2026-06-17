@@ -2,34 +2,29 @@
 indicator("AI MLM 26", overlay=true, max_labels_count=500, max_bars_back=510, max_lines_count=200)
 
 // ═══════════════════════════════════════════════════════════════════
-// AI MLM 26 — Read-Only ML Signal Quality Mirror
-// Shows Lorentzian KNN signal quality, entry/TP/SL historically,
-// and a live dashboard table. NO alerts, NO webhook, NO heartbeat.
+// AI MLM 26 — Pure read-only mirror of the backend ML system.
+// Weights are fixed from backend weights.json — no Pine Script
+// self-learning. Win/loss counts are the backend's real numbers.
+// NO personal opinion adjustments. Shows exactly what the ML learned.
 //
-// Updated: 2026-06-17  [CONSERVATIVE MODE]
-// Backend snapshot: 52W / 73L on XAUUSD (2026-06-03 checkpoint)
-// System total: 500 trades · 40.0% win rate across all 26 pools
+// Updated: 2026-06-17
+// Backend snapshot: XAUUSD pool — 52W / 73L (weights.json 2026-06-03)
+// System total (all pools): 500 trades · 40.0% win rate
 //
-// Conservative upgrades vs previous version:
-//   mlMinScore  0.55 → 0.62  (stays at 5/8 KNN vote with k=8 — same freq, healthier training)
-//   adxThr      20   → 25    (stronger trend required)
-//   atrRR       0.75 → 0.85  (catches more ATR compression)
-//   emaBandPct  0.3  → 0.5%  (EMAs must be more separated)
-//   Sideways    3→4 conditions: added BB squeeze (width < 75% of 20-bar avg)
-//   Kernel      2-bar → 3-bar consistency required
-//
-// What the ML learned (feature importance by final weight):
-//   STRONGEST  : F6  Williams %R        → 1.507  (best reversal sensor)
-//                F12 SMC Liquidity Sweep → 1.150  (sweep-and-reverse)
-//                F13 Range Midpoint      → 1.132  (mean-reversion anchor)
-//                F14 HL Structure        → 1.101  (higher-low/lower-high)
-//                F25 Time-of-Day Sine    → 1.123  (session timing matters)
-//                F3  ATR Expansion       → 1.043  (volatility context)
-//   WEAKEST    : F18 Volume Delta        → 0.443  (noisy on gold/spot)
-//                F4  BB Position         → 0.574  (weak standalone)
-//                F5  MACD Histogram      → 0.582  (too lagged)
-//                F1  RSI (raw)           → 0.665  (superseded by F23 slope)
-//   F26 Stochastic: cold-start 1.000 — added 2026-06-11, learning in progress
+// Feature importance ranking (by backend learned weight):
+//   F6  Williams %R        1.507  ← most trusted
+//   F12 SMC Liquidity Swp  1.150
+//   F13 Range Midpoint     1.132
+//   F25 Time-of-Day Sine   1.123
+//   F14 HL Structure       1.101
+//   F3  ATR Expansion      1.043
+//   F24 FVG Pattern        1.039
+//   F19 RSI Divergence     1.038
+//   F15 Session            1.012
+//   F10 Impulse Candle     0.931
+//   ...
+//   F18 Volume Delta       0.443  ← least trusted (noisy on spot gold)
+//   F26 Stochastic         1.000  (added 2026-06-11, cold-start)
 // ═══════════════════════════════════════════════════════════════════
 
 // ── Timeframe auto-detection ─────────────────────────────────────
@@ -42,52 +37,32 @@ bool  isTF4H = tfMins >= 240
 bool  isTF1H = tfMins >= 60 and not isTF4H
 
 // ═══════════════════════════════════════════════════════════════════
-// INPUTS — cosmetic/display only (internals are fixed)
+// INPUTS — display only
 // ═══════════════════════════════════════════════════════════════════
-bool  showLabels  = input.bool(true,  "Show signals on chart",           group="🎨 Display")
-bool  showLines   = input.bool(true,  "Show TP/SL lines (latest signal)",group="🎨 Display")
-bool  showDash    = input.bool(true,  "Show dashboard",                  group="🎨 Display")
-string dashPos    = input.string("Bottom Left", "Dashboard position",    group="🎨 Display",
+bool   showLabels = input.bool(true,  "Show signals on chart",            group="🎨 Display")
+bool   showLines  = input.bool(true,  "Show TP/SL lines (latest signal)", group="🎨 Display")
+bool   showDash   = input.bool(true,  "Show dashboard",                   group="🎨 Display")
+string dashPos    = input.string("Bottom Left", "Dashboard position",     group="🎨 Display",
                     options=["Bottom Left", "Bottom Right", "Top Left", "Top Right"])
-bool  showTrend   = false
+bool   showTrend  = false
 
-// ── All internals fixed (not exposed) ────────────────────────────
-bool  autoTF      = true
+// ── Backend parameters (match production signal_engine.py) ───────
 int   mlK         = 8
-int   mlDepth_inp = 300
 int   mlLag       = 4
-// With k=8 neighbors the effective vote thresholds are 5/8=62.5% and 6/8=75%.
-// 0.65 silently required 6/8 (very few signals). 0.62 stays at 5/8 — same as
-// the original 0.55 in practice, so training data remains healthy.
-float mlMinScore  = 0.62
-float learnRate   = 0.05
-float winReward   = 0.15
-float lossPenalty = 0.20
-bool  useSMC      = true
-bool  useSession  = true
-bool  useMTF      = true
-bool  useDXY      = true
-bool  useVolDelta = true
-bool  useRSIDiv   = true
-bool  useFib      = true
-bool  useVWAP     = true
-bool  useNewFeats = true
+float mlMinScore  = 0.55   // backend min_conf — unchanged, matches training conditions
 bool  useKernel   = true
 int   adxLen      = 14
-// Conservative thresholds — tightened vs defaults (20 / 0.75 / 0.3)
-float adxThr      = 25.0   // ADX must be >25 to qualify as trending
-float atrRR       = 0.85   // ATR must be >85% of its 20-bar SMA (catches more compression)
-float emaBandPct  = 0.5    // EMA50/EMA200 gap must be >0.5% to count as separated
-
-// ── Auto-TF overrides (always on) ────────────────────────────────
-int   mlDepth    = isTF2 ? 150 : isTF5 ? 250 : isTF15 ? 350 : isTF30 ? 400 : 500
-int   kWin       = isTF2 ? 5   : isTF5 ? 8   : isTF15 ? 12  : isTF30 ? 14  : isTF1H ? 16 : 20
-float kH         = 8.0
-float kAlpha     = 1.0
-float atrMultTP1 = isTF2 ? 1.0 : isTF5 ? 1.5 : isTF15 ? 2.0 : isTF30 ? 2.2 : isTF1H ? 2.5 : 3.0
-float atrMultTP2 = isTF2 ? 1.8 : isTF5 ? 2.5 : isTF15 ? 3.5 : isTF30 ? 3.8 : isTF1H ? 4.5 : 5.5
-float atrMultTP3 = isTF2 ? 3.0 : isTF5 ? 4.0 : isTF15 ? 5.5 : isTF30 ? 6.0 : isTF1H ? 7.0 : 9.0
-float atrMultSL  = isTF2 ? 0.8 : isTF5 ? 1.5 : isTF15 ? 2.0 : isTF30 ? 2.2 : isTF1H ? 2.5 : 3.0
+float adxThr      = 20.0   // production value — ML was trained under these conditions
+float atrRR       = 0.75
+float emaBandPct  = 0.3
+float atrMultTP1  = isTF2 ? 1.0 : isTF5 ? 1.5 : isTF15 ? 2.0 : isTF30 ? 2.2 : isTF1H ? 2.5 : 3.0
+float atrMultTP2  = isTF2 ? 1.8 : isTF5 ? 2.5 : isTF15 ? 3.5 : isTF30 ? 3.8 : isTF1H ? 4.5 : 5.5
+float atrMultTP3  = isTF2 ? 3.0 : isTF5 ? 4.0 : isTF15 ? 5.5 : isTF30 ? 6.0 : isTF1H ? 7.0 : 9.0
+float atrMultSL   = isTF2 ? 0.8 : isTF5 ? 1.5 : isTF15 ? 2.0 : isTF30 ? 2.2 : isTF1H ? 2.5 : 3.0
+int   mlDepth     = isTF2 ? 150 : isTF5 ? 250 : isTF15 ? 350 : isTF30 ? 400 : 500
+int   kWin        = isTF2 ? 5   : isTF5 ? 8   : isTF15 ? 12  : isTF30 ? 14  : isTF1H ? 16 : 20
+float kH          = 8.0
+float kAlpha      = 1.0
 
 // ═══════════════════════════════════════════════════════════════════
 // BASE INDICATORS
@@ -112,15 +87,12 @@ float stochD   = ta.sma(stochK, 3)
 float ma50_4h  = request.security(syminfo.tickerid, "240", ta.ema(close, 50))
 [dxyEma5, dxyEma20] = request.security("DXY", timeframe.period, [ta.ema(close, 5), ta.ema(close, 20)])
 
-// Regime — 4-condition sideways detector (2/4 majority blocks a signal)
-bool  adxFlat       = adxVal < adxThr
-bool  atrCompressed = atr < atrSma * atrRR
-bool  emaTooClose   = math.abs(maShort - maLong) / maLong * 100.0 < emaBandPct
-float bbWidth       = math.max(bbUp - bbLow_, 0.0001) / math.max(bbMid, 0.0001)
-bool  bbSqueeze     = bbWidth < ta.sma(bbWidth, 20) * 0.75  // BB width < 75% of its 20-bar avg
-// 2 of 4 conditions = sideways (was 2/3 — adding BB squeeze makes this harder to dodge)
-bool isSideways   = (adxFlat ? 1 : 0) + (atrCompressed ? 1 : 0) + (emaTooClose ? 1 : 0) + (bbSqueeze ? 1 : 0) >= 2
-string mainTrend  = close > ma50_1h and rsi_1h > 50 ? "UPTREND" : close < ma50_1h and rsi_1h < 50 ? "DOWNTREND" : "SIDEWAYS"
+// Regime (original production thresholds — unchanged)
+bool adxFlat       = adxVal < adxThr
+bool atrCompressed = atr < atrSma * atrRR
+bool emaTooClose   = math.abs(maShort - maLong) / maLong * 100.0 < emaBandPct
+bool isSideways    = (adxFlat ? 1 : 0) + (atrCompressed ? 1 : 0) + (emaTooClose ? 1 : 0) >= 2
+string mainTrend   = close > ma50_1h and rsi_1h > 50 ? "UPTREND" : close < ma50_1h and rsi_1h < 50 ? "DOWNTREND" : "SIDEWAYS"
 
 // Swing structure
 float swingHigh20   = ta.highest(high, 20)
@@ -137,7 +109,7 @@ float highestHigh14 = ta.highest(high, 14)
 float lowestLow14   = ta.lowest(low,  14)
 
 // ═══════════════════════════════════════════════════════════════════
-// F1–F26 (identical to production)
+// F1–F26 (production-identical)
 // ═══════════════════════════════════════════════════════════════════
 float f1  = (rsiVal - 50.0) / 50.0
 float f2  = math.min(adxVal / 50.0, 1.0) * (diPlus > diMinus ? 1.0 : -1.0)
@@ -147,116 +119,74 @@ float f5  = math.max(-1.0, math.min(1.0, macdHist / math.max(atr * 0.1, 0.0001))
 float f6  = -(willR + 50.0) / 50.0
 float f7  = cmo
 float f8  = math.max(-1.0, math.min(1.0, (close - maLong) / (atr * 5.0)))
-
-float f9_raw  = low > high[2] ? 1.0 : high < low[2] ? -1.0 : 0.0
-float f9      = useSMC ? f9_raw  : 0.0
+float f9  = low > high[2] ? 1.0 : high < low[2] ? -1.0 : 0.0
 bool  bullImpulse = close > high[1] and close > open
 bool  bearImpulse = close < low[1]  and close < open
-float f10_raw = bullImpulse and close[1] < open[1] ? 1.0 : bearImpulse and close[1] > open[1] ? -1.0 : 0.0
-float f10     = useSMC ? f10_raw : 0.0
-float f11_raw = close > swingHigh20[1] ? 1.0 : close < swingLow20[1] ? -1.0 : 0.0
-float f11     = useSMC ? f11_raw : 0.0
-float f12_raw = low < lowest10Low[1] and close > lowest10Low[1] ? 1.0 : high > highest10High[1] and close < highest10High[1] ? -1.0 : 0.0
-float f12     = useSMC ? f12_raw : 0.0
+float f10 = bullImpulse and close[1] < open[1] ? 1.0 : bearImpulse and close[1] > open[1] ? -1.0 : 0.0
+float f11 = close > swingHigh20[1] ? 1.0 : close < swingLow20[1] ? -1.0 : 0.0
+float f12 = low < lowest10Low[1] and close > lowest10Low[1] ? 1.0 : high > highest10High[1] and close < highest10High[1] ? -1.0 : 0.0
 float midpt50 = (highest50 + lowest50) / 2.0
 float rng50   = math.max(highest50 - lowest50, 0.0001)
-float f13_raw = math.max(-1.0, math.min(1.0, (midpt50 - close) / (rng50 * 0.5)))
-float f13     = useSMC ? f13_raw : 0.0
+float f13 = math.max(-1.0, math.min(1.0, (midpt50 - close) / (rng50 * 0.5)))
 bool  higherLow = low > low[1] and low[1] < low[2] and close < maShort
 bool  lowerHigh = high < high[1] and high[1] > high[2] and close > maShort
-float f14_raw   = higherLow ? 0.7 : lowerHigh ? -0.7 : 0.0
-float f14       = useSMC ? f14_raw : 0.0
-
-int   utcHour  = hour(time, "UTC")
-float f15_raw  = (utcHour >= 13 and utcHour < 17) ? 1.0 :
-                 (utcHour >= 8  and utcHour < 13) ? 0.8 :
-                 (utcHour >= 17 and utcHour < 22) ? 0.3 : -0.5
-float f15      = useSession ? f15_raw : 0.0
-
+float f14 = higherLow ? 0.7 : lowerHigh ? -0.7 : 0.0
+int   utcHour = hour(time, "UTC")
+float f15 = (utcHour >= 13 and utcHour < 17) ? 1.0 :
+            (utcHour >= 8  and utcHour < 13) ? 0.8 :
+            (utcHour >= 17 and utcHour < 22) ? 0.3 : -0.5
 bool  bullAlign = ma50_1h > ma200_1h and close > ma50_4h
 bool  bearAlign = ma50_1h < ma200_1h and close < ma50_4h
-float f16_raw   = bullAlign ? 1.0 : bearAlign ? -1.0 : 0.0
-float f16       = useMTF  ? f16_raw : 0.0
-
-float f17_raw = dxyEma5 < dxyEma20 ? 1.0 : dxyEma5 > dxyEma20 ? -1.0 : 0.0
-float f17     = useDXY  ? f17_raw : 0.0
-
+float f16 = bullAlign ? 1.0 : bearAlign ? -1.0 : 0.0
+float f17 = dxyEma5 < dxyEma20 ? 1.0 : dxyEma5 > dxyEma20 ? -1.0 : 0.0
 float candleRange = math.max(high - low, 0.0001)
 float buyVol      = volume * (close - low)  / candleRange
 float sellVol     = volume * (high - close) / candleRange
 float avgVol      = ta.sma(volume, 20)
-float f18_raw     = math.max(-1.0, math.min(1.0, (buyVol - sellVol) / math.max(avgVol, 0.0001)))
-float f18         = useVolDelta ? f18_raw : 0.0
-
+float f18 = math.max(-1.0, math.min(1.0, (buyVol - sellVol) / math.max(avgVol, 0.0001)))
 bool  bullDiv = low <= lowestLow14    and rsiVal > rsiLow14
 bool  bearDiv = high >= highestHigh14 and rsiVal < rsiHigh14
-float f19_raw = bullDiv ? 1.0 : bearDiv ? -1.0 : 0.0
-float f19     = useRSIDiv ? f19_raw : 0.0
-
-float rng100     = math.max(highest100 - lowest100, 0.0001)
-float fib50      = lowest100 + rng100 * 0.500
-float fib618     = lowest100 + rng100 * 0.618
-bool  inGBuy     = close >= fib50 and close <= fib618
-bool  inGSell    = close >= (highest100 - rng100 * 0.618) and close <= (highest100 - rng100 * 0.500)
-float f20_raw    = inGBuy ? 0.8 : inGSell ? -0.8 : math.max(-1.0, math.min(1.0, (close - fib50) / (rng100 * 0.5)))
-float f20        = useFib ? f20_raw : 0.0
-
+float f19 = bullDiv ? 1.0 : bearDiv ? -1.0 : 0.0
+float rng100  = math.max(highest100 - lowest100, 0.0001)
+float fib50   = lowest100 + rng100 * 0.500
+float fib618  = lowest100 + rng100 * 0.618
+bool  inGBuy  = close >= fib50 and close <= fib618
+bool  inGSell = close >= (highest100 - rng100 * 0.618) and close <= (highest100 - rng100 * 0.500)
+float f20 = inGBuy ? 0.8 : inGSell ? -0.8 : math.max(-1.0, math.min(1.0, (close - fib50) / (rng100 * 0.5)))
 float vwapVal = ta.vwap(hlc3)
-float f21_raw = math.max(-1.0, math.min(1.0, (close - vwapVal) / math.max(atr * 3.0, 0.0001)))
-float f21     = useVWAP ? f21_raw : 0.0
-
+float f21 = math.max(-1.0, math.min(1.0, (close - vwapVal) / math.max(atr * 3.0, 0.0001)))
 float bodySize = math.abs(close - open)
 float fullRng  = math.max(high - low, syminfo.mintick)
-float bodyDir  = close >= open ? 1.0 : -1.0
-float f22_raw  = bodyDir * math.min(bodySize / fullRng, 1.0)
-float f22      = useNewFeats ? f22_raw : 0.0
-
-float rsiSlope = (rsiVal - rsiVal[3]) / 3.0
-float f23_raw  = math.max(-1.0, math.min(1.0, rsiSlope / 15.0))
-float f23      = useNewFeats ? f23_raw : 0.0
-
+float f22 = (close >= open ? 1.0 : -1.0) * math.min(bodySize / fullRng, 1.0)
+float f23 = math.max(-1.0, math.min(1.0, (rsiVal - rsiVal[3]) / 3.0 / 15.0))
 float swLow20_2  = ta.lowest(low,  20)[2]
 float swHigh20_2 = ta.highest(high, 20)[2]
 bool  sweepDown  = low[1] < swLow20_2  and close[1] > swLow20_2
 bool  sweepUp    = high[1] > swHigh20_2 and close[1] < swHigh20_2
 bool  fvgBullQ   = sweepDown and (low > high[2]) and close > open
 bool  fvgBearQ   = sweepUp   and (high < low[2]) and close < open
-float f24_raw    = fvgBullQ ? 1.0 : fvgBearQ ? -1.0 : 0.0
-float f24        = useNewFeats ? f24_raw : 0.0
-
-float todMins  = float(utcHour * 60 + minute)
-float f25_raw  = math.sin((todMins / 1440.0) * 2.0 * math.pi)
-float f25      = useNewFeats ? f25_raw : 0.0
-
-// F26: Stochastic %K−%D momentum delta (independent of F6 Williams %R)
-float f26_raw  = math.max(-1.0, math.min(1.0, (stochK - stochD) / 20.0))
-float f26      = useNewFeats ? f26_raw : 0.0
+float f24 = fvgBullQ ? 1.0 : fvgBearQ ? -1.0 : 0.0
+float todMins = float(utcHour * 60 + minute)
+float f25 = math.sin((todMins / 1440.0) * 2.0 * math.pi)
+float f26 = math.max(-1.0, math.min(1.0, (stochK - stochD) / 20.0))
 
 // ═══════════════════════════════════════════════════════════════════
-// ADAPTIVE WEIGHTS — seeded from backend ML (weights.json 2026-06-03)
-// Self-updates from chart history on top of these priors.
-//
-// Rank (highest → most discriminative on XAUUSD):
-//   F6=1.507  F12=1.150  F13=1.132  F25=1.123  F14=1.101
-//   F19=1.038  F24=1.039  F3=1.043  F15=1.012  F10=0.931
-//   F17=0.888  F8=0.723   F9=0.721  F16=0.844  F2=0.812
-//   F21=0.831  F20=0.795  F7=0.677  F22=0.726  F23=0.746
-//   F11=0.657  F1=0.665   F5=0.582  F4=0.574   F18=0.443
-//   F26=1.000  (Stochastic — cold-start, added 2026-06-11)
+// BACKEND WEIGHTS — fixed snapshot from weights.json (2026-06-03)
+// These do NOT change. This is what the ML learned on live trades.
+// Next update when backend accumulates significantly more trades.
 // ═══════════════════════════════════════════════════════════════════
-var float[] weights = array.from(
+float[] weights = array.from(
     0.665, 0.812, 1.043, 0.574, 0.582,   // F1  F2  F3  F4  F5
     1.507, 0.677, 0.723, 0.721, 0.931,   // F6  F7  F8  F9  F10
     0.657, 1.150, 1.132, 1.101, 1.012,   // F11 F12 F13 F14 F15
     0.844, 0.888, 0.443, 1.038, 0.795,   // F16 F17 F18 F19 F20
     0.831, 0.726, 0.746, 1.039, 1.123,   // F21 F22 F23 F24 F25
-    1.000)                                // F26 Stochastic (learning)
+    1.000)                                // F26 Stochastic (cold-start)
 
-// Seed win/loss from backend snapshot (XAUUSD pool, 2026-06-03)
-var int totalWins   = 52
-var int totalLosses = 73
-
-clampW(w) => math.max(0.2, math.min(3.0, w))
+// Backend win/loss snapshot (XAUUSD pool, 2026-06-03)
+int backendWins   = 52
+int backendLosses = 73
+float backendWinRate = float(backendWins) / float(backendWins + backendLosses) * 100.0
 
 float[] curFeats = array.from(
     f1,  f2,  f3,  f4,  f5,  f6,  f7,  f8,  f9,  f10,
@@ -284,13 +214,12 @@ rqKernel(src, h, alpha, window) =>
         den += wk
     den > 0.0 ? num / den : src[0]
 
-float kernelEst = useKernel ? rqKernel(close, kH, kAlpha, kWin) : maShort
-// Conservative: kernel must be consistently trending for 3 bars (was 2) to fire
-bool  kernelUp   = kernelEst > kernelEst[2] and kernelEst[1] > kernelEst[3]
-bool  kernelDown = kernelEst < kernelEst[2] and kernelEst[1] < kernelEst[3]
+float kernelEst  = useKernel ? rqKernel(close, kH, kAlpha, kWin) : maShort
+bool  kernelUp   = kernelEst > kernelEst[2]
+bool  kernelDown = kernelEst < kernelEst[2]
 
 // ═══════════════════════════════════════════════════════════════════
-// KNN CLASSIFIER
+// KNN CLASSIFIER — runs with fixed backend weights
 // ═══════════════════════════════════════════════════════════════════
 var float mlBull = 0.5
 var float mlBear = 0.5
@@ -334,49 +263,13 @@ if bar_index > mlK * 2 + mlLag and bar_index % 2 == 0
 bool longOk  = mlBull >= mlMinScore and kernelUp  and not isSideways
 bool shortOk = mlBear >= mlMinScore and kernelDown and not isSideways
 
-// Debounce — no repeat same direction
-var int lastSig = 0   // 1=long, -1=short
+var int lastSig = 0
 bool sigLong  = longOk  and lastSig != 1
 bool sigShort = shortOk and lastSig != -1
-
 if sigLong
     lastSig := 1
 if sigShort
     lastSig := -1
-
-// ═══════════════════════════════════════════════════════════════════
-// ADAPTIVE WEIGHT UPDATE (paper labels — lagged)
-// ═══════════════════════════════════════════════════════════════════
-var float[] storedFeats = array.new_float(26, 0.0)
-var int     storedSig   = 0
-
-if sigLong or sigShort
-    for i = 0 to 25
-        array.set(storedFeats, i, array.get(curFeats, i))
-    storedSig := sigLong ? 1 : -1
-
-// Label close[mlLag] bars ago — did stored signal work?
-if bar_index > mlLag + 5 and storedSig != 0
-    float priceNow   = close
-    float priceEntry = close[mlLag]
-    bool  isWin  = storedSig == 1 ? priceNow > priceEntry : priceNow < priceEntry
-    bool  isLoss = storedSig == 1 ? priceNow < priceEntry : priceNow > priceEntry
-    if isWin
-        totalWins += 1
-        for i = 0 to 25
-            float fv = array.get(storedFeats, i)
-            float wv = array.get(weights, i)
-            if math.abs(fv) > 0.1
-                array.set(weights, i, clampW(wv + winReward * learnRate * math.abs(fv)))
-        storedSig := 0
-    else if isLoss
-        totalLosses += 1
-        for i = 0 to 25
-            float fv = array.get(storedFeats, i)
-            float wv = array.get(weights, i)
-            if math.abs(fv) > 0.1
-                array.set(weights, i, clampW(wv - lossPenalty * learnRate * math.abs(fv)))
-        storedSig := 0
 
 // ═══════════════════════════════════════════════════════════════════
 // TP / SL LEVELS
@@ -387,13 +280,12 @@ float tp2L   = sigLong  ? entryP + atr * atrMultTP2 : sigShort ? entryP - atr * 
 float tp3L   = sigLong  ? entryP + atr * atrMultTP3 : sigShort ? entryP - atr * atrMultTP3 : na
 float slL    = sigLong  ? entryP - atr * atrMultSL  : sigShort ? entryP + atr * atrMultSL  : na
 
-// Pct distance helpers
 pctStr(float base, float target) =>
     float pct = math.abs((target - base) / base * 100.0)
     str.tostring(pct, "#.##") + "%"
 
 // ═══════════════════════════════════════════════════════════════════
-// SIGNAL LABELS (on chart, historical)
+// SIGNAL LABELS
 // ═══════════════════════════════════════════════════════════════════
 if showLabels
     if sigLong
@@ -404,11 +296,10 @@ if showLabels
                          "TP2:   " + str.tostring(tp2L, format.mintick) + "  +" + pctStr(entryP, tp2L) + "\n" +
                          "TP3:   " + str.tostring(tp3L, format.mintick) + "  +" + pctStr(entryP, tp3L) + "\n" +
                          "SL:    " + str.tostring(slL,  format.mintick) + "  -" + pctStr(entryP, slL)  + "\n" +
-                         "MLM ▲ " + bullPct
+                         "ML ▲ " + bullPct
         label.new(bar_index, low - atr * 0.4, lblTxt,
                   color=color.new(color.teal, 10), textcolor=color.white,
                   style=label.style_label_up, size=size.small)
-
     if sigShort
         string bearPct = str.tostring(math.round(mlBear * 100)) + "%"
         string lblTxt  = "▼ SELL\n" +
@@ -417,18 +308,18 @@ if showLabels
                          "TP2:   " + str.tostring(tp2L, format.mintick) + "  +" + pctStr(entryP, tp2L) + "\n" +
                          "TP3:   " + str.tostring(tp3L, format.mintick) + "  +" + pctStr(entryP, tp3L) + "\n" +
                          "SL:    " + str.tostring(slL,  format.mintick) + "  +" + pctStr(entryP, slL)  + "\n" +
-                         "MLM ▼ " + bearPct
+                         "ML ▼ " + bearPct
         label.new(bar_index, high + atr * 0.4, lblTxt,
                   color=color.new(color.red, 10), textcolor=color.white,
                   style=label.style_label_down, size=size.small)
 
 // ═══════════════════════════════════════════════════════════════════
-// TP/SL LINES for the LATEST signal only
+// TP/SL LINES — latest signal only
 // ═══════════════════════════════════════════════════════════════════
-var line lineTP1 = na
-var line lineTP2 = na
-var line lineTP3 = na
-var line lineSL  = na
+var line lineTP1   = na
+var line lineTP2   = na
+var line lineTP3   = na
+var line lineSL    = na
 var line lineEntry = na
 
 if showLines and (sigLong or sigShort)
@@ -455,31 +346,15 @@ if showLines and (sigLong or sigShort)
 signalTier(bullScore, bearScore) =>
     float top = math.max(bullScore, bearScore)
     top >= 0.75 ? "⭐⭐⭐ STRONG" :
-     top >= 0.65 ? "⭐⭐ GOOD" :
-     top >= 0.55 ? "⭐ MODERATE" : "– WEAK"
+     top >= 0.625 ? "⭐⭐ GOOD" :
+     top >= 0.55  ? "⭐ MODERATE" : "– WEAK"
 
-// ═══════════════════════════════════════════════════════════════════
-// SESSION LABEL
-// ═══════════════════════════════════════════════════════════════════
 string sessLabel = (utcHour >= 13 and utcHour < 17) ? "NY+Lon Overlap" :
                    (utcHour >= 8  and utcHour < 13) ? "London" :
                    (utcHour >= 17 and utcHour < 22) ? "NY Late" : "Asian"
 
 // ═══════════════════════════════════════════════════════════════════
-// TOP FEATURES TABLE (shows which features ML trusts most right now)
-// ═══════════════════════════════════════════════════════════════════
-// Build a simple ranked snapshot of top-3 / bottom-1 weights
-float wF6  = array.get(weights, 5)
-float wF12 = array.get(weights, 11)
-float wF13 = array.get(weights, 12)
-float wF18 = array.get(weights, 17)   // typically lowest
-string topFeats = "W%R:" + str.tostring(wF6, "#.##") +
-                  "  Swp:" + str.tostring(wF12, "#.##") +
-                  "  Rng:" + str.tostring(wF13, "#.##") +
-                  "  Vol↓:" + str.tostring(wF18, "#.##")
-
-// ═══════════════════════════════════════════════════════════════════
-// DASHBOARD TABLE
+// DASHBOARD
 // ═══════════════════════════════════════════════════════════════════
 dashPosition() =>
     dashPos == "Bottom Right" ? position.bottom_right :
@@ -491,99 +366,76 @@ var table dash = table.new(dashPosition(), 2, 17,
                            border_color=color.new(color.gray, 60),
                            border_width=1, frame_color=color.new(color.gray, 40), frame_width=1)
 
-// Helpers
 cellL(r, txt, col) => table.cell(dash, 0, r, txt, text_color=color.new(color.gray, 20), text_size=size.small, bgcolor=col)
 cellR(r, txt, col) => table.cell(dash, 1, r, txt, text_color=color.white,              text_size=size.small, bgcolor=col)
-
 hdr(r, txt) =>
-    table.cell(dash, 0, r, txt, text_color=color.new(color.yellow, 10), text_size=size.small,
-               bgcolor=color.new(color.navy, 30))
-    table.cell(dash, 1, r, "",  text_color=color.white,                 text_size=size.small,
-               bgcolor=color.new(color.navy, 30))
+    table.cell(dash, 0, r, txt, text_color=color.new(color.yellow, 10), text_size=size.small, bgcolor=color.new(color.navy, 30))
+    table.cell(dash, 1, r, "",  text_color=color.white,                 text_size=size.small, bgcolor=color.new(color.navy, 30))
 
-// Colors
 color colBull = color.new(color.teal, 20)
 color colBear = color.new(color.red,  20)
 color colWarn = color.new(color.orange, 30)
 color colNeu  = color.new(color.gray,  50)
 color colBg   = color.new(color.black, 25)
 
-// Win rate
-int   totalTrades = totalWins + totalLosses
-float winRate     = totalTrades > 0 ? float(totalWins) / float(totalTrades) * 100.0 : 0.0
-color wrColor     = winRate >= 55 ? colBull : winRate >= 45 ? colNeu : colBear
-
-// Signal direction
 string sigDir = sigLong ? "▲ LONG" : sigShort ? "▼ SHORT" : "– FLAT"
 color  sigClr = sigLong ? colBull  : sigShort  ? colBear  : colNeu
 
-// TP/SL for dashboard (last signal levels — persistent)
-var float dashEntry = na
-var float dashTP1   = na
-var float dashTP2   = na
-var float dashTP3   = na
-var float dashSL    = na
-var bool  dashIsLong = true
+var float dashEntry  = na
+var float dashTP1    = na
+var float dashTP2    = na
+var float dashTP3    = na
+var float dashSL     = na
 
 if sigLong or sigShort
-    dashEntry  := close
-    dashIsLong := sigLong
-    dashTP1    := sigLong ? close + atr * atrMultTP1 : close - atr * atrMultTP1
-    dashTP2    := sigLong ? close + atr * atrMultTP2 : close - atr * atrMultTP2
-    dashTP3    := sigLong ? close + atr * atrMultTP3 : close - atr * atrMultTP3
-    dashSL     := sigLong ? close - atr * atrMultSL  : close + atr * atrMultSL
+    dashEntry := close
+    dashTP1   := sigLong ? close + atr * atrMultTP1 : close - atr * atrMultTP1
+    dashTP2   := sigLong ? close + atr * atrMultTP2 : close - atr * atrMultTP2
+    dashTP3   := sigLong ? close + atr * atrMultTP3 : close - atr * atrMultTP3
+    dashSL    := sigLong ? close - atr * atrMultSL  : close + atr * atrMultSL
 
-// Regime
-color regClr  = isSideways ? colWarn : (mainTrend == "UPTREND" ? colBull : mainTrend == "DOWNTREND" ? colBear : colNeu)
+color regClr = isSideways ? colWarn : (mainTrend == "UPTREND" ? colBull : mainTrend == "DOWNTREND" ? colBear : colNeu)
+color wrClr  = backendWinRate >= 55 ? colBull : backendWinRate >= 45 ? colNeu : colBear
 
-// F6 weight colour (green if ML trusts it above 1.2)
-color f6Col  = wF6  >= 1.2 ? colBull : wF6  >= 0.8 ? colNeu : colBear
-color f18Col = wF18 <= 0.5 ? colBear : colNeu
+// Feature weight highlights (live from fixed backend array)
+float wF6  = array.get(weights, 5)   // Williams %R — top
+float wF18 = array.get(weights, 17)  // Volume Delta — bottom
 
 if showDash and barstate.islast
-    // Header
     hdr(0, "  AI MLM 26  ·  " + syminfo.ticker + " " + timeframe.period + "m")
 
-    // MLM Quality (score hidden, only tier shown)
-    hdr(1, "── MLM Quality ──")
-    cellL(2, "Signal",        colBg)
-    cellR(2, sigDir,          sigClr)
-    cellL(3, "Tier",          colBg)
+    hdr(1, "── ML Signal ──")
+    cellL(2, "Direction",    colBg)
+    cellR(2, sigDir,         sigClr)
+    cellL(3, "Confidence",   colBg)
     cellR(3, signalTier(mlBull, mlBear), colBg)
+    cellL(4, "ML Bull %",    colBg)
+    cellR(4, str.tostring(math.round(mlBull * 100)) + "%  Bear " + str.tostring(math.round(mlBear * 100)) + "%", colBg)
 
-    // Signal levels
-    hdr(4, "── Levels ──")
-    cellL(5, "Entry",  colBg)
-    cellR(5, na(dashEntry) ? "–" : str.tostring(dashEntry, format.mintick), colBg)
-    cellL(6, "TP 1",   colBg)
-    cellR(6, na(dashTP1) ? "–" : str.tostring(dashTP1, format.mintick) + "  +" + pctStr(dashEntry, dashTP1), colBull)
-    cellL(7, "TP 2",   colBg)
-    cellR(7, na(dashTP2) ? "–" : str.tostring(dashTP2, format.mintick) + "  +" + pctStr(dashEntry, dashTP2), color.new(color.green, 20))
-    cellL(8, "TP 3",   colBg)
-    cellR(8, na(dashTP3) ? "–" : str.tostring(dashTP3, format.mintick) + "  +" + pctStr(dashEntry, dashTP3), color.new(color.lime, 30))
-    cellL(9, "Stop",   colBg)
-    cellR(9, na(dashSL) ? "–" : str.tostring(dashSL, format.mintick)  + "  -" + pctStr(dashEntry, dashSL),  colBear)
+    hdr(5, "── Levels ──")
+    cellL(6,  "Entry", colBg)
+    cellR(6,  na(dashEntry) ? "–" : str.tostring(dashEntry, format.mintick), colBg)
+    cellL(7,  "TP 1",  colBg)
+    cellR(7,  na(dashTP1) ? "–" : str.tostring(dashTP1, format.mintick) + "  +" + pctStr(dashEntry, dashTP1), colBull)
+    cellL(8,  "TP 2",  colBg)
+    cellR(8,  na(dashTP2) ? "–" : str.tostring(dashTP2, format.mintick) + "  +" + pctStr(dashEntry, dashTP2), color.new(color.green, 20))
+    cellL(9,  "TP 3",  colBg)
+    cellR(9,  na(dashTP3) ? "–" : str.tostring(dashTP3, format.mintick) + "  +" + pctStr(dashEntry, dashTP3), color.new(color.lime, 30))
+    cellL(10, "Stop",  colBg)
+    cellR(10, na(dashSL) ? "–" : str.tostring(dashSL, format.mintick) + "  -" + pctStr(dashEntry, dashSL), colBear)
 
-    // Performance
-    hdr(10, "── Performance ──")
-    cellL(11, "Win Rate",  colBg)
-    cellR(11, totalTrades > 0 ? str.tostring(winRate, "#.#") + "% (" + str.tostring(totalTrades) + ")" : "–", wrColor)
+    hdr(11, "── Backend Snapshot ──")
+    cellL(12, "Win Rate",    colBg)
+    cellR(12, str.tostring(backendWinRate, "#.#") + "%  (" + str.tostring(backendWins) + "W/" + str.tostring(backendLosses) + "L)", wrClr)
+    cellL(13, "Top F  (W%R)",  colBg)
+    cellR(13, str.tostring(wF6,  "#.###"), colBull)
+    cellL(14, "Weak F (Vol)", colBg)
+    cellR(14, str.tostring(wF18, "#.###"), colBear)
 
-    // ML feature insight — live weights on key features
-    hdr(12, "── ML Weights ──")
-    cellL(13, "W%R (F6)",   colBg)
-    cellR(13, str.tostring(wF6,  "#.###"), f6Col)
-    cellL(14, "VolDelta(F18)", colBg)
-    cellR(14, str.tostring(wF18, "#.###"), f18Col)
-
-    // Context
     hdr(15, "── Context ──")
-    int swCount = (adxFlat?1:0) + (atrCompressed?1:0) + (emaTooClose?1:0) + (bbSqueeze?1:0)
-    string regStr = isSideways ? "⚠ SIDEWAYS (" + str.tostring(swCount) + "/4)" : mainTrend
-    cellL(16, "Regime",    colBg)
-    cellR(16, regStr, regClr)
+    cellL(16, "Regime",     colBg)
+    cellR(16, isSideways ? "⚠ SIDEWAYS" : mainTrend, regClr)
 
-// ── Trend lines on chart (toggleable) ────────────────────────────
 plot(showTrend ? kernelEst : na, "Kernel", color=color.new(color.purple, 40), linewidth=2, display=display.none)
 plot(showTrend ? maShort   : na, "EMA 50",  color=color.new(color.orange, 60), linewidth=1, display=display.none)
 plot(showTrend ? maLong    : na, "EMA 200", color=color.new(color.blue,   60), linewidth=1, display=display.none)
