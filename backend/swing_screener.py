@@ -164,6 +164,8 @@ def _technical_score(ticker: str) -> dict:
         except Exception:
             pass
 
+        if np.isnan(score):
+            score = 0.0
         out["score"] = round(float(np.clip(score, -1, 1)), 3)
     except Exception as e:
         print(f"[swing] technical {ticker} failed: {e}")
