@@ -27618,13 +27618,13 @@
     "direction": "SHORT",
     "trigger": "FVG",
     "entry_price": 4328.47,
-    "exit_price": 4326.5629,
-    "outcome": "WIN",
-    "ml_outcome": "TP1_HIT",
+    "exit_price": 4327.63,
+    "outcome": "PARTIAL",
+    "ml_outcome": "WIN",
     "mfe": 0.0,
-    "tp_stage": "TP1",
+    "tp_stage": "SL_TP2",
     "timeframe": "2",
-    "pnl_pct": 0.0441,
+    "pnl_pct": 0.0194,
     "ml_bull_score": 0.375,
     "regime": "TRENDING_BULL",
     "session": "ASIAN",
@@ -27654,8 +27654,8 @@
     "f24_fvgq": 0.0,
     "f25_tod": 0.91,
     "f26_stoch": -1.0,
-    "id": "acf3e9fa",
+    "id": "756364d9",
     "pool": "XAUUSD_2M",
-    "created_at": "2026-06-17T04:30:05.679040+00:00"
+    "created_at": "2026-06-17T04:30:03.657199+00:00"
   }
 ]
