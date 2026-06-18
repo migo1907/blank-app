@@ -313,8 +313,11 @@ def _refresh_prev_close(assets: dict) -> dict:
     return out
 
 
-def _load_from_json() -> dict:
-    """Fetch pre-fetched pivot levels from GitHub (written by GitHub Actions at 07:50 UTC)."""
+def _load_from_json() -> tuple[dict, bool]:
+    """
+    Fetch pre-fetched pivot levels from GitHub (written by GitHub Actions at 07:50 UTC).
+    Returns (assets_dict, is_stale) — is_stale=True when the file is from a prior day.
+    """
     try:
         resp = httpx.get(_LEVELS_URL, timeout=10)
         resp.raise_for_status()
@@ -322,18 +325,19 @@ def _load_from_json() -> dict:
         fetched_at = data.get("fetched_at", "unknown")
         assets = data.get("assets", {})
         if not assets:
-            return {}
+            return {}, False
         today_str = datetime.now(timezone.utc).date().isoformat()
         fetched_date = (fetched_at or "")[:10]
         if fetched_date != today_str:
             print(f"[daily] WARNING: daily_levels.json stale (fetched {fetched_date}, today {today_str}) — refreshing prev_close from yfinance")
             assets = _refresh_prev_close(assets)
+            return assets, True
         else:
             print(f"[daily] Fetched pre-built levels from GitHub (fetched_at={fetched_at}): {list(assets.keys())}")
-        return assets
+        return assets, False
     except Exception as e:
         print(f"[daily] Failed to fetch daily_levels.json from GitHub: {e}")
-        return {}
+        return {}, False
 
 
 def _fetch_levels_tv(symbol: str, exchange: str, decimals: int) -> dict | None:
@@ -579,7 +583,7 @@ def generate_daily_brief() -> str | None:
     Fetch pivot levels + live prices and generate institutional daily brief via Claude.
     Returns formatted Telegram message string, or None on failure.
     """
-    prefetched   = _load_from_json()
+    prefetched, levels_stale = _load_from_json()
     asset_blocks = []
 
     for name in ("XAUUSD", "SPY", "QQQ"):
@@ -635,9 +639,11 @@ def generate_daily_brief() -> str | None:
     calendar_block   = _fetch_todays_high_impact_events()
     calendar_section = f"\n\n{calendar_block}" if calendar_block else ""
 
+    stale_warning = "\n⚠️ <i>Pivot levels from prior session — GitHub Actions missed 07:50 UTC run. Levels may be stale.</i>\n" if levels_stale else ""
     msg = (
         f"📅 <b>MORNING BRIEF — {weekday}, {date_str}</b>\n"
-        f"━━━━━━━━━━━━━━━━━━━━\n\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n"
+        f"{stale_warning}\n"
         f"{analysis}{calendar_section}\n\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
         f"⏰ {now.strftime('%H:%M')} UTC  ·  1:00 PM Dubai  ·  {session_label}"
