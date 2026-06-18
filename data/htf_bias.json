@@ -1,22 +1,4 @@
 {
-  "HOOD_240": {
-    "direction": "LONG",
-    "timeframe": "240",
-    "symbol": "HOOD",
-    "trigger": "BOS",
-    "ml_score": 0.75,
-    "stored_at": "2026-06-17T17:30:16.111452+00:00",
-    "expires_at": "2026-06-18T01:30:16.111474+00:00"
-  },
-  "UPST_240": {
-    "direction": "LONG",
-    "timeframe": "240",
-    "symbol": "UPST",
-    "trigger": "OB",
-    "ml_score": 0.5,
-    "stored_at": "2026-06-17T17:30:50.489138+00:00",
-    "expires_at": "2026-06-18T01:30:50.489158+00:00"
-  },
   "US500_240": {
     "direction": "SHORT",
     "timeframe": "240",
@@ -52,14 +34,5 @@
     "ml_score": 0.625,
     "stored_at": "2026-06-17T20:00:58.091151+00:00",
     "expires_at": "2026-06-18T04:00:58.091165+00:00"
-  },
-  "XAUUSD_30": {
-    "direction": "LONG",
-    "timeframe": "30",
-    "symbol": "XAUUSD",
-    "trigger": "FVG",
-    "ml_score": 0.75,
-    "stored_at": "2026-06-18T01:32:01.667097+00:00",
-    "expires_at": "2026-06-18T03:32:01.667114+00:00"
   }
 }
