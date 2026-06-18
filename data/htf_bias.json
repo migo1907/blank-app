@@ -270,13 +270,13 @@
     "expires_at": "2026-06-18T18:30:19.520488+00:00"
   },
   "IBKR_30": {
-    "direction": "LONG",
+    "direction": "SHORT",
     "timeframe": "30",
     "symbol": "IBKR",
     "trigger": "FVG",
-    "ml_score": 0.625,
-    "stored_at": "2026-06-18T14:30:19.766539+00:00",
-    "expires_at": "2026-06-18T16:30:19.766562+00:00"
+    "ml_score": 0.375,
+    "stored_at": "2026-06-18T18:30:18.961696+00:00",
+    "expires_at": "2026-06-18T20:30:18.961723+00:00"
   },
   "NVDA_60": {
     "direction": "LONG",
