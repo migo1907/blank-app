@@ -2,7 +2,7 @@
   "candidates": [
     {
       "ticker": "LLY",
-      "combined_score": 0.777,
+      "combined_score": 0.747,
       "fundamental": {
         "ticker": "LLY",
         "archetype": "healthcare",
@@ -13,7 +13,7 @@
         },
         "analyst": {
           "recommendation": "buy",
-          "target_upside_pct": 12.5,
+          "target_upside_pct": 13.88,
           "num_analysts": 29
         },
         "insider": {
@@ -35,13 +35,13 @@
           "piotroski_f": 7,
           "altman_z": 7.25,
           "rule_of_40": null,
-          "fcf_yield_pct": 0.92,
-          "peg": 1.5,
+          "fcf_yield_pct": 0.93,
+          "peg": 1.49,
           "roe_pct": 107.5,
           "roa_pct": 20.7,
-          "price_to_book": 31.85,
-          "pe_ratio": 39.5,
-          "forward_pe": 25.0
+          "price_to_book": 31.46,
+          "pe_ratio": 39.0,
+          "forward_pe": 24.7
         },
         "earnings_call": {
           "reported": false,
@@ -55,16 +55,16 @@
           "tone": 0.0,
           "note": "",
           "score_delta": 0.0,
-          "updated_at": "2026-06-18T00:07:58.140970+00:00"
+          "updated_at": "2026-06-18T20:31:17.475499+00:00"
         },
         "news": {
-          "news_7d": 90,
+          "news_7d": 101,
           "headlines": [
-            "J&J Has No Plans to Enter Obesity Drugs Market, CEO Says",
-            "J&J Skips GLP-1 Race, Targets No. 1 Cancer Spot By 2030",
-            "Eli Lilly Stock's Trillion-Dollar Question",
-            "The Number That Could Test Johnson & Johnson Stock",
-            "Jim Cramer on Eli Lilly: \u201cI Want You to Stay in the Stock\u201d"
+            "Eli Lilly (LLY) Stock Could Be 24.7% Undervalued on Its Growth Narrative",
+            "FDA Accepts Roche's Filing for Lunsumio VELO-Polivy in LBCL",
+            "Biohaven: Upgrading To Buy On Protein Degraders Pivotal Study Initiations",
+            "Cathie Wood Goes Bargain Hunting: 3 Stocks She Just Bought",
+            "Can Pfizer Take Share From Lilly & Novo Nordisk in the Obesity Space?"
           ],
           "sentiment": 0.0
         },
@@ -72,27 +72,27 @@
           "form4_count": 14
         },
         "rss_news": {
-          "rss_news_7d": 6
+          "rss_news_7d": 4
         },
-        "score": 0.594,
-        "updated_at": "2026-06-18T00:07:54.647727+00:00"
+        "score": 0.604,
+        "updated_at": "2026-06-18T20:31:14.070320+00:00"
       },
       "technical": {
-        "score": 1.0,
-        "rsi": 46.8,
+        "score": 0.921,
+        "rsi": 48.6,
         "trend": "BULL",
-        "rel_strength_pct": 6.7,
-        "entry": 1112.0,
-        "atr": 37.69,
-        "stop": 1074.31,
-        "t1": 1187.39,
-        "t2": 1225.08
+        "rel_strength_pct": 4.6,
+        "entry": 1098.57,
+        "atr": 36.98,
+        "stop": 1061.59,
+        "t1": 1172.53,
+        "t2": 1209.51
       },
-      "updated_at": "2026-06-18T00:08:01.341363+00:00"
+      "updated_at": "2026-06-18T20:31:21.110590+00:00"
     },
     {
       "ticker": "AMD",
-      "combined_score": 0.706,
+      "combined_score": 0.696,
       "fundamental": {
         "ticker": "AMD",
         "archetype": "growth_tech",
@@ -103,7 +103,7 @@
         },
         "analyst": {
           "recommendation": "strong_buy",
-          "target_upside_pct": -4.39,
+          "target_upside_pct": -8.82,
           "num_analysts": 48
         },
         "insider": {
@@ -125,13 +125,13 @@
           "piotroski_f": 8,
           "altman_z": 10.15,
           "rule_of_40": 57.0,
-          "fcf_yield_pct": 0.86,
-          "peg": 1.22,
+          "fcf_yield_pct": 0.82,
+          "peg": 1.23,
           "roe_pct": 8.1,
           "roa_pct": 3.6,
-          "price_to_book": 12.96,
-          "pe_ratio": 171.4,
-          "forward_pe": 39.1
+          "price_to_book": 13.59,
+          "pe_ratio": 179.7,
+          "forward_pe": 41.0
         },
         "earnings_call": {
           "reported": false,
@@ -145,16 +145,16 @@
           "tone": 0.0,
           "note": "",
           "score_delta": 0.0,
-          "updated_at": "2026-06-18T00:10:16.082638+00:00"
+          "updated_at": "2026-06-18T20:33:25.766221+00:00"
         },
         "news": {
-          "news_7d": 248,
+          "news_7d": 249,
           "headlines": [
-            "Is Micron Stock's Record-Breaking Run A Cyclical Peak Or A New AI Reality?",
-            "What A Patient Holder Is Really Paying For Broadcom Stock",
-            "Intel: The Re-Rating Has Gone Too Far",
-            "RXT Stock Surges To 4-Year Highs \u2014 Wall Street Highlights Multi-Industry Growth Potential After AMD Deal",
-            "Advanced Micro Devices (AMD): The Best Debt-Free American Stock to Invest In"
+            "One Warning Signal AMD Investors Can't Miss",
+            "AMD (AMD) Buys MEXT To Tackle AI Data Center Memory Bottlenecks",
+            "The Real Price Tag On Broadcom Stock Is Not What It Seems",
+            "Intel shares rise after Trump announces Apple partnership",
+            "Stock Market Today, June 18: Intel Surges As Market Gains on U.S.-Iran Agreement"
           ],
           "sentiment": 0.0
         },
@@ -164,25 +164,25 @@
         "rss_news": {
           "rss_news_7d": 0
         },
-        "score": 0.466,
-        "updated_at": "2026-06-18T00:10:12.521464+00:00"
+        "score": 0.447,
+        "updated_at": "2026-06-18T20:33:22.224165+00:00"
       },
       "technical": {
         "score": 1.0,
-        "rsi": 49.1,
+        "rsi": 53.1,
         "trend": "BULL",
-        "rel_strength_pct": 9.6,
-        "entry": 512.48,
-        "atr": 36.28,
-        "stop": 476.2,
-        "t1": 585.03,
-        "t2": 621.3
+        "rel_strength_pct": 12.3,
+        "entry": 537.37,
+        "atr": 36.89,
+        "stop": 500.48,
+        "t1": 611.15,
+        "t2": 648.05
       },
-      "updated_at": "2026-06-18T00:10:19.257886+00:00"
+      "updated_at": "2026-06-18T20:33:28.674827+00:00"
     },
     {
       "ticker": "GE",
-      "combined_score": 0.669,
+      "combined_score": 0.684,
       "fundamental": {
         "ticker": "GE",
         "archetype": "industrial",
@@ -193,7 +193,7 @@
         },
         "analyst": {
           "recommendation": "strong_buy",
-          "target_upside_pct": -1.13,
+          "target_upside_pct": -1.3,
           "num_analysts": 21
         },
         "insider": {
@@ -216,12 +216,12 @@
           "altman_z": 3.6,
           "rule_of_40": null,
           "fcf_yield_pct": 1.52,
-          "peg": 8.46,
+          "peg": 8.59,
           "roe_pct": 45.4,
           "roa_pct": 4.9,
-          "price_to_book": 20.63,
+          "price_to_book": 20.66,
           "pe_ratio": 44.4,
-          "forward_pe": 41.1
+          "forward_pe": 41.2
         },
         "earnings_call": {
           "reported": false,
@@ -235,16 +235,16 @@
           "tone": 0.0,
           "note": "",
           "score_delta": 0.0,
-          "updated_at": "2026-06-18T00:11:26.025077+00:00"
+          "updated_at": "2026-06-18T20:34:34.877839+00:00"
         },
         "news": {
-          "news_7d": 30,
+          "news_7d": 36,
           "headlines": [
-            "Old Age space ETFs gain over New Age stocks since SpaceX IPO",
-            "BETA Technologies (BETA) Reports Q1 2026 Results with $3.9B Aircraft Backlog",
-            "Montreal company plans to build a plant for small modular reactor parts east of Toronto in supply chain deal",
-            "SpaceX is sucking the oxygen out of the new space trade",
-            "Can GE Aerospace Boost Margin Performance Amid Cost Pressures?"
+            "The Overlooked Signal In GE Stock's Shipping Delays",
+            "GE Vernova Supplier Breaks Out As Data Centers Lift Construction Sector",
+            "Is GE Stock's Large Backlog Enough To Out-Fly a Slowdown?",
+            "Is GE (GE) Quietly Rewiring Its Aerospace Identity Through Advanced Power and Nuclear Bets?",
+            "General Electric (GE) Stock Looks 2% Above Its Fair Value Narrative After Recent Run"
           ],
           "sentiment": 0.0
         },
@@ -252,117 +252,27 @@
           "form4_count": 17
         },
         "rss_news": {
-          "rss_news_7d": 29
+          "rss_news_7d": 25
         },
-        "score": 0.469,
-        "updated_at": "2026-06-18T00:11:22.561573+00:00"
+        "score": 0.468,
+        "updated_at": "2026-06-18T20:34:31.454726+00:00"
       },
       "technical": {
-        "score": 0.914,
-        "rsi": 69.8,
+        "score": 0.948,
+        "rsi": 69.0,
         "trend": "BULL",
-        "rel_strength_pct": 13.7,
-        "entry": 357.03,
-        "atr": 11.16,
-        "stop": 345.87,
-        "t1": 379.35,
-        "t2": 390.51
+        "rel_strength_pct": 12.4,
+        "entry": 357.64,
+        "atr": 11.04,
+        "stop": 346.6,
+        "t1": 379.72,
+        "t2": 390.75
       },
-      "updated_at": "2026-06-18T00:11:29.385961+00:00"
-    },
-    {
-      "ticker": "IBM",
-      "combined_score": 0.647,
-      "fundamental": {
-        "ticker": "IBM",
-        "archetype": "growth_tech",
-        "earnings": {
-          "next_days": 34,
-          "last_surprise_pct": 5.45,
-          "imminent": false
-        },
-        "analyst": {
-          "recommendation": "buy",
-          "target_upside_pct": 10.54,
-          "num_analysts": 21
-        },
-        "insider": {
-          "net_buy_signal": 1.0,
-          "buy_count": 3,
-          "sell_count": 0
-        },
-        "institutional": {
-          "inst_held_pct": 65.6
-        },
-        "growth": {
-          "revenue_growth_pct": 9.5,
-          "earnings_growth_pct": 14.2
-        },
-        "short": {
-          "short_pct_float": 3.6
-        },
-        "advanced": {
-          "piotroski_f": 7,
-          "altman_z": 7.35,
-          "rule_of_40": 28.5,
-          "fcf_yield_pct": 5.3,
-          "peg": 2.53,
-          "roe_pct": 35.8,
-          "roa_pct": 5.4,
-          "price_to_book": 7.48,
-          "pe_ratio": 23.2,
-          "forward_pe": 19.5
-        },
-        "earnings_call": {
-          "reported": false,
-          "date": null,
-          "days_ago": null,
-          "surprise_pct": null,
-          "rev_beat_pct": null,
-          "guidance": "none",
-          "buyback": false,
-          "dividend_raise": false,
-          "tone": 0.0,
-          "note": "",
-          "score_delta": 0.0,
-          "updated_at": "2026-06-18T00:12:32.887081+00:00"
-        },
-        "news": {
-          "news_7d": 65,
-          "headlines": [
-            "Nasdaq, US stocks slide as Fed forecasts possible rate hike",
-            "PLTR Stock: What Does Its Valuation Imply?",
-            "Explore the top gainers and losers within the dow jones index in today's session.",
-            "Oracle Stock's High Stakes Gamble",
-            "WQTM: The Quantum Computing Trade Wall Street Is Missing"
-          ],
-          "sentiment": 0.0
-        },
-        "edgar_insider": {
-          "form4_count": 14
-        },
-        "rss_news": {
-          "rss_news_7d": 1
-        },
-        "score": 0.358,
-        "updated_at": "2026-06-18T00:12:29.327685+00:00"
-      },
-      "technical": {
-        "score": 1.0,
-        "rsi": 49.3,
-        "trend": "BULL",
-        "rel_strength_pct": 11.7,
-        "entry": 262.35,
-        "atr": 16.12,
-        "stop": 246.23,
-        "t1": 294.59,
-        "t2": 310.71
-      },
-      "updated_at": "2026-06-18T00:12:35.788196+00:00"
+      "updated_at": "2026-06-18T20:34:38.619566+00:00"
     },
     {
       "ticker": "CAT",
-      "combined_score": 0.586,
+      "combined_score": 0.584,
       "fundamental": {
         "ticker": "CAT",
         "archetype": "industrial",
@@ -373,7 +283,7 @@
         },
         "analyst": {
           "recommendation": "buy",
-          "target_upside_pct": 0.21,
+          "target_upside_pct": -2.82,
           "num_analysts": 26
         },
         "insider": {
@@ -393,15 +303,15 @@
         },
         "advanced": {
           "piotroski_f": 6,
-          "altman_z": 5.63,
+          "altman_z": 5.74,
           "rule_of_40": null,
-          "fcf_yield_pct": 0.86,
-          "peg": 2.24,
+          "fcf_yield_pct": 0.83,
+          "peg": 2.27,
           "roe_pct": 51.3,
           "roa_pct": 8.5,
-          "price_to_book": 23.6,
-          "pe_ratio": 47.7,
-          "forward_pe": 31.8
+          "price_to_book": 24.33,
+          "pe_ratio": 49.2,
+          "forward_pe": 32.8
         },
         "earnings_call": {
           "reported": false,
@@ -415,16 +325,16 @@
           "tone": 0.0,
           "note": "",
           "score_delta": 0.0,
-          "updated_at": "2026-06-18T00:12:19.342194+00:00"
+          "updated_at": "2026-06-18T20:35:28.419821+00:00"
         },
         "news": {
-          "news_7d": 46,
+          "news_7d": 52,
           "headlines": [
-            "TOROMONT ANNOUNCES UPDATE ON POWER SYSTEMS BUSINESS",
-            "Nasdaq, US stocks slide as Fed forecasts possible rate hike",
-            "Explore the top gainers and losers within the dow jones index in today's session.",
-            "Dow Achieves a New Milestone: 4 Blue-Chip Stocks to Buy",
-            "3 Stocks That Declared Dividend Hikes Recently Amid Geopolitical Tensions"
+            "Stay informed with the top movers within the dow jones index on Thursday.",
+            "Uncover the latest developments among dow jones stocks in today's session.",
+            "These 3 Stocks Just Raised Their Dividends",
+            "Dow Jumps 200 Points After Fed-Related Sell-Off \u2013 Index On Track To Post Best Week In A Month",
+            "Does CAT Stock's Surge Offer Your Portfolio Real Power Or Just More Market Risk?"
           ],
           "sentiment": 0.0
         },
@@ -434,24 +344,114 @@
         "rss_news": {
           "rss_news_7d": 11
         },
-        "score": 0.261,
-        "updated_at": "2026-06-18T00:12:15.826497+00:00"
+        "score": 0.243,
+        "updated_at": "2026-06-18T20:35:24.700939+00:00"
       },
       "technical": {
-        "score": 0.984,
-        "rsi": 61.2,
+        "score": 1.0,
+        "rsi": 67.1,
         "trend": "BULL",
-        "rel_strength_pct": 4.4,
-        "entry": 955.92,
-        "atr": 36.3,
-        "stop": 919.62,
-        "t1": 1028.51,
-        "t2": 1064.81
+        "rel_strength_pct": 7.8,
+        "entry": 985.82,
+        "atr": 37.29,
+        "stop": 948.53,
+        "t1": 1060.4,
+        "t2": 1097.7
       },
-      "updated_at": "2026-06-18T00:12:22.355543+00:00"
+      "updated_at": "2026-06-18T20:35:31.724386+00:00"
+    },
+    {
+      "ticker": "TXN",
+      "combined_score": 0.473,
+      "fundamental": {
+        "ticker": "TXN",
+        "archetype": "growth_tech",
+        "earnings": {
+          "next_days": 34,
+          "last_surprise_pct": 22.76,
+          "imminent": false
+        },
+        "analyst": {
+          "recommendation": "buy",
+          "target_upside_pct": -7.08,
+          "num_analysts": 33
+        },
+        "insider": {
+          "net_buy_signal": -1.0,
+          "buy_count": 0,
+          "sell_count": 10
+        },
+        "institutional": {
+          "inst_held_pct": 92.6
+        },
+        "growth": {
+          "revenue_growth_pct": 18.6,
+          "earnings_growth_pct": 31.3
+        },
+        "short": {
+          "short_pct_float": 2.3
+        },
+        "advanced": {
+          "piotroski_f": 7,
+          "altman_z": 12.33,
+          "rule_of_40": 24.4,
+          "fcf_yield_pct": 0.36,
+          "peg": 1.44,
+          "roe_pct": 32.3,
+          "roa_pct": 12.2,
+          "price_to_book": 17.51,
+          "pe_ratio": 55.3,
+          "forward_pe": 34.3
+        },
+        "earnings_call": {
+          "reported": false,
+          "date": null,
+          "days_ago": null,
+          "surprise_pct": null,
+          "rev_beat_pct": null,
+          "guidance": "none",
+          "buyback": false,
+          "dividend_raise": false,
+          "tone": 0.0,
+          "note": "",
+          "score_delta": 0.0,
+          "updated_at": "2026-06-18T20:34:48.664775+00:00"
+        },
+        "news": {
+          "news_7d": 37,
+          "headlines": [
+            "The Real Price Tag On Broadcom Stock Is Not What It Seems",
+            "Can onsemi's Treo Platform Unlock New Automotive Opportunities?",
+            "Dumping SCHD",
+            "TXN vs. LRCX: Which Semiconductor Stock Is the Better Buy Right Now?",
+            "Citi Lifts Texas Instruments (TXN) Price Target by $65. Here is Why"
+          ],
+          "sentiment": 0.0
+        },
+        "edgar_insider": {
+          "form4_count": 23
+        },
+        "rss_news": {
+          "rss_news_7d": 0
+        },
+        "score": 0.174,
+        "updated_at": "2026-06-18T20:34:45.215765+00:00"
+      },
+      "technical": {
+        "score": 0.838,
+        "rsi": 56.6,
+        "trend": "BULL",
+        "rel_strength_pct": 1.0,
+        "entry": 322.86,
+        "atr": 14.47,
+        "stop": 308.39,
+        "t1": 351.81,
+        "t2": 366.28
+      },
+      "updated_at": "2026-06-18T20:34:51.825757+00:00"
     }
   ],
   "scanned": 50,
   "top_n": 5,
-  "updated_at": "2026-06-18T00:12:35.788251+00:00"
+  "updated_at": "2026-06-18T20:35:45.421005+00:00"
 }
