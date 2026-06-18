@@ -92,6 +92,15 @@ async def send_entry_signal(s: dict) -> bool:
     else:
         quality_line = f"🧠 ML Quality: ⚠️ WEAK ({q_score*100:.0f}%) — similar setups mostly stopped out\n"
 
+    # Entry2: pullback add-on level for STRONG/MED signals only.
+    # 0.3 × ATR from entry in signal direction. Valid until TP1 — same SL covers both.
+    entry2_line = ""
+    if tier.upper() in ("HIGH", "MED") and entry and sl and tp1:
+        atr = abs(entry - sl)
+        if atr > 0:
+            e2 = entry - 0.3 * atr if direction == "LONG" else entry + 0.3 * atr
+            entry2_line = f"📍 Entry2: {e2:.2f}  <i>(pullback · valid until TP1)</i>\n"
+
     msg = (
         f"{dir_emoji} <b>{direction} SIGNAL{htf_badge}</b> — {asset_emoji} {symbol_clean}\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
@@ -99,6 +108,7 @@ async def send_entry_signal(s: dict) -> bool:
         f"Strength:  {strength_str}\n"
         f"{quality_line}\n"
         f"📍 Entry:  {entry:.2f}\n"
+        f"{entry2_line}"
         f"🎯 TP1:    {tp1:.2f}\n"
         f"🎯 TP2:    {tp2:.2f}\n"
         f"🚀 TP3:    {tp3:.2f}\n"
