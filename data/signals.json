@@ -2570,7 +2570,7 @@
     "mtf_confluence": "mtf:2/3",
     "post_event": "evt:na",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:VOLATILE(1.00)\u00d70.95 | imkt:DXY-UP(0.27)\u00d71.02 | mtf:2/3\u00d71.03 | evt:na\u00d71.00 | sess:OFF\u00d70.65 | confluence\u00d71.14 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.12) | news:bearish(-0.231) | macro:NEUTRAL(+0.087) | combined:-0.057 \u2192 conf:0.042 \u26a1 FOMC",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-18T00:13:03.514632+00:00",
     "created_at": "2026-06-17T23:43:04.966018+00:00",
     "id": 101
@@ -2598,7 +2598,7 @@
     "mtf_confluence": "mtf:0/3\u26a0",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:VOLATILE(VOLATILE)\u00d70.92 | hmm:RANGING(0.67)\u21c4\u00d70.95 | imkt:VIX-NORMAL(18.44)\u00d70.97 | mtf:0/3\u26a0\u00d70.85 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d71.50 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-0.61) | news:bearish(-0.231) | macro:BULLISH(+0.189) | combined:-0.025 \u2192 conf:0.300 \u26a1 FOMC",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-18T00:13:06.660008+00:00",
     "created_at": "2026-06-17T23:43:08.017932+00:00",
     "id": 101
@@ -2626,7 +2626,7 @@
     "mtf_confluence": "mtf:0/3\u26a0",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(PULLBACK_SHORT)\u00d70.80 | hmm:RANGING(0.93)\u21c4\u00d70.95 | imkt:VIX-NORMAL(18.44)\u00d70.97 | mtf:0/3\u26a0\u00d70.85 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.94 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.59) | news:bearish(-0.231) | macro:BULLISH(+0.189) | combined:-0.025 \u2192 conf:0.300 \u26a1 FOMC",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-18T00:13:09.491197+00:00",
     "created_at": "2026-06-17T23:43:10.913545+00:00",
     "id": 101
