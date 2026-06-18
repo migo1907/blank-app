@@ -93,12 +93,20 @@ async def send_entry_signal(s: dict) -> bool:
         quality_line = f"🧠 ML Quality: ⚠️ WEAK ({q_score*100:.0f}%) — similar setups mostly stopped out\n"
 
     # Entry2: pullback add-on level for STRONG/MED signals only.
-    # 0.3 × ATR from entry in signal direction. Valid until TP1 — same SL covers both.
+    # Multiplier is regime-aware: trending = tight (0.3), volatile = medium (0.4),
+    # ranging = wide (0.5). Valid until TP1 — same SL covers both entries.
     entry2_line = ""
     if tier.upper() in ("HIGH", "MED") and entry and sl and tp1:
         atr = abs(entry - sl)
+        regime = s.get("regime", "RANGING").upper()
+        if "TREND" in regime:
+            e2_mult = 0.3
+        elif "VOLAT" in regime:
+            e2_mult = 0.4
+        else:
+            e2_mult = 0.5  # RANGING — deeper pullback expected
         if atr > 0:
-            e2 = entry - 0.3 * atr if direction == "LONG" else entry + 0.3 * atr
+            e2 = entry - e2_mult * atr if direction == "LONG" else entry + e2_mult * atr
             entry2_line = f"📍 Entry2: {e2:.2f}  <i>(pullback · valid until TP1)</i>\n"
 
     msg = (
