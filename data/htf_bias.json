@@ -72,13 +72,13 @@
     "expires_at": "2026-06-18T16:00:07.089832+00:00"
   },
   "META_30": {
-    "direction": "SHORT",
+    "direction": "LONG",
     "timeframe": "30",
     "symbol": "META",
-    "trigger": "BOS",
-    "ml_score": 0.625,
-    "stored_at": "2026-06-18T14:00:11.726034+00:00",
-    "expires_at": "2026-06-18T16:00:11.726063+00:00"
+    "trigger": "RSI",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-18T20:01:23.921123+00:00",
+    "expires_at": "2026-06-18T22:01:23.921153+00:00"
   },
   "TSLL_30": {
     "direction": "SHORT",
