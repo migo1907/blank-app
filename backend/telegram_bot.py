@@ -265,19 +265,22 @@ def _intel_dir_line(emoji: str, name: str, sig: dict, news_label: str = "") -> s
     """One asset line for the intelligence alert: direction + confidence."""
     d = sig.get("direction", "NEUTRAL")
     c = sig.get("confidence", 0.0) or 0.0
-    if d == "LONG":
-        tag = "🟢 LONG"
-        conf = f" · conf {c*100:.0f}%"
-    elif d == "SHORT":
-        tag = "🔴 SHORT"
+    lean_dir = sig.get("lean_direction", "") or ""
+    lean_pct = sig.get("lean_pct")
+
+    # Only show an actionable direction if confidence cleared the send threshold (≥0.50).
+    # Below that — including the 0.30 thin-pool floor — it's NO SIGNAL.
+    if d in ("LONG", "SHORT") and c >= 0.50:
+        tag  = "🟢 LONG" if d == "LONG" else "🔴 SHORT"
         conf = f" · conf {c*100:.0f}%"
     else:
-        # NO SIGNAL: show the underlying ML lean so it's clear why no trade fired
-        lean_dir = sig.get("lean_direction", "")
-        lean_pct = sig.get("lean_pct")
+        # NO SIGNAL: surface the ML lean so the reader understands the backdrop
         tag = "⚪ NO SIGNAL"
-        if lean_dir and lean_pct is not None and lean_pct >= 55:
-            conf = f" · ML leans {lean_dir} {lean_pct}%"
+        # Use direction+confidence as the lean when it exists but didn't clear threshold
+        lean = lean_dir or (d if d not in ("NEUTRAL", "") else "")
+        pct  = lean_pct if (lean_pct is not None and lean_pct >= 55) else (int(c * 100) if c >= 0.30 else None)
+        if lean and pct:
+            conf = f" · ML leans {lean} {pct}%"
             if news_label:
                 conf += f" · news {news_label}"
         elif news_label:
