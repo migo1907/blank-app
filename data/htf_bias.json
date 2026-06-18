@@ -26,15 +26,6 @@
     "stored_at": "2026-06-18T14:00:02.830172+00:00",
     "expires_at": "2026-06-18T16:00:02.830188+00:00"
   },
-  "SPCX_30": {
-    "direction": "SHORT",
-    "timeframe": "30",
-    "symbol": "SPCX",
-    "trigger": "FVG",
-    "ml_score": 0.5,
-    "stored_at": "2026-06-18T14:00:03.466535+00:00",
-    "expires_at": "2026-06-18T16:00:03.466553+00:00"
-  },
   "AMD_30": {
     "direction": "LONG",
     "timeframe": "30",
@@ -151,15 +142,6 @@
     "ml_score": 0.75,
     "stored_at": "2026-06-18T19:30:12.849579+00:00",
     "expires_at": "2026-06-18T21:30:12.849608+00:00"
-  },
-  "SPCX_60": {
-    "direction": "SHORT",
-    "timeframe": "60",
-    "symbol": "SPCX",
-    "trigger": "FVG",
-    "ml_score": 0.5,
-    "stored_at": "2026-06-18T14:30:01.117805+00:00",
-    "expires_at": "2026-06-18T18:30:01.117824+00:00"
   },
   "NVDA_30": {
     "direction": "LONG",
