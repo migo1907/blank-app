@@ -2,17 +2,17 @@
   "XAUUSD": {
     "asset": "XAUUSD",
     "regime": "RANGING",
-    "confidence": 0.989,
-    "transition_prob": 0.083,
+    "confidence": 0.993,
+    "transition_prob": 0.079,
     "next_regime": "RANGING",
     "shifting": false,
     "probs": {
-      "TRENDING_BEAR": 0.007,
-      "RANGING": 0.989,
-      "VOLATILE": 0.004
+      "TRENDING_BEAR": 0.004,
+      "RANGING": 0.993,
+      "VOLATILE": 0.003
     },
     "method": "hmm",
-    "updated_at": "2026-06-18T20:20:41.508017+00:00"
+    "updated_at": "2026-06-18T21:20:40.106977+00:00"
   },
   "SPY": {
     "asset": "SPY",
@@ -27,7 +27,7 @@
       "VOLATILE": 0.021
     },
     "method": "hmm",
-    "updated_at": "2026-06-18T20:20:43.066705+00:00"
+    "updated_at": "2026-06-18T21:20:41.217968+00:00"
   },
   "QQQ": {
     "asset": "QQQ",
@@ -42,6 +42,6 @@
       "VOLATILE": 0.001
     },
     "method": "hmm",
-    "updated_at": "2026-06-18T20:20:44.350041+00:00"
+    "updated_at": "2026-06-18T21:20:42.192962+00:00"
   }
 }
