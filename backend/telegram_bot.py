@@ -267,15 +267,15 @@ def _intel_dir_line(emoji: str, name: str, sig: dict) -> str:
     c = sig.get("confidence", 0.0) or 0.0
     if d == "LONG":
         tag = "🟢 LONG"
-        conf = f" ({c*100:.0f}%)"
+        conf = f" · conf {c*100:.0f}%"
     elif d == "SHORT":
         tag = "🔴 SHORT"
-        conf = f" ({c*100:.0f}%)"
+        conf = f" · conf {c*100:.0f}%"
     else:
         tag = "⚪ NEUTRAL"
         lean_dir = sig.get("lean_direction", "")
         lean_pct = sig.get("lean_pct")
-        conf = f"  ({lean_dir} {lean_pct}%)" if lean_dir and lean_pct is not None and lean_pct >= 55 else ""
+        conf = f" · leans {lean_dir} {lean_pct}%" if lean_dir and lean_pct is not None and lean_pct >= 55 else ""
     return f"{emoji} <b>{name}</b>: {tag}{conf}"
 
 
