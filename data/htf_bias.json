@@ -313,23 +313,5 @@
     "ml_score": 0.375,
     "stored_at": "2026-06-18T15:30:00.737966+00:00",
     "expires_at": "2026-06-18T19:30:00.737991+00:00"
-  },
-  "SMCI_60": {
-    "direction": "LONG",
-    "timeframe": "60",
-    "symbol": "SMCI",
-    "trigger": "FVG",
-    "ml_score": 0.5,
-    "stored_at": "2026-06-18T15:30:01.155828+00:00",
-    "expires_at": "2026-06-18T19:30:01.155842+00:00"
-  },
-  "SOXL_60": {
-    "direction": "LONG",
-    "timeframe": "60",
-    "symbol": "SOXL",
-    "trigger": "FVG",
-    "ml_score": 0.625,
-    "stored_at": "2026-06-18T15:30:02.495225+00:00",
-    "expires_at": "2026-06-18T19:30:02.495248+00:00"
   }
 }
