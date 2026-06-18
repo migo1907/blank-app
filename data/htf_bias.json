@@ -80,15 +80,6 @@
     "stored_at": "2026-06-18T14:00:07.089819+00:00",
     "expires_at": "2026-06-18T16:00:07.089832+00:00"
   },
-  "TSLA_30": {
-    "direction": "SHORT",
-    "timeframe": "30",
-    "symbol": "TSLA",
-    "trigger": "BOS",
-    "ml_score": 0.75,
-    "stored_at": "2026-06-18T14:00:07.181986+00:00",
-    "expires_at": "2026-06-18T16:00:07.182000+00:00"
-  },
   "META_30": {
     "direction": "SHORT",
     "timeframe": "30",
@@ -196,15 +187,6 @@
     "ml_score": 0.5,
     "stored_at": "2026-06-18T14:30:06.852579+00:00",
     "expires_at": "2026-06-18T18:30:06.852601+00:00"
-  },
-  "TSLA_60": {
-    "direction": "SHORT",
-    "timeframe": "60",
-    "symbol": "TSLA",
-    "trigger": "BOS",
-    "ml_score": 1.0,
-    "stored_at": "2026-06-18T14:30:07.241189+00:00",
-    "expires_at": "2026-06-18T18:30:07.241205+00:00"
   },
   "TSLL_60": {
     "direction": "SHORT",
