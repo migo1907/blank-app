@@ -88,5 +88,68 @@
     "ml_score": 0.625,
     "stored_at": "2026-06-18T14:00:06.926896+00:00",
     "expires_at": "2026-06-18T16:00:06.926910+00:00"
+  },
+  "CRM_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "CRM",
+    "trigger": "BOS",
+    "ml_score": 0.75,
+    "stored_at": "2026-06-18T14:00:07.089819+00:00",
+    "expires_at": "2026-06-18T16:00:07.089832+00:00"
+  },
+  "TSLA_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "TSLA",
+    "trigger": "BOS",
+    "ml_score": 0.75,
+    "stored_at": "2026-06-18T14:00:07.181986+00:00",
+    "expires_at": "2026-06-18T16:00:07.182000+00:00"
+  },
+  "MSTR_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "MSTR",
+    "trigger": "BOS",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-18T14:00:07.311509+00:00",
+    "expires_at": "2026-06-18T16:00:07.311526+00:00"
+  },
+  "META_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "META",
+    "trigger": "BOS",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-18T14:00:11.726034+00:00",
+    "expires_at": "2026-06-18T16:00:11.726063+00:00"
+  },
+  "SOXL_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "SOXL",
+    "trigger": "BOS",
+    "ml_score": 0.75,
+    "stored_at": "2026-06-18T14:00:12.552607+00:00",
+    "expires_at": "2026-06-18T16:00:12.552637+00:00"
+  },
+  "TSLL_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "TSLL",
+    "trigger": "BOS",
+    "ml_score": 0.75,
+    "stored_at": "2026-06-18T14:00:17.071044+00:00",
+    "expires_at": "2026-06-18T16:00:17.071069+00:00"
+  },
+  "GOOG_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "GOOG",
+    "trigger": "BOS",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-18T14:00:20.773665+00:00",
+    "expires_at": "2026-06-18T16:00:20.773686+00:00"
   }
 }
