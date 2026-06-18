@@ -261,7 +261,7 @@ async def send_stocks_session_report() -> bool:
     return await _send(msg)
 
 
-def _intel_dir_line(emoji: str, name: str, sig: dict) -> str:
+def _intel_dir_line(emoji: str, name: str, sig: dict, news_label: str = "") -> str:
     """One asset line for the intelligence alert: direction + confidence."""
     d = sig.get("direction", "NEUTRAL")
     c = sig.get("confidence", 0.0) or 0.0
@@ -272,10 +272,18 @@ def _intel_dir_line(emoji: str, name: str, sig: dict) -> str:
         tag = "🔴 SHORT"
         conf = f" · conf {c*100:.0f}%"
     else:
-        tag = "⚪ NEUTRAL"
+        # NO SIGNAL: show the underlying ML lean so it's clear why no trade fired
         lean_dir = sig.get("lean_direction", "")
         lean_pct = sig.get("lean_pct")
-        conf = f" · leans {lean_dir} {lean_pct}%" if lean_dir and lean_pct is not None and lean_pct >= 55 else ""
+        tag = "⚪ NO SIGNAL"
+        if lean_dir and lean_pct is not None and lean_pct >= 55:
+            conf = f" · ML leans {lean_dir} {lean_pct}%"
+            if news_label:
+                conf += f" · news {news_label}"
+        elif news_label:
+            conf = f" · news {news_label}"
+        else:
+            conf = ""
     return f"{emoji} <b>{name}</b>: {tag}{conf}"
 
 
@@ -318,9 +326,9 @@ async def send_market_intelligence(
         f"━━━━━━━━━━━━━━━━━━━━\n"
         f"{reason_block}\n\n"
         f"📊 News flow: <b>{flow}</b>\n\n"
-        f"{_intel_dir_line('🥇', 'XAUUSD', gold)}\n"
-        f"{_intel_dir_line('📈', 'SPY', spy)}\n"
-        f"{_intel_dir_line('📈', 'QQQ', qqq)}\n"
+        f"{_intel_dir_line('🥇', 'XAUUSD', gold, vdir)}\n"
+        f"{_intel_dir_line('📈', 'SPY', spy, vdir)}\n"
+        f"{_intel_dir_line('📈', 'QQQ', qqq, vdir)}\n"
         f"\n⏰ {now}"
     )
     return await _send(msg)
