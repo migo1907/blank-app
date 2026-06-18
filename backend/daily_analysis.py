@@ -256,26 +256,50 @@ def _technical_context(name: str, decimals: int) -> dict | None:
     return None
 
 
+_TV_LIVE_SYMBOLS = {
+    "XAUUSD": [("TVC:GOLD", "close"), ("OANDA:XAUUSD", "close"), ("FX_IDC:XAUUSD", "close")],
+    "SPY":    [("AMEX:SPY", "premarket_close"), ("AMEX:SPY", "close")],
+    "QQQ":    [("NASDAQ:QQQ", "premarket_close"), ("NASDAQ:QQQ", "close")],
+}
+
+def _fetch_live_price_tv(name: str, decimals: int) -> float | None:
+    """TradingView scanner fallback — same source as GitHub Actions."""
+    for sym, field in _TV_LIVE_SYMBOLS.get(name, []):
+        try:
+            from urllib.parse import quote as _quote
+            url = (f"https://scanner.tradingview.com/symbol"
+                   f"?symbol={_quote(sym)}&fields={field}&no_404=1")
+            resp = httpx.get(url, timeout=8, headers={
+                "User-Agent": "Mozilla/5.0",
+                "Origin": "https://www.tradingview.com",
+            })
+            if resp.status_code == 200:
+                v = resp.json().get(field)
+                if v is not None and float(v) > 0:
+                    print(f"[daily] live price TV fallback {sym}/{field}={round(float(v), decimals)}")
+                    return round(float(v), decimals)
+        except Exception as e:
+            print(f"[daily] TV live price {sym} failed: {e}")
+    return None
+
+
 def _fetch_live_price(name: str, decimals: int) -> float | None:
     """
-    Fetch the current live/pre-market price via yfinance fast_info.
-    For SPY/QQQ this includes pre-market. For XAUUSD this is the live spot price.
-    Returns None if unavailable.
+    Fetch current live/pre-market price. Priority:
+    1. yfinance fast_info (pre/post-market aware)
+    2. TradingView scanner API (reliable from cloud IPs, same source as GitHub Actions)
     """
-    if not _YF_AVAILABLE:
-        return None
-    tickers = _YF_LIVE.get(name, [])
-    for sym in tickers:
-        try:
-            tk = yf.Ticker(sym)
-            fi = tk.fast_info
-            # fast_info.last_price reflects pre/post-market when available
-            price = getattr(fi, "last_price", None)
-            if price and float(price) > 0:
-                return round(float(price), decimals)
-        except Exception as e:
-            print(f"[daily] live price {sym} failed: {e}")
-    return None
+    if _YF_AVAILABLE:
+        for sym in _YF_LIVE.get(name, []):
+            try:
+                tk = yf.Ticker(sym)
+                price = getattr(tk.fast_info, "last_price", None)
+                if price and float(price) > 0:
+                    return round(float(price), decimals)
+            except Exception as e:
+                print(f"[daily] live price {sym} failed: {e}")
+    # yfinance failed or unavailable — go direct to TradingView
+    return _fetch_live_price_tv(name, decimals)
 
 
 def _refresh_prev_close(assets: dict) -> dict:
@@ -313,11 +337,8 @@ def _refresh_prev_close(assets: dict) -> dict:
     return out
 
 
-def _load_from_json() -> tuple[dict, bool]:
-    """
-    Fetch pre-fetched pivot levels from GitHub (written by GitHub Actions at 07:50 UTC).
-    Returns (assets_dict, is_stale) — is_stale=True when the file is from a prior day.
-    """
+def _load_from_json() -> dict:
+    """Fetch pre-fetched pivot levels from GitHub (written by GitHub Actions at 07:50 UTC)."""
     try:
         resp = httpx.get(_LEVELS_URL, timeout=10)
         resp.raise_for_status()
@@ -325,19 +346,18 @@ def _load_from_json() -> tuple[dict, bool]:
         fetched_at = data.get("fetched_at", "unknown")
         assets = data.get("assets", {})
         if not assets:
-            return {}, False
+            return {}
         today_str = datetime.now(timezone.utc).date().isoformat()
         fetched_date = (fetched_at or "")[:10]
         if fetched_date != today_str:
             print(f"[daily] WARNING: daily_levels.json stale (fetched {fetched_date}, today {today_str}) — refreshing prev_close from yfinance")
             assets = _refresh_prev_close(assets)
-            return assets, True
         else:
             print(f"[daily] Fetched pre-built levels from GitHub (fetched_at={fetched_at}): {list(assets.keys())}")
-        return assets, False
+        return assets
     except Exception as e:
         print(f"[daily] Failed to fetch daily_levels.json from GitHub: {e}")
-        return {}, False
+        return {}
 
 
 def _fetch_levels_tv(symbol: str, exchange: str, decimals: int) -> dict | None:
@@ -583,7 +603,7 @@ def generate_daily_brief() -> str | None:
     Fetch pivot levels + live prices and generate institutional daily brief via Claude.
     Returns formatted Telegram message string, or None on failure.
     """
-    prefetched, levels_stale = _load_from_json()
+    prefetched = _load_from_json()
     asset_blocks = []
 
     for name in ("XAUUSD", "SPY", "QQQ"):
@@ -639,11 +659,9 @@ def generate_daily_brief() -> str | None:
     calendar_block   = _fetch_todays_high_impact_events()
     calendar_section = f"\n\n{calendar_block}" if calendar_block else ""
 
-    stale_warning = "\n⚠️ <i>Pivot levels from prior session — GitHub Actions missed 07:50 UTC run. Levels may be stale.</i>\n" if levels_stale else ""
     msg = (
         f"📅 <b>MORNING BRIEF — {weekday}, {date_str}</b>\n"
-        f"━━━━━━━━━━━━━━━━━━━━\n"
-        f"{stale_warning}\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n\n"
         f"{analysis}{calendar_section}\n\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
         f"⏰ {now.strftime('%H:%M')} UTC  ·  1:00 PM Dubai  ·  {session_label}"
