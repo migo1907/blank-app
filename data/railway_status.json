@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-06-18T19:25:48.297097+00:00",
+  "checked_at": "2026-06-18T21:33:47.805769+00:00",
   "health": {
     "status_code": 200,
     "data": {
@@ -235,48 +235,48 @@
       "regimes": {
         "XAUUSD": {
           "asset": "XAUUSD",
-          "regime": "TRENDING_BEAR",
-          "confidence": 0.981,
-          "transition_prob": 0.109,
-          "next_regime": "TRENDING_BEAR",
+          "regime": "RANGING",
+          "confidence": 0.993,
+          "transition_prob": 0.079,
+          "next_regime": "RANGING",
           "shifting": false,
           "probs": {
-            "RANGING": 0.017,
-            "TRENDING_BEAR": 0.981,
-            "VOLATILE": 0.002
+            "TRENDING_BEAR": 0.004,
+            "RANGING": 0.993,
+            "VOLATILE": 0.003
           },
           "method": "hmm",
-          "updated_at": "2026-06-18T19:20:42.393940+00:00"
+          "updated_at": "2026-06-18T21:20:40.106977+00:00"
         },
         "SPY": {
           "asset": "SPY",
           "regime": "RANGING",
-          "confidence": 0.986,
-          "transition_prob": 0.05,
+          "confidence": 0.979,
+          "transition_prob": 0.06,
           "next_regime": "RANGING",
           "shifting": false,
           "probs": {
-            "RANGING": 0.986,
+            "RANGING": 0.979,
             "TRENDING_BULL": 0.0,
-            "VOLATILE": 0.014
+            "VOLATILE": 0.021
           },
           "method": "hmm",
-          "updated_at": "2026-06-18T19:20:43.398728+00:00"
+          "updated_at": "2026-06-18T21:20:41.217968+00:00"
         },
         "QQQ": {
           "asset": "QQQ",
           "regime": "TRENDING_BULL",
-          "confidence": 0.982,
-          "transition_prob": 0.166,
+          "confidence": 0.968,
+          "transition_prob": 0.17,
           "next_regime": "TRENDING_BULL",
           "shifting": false,
           "probs": {
-            "TRENDING_BULL": 0.982,
-            "RANGING": 0.012,
-            "VOLATILE": 0.006
+            "TRENDING_BULL": 0.968,
+            "RANGING": 0.03,
+            "VOLATILE": 0.001
           },
           "method": "hmm",
-          "updated_at": "2026-06-18T19:20:44.726455+00:00"
+          "updated_at": "2026-06-18T21:20:42.192962+00:00"
         }
       },
       "mtf": {
@@ -289,7 +289,7 @@
           },
           "weighted": -1.0,
           "bias": "BEAR",
-          "updated_at": "2026-06-18T19:20:58.454114+00:00",
+          "updated_at": "2026-06-18T21:20:51.434107+00:00",
           "method": "yfinance"
         },
         "SPY": {
@@ -301,7 +301,7 @@
           },
           "weighted": 1.0,
           "bias": "BULL",
-          "updated_at": "2026-06-18T19:20:59.212777+00:00",
+          "updated_at": "2026-06-18T21:20:52.145188+00:00",
           "method": "yfinance"
         },
         "QQQ": {
@@ -313,24 +313,24 @@
           },
           "weighted": 1.0,
           "bias": "BULL",
-          "updated_at": "2026-06-18T19:21:00.017356+00:00",
+          "updated_at": "2026-06-18T21:20:52.921374+00:00",
           "method": "yfinance"
         }
       },
       "post_event": {},
       "intermarket": {
         "vix": {
-          "vix": 16.87,
-          "vix3m": 19.74,
-          "ratio": 0.855,
+          "vix": 16.4,
+          "vix3m": 19.57,
+          "ratio": 0.838,
           "regime": "CALM",
           "size_factor": 1.0,
           "backwardation": false
         },
         "dxy_break": {
           "direction": "UP",
-          "strength": 0.681,
-          "level": 100.893
+          "strength": 0.613,
+          "level": 100.813
         }
       }
     }
@@ -341,35 +341,35 @@
       "pool": "XAUUSD_2M",
       "model": {
         "weights": {
-          "w1": 0.2,
-          "w2": 0.2,
-          "w3": 1.1915,
+          "w1": 0.21,
+          "w2": 0.21,
+          "w3": 1.1815,
           "w4": 0.2,
           "w5": 0.2,
           "w6": 3.0,
           "w7": 0.2,
-          "w8": 0.2,
+          "w8": 0.21,
           "w9": 0.2,
-          "w10": 0.402,
-          "w11": 0.21,
-          "w12": 1.901,
-          "w13": 2.7345,
-          "w14": 1.3845,
-          "w15": 1.4155,
-          "w16": 0.2,
+          "w10": 0.392,
+          "w11": 0.2,
+          "w12": 1.891,
+          "w13": 2.7245,
+          "w14": 1.3745,
+          "w15": 1.4055,
+          "w16": 0.21,
           "w17": 0.2,
-          "w18": 0.21,
-          "w19": 1.8515,
-          "w20": 0.2,
-          "w21": 0.2,
+          "w18": 0.2,
+          "w19": 1.8415,
+          "w20": 0.21,
+          "w21": 0.21,
           "w22": 0.2,
           "w23": 0.2,
-          "w24": 1.417,
-          "w25": 0.939,
-          "w26": 0.21
+          "w24": 1.407,
+          "w25": 0.949,
+          "w26": 0.2
         },
-        "win_rate": 41.1,
-        "total_trades": 767,
+        "win_rate": 41.0,
+        "total_trades": 768,
         "top_features": [
           {
             "name": "WillR",
@@ -377,11 +377,11 @@
           },
           {
             "name": "P/D",
-            "weight": 2.7345
+            "weight": 2.7245
           },
           {
             "name": "Liq",
-            "weight": 1.901
+            "weight": 1.891
           }
         ]
       },
@@ -390,39 +390,38 @@
         "top_features": [
           {
             "name": "f1_rsi",
-            "importance": 0.34
+            "importance": 0.3427
           },
           {
-            "name": "f7_cmo",
-            "importance": 0.2978
+            "name": "f8_ema_dist",
+            "importance": 0.3005
           },
           {
-            "name": "f6_willr",
-            "importance": 0.146
+            "name": "f5_macd",
+            "importance": 0.132
           }
         ]
       },
-      "news_sentiment": -0.1342,
+      "news_sentiment": -0.1997,
       "news_velocity": {
         "multiplier": 0.6,
-        "volume": 87,
-        "consistency": 0.095,
-        "acceleration": 0.117,
+        "volume": 67,
+        "consistency": 0.291,
+        "acceleration": 0.114,
         "direction": "BEARISH",
         "label": "CONFLICTED",
-        "high_count": 26,
-        "total_count": 106
+        "high_count": 16,
+        "total_count": 105
       },
       "high_impact_event": {
         "detected": true,
-        "event_type": "GEOPOLITICAL",
+        "event_type": "CPI",
         "urgency": 0.9,
         "headlines": [
-          "Trump: We expect a complete ceasefire on all fronts, including Lebanon, Hezbollah, and Israel - Truth Social.",
-          "Hezbollah starts of a series of military operations named Ashura operations in response to the repeated violations of the ceasefire by Israel in Southern Lebanon - Iranian Media",
-          "Oil touches pre-Iran war lows after ceasefire deal - Reuters"
+          "Japanese inflation data on the economic and event calendar in Asia, Friday, June 19, 2026"
         ],
         "all_events": [
+          "CPI",
           "GEOPOLITICAL",
           "SANCTIONS"
         ],
@@ -430,6 +429,11 @@
       },
       "recent_news_count": 200,
       "recent_trades": [
+        {
+          "direction": "LONG",
+          "outcome": "WIN",
+          "created_at": "2026-06-18T19:42:04.880682+00:00"
+        },
         {
           "direction": "SHORT",
           "outcome": "LOSS",
@@ -474,11 +478,6 @@
           "direction": "LONG",
           "outcome": "PARTIAL",
           "created_at": "2026-06-18T17:12:04.182760+00:00"
-        },
-        {
-          "direction": "LONG",
-          "outcome": "WIN",
-          "created_at": "2026-06-18T17:06:04.776201+00:00"
         }
       ]
     }
@@ -488,36 +487,36 @@
     "data": {
       "pool": "XAUUSD_2M",
       "weights": {
-        "w1": 0.2,
-        "w2": 0.2,
-        "w3": 1.1915,
+        "w1": 0.21,
+        "w2": 0.21,
+        "w3": 1.1815,
         "w4": 0.2,
         "w5": 0.2,
         "w6": 3.0,
         "w7": 0.2,
-        "w8": 0.2,
+        "w8": 0.21,
         "w9": 0.2,
-        "w10": 0.402,
-        "w11": 0.21,
-        "w12": 1.901,
-        "w13": 2.7345,
-        "w14": 1.3845,
-        "w15": 1.4155,
-        "w16": 0.2,
+        "w10": 0.392,
+        "w11": 0.2,
+        "w12": 1.891,
+        "w13": 2.7245,
+        "w14": 1.3745,
+        "w15": 1.4055,
+        "w16": 0.21,
         "w17": 0.2,
-        "w18": 0.21,
-        "w19": 1.8515,
-        "w20": 0.2,
-        "w21": 0.2,
+        "w18": 0.2,
+        "w19": 1.8415,
+        "w20": 0.21,
+        "w21": 0.21,
         "w22": 0.2,
         "w23": 0.2,
-        "w24": 1.417,
-        "w25": 0.939,
-        "w26": 0.21
+        "w24": 1.407,
+        "w25": 0.949,
+        "w26": 0.2
       },
       "total_wins": 315,
-      "total_losses": 452,
-      "win_rate": 41.1,
+      "total_losses": 453,
+      "win_rate": 41.0,
       "top_features": [
         {
           "name": "WillR",
@@ -525,11 +524,11 @@
         },
         {
           "name": "P/D",
-          "weight": 2.7345
+          "weight": 2.7245
         },
         {
           "name": "Liq",
-          "weight": 1.901
+          "weight": 1.891
         }
       ]
     }
