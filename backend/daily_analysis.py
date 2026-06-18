@@ -286,20 +286,23 @@ def _fetch_live_price_tv(name: str, decimals: int) -> float | None:
 def _fetch_live_price(name: str, decimals: int) -> float | None:
     """
     Fetch current live/pre-market price. Priority:
-    1. yfinance fast_info (pre/post-market aware)
-    2. TradingView scanner API (reliable from cloud IPs, same source as GitHub Actions)
+    1. TradingView scanner API (most reliable from cloud IPs, same source as GitHub Actions)
+    2. yfinance fast_info (pre/post-market aware, fallback)
     """
+    tv = _fetch_live_price_tv(name, decimals)
+    if tv:
+        return tv
     if _YF_AVAILABLE:
         for sym in _YF_LIVE.get(name, []):
             try:
                 tk = yf.Ticker(sym)
                 price = getattr(tk.fast_info, "last_price", None)
                 if price and float(price) > 0:
+                    print(f"[daily] live price yfinance fallback {sym}={round(float(price), decimals)}")
                     return round(float(price), decimals)
             except Exception as e:
                 print(f"[daily] live price {sym} failed: {e}")
-    # yfinance failed or unavailable — go direct to TradingView
-    return _fetch_live_price_tv(name, decimals)
+    return None
 
 
 def _refresh_prev_close(assets: dict) -> dict:
