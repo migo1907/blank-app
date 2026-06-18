@@ -286,5 +286,41 @@
     "ml_score": 0.375,
     "stored_at": "2026-06-18T14:30:19.212289+00:00",
     "expires_at": "2026-06-18T16:30:19.212316+00:00"
+  },
+  "IBKR_60": {
+    "direction": "LONG",
+    "timeframe": "60",
+    "symbol": "IBKR",
+    "trigger": "BOS",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-18T14:30:19.520467+00:00",
+    "expires_at": "2026-06-18T18:30:19.520488+00:00"
+  },
+  "IBKR_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "IBKR",
+    "trigger": "FVG",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-18T14:30:19.766539+00:00",
+    "expires_at": "2026-06-18T16:30:19.766562+00:00"
+  },
+  "NVDA_60": {
+    "direction": "SHORT",
+    "timeframe": "60",
+    "symbol": "NVDA",
+    "trigger": "RSI",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-18T15:30:00.737966+00:00",
+    "expires_at": "2026-06-18T19:30:00.737991+00:00"
+  },
+  "SMCI_60": {
+    "direction": "LONG",
+    "timeframe": "60",
+    "symbol": "SMCI",
+    "trigger": "FVG",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-18T15:30:01.155828+00:00",
+    "expires_at": "2026-06-18T19:30:01.155842+00:00"
   }
 }
