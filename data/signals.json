@@ -2598,7 +2598,7 @@
     "mtf_confluence": "mtf:3/3",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:VOLATILE(VOLATILE)\u00d70.92 | hmm:RANGING(0.65)\u21c4\u00d70.95 | imkt:na\u00d71.00 | mtf:3/3\u00d71.08 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.60 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-0.61) | news:neutral(-0.078) | macro:BULLISH(+0.189) | combined:+0.010 \u2192 conf:0.300 \u26a1 FOMC",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-18T10:50:47.631593+00:00",
     "created_at": "2026-06-18T10:20:49.274267+00:00",
     "id": 101
@@ -2626,7 +2626,7 @@
     "mtf_confluence": "mtf:3/3",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(TREND_FOLLOW)\u00d71.15 | hmm:RANGING(0.93)\u21c4\u00d70.95 | imkt:na\u00d71.00 | mtf:3/3\u00d71.08 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.60 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.59) | news:neutral(-0.078) | macro:BULLISH(+0.189) | combined:+0.010 \u2192 conf:0.300 \u26a1 FOMC",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-18T10:50:51.373427+00:00",
     "created_at": "2026-06-18T10:20:51.960038+00:00",
     "id": 101
@@ -2654,7 +2654,7 @@
     "mtf_confluence": "mtf:2/3",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:RANGING(1.00)\u00d71.00 | imkt:DXY-UP(0.53)\u00d71.04 | mtf:2/3\u00d71.03 | evt:na\u00d71.00 | sess:LONDON\u00d71.15 | confluence\u00d71.14 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-1.00) | news:neutral(-0.127) | macro:NEUTRAL(+0.087) | combined:-0.363 \u2192 conf:0.611 \u26a1 GEOPOLITICAL",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-18T11:05:26.568761+00:00",
     "created_at": "2026-06-18T10:35:28.446330+00:00",
     "id": 101
