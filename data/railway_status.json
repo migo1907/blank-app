@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-06-18T21:33:47.805769+00:00",
+  "checked_at": "2026-06-18T23:24:05.003638+00:00",
   "health": {
     "status_code": 200,
     "data": {
@@ -235,18 +235,18 @@
       "regimes": {
         "XAUUSD": {
           "asset": "XAUUSD",
-          "regime": "RANGING",
-          "confidence": 0.993,
-          "transition_prob": 0.079,
-          "next_regime": "RANGING",
+          "regime": "TRENDING_BEAR",
+          "confidence": 0.971,
+          "transition_prob": 0.117,
+          "next_regime": "TRENDING_BEAR",
           "shifting": false,
           "probs": {
-            "TRENDING_BEAR": 0.004,
-            "RANGING": 0.993,
-            "VOLATILE": 0.003
+            "RANGING": 0.027,
+            "TRENDING_BEAR": 0.971,
+            "VOLATILE": 0.002
           },
           "method": "hmm",
-          "updated_at": "2026-06-18T21:20:40.106977+00:00"
+          "updated_at": "2026-06-18T23:20:39.597222+00:00"
         },
         "SPY": {
           "asset": "SPY",
@@ -261,7 +261,7 @@
             "VOLATILE": 0.021
           },
           "method": "hmm",
-          "updated_at": "2026-06-18T21:20:41.217968+00:00"
+          "updated_at": "2026-06-18T23:20:40.600862+00:00"
         },
         "QQQ": {
           "asset": "QQQ",
@@ -276,7 +276,7 @@
             "VOLATILE": 0.001
           },
           "method": "hmm",
-          "updated_at": "2026-06-18T21:20:42.192962+00:00"
+          "updated_at": "2026-06-18T23:20:41.917697+00:00"
         }
       },
       "mtf": {
@@ -289,7 +289,7 @@
           },
           "weighted": -1.0,
           "bias": "BEAR",
-          "updated_at": "2026-06-18T21:20:51.434107+00:00",
+          "updated_at": "2026-06-18T23:20:50.855708+00:00",
           "method": "yfinance"
         },
         "SPY": {
@@ -301,7 +301,7 @@
           },
           "weighted": 1.0,
           "bias": "BULL",
-          "updated_at": "2026-06-18T21:20:52.145188+00:00",
+          "updated_at": "2026-06-18T23:20:51.678306+00:00",
           "method": "yfinance"
         },
         "QQQ": {
@@ -313,7 +313,7 @@
           },
           "weighted": 1.0,
           "bias": "BULL",
-          "updated_at": "2026-06-18T21:20:52.921374+00:00",
+          "updated_at": "2026-06-18T23:20:52.389734+00:00",
           "method": "yfinance"
         }
       },
@@ -329,8 +329,8 @@
         },
         "dxy_break": {
           "direction": "UP",
-          "strength": 0.613,
-          "level": 100.813
+          "strength": 0.614,
+          "level": 100.814
         }
       }
     }
@@ -341,47 +341,47 @@
       "pool": "XAUUSD_2M",
       "model": {
         "weights": {
-          "w1": 0.21,
-          "w2": 0.21,
-          "w3": 1.1815,
-          "w4": 0.2,
-          "w5": 0.2,
-          "w6": 3.0,
-          "w7": 0.2,
-          "w8": 0.21,
+          "w1": 0.2053,
+          "w2": 0.2053,
+          "w3": 1.2063,
+          "w4": 0.2053,
+          "w5": 0.2053,
+          "w6": 2.9947,
+          "w7": 0.2053,
+          "w8": 0.2053,
           "w9": 0.2,
-          "w10": 0.392,
+          "w10": 0.4072,
           "w11": 0.2,
-          "w12": 1.891,
-          "w13": 2.7245,
-          "w14": 1.3745,
-          "w15": 1.4055,
-          "w16": 0.21,
-          "w17": 0.2,
-          "w18": 0.2,
-          "w19": 1.8415,
-          "w20": 0.21,
-          "w21": 0.21,
-          "w22": 0.2,
-          "w23": 0.2,
-          "w24": 1.407,
-          "w25": 0.949,
-          "w26": 0.2
+          "w12": 1.9158,
+          "w13": 2.7492,
+          "w14": 1.3993,
+          "w15": 1.3808,
+          "w16": 0.2053,
+          "w17": 0.2053,
+          "w18": 0.2053,
+          "w19": 1.8663,
+          "w20": 0.2053,
+          "w21": 0.2053,
+          "w22": 0.2053,
+          "w23": 0.2053,
+          "w24": 1.4318,
+          "w25": 0.9242,
+          "w26": 0.2053
         },
-        "win_rate": 41.0,
-        "total_trades": 768,
+        "win_rate": 40.9,
+        "total_trades": 772,
         "top_features": [
           {
             "name": "WillR",
-            "weight": 3.0
+            "weight": 2.9947
           },
           {
             "name": "P/D",
-            "weight": 2.7245
+            "weight": 2.7492
           },
           {
             "name": "Liq",
-            "weight": 1.891
+            "weight": 1.9158
           }
         ]
       },
@@ -390,28 +390,28 @@
         "top_features": [
           {
             "name": "f1_rsi",
-            "importance": 0.3427
+            "importance": 0.3516
           },
           {
-            "name": "f8_ema_dist",
-            "importance": 0.3005
+            "name": "f7_cmo",
+            "importance": 0.2203
           },
           {
-            "name": "f5_macd",
-            "importance": 0.132
+            "name": "f3_atr",
+            "importance": 0.1642
           }
         ]
       },
-      "news_sentiment": -0.1997,
+      "news_sentiment": -0.2049,
       "news_velocity": {
-        "multiplier": 0.6,
-        "volume": 67,
-        "consistency": 0.291,
-        "acceleration": 0.114,
+        "multiplier": 0.8,
+        "volume": 57,
+        "consistency": 0.38,
+        "acceleration": 0.192,
         "direction": "BEARISH",
-        "label": "CONFLICTED",
-        "high_count": 16,
-        "total_count": 105
+        "label": "LOW",
+        "high_count": 12,
+        "total_count": 103
       },
       "high_impact_event": {
         "detected": true,
@@ -429,6 +429,26 @@
       },
       "recent_news_count": 200,
       "recent_trades": [
+        {
+          "direction": "SHORT",
+          "outcome": "WIN",
+          "created_at": "2026-06-18T23:16:05.913339+00:00"
+        },
+        {
+          "direction": "SHORT",
+          "outcome": "LOSS",
+          "created_at": "2026-06-18T23:10:03.663789+00:00"
+        },
+        {
+          "direction": "SHORT",
+          "outcome": "LOSS",
+          "created_at": "2026-06-18T22:26:02.657563+00:00"
+        },
+        {
+          "direction": "SHORT",
+          "outcome": "LOSS",
+          "created_at": "2026-06-18T22:06:02.645997+00:00"
+        },
         {
           "direction": "LONG",
           "outcome": "WIN",
@@ -458,26 +478,6 @@
           "direction": "SHORT",
           "outcome": "WIN",
           "created_at": "2026-06-18T19:02:06.287632+00:00"
-        },
-        {
-          "direction": "SHORT",
-          "outcome": "LOSS",
-          "created_at": "2026-06-18T18:06:03.751466+00:00"
-        },
-        {
-          "direction": "LONG",
-          "outcome": "PARTIAL",
-          "created_at": "2026-06-18T18:02:05.794572+00:00"
-        },
-        {
-          "direction": "LONG",
-          "outcome": "WIN",
-          "created_at": "2026-06-18T17:52:05.352739+00:00"
-        },
-        {
-          "direction": "LONG",
-          "outcome": "PARTIAL",
-          "created_at": "2026-06-18T17:12:04.182760+00:00"
         }
       ]
     }
@@ -487,48 +487,48 @@
     "data": {
       "pool": "XAUUSD_2M",
       "weights": {
-        "w1": 0.21,
-        "w2": 0.21,
-        "w3": 1.1815,
-        "w4": 0.2,
-        "w5": 0.2,
-        "w6": 3.0,
-        "w7": 0.2,
-        "w8": 0.21,
+        "w1": 0.2053,
+        "w2": 0.2053,
+        "w3": 1.2063,
+        "w4": 0.2053,
+        "w5": 0.2053,
+        "w6": 2.9947,
+        "w7": 0.2053,
+        "w8": 0.2053,
         "w9": 0.2,
-        "w10": 0.392,
+        "w10": 0.4072,
         "w11": 0.2,
-        "w12": 1.891,
-        "w13": 2.7245,
-        "w14": 1.3745,
-        "w15": 1.4055,
-        "w16": 0.21,
-        "w17": 0.2,
-        "w18": 0.2,
-        "w19": 1.8415,
-        "w20": 0.21,
-        "w21": 0.21,
-        "w22": 0.2,
-        "w23": 0.2,
-        "w24": 1.407,
-        "w25": 0.949,
-        "w26": 0.2
+        "w12": 1.9158,
+        "w13": 2.7492,
+        "w14": 1.3993,
+        "w15": 1.3808,
+        "w16": 0.2053,
+        "w17": 0.2053,
+        "w18": 0.2053,
+        "w19": 1.8663,
+        "w20": 0.2053,
+        "w21": 0.2053,
+        "w22": 0.2053,
+        "w23": 0.2053,
+        "w24": 1.4318,
+        "w25": 0.9242,
+        "w26": 0.2053
       },
-      "total_wins": 315,
-      "total_losses": 453,
-      "win_rate": 41.0,
+      "total_wins": 316,
+      "total_losses": 456,
+      "win_rate": 40.9,
       "top_features": [
         {
           "name": "WillR",
-          "weight": 3.0
+          "weight": 2.9947
         },
         {
           "name": "P/D",
-          "weight": 2.7245
+          "weight": 2.7492
         },
         {
           "name": "Liq",
-          "weight": 1.891
+          "weight": 1.9158
         }
       ]
     }
