@@ -17,11 +17,15 @@ MIN_TRADES = 30  # minimum history before models will train
 try:
     from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
     from sklearn.calibration import CalibratedClassifierCV
+    from sklearn.isotonic import IsotonicRegression
     from sklearn.model_selection import TimeSeriesSplit
     import numpy as np
     _SKLEARN_AVAILABLE = True
 except Exception:
     _SKLEARN_AVAILABLE = False
+
+# Minimum trades before isotonic calibration is fitted (needs enough OOS data)
+_ISO_MIN_TRADES = 150
 
 from ml_model import FEATURE_NAMES, row_to_vector
 
@@ -76,6 +80,7 @@ class RandomForestEnsemble:
         self._lock = threading.Lock()
         self._feature_importances: list[float] = [1.0 / len(FEATURE_NAMES)] * len(FEATURE_NAMES)
         self._feature_indices: list[int] = list(range(len(FEATURE_NAMES)))  # selected feature subset
+        self._iso_calibrator: Optional[object] = None  # isotonic post-hoc calibrator (≥150 trades)
 
     # ── Training ─────────────────────────────────────────────────────────────
 
@@ -144,6 +149,38 @@ class RandomForestEnsemble:
             dtype=np.float64
         )
 
+        # Walk-forward OOS split (last 20%) — honest accuracy metric + isotonic calibration data
+        new_iso = None
+        oos_size = max(int(len(X_rows) * 0.20), 1)
+        train_size = len(X_rows) - oos_size
+        if train_size >= MIN_TRADES and oos_size >= 5 and len(set(y[:train_size].tolist())) >= 2:
+            try:
+                _n_splits_oos = 2 if train_size < 45 else 3
+                _oos_tscv = TimeSeriesSplit(n_splits=_n_splits_oos)
+                _oos_clf = CalibratedClassifierCV(
+                    RandomForestClassifier(
+                        n_estimators=self._n_estimators, max_depth=self._max_depth,
+                        min_samples_leaf=self._min_samples_leaf, class_weight="balanced",
+                        random_state=self._random_state, n_jobs=-1,
+                    ), method="sigmoid", cv=_oos_tscv,
+                )
+                _oos_clf.fit(X[:train_size], y[:train_size], sample_weight=sample_weights[:train_size])
+                _oos_proba = _oos_clf.predict_proba(X[train_size:])
+                _oos_classes = list(_oos_clf.classes_)
+                _win_idx = _oos_classes.index(1) if 1 in _oos_classes else -1
+                if _win_idx >= 0:
+                    _oos_proba_win = _oos_proba[:, _win_idx]
+                    _oos_preds = (_oos_proba_win >= 0.5).astype(int)
+                    _oos_acc = float(np.mean(_oos_preds == y[train_size:]))
+                    print(f"[rf] Walk-forward OOS accuracy ({oos_size} trades): {_oos_acc:.3f}")
+                    if len(X_rows) >= _ISO_MIN_TRADES:
+                        _iso = IsotonicRegression(y_min=0.0, y_max=1.0, out_of_bounds="clip")
+                        _iso.fit(_oos_proba_win, y[train_size:])
+                        new_iso = _iso
+                        print(f"[rf] Isotonic calibrator fitted on {oos_size} OOS trades")
+            except Exception as _oos_exc:
+                print(f"[rf] OOS eval failed: {_oos_exc}")
+
         # Platt calibration: TimeSeriesSplit prevents future-data leakage into calibration folds
         n_splits = 3 if len(X_rows) >= 45 else 2
         tscv = TimeSeriesSplit(n_splits=n_splits)
@@ -168,10 +205,12 @@ class RandomForestEnsemble:
             self._model = clf
             self._trained = True
             self._feature_importances = raw_imps.tolist()
+            self._iso_calibrator = new_iso
 
         top_feat = FEATURE_NAMES[self._feature_indices[int(np.argmax(raw_imps))]]
         n_feats = len(self._feature_indices)
-        print(f"[rf] Retrained on {len(X_rows)} trades (shallow+Platt, {n_feats}f). Top feature: {top_feat}")
+        iso_tag = "+iso" if new_iso else ""
+        print(f"[rf] Retrained on {len(X_rows)} trades (shallow+Platt{iso_tag}, {n_feats}f). Top feature: {top_feat}")
         return True
 
     # ── Inference ─────────────────────────────────────────────────────────────
@@ -194,9 +233,13 @@ class RandomForestEnsemble:
         try:
             with self._lock:
                 proba = self._model.predict_proba(X)[0]
+                iso = self._iso_calibrator
             classes = list(self._model.classes_)
             win_idx = classes.index(1) if 1 in classes else -1
-            return float(proba[win_idx]) if win_idx >= 0 else 0.5
+            p = float(proba[win_idx]) if win_idx >= 0 else 0.5
+            if iso is not None:
+                p = float(iso.predict([p])[0])
+            return p
         except Exception as exc:
             print(f"[rf] predict error: {exc}")
             return 0.5
@@ -267,6 +310,7 @@ class GradientBoostEnsemble:
         self._lock = threading.Lock()
         self._feature_importances: list[float] = [1.0 / len(FEATURE_NAMES)] * len(FEATURE_NAMES)
         self._feature_indices: list[int] = list(range(len(FEATURE_NAMES)))
+        self._iso_calibrator: Optional[object] = None  # isotonic post-hoc calibrator (≥150 trades)
 
     def train(self, history: list[dict]) -> bool:
         if not _SKLEARN_AVAILABLE:
@@ -303,6 +347,36 @@ class GradientBoostEnsemble:
             self._feature_indices = list(range(len(FEATURE_NAMES)))
         X = X[:, self._feature_indices]
 
+        # Walk-forward OOS split (last 20%) — honest accuracy metric + isotonic calibration data
+        new_iso_gbm = None
+        oos_size_gbm = max(int(len(X_rows) * 0.20), 1)
+        train_size_gbm = len(X_rows) - oos_size_gbm
+        if train_size_gbm >= MIN_TRADES and oos_size_gbm >= 5 and len(set(y[:train_size_gbm].tolist())) >= 2:
+            try:
+                _n_splits_oos = 2 if train_size_gbm < 45 else 3
+                _oos_tscv = TimeSeriesSplit(n_splits=_n_splits_oos)
+                _oos_base = GradientBoostingClassifier(
+                    n_estimators=self._n_estimators, max_depth=self._max_depth,
+                    learning_rate=self._learning_rate, subsample=0.8, random_state=42,
+                )
+                _oos_clf = CalibratedClassifierCV(_oos_base, method="sigmoid", cv=_oos_tscv)
+                _oos_clf.fit(X[:train_size_gbm], y[:train_size_gbm], sample_weight=w[:train_size_gbm])
+                _oos_proba = _oos_clf.predict_proba(X[train_size_gbm:])
+                _oos_classes = list(_oos_clf.classes_)
+                _win_idx = _oos_classes.index(1) if 1 in _oos_classes else -1
+                if _win_idx >= 0:
+                    _oos_proba_win = _oos_proba[:, _win_idx]
+                    _oos_preds = (_oos_proba_win >= 0.5).astype(int)
+                    _oos_acc = float(np.mean(_oos_preds == y[train_size_gbm:]))
+                    print(f"[gbm] Walk-forward OOS accuracy ({oos_size_gbm} trades): {_oos_acc:.3f}")
+                    if len(X_rows) >= _ISO_MIN_TRADES:
+                        _iso = IsotonicRegression(y_min=0.0, y_max=1.0, out_of_bounds="clip")
+                        _iso.fit(_oos_proba_win, y[train_size_gbm:])
+                        new_iso_gbm = _iso
+                        print(f"[gbm] Isotonic calibrator fitted on {oos_size_gbm} OOS trades")
+            except Exception as _oos_exc:
+                print(f"[gbm] OOS eval failed: {_oos_exc}")
+
         # Shallow GBM: depth=2, 60 trees — walk-forward validated (-1.2pp vs -5.9pp for deep)
         base_clf = GradientBoostingClassifier(
             n_estimators=self._n_estimators,
@@ -333,10 +407,12 @@ class GradientBoostEnsemble:
             self._model = clf
             self._trained = True
             self._feature_importances = raw_imps.tolist()
+            self._iso_calibrator = new_iso_gbm
 
         top_idx = self._feature_indices[int(np.argmax(raw_imps))]
         n_feats = len(self._feature_indices)
-        print(f"[gbm] Trained on {len(X_rows)} trades (shallow+Platt, {n_feats}f). Top feature: {FEATURE_NAMES[top_idx]}")
+        iso_tag = "+iso" if new_iso_gbm else ""
+        print(f"[gbm] Trained on {len(X_rows)} trades (shallow+Platt{iso_tag}, {n_feats}f). Top feature: {FEATURE_NAMES[top_idx]}")
         return True
 
     def predict(self, features: list[float]) -> float:
@@ -349,9 +425,13 @@ class GradientBoostEnsemble:
         try:
             with self._lock:
                 proba = self._model.predict_proba(X)[0]
+                iso = self._iso_calibrator
             classes = list(self._model.classes_)
             win_idx = classes.index(1) if 1 in classes else -1
-            return float(proba[win_idx]) if win_idx >= 0 else 0.5
+            p = float(proba[win_idx]) if win_idx >= 0 else 0.5
+            if iso is not None:
+                p = float(iso.predict([p])[0])
+            return p
         except Exception as exc:
             print(f"[gbm] predict error: {exc}")
             return 0.5

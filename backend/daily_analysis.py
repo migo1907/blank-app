@@ -64,6 +64,7 @@ Rules:
 - CRITICAL: NEVER reveal, name, or hint at how any number is produced. No mention of models, machine learning, KNN, RF, GBM, ensembles, algorithms, RSI, MACD, EMA, ATR, moving averages, or any indicator/method name. Just state the numbers as conclusions.
 - Be direct. No filler. Prices with $ and comma formatting.
 - Arrow ↑ for positive gap, ↓ for negative gap.
+- Mean reversion targets: use the provided "Mean reversion targets" MAs as reversion zones. State them as key magnetic levels price gravitates toward. Do NOT name the indicator — just "key reversion zone at $X,XXX".
 
 Output EXACTLY this format — no extra lines, no deviations, use HTML bold tags as shown:
 
@@ -76,6 +77,7 @@ Output EXACTLY this format — no extra lines, no deviations, use HTML bold tags
 📍 Pivot <b>$X,XXX.XX</b> · [Above → Bullish / Below → Bearish]
 🔴 R1 $X,XXX · R2 $X,XXX · R3 $X,XXX
 🟢 S1 $X,XXX · S2 $X,XXX · S3 $X,XXX
+🔁 Reversion: [key reversion zone(s)] — [1 sentence on mean-reversion risk or support]
 📈 <b>Bull:</b> [trigger] → $X,XXX then $X,XXX
 📉 <b>Bear:</b> [trigger] → $X,XXX then $X,XXX
 
@@ -86,6 +88,7 @@ Output EXACTLY this format — no extra lines, no deviations, use HTML bold tags
 📍 Pivot <b>$XXX.XX</b> · [Above → Bullish / Below → Bearish]
 🔴 R1 $XXX · R2 $XXX · R3 $XXX
 🟢 S1 $XXX · S2 $XXX · S3 $XXX
+🔁 Reversion: [key reversion zone(s)] — [1 sentence on mean-reversion risk or support]
 📈 <b>Bull:</b> [trigger] → $XXX then $XXX
 📉 <b>Bear:</b> [trigger] → $XXX then $XXX
 
@@ -96,6 +99,7 @@ Output EXACTLY this format — no extra lines, no deviations, use HTML bold tags
 📍 Pivot <b>$XXX.XX</b> · [Above → Bullish / Below → Bearish]
 🔴 R1 $XXX · R2 $XXX · R3 $XXX
 🟢 S1 $XXX · S2 $XXX · S3 $XXX
+🔁 Reversion: [key reversion zone(s)] — [1 sentence on mean-reversion risk or support]
 📈 <b>Bull:</b> [trigger] → $XXX then $XXX
 📉 <b>Bear:</b> [trigger] → $XXX then $XXX"""
 
@@ -238,6 +242,14 @@ def _technical_context(name: str, decimals: int) -> dict | None:
             "oversold" if rsi <= 30 else
             "neutral"
         )
+
+        # Mean reversion levels: distance from key MAs as pull-back / expansion targets
+        rev_levels = {}
+        for ma_label, ma_val in (("20MA", ma20), ("50MA", ma50), ("200MA", ma200)):
+            if ma_val:
+                dist_pct = ((last / ma_val) - 1.0) * 100
+                rev_levels[ma_label] = {"price": fmt.format(ma_val), "dist_pct": round(dist_pct, 1)}
+
         return {
             "bias_pct":   round(bias * 100),
             "direction":  "Bullish" if bias >= 0.5 else "Bearish",
@@ -250,6 +262,7 @@ def _technical_context(name: str, decimals: int) -> dict | None:
             "rsi_band":   rsi_band,
             "range_pos":  round(rng_pos),
             "atr":        fmt.format(atr),
+            "rev_levels": rev_levels,
         }
     except Exception as e:
         print(f"[daily] technical context {name} failed: {e}")
@@ -438,11 +451,20 @@ def _format_levels_for_prompt(name: str, levels: dict, live_price: float | None,
     # Derived daily technical read (source not disclosed in the brief output)
     tech_line = ""
     if tech:
+        rev_line = ""
+        rev_levels = tech.get("rev_levels", {})
+        if rev_levels:
+            rev_parts = []
+            for ma_name, info in rev_levels.items():
+                sign = "+" if info["dist_pct"] >= 0 else ""
+                rev_parts.append(f"{ma_name} {info['price']} ({sign}{info['dist_pct']}%)")
+            rev_line = f"  Mean reversion targets: {' · '.join(rev_parts)}\n"
         tech_line = (
             f"  Signal bias: {tech['direction']} {tech['bias_pct']}%\n"
             f"  Trend: {tech['trend']} (20D MA {tech['ma20']}, 50D MA {tech['ma50']}, 200D MA {tech['ma200']})\n"
             f"  Momentum: 20-day {tech['mom20']}% · RSI {tech['rsi']} ({tech['rsi_band']})\n"
             f"  Range position: {tech['range_pos']}% of 60-day range · typical daily move {tech['atr']}\n"
+            f"{rev_line}"
         )
 
     return (
@@ -638,7 +660,7 @@ def generate_daily_brief() -> str | None:
         client   = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
         response = client.messages.create(
             model="claude-haiku-4-5-20251001",
-            max_tokens=1200,
+            max_tokens=1400,
             messages=[{
                 "role": "user",
                 "content": ANALYSIS_PROMPT.format(asset_data=asset_data),
