@@ -361,20 +361,33 @@ async def _news_signal_cycle() -> None:
                 if sent_spy:
                     _last_sent_direction_spy = spy_dir
                     print(f"[scheduler] SPY direction → {spy_dir} conf={spy_conf:.2f} — signal sent.")
-                # Phase 2C — SPX 0-1DTE options layer (paper): translate the SPY
-                # directional flip into an SPX long CALL/PUT recommendation.
-                # Silent mode: ledger only, no Telegram until Stage B proves edge.
-                # Set OPTIONS_TELEGRAM=true in Railway to enable messages.
+                # Phase 2C — SPX 0-1DTE options layer (paper): use STOCKS_SPX500_30M
+                # signal (SPX500/US500 — the actual index underlying) as the trigger.
+                # SPX500 pool has more data than STOCKS_INDEX_30M (SPY).
                 try:
                     from options_engine import build_spx_recommendation, format_telegram, append_paper_trade, should_send_telegram
-                    rec = await asyncio.to_thread(build_spx_recommendation, spy_dir, spy_conf)
-                    if rec:
-                        await asyncio.to_thread(append_paper_trade, rec)
-                        if should_send_telegram(rec.get("dte", 0)):
-                            from telegram_bot import send_text
-                            await send_text(format_telegram(rec))
-                        else:
-                            print(f"[options] paper trade logged (silent — accumulating training data)")
+                    from signal_engine import generate_signal as _gen, get_latest_features as _glf
+                    spx500_sig = _gen(
+                        current_features=_glf("STOCKS_SPX500_30M"),
+                        news_agg=_latest_news_agg,
+                        news_velocity=_latest_velocity,
+                        high_impact_event=_latest_event,
+                        symbol="SPX500",
+                        pool="STOCKS_SPX500_30M",
+                        macro_bias=_equity_macro,
+                    )
+                    spx500_dir  = spx500_sig.get("direction", "NEUTRAL")
+                    spx500_conf = spx500_sig.get("confidence", 0.0) or 0.0
+                    print(f"[options] SPX500 signal: {spx500_dir} conf={spx500_conf:.2f}")
+                    if spx500_dir not in ("NEUTRAL", "") and spx500_conf >= 0.50:
+                        rec = await asyncio.to_thread(build_spx_recommendation, spx500_dir, spx500_conf)
+                        if rec:
+                            await asyncio.to_thread(append_paper_trade, rec)
+                            if should_send_telegram(rec.get("dte", 0)):
+                                from telegram_bot import send_text
+                                await send_text(format_telegram(rec))
+                            else:
+                                print(f"[options] paper trade logged (silent — accumulating training data)")
                 except Exception as _opt_err:
                     print(f"[options] recommendation failed: {_opt_err}")
             else:
