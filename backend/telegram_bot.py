@@ -159,7 +159,7 @@ async def send_signal(signal: dict) -> bool:
     try:
         from daily_analysis import _fetch_live_price_tv
         live_price = _fetch_live_price_tv(symbol, decimals)
-        price_line = f"💰 Price: <b>${live_price:,.2f}</b>\n" if live_price else ""
+        price_line = f"💰 Current Price: <b>${live_price:,.2f}</b>\n" if live_price else ""
     except Exception:
         price_line = ""
 
