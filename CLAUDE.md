@@ -17,22 +17,27 @@
 - Post-event volatility state, equity macro (VIX + yield curve)
 - checkpoint-v3 tag (SHA 9dae7bdec)
 
-### Phase 3 — Calibration & Quality (Pending)
-- **Isotonic calibration** — per-pool, wraps RF/GBM raw `predict_proba` output. Fits during hourly retrain, saved alongside weights file, applied at inference before the 0.50 send threshold. Trigger: ≥150 closed trades per pool. Already eligible: XAUUSD_2M (~1,156), XAUUSD_5M (~356), STOCKS_MOMENTUM_15M (~349), STOCKS_QUALITY_15M (~206), STOCKS_MOMENTUM_30M (~175), STOCKS_QUALITY_30M (~118).
-- **Walk-forward validation** — rolling OOS split before each retrain to get honest OOS accuracy (currently trains + evaluates on same window).
-- **Swing ML ensemble** — auto-enables when ≥50 closed swing paper trades accumulated (cold-start self-resolving). Uncomment 2 lines in scheduler.py ~L1668-1669.
+### Phase 3 — Calibration & Quality ✅ Complete (2026-06-19)
+- **Isotonic calibration** ✅ — RF + GBM: `IsotonicRegression` fitted on last-20% OOS fold, stacked on top of existing Platt sigmoid. Applied at inference via `_iso_calibrator`. Activates at n≥150. Eligible pools at deploy: XAUUSD_2M (~1,156), XAUUSD_5M (~356), STOCKS_MOMENTUM_15M (~349), STOCKS_QUALITY_15M (~206), STOCKS_MOMENTUM_30M (~175), STOCKS_QUALITY_30M (~118).
+- **Walk-forward OOS validation** ✅ — Last 20% held out before each retrain; honest OOS accuracy logged every cycle (e.g. `[rf] Walk-forward OOS accuracy (231 trades): 0.573`).
+- **Mean reversion levels in morning brief** ✅ — 20MA/50MA/200MA distances computed in `_technical_context()`, surfaced as `🔁 Reversion:` line per asset. Event calendar still at brief bottom.
+- **Swing ML ensemble** ⏳ — Waiting on ≥50 closed swing paper trades. Auto-enables. Uncomment 2 lines in scheduler.py ~L1668-1669 when ready.
 
 ### Phase 2C — SPX 0-1DTE Options Layer (Data Collection — Silent)
 - **Status:** Running silently — paper trades logged to `data/options_paper_SPX.json` on data branch. No Telegram until ≥50 closed trades per pool (auto-unlocks).
-- **Trigger:** Every SPY directional flip (conf ≥ 0.62) during 09:45–15:00 ET fires `build_spx_recommendation()`.
-- **Strike selection:** Δ0.40 target, Black-Scholes picker, yfinance `^SPX` chain (Tradier REST if `TRADIER_TOKEN` set in Railway).
+- **Trigger:** STOCKS_SPX500_15M (0DTE, before 13:00 ET, conf≥0.60) or STOCKS_SPX500_30M (1DTE, after 13:00 ET, conf≥0.55) directional flip fires `build_spx_recommendation()`.
+- **Strike selection:** Δ0.25 target (OTM), Black-Scholes picker, yfinance `^SPX` chain.
 - **Hard rules:** IV Rank <50, no VIX backwardation, no entries 24h before FOMC/CPI/NFP, 0DTE cutoff 13:00 ET (→ rolls to 1DTE).
 - **Exits:** +100% premium (TP), -50% premium (SL), hard exit 15:30 ET (0DTE) / 14:00 ET next session (1DTE). Managed hourly by `_options_paper_manage_cycle`.
 - **IV history:** ATM IV recorded daily at 15:45 ET → `data/options_iv_history.json`. IV Rank unlocks after 20 sessions, meaningful at 60.
-- **Training features (12):** confidence, iv, iv_rank, vix, vix_ratio, delta, entry_premium, dte, hour_et, day_of_week, spot_vs_strike_pct, expected_move.
+- **Training features (18):** confidence, iv, iv_rank, vix, vix_ratio, vix_backwardation_margin, delta, entry_premium, spot_vs_strike_pct, premium_vs_em_pct, iv_over_vix_ratio, dte, hour_et, day_of_week, entry_time_norm, time_to_hard_exit_hours, expected_move, pool_confluence.
+- **Loss categorization:** WRONG_DIRECTION / THETA_DECAY / IV_CRUSH / OVERPAID / LATE_ENTRY / WIN — tagged at close in `manage_paper_positions()`.
+- **ML gate:** RF(200)+GBM(150) with walk-forward OOS + isotonic calibration. `_ML_SCORE_GATE = 0.52` activates at ≥50 closed trades. Auto-retrains after every close.
+- **Weekly autopsy:** Monday 17:00 ET → personal Telegram via `send_critical_alert()`.
 - **Pools:** `SPX_0DTE` (entered before 13:00 ET) / `SPX_1DTE` (after 13:00 ET or explicit roll).
 - **Training readiness:** `GET /options/trades?secret=gold2026` — shows n_closed, win_rate, ready flag per pool.
 - **Files:** `backend/options_engine.py` (core), `backend/tradier_data.py` (data provider).
+- **Never suggest Tradier as a quick action** — requires full KYC brokerage onboarding. yfinance is the fallback and is sufficient.
 
 
 
