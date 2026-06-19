@@ -1883,6 +1883,78 @@ def start_scheduler() -> AsyncIOScheduler:
         _scheduler.add_job(_weekly_mistake_autopsy, trigger="date", run_date=_now + _td(seconds=90),
                            id="autopsy_catchup", replace_existing=True)
 
+    # ── Interval-job catch-up after Railway sleep / cold restart ─────────────
+    # APScheduler has no persistent state — interval jobs (signal, macro, news)
+    # are simply skipped while the process is down. On restart we check staleness
+    # against GitHub-persisted timestamps and fire immediately if overdue.
+    # This makes every restart fully self-healing with zero manual intervention.
+
+    # Signal + news cycle — runs every `interval` minutes (default 15).
+    # Guard: check feature_cache.json timestamps on data branch. If the most
+    # recent pool timestamp is older than 2× the interval AND it is a weekday
+    # trading hour (to avoid false alarms on weekends/holidays), fire once now.
+    try:
+        from db import _get_file as _db_get
+        _fc, _ = _db_get("data/feature_cache.json")
+        if isinstance(_fc, dict) and _fc:
+            _ts_vals = []
+            for _pool_data in _fc.values():
+                _ts = _pool_data.get("timestamp") if isinstance(_pool_data, dict) else None
+                if _ts:
+                    try:
+                        from datetime import datetime as _dtp
+                        _ts_vals.append(_dtp.fromisoformat(_ts.replace("Z", "+00:00")))
+                    except Exception:
+                        pass
+            if _ts_vals:
+                _most_recent = max(_ts_vals)
+                _age_min = (_now - _most_recent).total_seconds() / 60
+                # Only catch-up during weekday market hours (00:00–22:00 UTC covers all sessions)
+                _is_market_hour = _is_weekday and 0 <= _now.hour < 22
+                if _age_min > interval * 2 and _is_market_hour:
+                    print(f"[scheduler] Startup catch-up: signal+news cycle (feature cache {_age_min:.0f} min stale).")
+                    _scheduler.add_job(_news_signal_cycle, trigger="date",
+                                       run_date=_now + _td(seconds=15),
+                                       id="signal_catchup", replace_existing=True)
+    except Exception as _e:
+        print(f"[scheduler] Startup catch-up: signal check skipped ({_e}).")
+
+    # Macro refresh — runs every 60 min. Guard: check market_macro.json updated_at.
+    # If stale >90 min on a weekday, refresh immediately so gold bias is current.
+    try:
+        _mm, _ = _db_get("data/market_macro.json")
+        if isinstance(_mm, dict):
+            _mm_ts = _mm.get("updated_at")
+            if _mm_ts:
+                from datetime import datetime as _dtp2
+                _mm_age_min = (_now - _dtp2.fromisoformat(_mm_ts.replace("Z", "+00:00"))).total_seconds() / 60
+                if _mm_age_min > 90 and _is_weekday:
+                    print(f"[scheduler] Startup catch-up: macro refresh (macro data {_mm_age_min:.0f} min stale).")
+                    _scheduler.add_job(_macro_refresh_cycle, trigger="date",
+                                       run_date=_now + _td(seconds=25),
+                                       id="macro_catchup", replace_existing=True)
+    except Exception as _e:
+        print(f"[scheduler] Startup catch-up: macro check skipped ({_e}).")
+
+    # Options paper management — hourly during RTH (10:00–16:00 ET).
+    # If Railway was down during RTH, fire one management cycle now so open
+    # positions get TP/SL checked without waiting for the next cron tick.
+    try:
+        _now_ny_h = _now_ny.hour
+        _now_ny_m = _now_ny.minute
+        _in_rth = _is_weekday and 10 <= _now_ny_h < 16
+        if _in_rth:
+            # Check options paper trades for any open positions
+            from db import _get_file as _db_get2
+            _opt, _ = _db_get2("data/options_paper_SPX.json")
+            if isinstance(_opt, dict) and _opt.get("open"):
+                print(f"[scheduler] Startup catch-up: options paper management ({len(_opt['open'])} open positions).")
+                _scheduler.add_job(_options_paper_manage_cycle, trigger="date",
+                                   run_date=_now + _td(seconds=35),
+                                   id="options_manage_catchup", replace_existing=True)
+    except Exception as _e:
+        print(f"[scheduler] Startup catch-up: options check skipped ({_e}).")
+
     print(f"[scheduler] Started — signal every {interval} min, breaking news every 2 min, system check every 60 min, daily performance report at 16:15 ET.")
     return _scheduler
 
