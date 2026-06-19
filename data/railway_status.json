@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-06-19T13:54:07.287677+00:00",
+  "checked_at": "2026-06-19T16:31:19.606896+00:00",
   "health": {
     "status_code": 200,
     "data": {
@@ -246,7 +246,7 @@
             "VOLATILE": 0.012
           },
           "method": "hmm",
-          "updated_at": "2026-06-19T13:20:32.838014+00:00"
+          "updated_at": "2026-06-19T16:24:40.277211+00:00"
         },
         "SPY": {
           "asset": "SPY",
@@ -261,7 +261,7 @@
             "VOLATILE": 0.021
           },
           "method": "hmm",
-          "updated_at": "2026-06-19T13:20:34.847374+00:00"
+          "updated_at": "2026-06-19T16:24:41.053814+00:00"
         },
         "QQQ": {
           "asset": "QQQ",
@@ -276,7 +276,7 @@
             "VOLATILE": 0.001
           },
           "method": "hmm",
-          "updated_at": "2026-06-19T13:20:36.767655+00:00"
+          "updated_at": "2026-06-19T16:24:41.808657+00:00"
         }
       },
       "mtf": {
@@ -289,7 +289,7 @@
           },
           "weighted": -1.0,
           "bias": "BEAR",
-          "updated_at": "2026-06-19T13:20:38.940879+00:00",
+          "updated_at": "2026-06-19T16:24:42.871091+00:00",
           "method": "yfinance"
         },
         "SPY": {
@@ -301,7 +301,7 @@
           },
           "weighted": 0.5,
           "bias": "BULL",
-          "updated_at": "2026-06-19T13:20:39.693885+00:00",
+          "updated_at": "2026-06-19T16:24:43.135185+00:00",
           "method": "yfinance"
         },
         "QQQ": {
@@ -313,24 +313,24 @@
           },
           "weighted": 0.5,
           "bias": "BULL",
-          "updated_at": "2026-06-19T13:20:40.553941+00:00",
+          "updated_at": "2026-06-19T16:24:43.299304+00:00",
           "method": "yfinance"
         }
       },
       "post_event": {},
       "intermarket": {
         "vix": {
-          "vix": 16.87,
+          "vix": 16.78,
           "vix3m": 20.51,
-          "ratio": 0.823,
+          "ratio": 0.818,
           "regime": "CALM",
           "size_factor": 1.0,
           "backwardation": false
         },
         "dxy_break": {
           "direction": "UP",
-          "strength": 0.571,
-          "level": 100.764
+          "strength": 0.612,
+          "level": 100.812
         }
       }
     }
@@ -343,33 +343,33 @@
         "weights": {
           "w1": 0.2,
           "w2": 0.2,
-          "w3": 1.2785,
+          "w3": 1.2585,
           "w4": 0.2,
-          "w5": 0.2053,
+          "w5": 0.2,
           "w6": 3.0,
           "w7": 0.2,
-          "w8": 0.2,
-          "w9": 0.223,
+          "w8": 0.21,
+          "w9": 0.203,
           "w10": 0.3905,
           "w11": 0.2,
-          "w12": 2.0085,
+          "w12": 2.0285,
           "w13": 2.883,
           "w14": 1.4025,
           "w15": 1.393,
           "w16": 0.2305,
           "w17": 0.2323,
-          "w18": 0.2053,
+          "w18": 0.2,
           "w19": 1.919,
-          "w20": 0.2,
-          "w21": 0.2,
-          "w22": 0.2053,
-          "w23": 0.2053,
+          "w20": 0.21,
+          "w21": 0.21,
+          "w22": 0.2,
+          "w23": 0.2,
           "w24": 1.4445,
           "w25": 0.978,
-          "w26": 0.2053
+          "w26": 0.2
         },
-        "win_rate": 39.2,
-        "total_trades": 821,
+        "win_rate": 44.7,
+        "total_trades": 843,
         "top_features": [
           {
             "name": "WillR",
@@ -381,7 +381,7 @@
           },
           {
             "name": "Liq",
-            "weight": 2.0085
+            "weight": 2.0285
           }
         ]
       },
@@ -390,37 +390,37 @@
         "top_features": [
           {
             "name": "f2_adx",
-            "importance": 0.2573
+            "importance": 0.2483
           },
           {
-            "name": "f6_willr",
-            "importance": 0.1893
+            "name": "f7_cmo",
+            "importance": 0.167
           },
           {
             "name": "f3_atr",
-            "importance": 0.1499
+            "importance": 0.1558
           }
         ]
       },
-      "news_sentiment": -0.2721,
+      "news_sentiment": -0.3078,
       "news_velocity": {
-        "multiplier": 0.6,
-        "volume": 49,
-        "consistency": 0.15,
-        "acceleration": 0.042,
+        "multiplier": 0.8,
+        "volume": 48,
+        "consistency": 0.314,
+        "acceleration": 0.191,
         "direction": "BEARISH",
-        "label": "CONFLICTED",
-        "high_count": 16,
-        "total_count": 49
+        "label": "LOW",
+        "high_count": 15,
+        "total_count": 44
       },
       "high_impact_event": {
         "detected": true,
         "event_type": "GEOPOLITICAL",
         "urgency": 0.9,
         "headlines": [
+          "Senior Israeli Official: We are in a ceasefire; if Hezbollah does not attack us, then we are not in wartime. We are keeping our forces in southern Lebanon,",
           "Pentagon tells US lawmakers it needs $80 billion for Iran war and other bills, WSJ reports - Reuters",
-          "Accenture forecast takes hit from Iran war, shares tumble over 17% - Reuters",
-          "Bank of England keeps rates steady as it weighs Iran truce - Reuters"
+          "Accenture forecast takes hit from Iran war, shares tumble over 17% - Reuters"
         ],
         "all_events": [
           "GEOPOLITICAL",
@@ -430,6 +430,26 @@
       },
       "recent_news_count": 200,
       "recent_trades": [
+        {
+          "direction": "LONG",
+          "outcome": "WIN",
+          "created_at": "2026-06-19T15:04:02.142594+00:00"
+        },
+        {
+          "direction": "SHORT",
+          "outcome": "LOSS",
+          "created_at": "2026-06-19T14:48:04.523764+00:00"
+        },
+        {
+          "direction": "LONG",
+          "outcome": "LOSS",
+          "created_at": "2026-06-19T14:36:02.907220+00:00"
+        },
+        {
+          "direction": "SHORT",
+          "outcome": "PARTIAL",
+          "created_at": "2026-06-19T14:20:04.119929+00:00"
+        },
         {
           "direction": "SHORT",
           "outcome": "PARTIAL",
@@ -459,26 +479,6 @@
           "direction": "SHORT",
           "outcome": "WIN",
           "created_at": "2026-06-19T12:32:03.901768+00:00"
-        },
-        {
-          "direction": "LONG",
-          "outcome": "PARTIAL",
-          "created_at": "2026-06-19T11:52:03.367131+00:00"
-        },
-        {
-          "direction": "LONG",
-          "outcome": "WIN",
-          "created_at": "2026-06-19T11:48:01.532594+00:00"
-        },
-        {
-          "direction": "SHORT",
-          "outcome": "LOSS",
-          "created_at": "2026-06-19T11:36:02.611159+00:00"
-        },
-        {
-          "direction": "LONG",
-          "outcome": "LOSS",
-          "created_at": "2026-06-19T11:26:02.421734+00:00"
         }
       ]
     }
@@ -490,34 +490,34 @@
       "weights": {
         "w1": 0.2,
         "w2": 0.2,
-        "w3": 1.2785,
+        "w3": 1.2585,
         "w4": 0.2,
-        "w5": 0.2053,
+        "w5": 0.2,
         "w6": 3.0,
         "w7": 0.2,
-        "w8": 0.2,
-        "w9": 0.223,
+        "w8": 0.21,
+        "w9": 0.203,
         "w10": 0.3905,
         "w11": 0.2,
-        "w12": 2.0085,
+        "w12": 2.0285,
         "w13": 2.883,
         "w14": 1.4025,
         "w15": 1.393,
         "w16": 0.2305,
         "w17": 0.2323,
-        "w18": 0.2053,
+        "w18": 0.2,
         "w19": 1.919,
-        "w20": 0.2,
-        "w21": 0.2,
-        "w22": 0.2053,
-        "w23": 0.2053,
+        "w20": 0.21,
+        "w21": 0.21,
+        "w22": 0.2,
+        "w23": 0.2,
         "w24": 1.4445,
         "w25": 0.978,
-        "w26": 0.2053
+        "w26": 0.2
       },
-      "total_wins": 322,
-      "total_losses": 499,
-      "win_rate": 39.2,
+      "total_wins": 377,
+      "total_losses": 466,
+      "win_rate": 44.7,
       "top_features": [
         {
           "name": "WillR",
@@ -529,7 +529,7 @@
         },
         {
           "name": "Liq",
-          "weight": 2.0085
+          "weight": 2.0285
         }
       ]
     }
