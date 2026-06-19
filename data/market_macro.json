@@ -28,11 +28,11 @@
     "source": "yfinance_proxy"
   },
   "dxy_break": {
-    "direction": "UP",
-    "strength": 0.643,
+    "direction": "NONE",
+    "strength": 0.0,
     "level": 100.849
   },
-  "updated_at": "2026-06-19T22:44:42.922022+00:00",
+  "updated_at": "2026-06-19T23:44:43.577617+00:00",
   "sources_live": {
     "fred": true,
     "cot": true,
