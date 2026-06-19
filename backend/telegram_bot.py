@@ -154,7 +154,16 @@ async def send_signal(signal: dict) -> bool:
     }
     sess_label = session_map.get(session, session)
 
+    # Conviction header — only for LONG/SHORT, scales with confidence
+    if confidence >= 1.0:
+        conviction_header = "‼️ <b>MAXIMUM CONVICTION SIGNAL</b>\n"
+    elif confidence >= 0.75:
+        conviction_header = "‼️ <b>HIGH CONVICTION SIGNAL</b>\n"
+    else:
+        conviction_header = ""
+
     msg = (
+        f"{conviction_header}"
         f"{dir_emoji} <b>{direction} — {asset_emoji} {symbol}</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
         f"Confidence: <b>{confidence*100:.0f}%</b>\n"
