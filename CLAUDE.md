@@ -23,6 +23,47 @@
 - **Mean reversion levels in morning brief** ✅ — 20MA/50MA/200MA distances computed in `_technical_context()`, surfaced as `🔁 Reversion:` line per asset. Event calendar still at brief bottom.
 - **Swing ML ensemble** ⏳ — Waiting on ≥50 closed swing paper trades. Auto-enables. Uncomment 2 lines in scheduler.py ~L1668-1669 when ready.
 
+### Phase 4 — Improvements Backlog (To-Do, No Timeline)
+
+#### ML Methods — Intraday (Gold + Stocks)
+- **Conformal prediction** — calibrated uncertainty interval per signal instead of a single probability. Flags wide-uncertainty signals to avoid oversizing. ~10 lines on top of existing models. Low effort, medium lift.
+- **Label noise correction** — use joint LightGBM confidence as a label quality weight; downweight low-confidence LOSS labels (likely stopped by spread/slippage, not wrong direction). Expected 2–5pp accuracy lift.
+- **Regime-conditional retraining** — separate RF/GBM model per HMM regime (trending vs ranging), route inference through current regime. Medium effort. Wait until pools have more history.
+
+#### ML Methods — Options (SPX 0-1DTE)
+- **VIX9D term structure feature** — `^VIX9D` (CBOE 9-day VIX) vs VIX ratio. When VIX9D > VIX, near-term risk is priced above average — critical for 0DTE entry quality. Free on yfinance. High priority, low effort.
+- **Put/call skew feature** — 25-delta put IV minus 25-delta call IV from yfinance options chain at entry time. Overpriced puts = sell opportunity; overpriced calls = avoid. Medium effort.
+- **Hour × DTE interaction feature** — `hour_et × dte` product column. 0DTE at 10:00 ET vs 14:30 ET behaves completely differently; model needs this interaction explicitly. Low effort.
+- **CBOE daily put/call ratio** — free daily download, strong next-day sentiment signal. Low effort.
+
+#### ML Methods — Swing
+- **Analyst revision momentum** — Finnhub `/stock/recommendation` (free, existing key). EPS estimate revisions over 30/60/90 days is one of the most consistent swing predictors. Low effort, medium lift.
+- **Relative volume** — current volume vs 20-day average at entry. Breakouts on low relative volume fail 70%+ of the time. Computable from yfinance history. Low effort.
+- **Sector rotation rate-of-change** — rate of change of XL* ETF relative strength, not just the level. Catches rotation earlier. Medium effort.
+- **Short interest** — FINRA bi-monthly data (free, no auth). High short + positive catalyst = squeeze setup. Medium effort.
+
+#### Architecture
+- **Half-Kelly position sizing output** — use calibrated win probability (now properly isotonic-calibrated) to compute Kelly fraction, capped at 0.5× for safety. Completes the signal from direction+confidence → direction+confidence+size. Medium effort. Most valuable when live capital is deployed.
+- **Concurrent signal correlation filter** — if two stock pools fire simultaneously on correlated names (correlation > 0.7), block the second signal. Prevents counting one move as two independent signals. Medium effort.
+- **Fear & Greed Index** (CNN) — free JSON endpoint, updates daily. Single cross-asset risk appetite number. Use as a soft regime gate across all three sections. Low effort.
+- **DXY 15-min proxy via UUP ETF** — add UUP to TradingView heartbeat for faster dollar signal on gold. Current macro refresh is hourly; correlation with gold is near-instant. Low effort.
+
+#### Priority Order (when to pick up)
+| Priority | Item | Effort | Condition to start |
+|----------|------|--------|--------------------|
+| 1 | VIX9D term structure (options) | Low | Now — options pool accumulating |
+| 2 | Conformal prediction (intraday) | Low | Now |
+| 3 | Analyst revision momentum (swing) | Low | Now |
+| 4 | Relative volume (swing) | Low | Now |
+| 5 | Label noise correction (intraday) | Medium | When XAUUSD_2M OOS acc stabilises |
+| 6 | Hour×DTE interaction (options) | Low | Before options ML gate activates |
+| 7 | Fear & Greed Index (all) | Low | Any time |
+| 8 | Regime-conditional retraining | Medium | After pools reach 300+ trades each |
+| 9 | Half-Kelly sizing | Medium | When live capital deployed |
+| 10 | Correlation filter | Medium | When 3+ stock pools fire concurrently |
+
+---
+
 ### Phase 2C — SPX 0-1DTE Options Layer (Data Collection — Silent)
 - **Status:** Running silently — paper trades logged to `data/options_paper_SPX.json` on data branch. No Telegram until ≥50 closed trades per pool (auto-unlocks).
 - **Trigger:** STOCKS_SPX500_15M (0DTE, before 13:00 ET, conf≥0.60) or STOCKS_SPX500_30M (1DTE, after 13:00 ET, conf≥0.55) directional flip fires `build_spx_recommendation()`.
