@@ -139,6 +139,7 @@ async def send_signal(signal: dict) -> bool:
     dir_emoji  = "🟢" if direction == "LONG" else "🔴"
     is_gold    = symbol in ("XAUUSD", "GOLD", "GC")
     asset_emoji = "🥇" if is_gold else "📊"
+    decimals   = 2
     now        = datetime.now(timezone.utc).strftime("%H:%M UTC — %d %b %Y")
 
     session_map = {
@@ -154,6 +155,14 @@ async def send_signal(signal: dict) -> bool:
     }
     sess_label = session_map.get(session, session)
 
+    # Live price from TradingView scanner
+    try:
+        from daily_analysis import _fetch_live_price_tv
+        live_price = _fetch_live_price_tv(symbol, decimals)
+        price_line = f"💰 Price: <b>${live_price:,.2f}</b>\n" if live_price else ""
+    except Exception:
+        price_line = ""
+
     # Conviction header — only for LONG/SHORT, scales with confidence
     if confidence >= 1.0:
         conviction_header = "‼️ <b>MAXIMUM CONVICTION SIGNAL</b>\n"
@@ -166,6 +175,7 @@ async def send_signal(signal: dict) -> bool:
         f"{conviction_header}"
         f"{dir_emoji} <b>{direction} — {asset_emoji} {symbol}</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
+        f"{price_line}"
         f"Confidence: <b>{confidence*100:.0f}%</b>\n"
         f"Session: {sess_label}\n"
     )
