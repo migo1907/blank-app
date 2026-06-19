@@ -1642,14 +1642,13 @@ async def _options_paper_manage_cycle() -> None:
 
 
 async def _options_weekly_autopsy() -> None:
-    """Monday 17:00 ET: surface dominant loss patterns from the paper ledger."""
+    """Monday 17:00 ET: surface dominant loss patterns — always to personal chat."""
     try:
-        from options_engine import weekly_autopsy, should_send_telegram
+        from options_engine import weekly_autopsy
         report = await asyncio.to_thread(weekly_autopsy)
         print(f"[options-autopsy] {report[:200]}")
-        if should_send_telegram(0) or should_send_telegram(1):
-            from telegram_bot import send_text
-            await send_text(report)
+        from telegram_bot import send_critical_alert
+        await send_critical_alert("SPX Options Weekly Autopsy", report)
     except Exception as e:
         print(f"[options] weekly autopsy failed: {e}")
 
