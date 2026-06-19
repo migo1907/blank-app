@@ -217,7 +217,7 @@ class RandomForestEnsemble:
 
     def predict(self, features: list[float]) -> float:
         """
-        Predict WIN probability for a given 25-feature vector.
+        Predict WIN probability for a given 26-feature vector.
 
         Returns:
             float in [0.0, 1.0]. Returns 0.5 if model not yet trained.
@@ -961,7 +961,7 @@ def tune_gbm_hyperparams(pool: str, X: "np.ndarray", y: "np.ndarray",
 
 
 # ── SHAP TreeSHAP feature attribution (v4) ───────────────────────────────────
-# Per-trade explanation: which F1–F25 features drove the signal.
+# Per-trade explanation: which F1–F26 features drove the signal.
 # Uses TreeSHAP (O(TL) exact) — fast enough for real-time with top-8 features.
 
 try:

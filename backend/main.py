@@ -1,5 +1,5 @@
 """
-XAU/USD Migo Sniper Pro — Level 3 ML Backend (v3·25F)
+XAU/USD Migo Sniper Pro — Level 3 ML Backend (v3·26F)
 FastAPI app that receives TradingView webhooks, updates adaptive weights
 in GitHub storage, runs RF ensemble, fetches news sentiment, sends signals to Telegram.
 """
@@ -64,7 +64,7 @@ RAILWAY_SERVICE_ID = os.environ.get("RAILWAY_SERVICE_ID", "")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("[startup] Loading ML model (25F) from storage…")
+    print("[startup] Loading ML model (26F) from storage…")
     from ml_model import get_model
     get_model("XAUUSD_2M")
 
@@ -163,7 +163,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Migo Sniper Pro — ML Backend v3·25F",
+    title="Migo Sniper Pro — ML Backend v3·26F",
     description="Adaptive KNN + RF + GBM ensemble + news sentiment for XAU/USD",
     version="3.1.0",
     lifespan=lifespan,

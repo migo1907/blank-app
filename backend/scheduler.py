@@ -1777,6 +1777,7 @@ def start_scheduler() -> AsyncIOScheduler:
     )
     _scheduler.add_job(_news_signal_cycle, trigger="interval", minutes=interval, id="news_signal_cycle", replace_existing=True)
     from datetime import datetime as _dt, timezone as _tz, timedelta as _td
+    # 90s delay prevents startup thundering: news cycle starts after signal + macro jobs have initialised
     _scheduler.add_job(_breaking_news_cycle, trigger="interval", minutes=2, id="breaking_news_cycle", replace_existing=True,
                        start_date=_dt.now(_tz.utc) + _td(seconds=90))
     _scheduler.add_job(_hourly_system_check, trigger="interval", hours=1, id="hourly_system_check", replace_existing=True)

@@ -1,6 +1,6 @@
 """
 Lorentzian KNN classifier with GitHub-persistent adaptive weights.
-Expanded to 25 features (v3·25F).
+Expanded to 26 features (v3·26F).
 Weights survive across sessions — true cross-session learning.
 """
 import math
@@ -46,9 +46,9 @@ N_FEATURES = 26
 
 def row_to_vector(row: dict) -> list[float]:
     """
-    Build a 25-element feature vector from a trade-history row.
-    Prefers named keys (f1_rsi..f25_tod); falls back to legacy compact
-    keys (f1..f25) for older/repaired records written before the schema
+    Build a 26-element feature vector from a trade-history row.
+    Prefers named keys (f1_rsi..f26_stoch); falls back to legacy compact
+    keys (f1..f26) for older/repaired records written before the schema
     was standardized. Missing values default to 0.0.
     """
     vec = []
@@ -170,7 +170,7 @@ class AdaptiveKNN:
         self._total_wins = row.get("total_wins", 0)
         self._total_losses = row.get("total_losses", 0)
         self._dirty = False
-        print(f"[ml] Pool '{pool}' weights (25F): {[round(w, 3) for w in self._weights]}")
+        print(f"[ml] Pool '{pool}' weights (26F): {[round(w, 3) for w in self._weights]}")
 
     def save(self, pool: str = SYMBOL) -> None:
         if not self._dirty:
