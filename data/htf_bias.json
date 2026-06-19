@@ -1,4 +1,13 @@
 {
+  "US500_60": {
+    "direction": "LONG",
+    "timeframe": "60",
+    "symbol": "US500",
+    "trigger": "RSI",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-18T13:00:10.444937+00:00",
+    "expires_at": "2026-06-18T17:00:10.444957+00:00"
+  },
   "QQQ_30": {
     "direction": "LONG",
     "timeframe": "30",
