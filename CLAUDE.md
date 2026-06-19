@@ -22,6 +22,18 @@
 - **Walk-forward validation** — rolling OOS split before each retrain to get honest OOS accuracy (currently trains + evaluates on same window).
 - **Swing ML ensemble** — auto-enables when ≥50 closed swing paper trades accumulated (cold-start self-resolving). Uncomment 2 lines in scheduler.py ~L1668-1669.
 
+### Phase 2C — SPX 0-1DTE Options Layer (Data Collection — Silent)
+- **Status:** Running silently — paper trades logged to `data/options_paper_SPX.json` on data branch. No Telegram until ≥50 closed trades per pool (auto-unlocks).
+- **Trigger:** Every SPY directional flip (conf ≥ 0.62) during 09:45–15:00 ET fires `build_spx_recommendation()`.
+- **Strike selection:** Δ0.40 target, Black-Scholes picker, yfinance `^SPX` chain (Tradier REST if `TRADIER_TOKEN` set in Railway).
+- **Hard rules:** IV Rank <50, no VIX backwardation, no entries 24h before FOMC/CPI/NFP, 0DTE cutoff 13:00 ET (→ rolls to 1DTE).
+- **Exits:** +100% premium (TP), -50% premium (SL), hard exit 15:30 ET (0DTE) / 14:00 ET next session (1DTE). Managed hourly by `_options_paper_manage_cycle`.
+- **IV history:** ATM IV recorded daily at 15:45 ET → `data/options_iv_history.json`. IV Rank unlocks after 20 sessions, meaningful at 60.
+- **Training features (12):** confidence, iv, iv_rank, vix, vix_ratio, delta, entry_premium, dte, hour_et, day_of_week, spot_vs_strike_pct, expected_move.
+- **Pools:** `SPX_0DTE` (entered before 13:00 ET) / `SPX_1DTE` (after 13:00 ET or explicit roll).
+- **Training readiness:** `GET /options/trades?secret=gold2026` — shows n_closed, win_rate, ready flag per pool.
+- **Files:** `backend/options_engine.py` (core), `backend/tradier_data.py` (data provider).
+
 
 
 ## Railway

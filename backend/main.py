@@ -1155,6 +1155,14 @@ async def swing_trades(secret: str = ""):
     return stats()
 
 
+@app.get("/options/trades")
+async def options_trades(secret: str = ""):
+    """SPX 0-1DTE options paper-trade training-readiness summary per pool."""
+    _validate_secret(secret)
+    from options_engine import stats as options_stats
+    return options_stats()
+
+
 @app.get("/swing/one")
 async def swing_one(ticker: str = "", secret: str = "", send: bool = False):
     """

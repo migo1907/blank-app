@@ -312,6 +312,7 @@ def format_telegram(rec: dict) -> str:
 
 def append_paper_trade(rec: dict) -> None:
     try:
+        enrich_features(rec)   # capture training feature vector at entry
         from db import _get_file, _put_file
         ledger, sha = _get_file(_PAPER_PATH)
         if not isinstance(ledger, list):
@@ -382,3 +383,138 @@ def _current_mid(rec: dict) -> float | None:
         return round((bid + ask) / 2, 2) if (bid and ask) else (round(last, 2) or None)
     except Exception:
         return None
+
+
+# ── Training dataset (ML cold-start — same pattern as swing_tracker) ──────────
+
+# Features captured at entry time and stored on each paper trade.
+OPTION_FEATURE_KEYS = [
+    "confidence", "iv", "iv_rank", "vix", "vix_ratio",
+    "delta", "entry_premium", "dte",
+    "hour_et", "day_of_week",   # time-of-day / day pattern
+    "spot_vs_strike_pct",       # moneyness: (spot - strike) / spot × 100
+    "expected_move",            # straddle price (market's implied move)
+]
+
+_MIN_TRADES_ML = 50   # closed trades before ML is eligible
+
+
+def enrich_features(rec: dict) -> dict:
+    """Add the training feature vector to a recommendation dict before logging."""
+    now_et = datetime.now(_NY)
+    spot = rec.get("spot") or 0
+    strike = rec.get("strike") or 0
+    is_call = rec["type"] == "CALL"
+    # Moneyness: positive = OTM for call, ATM = 0
+    spot_vs_strike = ((spot - strike) / spot * 100) if spot else 0
+    if not is_call:
+        spot_vs_strike = -spot_vs_strike
+    rec["features"] = {
+        "confidence":         rec.get("confidence", 0.0),
+        "iv":                 rec.get("iv", 0.0),
+        "iv_rank":            rec.get("iv_rank") or 0.0,
+        "vix":                rec.get("vix") or 0.0,
+        "vix_ratio":          rec.get("vix_ratio") or 1.0,
+        "delta":              abs(rec.get("delta") or 0.0),
+        "entry_premium":      rec.get("entry_premium") or 0.0,
+        "dte":                float(rec.get("dte") or 0),
+        "hour_et":            float(now_et.hour + now_et.minute / 60),
+        "day_of_week":        float(now_et.weekday()),
+        "spot_vs_strike_pct": round(spot_vs_strike, 3),
+        "expected_move":      rec.get("expected_move") or 0.0,
+    }
+    return rec
+
+
+def training_dataset(pool: str = "ALL") -> tuple[list[list[float]], list[int], dict]:
+    """
+    Build (X, y, meta) from closed paper trades for ML training.
+    pool: 'ALL' | '0DTE' | '1DTE'
+    X rows follow OPTION_FEATURE_KEYS order; y is 1=WIN / 0=LOSS.
+    """
+    try:
+        from db import _get_file
+        ledger, _ = _get_file(_PAPER_PATH)
+        ledger = ledger if isinstance(ledger, list) else []
+    except Exception:
+        ledger = []
+
+    closed = [r for r in ledger if r.get("status") == "CLOSED"]
+    if pool == "0DTE":
+        closed = [r for r in closed if r.get("dte") == 0]
+    elif pool == "1DTE":
+        closed = [r for r in closed if r.get("dte", 0) >= 1]
+
+    X, y = [], []
+    for r in closed:
+        feats = r.get("features") or {}
+        X.append([float(feats.get(k, 0.0)) for k in OPTION_FEATURE_KEYS])
+        pnl = r.get("pnl_pct") or 0.0
+        y.append(1 if pnl > 0 else 0)
+
+    n = len(y)
+    wins = sum(y)
+    meta = {
+        "pool":      pool,
+        "n_closed":  n,
+        "n_wins":    wins,
+        "n_losses":  n - wins,
+        "win_rate":  round(wins / n, 3) if n else None,
+        "n_open":    sum(1 for r in ledger if r.get("status") == "OPEN"),
+        "ready":     n >= _MIN_TRADES_ML,
+        "feature_keys": OPTION_FEATURE_KEYS,
+    }
+    return X, y, meta
+
+
+def stats() -> dict:
+    """Training-readiness summary for the /options/trades endpoint."""
+    try:
+        from db import _get_file
+        ledger, _ = _get_file(_PAPER_PATH)
+        ledger = ledger if isinstance(ledger, list) else []
+    except Exception:
+        ledger = []
+
+    def _pool_meta(pool_name: str, trades: list) -> dict:
+        closed = [r for r in trades if r.get("status") == "CLOSED"]
+        n = len(closed)
+        wins = sum(1 for r in closed if (r.get("pnl_pct") or 0) > 0)
+        open_n = sum(1 for r in trades if r.get("status") == "OPEN")
+        return {
+            "n_closed": n,
+            "n_open":   open_n,
+            "n_wins":   wins,
+            "win_rate": round(wins / n, 3) if n else None,
+            "ready":    n >= _MIN_TRADES_ML,
+            "telegram_unlocks_at": _MIN_TRADES_ML,
+        }
+
+    zero_dte = [r for r in ledger if r.get("dte") == 0]
+    one_dte  = [r for r in ledger if r.get("dte", 0) >= 1]
+    return {
+        "SPX_0DTE": _pool_meta("SPX_0DTE", zero_dte),
+        "SPX_1DTE": _pool_meta("SPX_1DTE", one_dte),
+        "ALL":      _pool_meta("ALL", ledger),
+        "telegram_gate": "OPTIONS_TELEGRAM env OR auto-unlock at 50 closed trades per pool",
+        "silent_until":  f"≥{_MIN_TRADES_ML} closed trades per pool",
+    }
+
+
+def should_send_telegram(dte: int) -> bool:
+    """Auto-unlock Telegram for a pool once it hits 50 closed trades."""
+    import os
+    if os.environ.get("OPTIONS_TELEGRAM", "false").lower() == "true":
+        return True
+    try:
+        from db import _get_file
+        ledger, _ = _get_file(_PAPER_PATH)
+        ledger = ledger if isinstance(ledger, list) else []
+    except Exception:
+        return False
+    if dte == 0:
+        pool = [r for r in ledger if r.get("dte") == 0]
+    else:
+        pool = [r for r in ledger if r.get("dte", 0) >= 1]
+    closed = sum(1 for r in pool if r.get("status") == "CLOSED")
+    return closed >= _MIN_TRADES_ML

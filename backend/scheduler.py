@@ -366,13 +366,15 @@ async def _news_signal_cycle() -> None:
                 # Silent mode: ledger only, no Telegram until Stage B proves edge.
                 # Set OPTIONS_TELEGRAM=true in Railway to enable messages.
                 try:
-                    from options_engine import build_spx_recommendation, format_telegram, append_paper_trade
+                    from options_engine import build_spx_recommendation, format_telegram, append_paper_trade, should_send_telegram
                     rec = await asyncio.to_thread(build_spx_recommendation, spy_dir, spy_conf)
                     if rec:
                         await asyncio.to_thread(append_paper_trade, rec)
-                        if os.environ.get("OPTIONS_TELEGRAM", "false").lower() == "true":
+                        if should_send_telegram(rec.get("dte", 0)):
                             from telegram_bot import send_text
                             await send_text(format_telegram(rec))
+                        else:
+                            print(f"[options] paper trade logged (silent — accumulating training data)")
                 except Exception as _opt_err:
                     print(f"[options] recommendation failed: {_opt_err}")
             else:
@@ -1585,14 +1587,14 @@ async def _options_iv_record_cycle() -> None:
 
 async def _options_paper_manage_cycle() -> None:
     """Hourly during RTH: enforce TP/SL/time exits on open paper option trades.
-    Silent mode: closes logged to console/ledger only unless OPTIONS_TELEGRAM=true."""
+    Silent until 50 closed trades per pool; auto-unlocks Telegram at that point."""
     try:
-        from options_engine import manage_paper_positions
+        from options_engine import manage_paper_positions, should_send_telegram
         closed = await asyncio.to_thread(manage_paper_positions)
-        tg_on = os.environ.get("OPTIONS_TELEGRAM", "false").lower() == "true"
         for line in closed:
             print(f"[options] paper closed: {line}")
-            if tg_on:
+            # Auto-unlock: send to Telegram once pool has ≥50 closed trades
+            if should_send_telegram(0) or should_send_telegram(1):
                 from telegram_bot import send_text
                 await send_text(f"📄 <b>SPX PAPER CLOSED</b>\n{line}")
     except Exception as e:
