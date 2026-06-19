@@ -446,10 +446,25 @@ async def _news_signal_cycle() -> None:
                 _opt_dir  = _opt_sig.get("direction", "NEUTRAL")
                 _opt_conf = _opt_sig.get("confidence", 0.0) or 0.0
                 print(f"[options] {_opt_pool}: {_opt_dir} conf={_opt_conf:.2f} (min={_opt_min_conf})")
+                # Confluence: check the other pool to see if it agrees
+                _other_pool = "STOCKS_SPX500_30M" if _is_0dte_window else "STOCKS_SPX500_15M"
+                _other_sig  = _gen(
+                    current_features=_glf(_other_pool),
+                    news_agg=_latest_news_agg,
+                    news_velocity=_latest_velocity,
+                    high_impact_event=_latest_event,
+                    symbol="SPX500",
+                    pool=_other_pool,
+                    macro_bias=_equity_macro,
+                )
+                _confluence = 1.0 if _other_sig.get("direction") == _opt_dir else 0.5
+
                 if (_opt_dir not in ("NEUTRAL", "") and
                         _opt_conf >= _opt_min_conf and
                         _opt_dir != _last_sent_direction_spx_options):
-                    _rec = await asyncio.to_thread(build_spx_recommendation, _opt_dir, _opt_conf)
+                    _rec = await asyncio.to_thread(
+                        build_spx_recommendation, _opt_dir, _opt_conf,
+                        pool_confluence=_confluence)
                     if _rec:
                         await asyncio.to_thread(append_paper_trade, _rec)
                         _last_sent_direction_spx_options = _opt_dir
@@ -1626,6 +1641,19 @@ async def _options_paper_manage_cycle() -> None:
         print(f"[options] paper manage cycle failed: {e}")
 
 
+async def _options_weekly_autopsy() -> None:
+    """Monday 17:00 ET: surface dominant loss patterns from the paper ledger."""
+    try:
+        from options_engine import weekly_autopsy, should_send_telegram
+        report = await asyncio.to_thread(weekly_autopsy)
+        print(f"[options-autopsy] {report[:200]}")
+        if should_send_telegram(0) or should_send_telegram(1):
+            from telegram_bot import send_text
+            await send_text(report)
+    except Exception as e:
+        print(f"[options] weekly autopsy failed: {e}")
+
+
 async def _market_open_data_check() -> None:
     """
     Shortly after the US market opens (holiday-aware), force a fresh fetch of the
@@ -1788,6 +1816,8 @@ def start_scheduler() -> AsyncIOScheduler:
                        timezone=_ny_tz, id="options_iv_record", replace_existing=True, misfire_grace_time=3600)
     _scheduler.add_job(_options_paper_manage_cycle, trigger="cron", day_of_week="mon-fri", hour="10-16", minute=5,
                        timezone=_ny_tz, id="options_paper_manage", replace_existing=True, misfire_grace_time=600)
+    _scheduler.add_job(_options_weekly_autopsy, trigger="cron", day_of_week="mon", hour=17, minute=0,
+                       timezone=_ny_tz, id="options_weekly_autopsy", replace_existing=True, misfire_grace_time=3600)
     # Full system inspection — every 6 hours (system_directive.FULL_INSPECTION_HOURS)
     from system_directive import FULL_INSPECTION_HOURS
     _scheduler.add_job(_full_system_inspection, trigger="interval", hours=FULL_INSPECTION_HOURS,

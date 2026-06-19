@@ -27,8 +27,12 @@ from __future__ import annotations
 import math
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
+from typing import Any
 
 _NY = ZoneInfo("America/New_York")
+
+# ── In-memory ML model cache ──────────────────────────────────────────────────
+_options_model: dict[str, Any] = {}   # keys: "rf", "gbm", "cal", "trained_at", "n"
 
 _IV_HISTORY_PATH = "data/options_iv_history.json"
 _PAPER_PATH      = "data/options_paper_SPX.json"
@@ -187,7 +191,9 @@ def _bs_delta(spot: float, strike: float, iv: float, dte_years: float, is_call: 
 # ── Recommendation builder ─────────────────────────────────────────────────────
 
 def build_spx_recommendation(direction: str, confidence: float,
-                              atr_tp1_points: float | None = None) -> dict | None:
+                              atr_tp1_points: float | None = None,
+                              pool_confluence: float = 0.5,
+                              **kwargs) -> dict | None:
     """
     Translate a directional signal into an SPX 0-1DTE long option, or None
     with the skip reason printed. Pure read — caller persists/sends.
@@ -268,7 +274,7 @@ def build_spx_recommendation(direction: str, confidence: float,
     tv_symbol = f"OPRA:SPXW{exp_compact}{cp}{int(best['strike'])}"
     hard_exit = "15:30 ET today" if dte == 0 else "14:00 ET next session"
 
-    return {
+    rec_candidate = {
         "id":            datetime.now(timezone.utc).strftime("%y%m%d%H%M%S"),
         "created_at":    datetime.now(timezone.utc).isoformat(),
         "instrument":    "SPX",
@@ -295,6 +301,18 @@ def build_spx_recommendation(direction: str, confidence: float,
         "paper":         True,
     }
 
+    # ML gate — once ≥50 closed trades, score this candidate and skip if below threshold
+    pool_confluence = kwargs.get("pool_confluence", 0.5)
+    enrich_features(rec_candidate, pool_confluence=pool_confluence)
+    ml_score = options_predict(rec_candidate["features"])
+    rec_candidate["ml_score"] = ml_score
+    if ml_score is not None and ml_score < _ML_SCORE_GATE:
+        print(f"[options-ml] skip — ML score {ml_score:.3f} < {_ML_SCORE_GATE} "
+              f"(matches historical loss pattern)")
+        return None
+
+    return rec_candidate
+
 
 def format_telegram(rec: dict) -> str:
     size_note = "\n⚠️ VIX>25 — HALF SIZE" if rec.get("half_size") else ""
@@ -312,7 +330,6 @@ def format_telegram(rec: dict) -> str:
 
 def append_paper_trade(rec: dict) -> None:
     try:
-        enrich_features(rec)   # capture training feature vector at entry
         from db import _get_file, _put_file
         ledger, sha = _get_file(_PAPER_PATH)
         if not isinstance(ledger, list):
@@ -362,10 +379,12 @@ def manage_paper_positions() -> list[str]:
                 rec["closed_at"]    = datetime.now(timezone.utc).isoformat()
                 if mid is not None and entry:
                     rec["pnl_pct"] = round((mid - entry) / entry * 100, 1)
+                rec["loss_reason"] = categorize_outcome(rec)
                 dirty = True
-                closed.append(f"{rec['tv_symbol']} → {reason} ({rec.get('pnl_pct','?')}%)")
+                closed.append(f"{rec['tv_symbol']} → {reason} ({rec.get('pnl_pct','?')}%) [{rec['loss_reason']}]")
         if dirty:
             _put_file(_PAPER_PATH, ledger, sha, "options: paper position management")
+            _auto_retrain_if_ready()
     except Exception as e:
         print(f"[options] paper management failed: {e}")
     return closed
@@ -388,41 +407,89 @@ def _current_mid(rec: dict) -> float | None:
 # ── Training dataset (ML cold-start — same pattern as swing_tracker) ──────────
 
 # Features captured at entry time and stored on each paper trade.
+# 18 features — original 12 + 6 new context features.
 OPTION_FEATURE_KEYS = [
-    "confidence", "iv", "iv_rank", "vix", "vix_ratio",
-    "delta", "entry_premium", "dte",
-    "hour_et", "day_of_week",   # time-of-day / day pattern
-    "spot_vs_strike_pct",       # moneyness: (spot - strike) / spot × 100
-    "expected_move",            # straddle price (market's implied move)
+    # Core signal quality
+    "confidence",           # ML confidence from directional pool
+    "iv",                   # option implied volatility at entry
+    "iv_rank",              # IV percentile vs trailing 60 sessions (0-100)
+    # Volatility regime
+    "vix",                  # VIX spot at entry
+    "vix_ratio",            # VIX/VIX3M — backwardation margin
+    "vix_backwardation_margin",  # 1.0 - vix_ratio (positive = safer to buy premium)
+    # Strike / premium context
+    "delta",                # absolute delta of chosen strike
+    "entry_premium",        # mid-price paid per contract
+    "spot_vs_strike_pct",   # moneyness: positive = OTM (call), negative = ITM
+    "premium_vs_em_pct",    # entry_premium / expected_move × 100 (overpay ratio)
+    "iv_over_vix_ratio",    # option IV / VIX (IV richness vs realized vol proxy)
+    # Time / session context
+    "dte",                  # days to expiry (0 or 1)
+    "hour_et",              # entry hour in ET (fractional, 9.75 = 9:45am)
+    "day_of_week",          # 0=Mon … 4=Fri
+    "entry_time_norm",      # position in session: 0=open (9:30), 1=close (16:00)
+    "time_to_hard_exit_hours",  # hours until forced exit (urgency)
+    # Market context
+    "expected_move",        # ATM straddle price (market's implied 1-day move)
+    "pool_confluence",      # 1.0=15M+30M agree, 0.5=only trigger pool fired
 ]
 
 _MIN_TRADES_ML = 50   # closed trades before ML is eligible
+_ML_SCORE_GATE  = 0.52  # calibrated win-probability minimum to enter
 
 
-def enrich_features(rec: dict) -> dict:
-    """Add the training feature vector to a recommendation dict before logging."""
+def enrich_features(rec: dict, pool_confluence: float = 0.5) -> dict:
+    """Add the 18-feature training vector to a recommendation dict before logging."""
     now_et = datetime.now(_NY)
-    spot = rec.get("spot") or 0
+    spot   = rec.get("spot") or 0
     strike = rec.get("strike") or 0
     is_call = rec["type"] == "CALL"
-    # Moneyness: positive = OTM for call, ATM = 0
-    spot_vs_strike = ((spot - strike) / spot * 100) if spot else 0
+    vix_ratio = rec.get("vix_ratio") or 1.0
+    entry_premium = rec.get("entry_premium") or 0.0
+    expected_move = rec.get("expected_move") or 0.0
+    iv  = rec.get("iv") or 0.0
+    vix = rec.get("vix") or 0.0
+    dte = int(rec.get("dte") or 0)
+
+    spot_vs_strike = ((spot - strike) / spot * 100) if spot else 0.0
     if not is_call:
         spot_vs_strike = -spot_vs_strike
+
+    premium_vs_em = (entry_premium / expected_move * 100) if expected_move else 0.0
+    iv_over_vix   = (iv / (vix / 100)) if vix else 1.0   # option IV vs annualised VIX
+
+    # Normalised session position: 9:30=0.0, 16:00=1.0
+    session_minutes = max(0, (now_et.hour * 60 + now_et.minute) - 570)   # 570 = 9:30
+    entry_time_norm = min(session_minutes / 390, 1.0)   # 390 min = 9:30→16:00
+
+    # Hours until hard exit
+    if dte == 0:
+        hard_exit_et = now_et.replace(hour=15, minute=30, second=0, microsecond=0)
+    else:
+        hard_exit_et = now_et.replace(hour=14, minute=0, second=0, microsecond=0) + timedelta(days=1)
+    time_to_exit = max(0.0, (hard_exit_et - now_et).total_seconds() / 3600)
+
     rec["features"] = {
-        "confidence":         rec.get("confidence", 0.0),
-        "iv":                 rec.get("iv", 0.0),
-        "iv_rank":            rec.get("iv_rank") or 0.0,
-        "vix":                rec.get("vix") or 0.0,
-        "vix_ratio":          rec.get("vix_ratio") or 1.0,
-        "delta":              abs(rec.get("delta") or 0.0),
-        "entry_premium":      rec.get("entry_premium") or 0.0,
-        "dte":                float(rec.get("dte") or 0),
-        "hour_et":            float(now_et.hour + now_et.minute / 60),
-        "day_of_week":        float(now_et.weekday()),
-        "spot_vs_strike_pct": round(spot_vs_strike, 3),
-        "expected_move":      rec.get("expected_move") or 0.0,
+        "confidence":              rec.get("confidence", 0.0),
+        "iv":                      round(iv, 4),
+        "iv_rank":                 rec.get("iv_rank") or 0.0,
+        "vix":                     round(vix, 2),
+        "vix_ratio":               round(vix_ratio, 3),
+        "vix_backwardation_margin": round(1.0 - vix_ratio, 3),
+        "delta":                   abs(rec.get("delta") or 0.0),
+        "entry_premium":           round(entry_premium, 2),
+        "spot_vs_strike_pct":      round(spot_vs_strike, 3),
+        "premium_vs_em_pct":       round(premium_vs_em, 2),
+        "iv_over_vix_ratio":       round(iv_over_vix, 3),
+        "dte":                     float(dte),
+        "hour_et":                 round(now_et.hour + now_et.minute / 60, 3),
+        "day_of_week":             float(now_et.weekday()),
+        "entry_time_norm":         round(entry_time_norm, 3),
+        "time_to_hard_exit_hours": round(time_to_exit, 2),
+        "expected_move":           round(expected_move, 2),
+        "pool_confluence":         pool_confluence,
     }
+    rec["pool_confluence"] = pool_confluence
     return rec
 
 
@@ -465,6 +532,217 @@ def training_dataset(pool: str = "ALL") -> tuple[list[list[float]], list[int], d
         "feature_keys": OPTION_FEATURE_KEYS,
     }
     return X, y, meta
+
+
+# ── Loss categorization ────────────────────────────────────────────────────────
+
+_LOSS_REASONS = ("WRONG_DIRECTION", "THETA_DECAY", "IV_CRUSH", "OVERPAID", "LATE_ENTRY", "WIN", "UNKNOWN")
+
+
+def categorize_outcome(rec: dict) -> str:
+    """Tag a closed trade with the primary reason it won or lost."""
+    pnl  = rec.get("pnl_pct") or 0.0
+    exit_reason = rec.get("exit_reason", "")
+    feats = rec.get("features") or {}
+
+    if pnl > 0:
+        return "WIN"
+
+    # Time stops → theta decay (didn't move enough before expiry)
+    if "time stop" in exit_reason or "hard exit" in exit_reason or "expired" in exit_reason:
+        return "THETA_DECAY"
+
+    # SL hit — distinguish direction vs IV crush
+    if pnl <= -45:
+        # Was the underlying moving against us? Use spot_vs_strike as proxy:
+        # large negative spot_vs_strike on a losing call = underlying dropped hard
+        s_vs_k = feats.get("spot_vs_strike_pct", 0.0)
+        # If moneyness moved deep wrong way → wrong direction call
+        if abs(s_vs_k) > 0.5:
+            return "WRONG_DIRECTION"
+        # Otherwise premium collapsed despite moderate move → IV crush
+        return "IV_CRUSH"
+
+    # Partial loss — check structural entry mistakes
+    if feats.get("premium_vs_em_pct", 0.0) > 50.0:
+        return "OVERPAID"
+    if feats.get("time_to_hard_exit_hours", 99.0) < 2.0:
+        return "LATE_ENTRY"
+
+    return "WRONG_DIRECTION"   # default for unexplained SL hits
+
+
+# ── ML ensemble (RF + GBM + isotonic calibration) ─────────────────────────────
+
+def options_ml_train(pool: str = "ALL") -> dict:
+    """
+    Train RF + GBM on closed paper trades, fit isotonic calibration on an OOS fold.
+    Updates the in-memory _options_model cache. Returns training summary.
+    pool: 'ALL' | '0DTE' | '1DTE'
+    """
+    global _options_model
+    X, y, meta = training_dataset(pool)
+    n = len(y)
+    if n < _MIN_TRADES_ML:
+        return {"status": "insufficient_data", "n": n, "need": _MIN_TRADES_ML}
+
+    try:
+        from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+        from sklearn.isotonic import IsotonicRegression
+        from sklearn.model_selection import train_test_split
+        import numpy as np
+
+        X_arr = np.array(X, dtype=float)
+        y_arr = np.array(y, dtype=int)
+
+        # Walk-forward OOS: last 20% as validation, first 80% as train
+        split = max(int(n * 0.8), min(40, n - 10))
+        X_tr, X_val = X_arr[:split], X_arr[split:]
+        y_tr, y_val = y_arr[:split], y_arr[split:]
+
+        rf  = RandomForestClassifier(n_estimators=200, max_depth=5,
+                                     min_samples_leaf=4, random_state=42)
+        gbm = GradientBoostingClassifier(n_estimators=150, max_depth=3,
+                                         learning_rate=0.05, subsample=0.8,
+                                         random_state=42)
+        rf.fit(X_tr, y_tr)
+        gbm.fit(X_tr, y_tr)
+
+        # Ensemble raw proba on val set, then isotonic calibration
+        if len(X_val):
+            raw_val = (rf.predict_proba(X_val)[:, 1] + gbm.predict_proba(X_val)[:, 1]) / 2
+            cal = IsotonicRegression(out_of_bounds="clip")
+            cal.fit(raw_val, y_val)
+            oos_acc = float(np.mean((raw_val >= 0.5) == y_val))
+        else:
+            # Not enough for OOS — fit calibration on full set
+            raw_full = (rf.predict_proba(X_arr)[:, 1] + gbm.predict_proba(X_arr)[:, 1]) / 2
+            cal = IsotonicRegression(out_of_bounds="clip")
+            cal.fit(raw_full, y_arr)
+            oos_acc = None
+
+        # Feature importance from RF
+        importances = dict(zip(OPTION_FEATURE_KEYS,
+                               [round(float(v), 4) for v in rf.feature_importances_]))
+        top_features = sorted(importances.items(), key=lambda x: -x[1])[:5]
+
+        _options_model.update({
+            "rf": rf, "gbm": gbm, "cal": cal,
+            "pool": pool, "n": n, "wins": int(sum(y_arr)),
+            "oos_acc": oos_acc,
+            "top_features": top_features,
+            "trained_at": datetime.now(timezone.utc).isoformat(),
+        })
+        print(f"[options-ml] trained on {n} trades | OOS acc={oos_acc} | "
+              f"top={top_features[0][0]}({top_features[0][1]:.3f})")
+        return {"status": "ok", "n": n, "oos_acc": oos_acc, "top_features": top_features}
+
+    except Exception as e:
+        print(f"[options-ml] train failed: {e}")
+        return {"status": "error", "error": str(e)}
+
+
+def options_predict(features: dict) -> float | None:
+    """
+    Return calibrated win probability (0-1) for a candidate trade.
+    Returns None if model not trained yet.
+    """
+    if not _options_model.get("rf"):
+        return None
+    try:
+        import numpy as np
+        row = np.array([[float(features.get(k, 0.0)) for k in OPTION_FEATURE_KEYS]])
+        rf_p  = _options_model["rf"].predict_proba(row)[0, 1]
+        gbm_p = _options_model["gbm"].predict_proba(row)[0, 1]
+        raw   = (rf_p + gbm_p) / 2
+        cal_p = float(_options_model["cal"].predict([raw])[0])
+        return round(cal_p, 3)
+    except Exception as e:
+        print(f"[options-ml] predict failed: {e}")
+        return None
+
+
+def _auto_retrain_if_ready() -> None:
+    """Called after each position close. Retrains if ≥50 closed trades."""
+    try:
+        from db import _get_file
+        ledger, _ = _get_file(_PAPER_PATH)
+        ledger = ledger if isinstance(ledger, list) else []
+        n_closed = sum(1 for r in ledger if r.get("status") == "CLOSED")
+        if n_closed >= _MIN_TRADES_ML:
+            options_ml_train("ALL")
+    except Exception as e:
+        print(f"[options-ml] auto-retrain failed: {e}")
+
+
+# ── Weekly autopsy ─────────────────────────────────────────────────────────────
+
+def weekly_autopsy() -> str:
+    """
+    Analyse closed trades to surface dominant loss patterns.
+    Returns a formatted summary string (for Telegram or console).
+    """
+    try:
+        from db import _get_file
+        ledger, _ = _get_file(_PAPER_PATH)
+        ledger = ledger if isinstance(ledger, list) else []
+    except Exception:
+        return "Options autopsy: no data"
+
+    closed = [r for r in ledger if r.get("status") == "CLOSED"]
+    if not closed:
+        return "Options autopsy: 0 closed trades yet"
+
+    # Tag each closed trade with loss reason if not already tagged
+    for r in closed:
+        if not r.get("loss_reason"):
+            r["loss_reason"] = categorize_outcome(r)
+
+    total  = len(closed)
+    wins   = [r for r in closed if r["loss_reason"] == "WIN"]
+    losses = [r for r in closed if r["loss_reason"] != "WIN"]
+    win_rate = len(wins) / total * 100
+
+    # Loss breakdown by reason
+    from collections import Counter
+    loss_counts = Counter(r["loss_reason"] for r in losses)
+
+    lines = [
+        f"📊 <b>SPX Options Weekly Autopsy</b>",
+        f"Total closed: {total} | Win rate: {win_rate:.1f}%",
+        f"Wins: {len(wins)} | Losses: {len(losses)}",
+        "",
+        "🔴 Loss breakdown:",
+    ]
+    for reason, count in loss_counts.most_common():
+        pct = count / len(losses) * 100 if losses else 0
+        lines.append(f"  {reason}: {count} ({pct:.0f}%)")
+
+    # Key feature averages for losses vs wins
+    def avg_feat(trades, key):
+        vals = [r.get("features", {}).get(key, 0.0) for r in trades if r.get("features")]
+        return round(sum(vals) / len(vals), 3) if vals else 0.0
+
+    if losses and wins:
+        lines.append("")
+        lines.append("📉 Loss vs Win avg feature comparison:")
+        key_feats = ["confidence", "premium_vs_em_pct", "time_to_hard_exit_hours",
+                     "vix", "iv_rank", "pool_confluence"]
+        for feat in key_feats:
+            l_avg = avg_feat(losses, feat)
+            w_avg = avg_feat(wins, feat)
+            lines.append(f"  {feat}: loss={l_avg} vs win={w_avg}")
+
+    # ML model status
+    if _options_model.get("rf"):
+        lines.append("")
+        lines.append(f"🤖 ML model: trained on {_options_model['n']} trades | "
+                     f"OOS acc={_options_model.get('oos_acc')}")
+        if _options_model.get("top_features"):
+            top = _options_model["top_features"][:3]
+            lines.append(f"  Top signals: " + ", ".join(f"{k}({v:.3f})" for k, v in top))
+
+    return "\n".join(lines)
 
 
 def stats() -> dict:
