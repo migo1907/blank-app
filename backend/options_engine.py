@@ -39,7 +39,7 @@ TP_PREMIUM_MULT    = 2.0   # +100%
 SL_PREMIUM_MULT    = 0.5   # -50%
 IV_RANK_MAX        = 50.0
 VIX_HALF_SIZE      = 25.0
-TARGET_DELTA       = 0.40
+TARGET_DELTA       = 0.25  # OTM strike target
 MIN_CONFIDENCE     = 0.62  # mirror system MIN_CONFIDENCE
 
 

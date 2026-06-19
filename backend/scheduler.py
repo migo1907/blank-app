@@ -13,6 +13,7 @@ _fj_seen_headlines:  set   = set()
 _last_sent_direction: str     = "NEUTRAL"
 _last_sent_direction_spy: str = "NEUTRAL"
 _last_sent_direction_qqq: str = "NEUTRAL"
+_last_sent_direction_spx_options: str = "NEUTRAL"  # options layer flip tracker
 _startup_cycle: bool = True  # suppress alert on first cycle after restart
 _webhook_errors:  int = 0   # count of failed trade webhooks since last hourly check
 _webhook_ok:      int = 0   # count of successful trade webhooks since last hourly check
@@ -134,7 +135,7 @@ def record_webhook_error() -> None:
 
 
 def _load_seen_headlines() -> set:
-    global _fj_seen_headlines, _last_sent_direction, _last_sent_direction_spy, _last_sent_direction_qqq
+    global _fj_seen_headlines, _last_sent_direction, _last_sent_direction_spy, _last_sent_direction_qqq, _last_sent_direction_spx_options
     try:
         from db import _get_file
         data, _ = _get_file(_SEEN_HEADLINES_PATH)
@@ -260,7 +261,7 @@ async def _breaking_news_cycle() -> None:
 
 
 async def _news_signal_cycle() -> None:
-    global _latest_news_agg, _latest_velocity, _latest_event, _fj_seen_headlines, _last_sent_direction, _last_sent_direction_spy, _last_sent_direction_qqq, _startup_cycle
+    global _latest_news_agg, _latest_velocity, _latest_event, _fj_seen_headlines, _last_sent_direction, _last_sent_direction_spy, _last_sent_direction_qqq, _last_sent_direction_spx_options, _startup_cycle
     print("[scheduler] Starting news + velocity + signal cycle…")
 
     try:
@@ -361,35 +362,6 @@ async def _news_signal_cycle() -> None:
                 if sent_spy:
                     _last_sent_direction_spy = spy_dir
                     print(f"[scheduler] SPY direction → {spy_dir} conf={spy_conf:.2f} — signal sent.")
-                # Phase 2C — SPX 0-1DTE options layer (paper): use STOCKS_SPX500_30M
-                # signal (SPX500/US500 — the actual index underlying) as the trigger.
-                # SPX500 pool has more data than STOCKS_INDEX_30M (SPY).
-                try:
-                    from options_engine import build_spx_recommendation, format_telegram, append_paper_trade, should_send_telegram
-                    from signal_engine import generate_signal as _gen, get_latest_features as _glf
-                    spx500_sig = _gen(
-                        current_features=_glf("STOCKS_SPX500_30M"),
-                        news_agg=_latest_news_agg,
-                        news_velocity=_latest_velocity,
-                        high_impact_event=_latest_event,
-                        symbol="SPX500",
-                        pool="STOCKS_SPX500_30M",
-                        macro_bias=_equity_macro,
-                    )
-                    spx500_dir  = spx500_sig.get("direction", "NEUTRAL")
-                    spx500_conf = spx500_sig.get("confidence", 0.0) or 0.0
-                    print(f"[options] SPX500 signal: {spx500_dir} conf={spx500_conf:.2f}")
-                    if spx500_dir not in ("NEUTRAL", "") and spx500_conf >= 0.50:
-                        rec = await asyncio.to_thread(build_spx_recommendation, spx500_dir, spx500_conf)
-                        if rec:
-                            await asyncio.to_thread(append_paper_trade, rec)
-                            if should_send_telegram(rec.get("dte", 0)):
-                                from telegram_bot import send_text
-                                await send_text(format_telegram(rec))
-                            else:
-                                print(f"[options] paper trade logged (silent — accumulating training data)")
-                except Exception as _opt_err:
-                    print(f"[options] recommendation failed: {_opt_err}")
             else:
                 print(f"[scheduler] SPY: {spy_dir} conf={spy_conf:.2f} — no flip, not sending.")
         except Exception as e:
@@ -448,6 +420,46 @@ async def _news_signal_cycle() -> None:
                 print("[scheduler] Market Intelligence: conditions cleared — re-armed.")
         except Exception as e:
             print(f"[scheduler] Market Intelligence alert error: {e}")
+
+        # Phase 2C — SPX 0-1DTE options layer (paper, OTM Δ0.25)
+        # 0DTE window (before 13:00 ET): use STOCKS_SPX500_15M (faster, intraday resolution)
+        # 1DTE window (after  13:00 ET): use STOCKS_SPX500_30M (slower, more reliable)
+        # Fires every cycle independently — not gated on SPY flip.
+        if not _startup_cycle:
+            try:
+                from zoneinfo import ZoneInfo as _ZI
+                _now_et = __import__("datetime").datetime.now(_ZI("America/New_York"))
+                _is_0dte_window = _now_et.weekday() < 5 and _now_et.hour < 13
+                _opt_pool      = "STOCKS_SPX500_15M" if _is_0dte_window else "STOCKS_SPX500_30M"
+                _opt_min_conf  = 0.60 if _is_0dte_window else 0.55
+                from options_engine import build_spx_recommendation, format_telegram, append_paper_trade, should_send_telegram
+                from signal_engine import generate_signal as _gen, get_latest_features as _glf
+                _opt_sig  = _gen(
+                    current_features=_glf(_opt_pool),
+                    news_agg=_latest_news_agg,
+                    news_velocity=_latest_velocity,
+                    high_impact_event=_latest_event,
+                    symbol="SPX500",
+                    pool=_opt_pool,
+                    macro_bias=_equity_macro,
+                )
+                _opt_dir  = _opt_sig.get("direction", "NEUTRAL")
+                _opt_conf = _opt_sig.get("confidence", 0.0) or 0.0
+                print(f"[options] {_opt_pool}: {_opt_dir} conf={_opt_conf:.2f} (min={_opt_min_conf})")
+                if (_opt_dir not in ("NEUTRAL", "") and
+                        _opt_conf >= _opt_min_conf and
+                        _opt_dir != _last_sent_direction_spx_options):
+                    _rec = await asyncio.to_thread(build_spx_recommendation, _opt_dir, _opt_conf)
+                    if _rec:
+                        await asyncio.to_thread(append_paper_trade, _rec)
+                        _last_sent_direction_spx_options = _opt_dir
+                        if should_send_telegram(_rec.get("dte", 0)):
+                            from telegram_bot import send_text
+                            await send_text(format_telegram(_rec))
+                        else:
+                            print(f"[options] paper trade logged (silent — accumulating training data)")
+            except Exception as _opt_err:
+                print(f"[options] recommendation failed: {_opt_err}")
 
         _startup_cycle = False  # first cycle complete — normal firing from here on
         asyncio.create_task(_write_health_status(signal, _latest_news_agg, _latest_velocity, len(fj_breaking), _equity_macro))
