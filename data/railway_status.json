@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-06-19T21:36:46.532619+00:00",
+  "checked_at": "2026-06-19T22:37:45.324656+00:00",
   "health": {
     "status_code": 200,
     "data": {
@@ -246,7 +246,7 @@
             "VOLATILE": 0.012
           },
           "method": "hmm",
-          "updated_at": "2026-06-19T20:44:45.305980+00:00"
+          "updated_at": "2026-06-19T21:44:45.651179+00:00"
         },
         "SPY": {
           "asset": "SPY",
@@ -261,7 +261,7 @@
             "VOLATILE": 0.021
           },
           "method": "hmm",
-          "updated_at": "2026-06-19T20:44:46.168182+00:00"
+          "updated_at": "2026-06-19T21:44:46.729803+00:00"
         },
         "QQQ": {
           "asset": "QQQ",
@@ -276,7 +276,7 @@
             "VOLATILE": 0.001
           },
           "method": "hmm",
-          "updated_at": "2026-06-19T20:44:47.121040+00:00"
+          "updated_at": "2026-06-19T21:44:47.533319+00:00"
         }
       },
       "mtf": {
@@ -289,7 +289,7 @@
           },
           "weighted": -1.0,
           "bias": "BEAR",
-          "updated_at": "2026-06-19T20:44:48.163498+00:00",
+          "updated_at": "2026-06-19T21:44:48.779043+00:00",
           "method": "yfinance"
         },
         "SPY": {
@@ -301,7 +301,7 @@
           },
           "weighted": 1.0,
           "bias": "BULL",
-          "updated_at": "2026-06-19T20:44:48.290997+00:00",
+          "updated_at": "2026-06-19T21:44:48.974323+00:00",
           "method": "yfinance"
         },
         "QQQ": {
@@ -313,7 +313,7 @@
           },
           "weighted": 1.0,
           "bias": "BULL",
-          "updated_at": "2026-06-19T20:44:48.475409+00:00",
+          "updated_at": "2026-06-19T21:44:49.116621+00:00",
           "method": "yfinance"
         }
       },
@@ -402,25 +402,25 @@
           }
         ]
       },
-      "news_sentiment": -0.4205,
+      "news_sentiment": -0.2507,
       "news_velocity": {
-        "multiplier": 1.0,
-        "volume": 50,
-        "consistency": 0.415,
-        "acceleration": 0.034,
+        "multiplier": 0.6,
+        "volume": 34,
+        "consistency": 0.077,
+        "acceleration": 0.02,
         "direction": "BEARISH",
-        "label": "NORMAL",
-        "high_count": 16,
-        "total_count": 47
+        "label": "CONFLICTED",
+        "high_count": 8,
+        "total_count": 49
       },
       "high_impact_event": {
         "detected": true,
         "event_type": "GEOPOLITICAL",
         "urgency": 0.9,
         "headlines": [
-          "Two killed in drone strike in southern Lebanon after ceasefire agreement came into effect - State Media, Medical Source",
           "Pentagon tells US lawmakers it needs $80 billion for Iran war and other bills, WSJ reports - Reuters",
-          "Accenture forecast takes hit from Iran war, shares tumble over 17% - Reuters"
+          "Accenture forecast takes hit from Iran war, shares tumble over 17% - Reuters",
+          "Bank of England keeps rates steady as it weighs Iran truce - Reuters"
         ],
         "all_events": [
           "GEOPOLITICAL",
