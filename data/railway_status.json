@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-06-19T22:37:45.324656+00:00",
+  "checked_at": "2026-06-19T23:47:41.557619+00:00",
   "health": {
     "status_code": 200,
     "data": {
@@ -246,28 +246,28 @@
             "VOLATILE": 0.012
           },
           "method": "hmm",
-          "updated_at": "2026-06-19T21:44:45.651179+00:00"
+          "updated_at": "2026-06-19T23:44:46.689506+00:00"
         },
         "SPY": {
           "asset": "SPY",
           "regime": "RANGING",
-          "confidence": 0.979,
-          "transition_prob": 0.06,
+          "confidence": 0.978,
+          "transition_prob": 0.061,
           "next_regime": "RANGING",
           "shifting": false,
           "probs": {
-            "RANGING": 0.979,
+            "RANGING": 0.978,
             "TRENDING_BULL": 0.0,
             "VOLATILE": 0.021
           },
           "method": "hmm",
-          "updated_at": "2026-06-19T21:44:46.729803+00:00"
+          "updated_at": "2026-06-19T23:44:47.839205+00:00"
         },
         "QQQ": {
           "asset": "QQQ",
           "regime": "TRENDING_BULL",
           "confidence": 0.968,
-          "transition_prob": 0.17,
+          "transition_prob": 0.169,
           "next_regime": "TRENDING_BULL",
           "shifting": false,
           "probs": {
@@ -276,7 +276,7 @@
             "VOLATILE": 0.001
           },
           "method": "hmm",
-          "updated_at": "2026-06-19T21:44:47.533319+00:00"
+          "updated_at": "2026-06-19T23:44:49.037093+00:00"
         }
       },
       "mtf": {
@@ -289,7 +289,7 @@
           },
           "weighted": -1.0,
           "bias": "BEAR",
-          "updated_at": "2026-06-19T21:44:48.779043+00:00",
+          "updated_at": "2026-06-19T23:45:09.581555+00:00",
           "method": "yfinance"
         },
         "SPY": {
@@ -301,7 +301,7 @@
           },
           "weighted": 1.0,
           "bias": "BULL",
-          "updated_at": "2026-06-19T21:44:48.974323+00:00",
+          "updated_at": "2026-06-19T23:45:10.058539+00:00",
           "method": "yfinance"
         },
         "QQQ": {
@@ -313,7 +313,7 @@
           },
           "weighted": 1.0,
           "bias": "BULL",
-          "updated_at": "2026-06-19T21:44:49.116621+00:00",
+          "updated_at": "2026-06-19T23:45:10.501176+00:00",
           "method": "yfinance"
         }
       },
@@ -328,8 +328,8 @@
           "backwardation": false
         },
         "dxy_break": {
-          "direction": "UP",
-          "strength": 0.643,
+          "direction": "NONE",
+          "strength": 0.0,
           "level": 100.849
         }
       }
@@ -402,27 +402,27 @@
           }
         ]
       },
-      "news_sentiment": -0.2507,
+      "news_sentiment": -0.1658,
       "news_velocity": {
         "multiplier": 0.6,
-        "volume": 34,
-        "consistency": 0.077,
-        "acceleration": 0.02,
+        "volume": 68,
+        "consistency": 0.127,
+        "acceleration": 0.038,
         "direction": "BEARISH",
         "label": "CONFLICTED",
-        "high_count": 8,
-        "total_count": 49
+        "high_count": 14,
+        "total_count": 107
       },
       "high_impact_event": {
         "detected": true,
-        "event_type": "GEOPOLITICAL",
-        "urgency": 0.9,
+        "event_type": "WAR/CONFLICT",
+        "urgency": 0.95,
         "headlines": [
-          "Pentagon tells US lawmakers it needs $80 billion for Iran war and other bills, WSJ reports - Reuters",
-          "Accenture forecast takes hit from Iran war, shares tumble over 17% - Reuters",
-          "Bank of England keeps rates steady as it weighs Iran truce - Reuters"
+          "White House envoy en route to Switzerland for discussions with Iran on potential nuclear agreement: Axios"
         ],
         "all_events": [
+          "WAR/CONFLICT",
+          "CPI",
           "GEOPOLITICAL",
           "SANCTIONS"
         ],
