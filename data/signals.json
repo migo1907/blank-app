@@ -1,25 +1,5 @@
 [
   {
-    "symbol": "SPX500",
-    "pool": "STOCKS_SPX500_15M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "news_score": -0.2095,
-    "combined_score": 0.0,
-    "session": "PRE_MARKET",
-    "regime": "TRENDING_BULL",
-    "regime_label": "TRENDING_BULL",
-    "reasoning": "Weekend \u2014 market closed",
-    "status": "NEUTRAL",
-    "expires_at": "2026-06-20T12:59:47.271492+00:00",
-    "created_at": "2026-06-20T12:29:47.271533+00:00",
-    "id": 101
-  },
-  {
     "symbol": "XAUUSD",
     "pool": "XAUUSD_2M",
     "direction": "NEUTRAL",
@@ -1997,6 +1977,26 @@
     "status": "NEUTRAL",
     "expires_at": "2026-06-20T19:10:04.865188+00:00",
     "created_at": "2026-06-20T18:40:04.865232+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "QQQ",
+    "pool": "STOCKS_QQQ_30M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "news_score": -0.2794,
+    "combined_score": 0.0,
+    "session": "NYSE_AFTERNOON",
+    "regime": "NORMAL",
+    "regime_label": "NORMAL",
+    "reasoning": "Weekend \u2014 market closed",
+    "status": "NEUTRAL",
+    "expires_at": "2026-06-20T19:10:06.506211+00:00",
+    "created_at": "2026-06-20T18:40:06.506251+00:00",
     "id": 101
   }
 ]
