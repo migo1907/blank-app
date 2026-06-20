@@ -1503,6 +1503,69 @@ async def push_subscribe(request: Request, secret: str = ""):
     return {"ok": True, "total": len(subs)}
 
 
+@app.get("/brief/data")
+async def brief_data(secret: str = ""):
+    _validate_secret(secret)
+    from daily_analysis import _technical_context, _load_from_json, _fetch_todays_high_impact_events, _ff_calendar_events, _finnhub_calendar_events
+    from market_macro import get_macro_bias, get_equity_macro_bias
+    from scheduler import get_latest_event, get_latest_velocity, get_latest_news_sentiment
+    from datetime import datetime as _dt, timezone as _tz
+
+    now = _dt.now(_tz.utc)
+
+    # Technical context per asset
+    assets_out = {}
+    for name, decimals in [("XAUUSD", 2), ("SPY", 2), ("QQQ", 2)]:
+        try:
+            tc = _technical_context(name, decimals)
+            if tc:
+                assets_out[name] = tc
+        except Exception as e:
+            assets_out[name] = {"error": str(e)}
+
+    # Pivot levels from GitHub Actions
+    try:
+        levels_raw = _load_from_json()
+    except Exception:
+        levels_raw = {}
+
+    # Today's economic events
+    try:
+        events_str = _fetch_todays_high_impact_events()
+    except Exception:
+        events_str = ""
+
+    # Calendar events as structured list
+    try:
+        cal = _finnhub_calendar_events(now) + _ff_calendar_events(now)
+        cal.sort(key=lambda x: x[0])
+        events_list = [{"time_dubai": t, "name": n, "impact": imp} for t, n, imp in cal[:10]]
+    except Exception:
+        events_list = []
+
+    macro  = get_macro_bias()        or {}
+    equity = get_equity_macro_bias() or {}
+
+    return {
+        "generated_at": now.isoformat(),
+        "assets":       assets_out,
+        "levels":       levels_raw,
+        "events_text":  events_str,
+        "events_list":  events_list,
+        "macro": {
+            "bias":        macro.get("bias", 0.0),
+            "label":       macro.get("label", ""),
+            "components":  macro.get("components", {}),
+            "vix":         equity.get("vix"),
+            "real_yield":  macro.get("components", {}).get("real_yield"),
+            "dxy":         macro.get("components", {}).get("dxy"),
+        },
+        "news_sentiment": get_latest_news_sentiment(),
+        "news_velocity":  get_latest_velocity(),
+        "next_event":     get_latest_event(),
+    }
+
+
 # ── Serve PWA static files ────────────────────────────────────────────────────
 import os as _os
 _pwa_dirs = [
