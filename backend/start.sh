@@ -14,12 +14,4 @@ else
 fi
 export LD_LIBRARY_PATH="$LIBDIR:${LD_LIBRARY_PATH:-}"
 
-# Build frontend PWA if not already built
-FRONTEND_DIST="$(dirname "$0")/../frontend/dist"
-if [ ! -d "$FRONTEND_DIST" ]; then
-  echo "[start] Building frontend PWA..."
-  cd "$(dirname "$0")/../frontend" && npm install --prefer-offline && npm run build && cd "$(dirname "$0")"
-  echo "[start] Frontend built."
-fi
-
 exec uvicorn main:app --host 0.0.0.0 --port "$PORT"

@@ -8,7 +8,7 @@ import math
 import asyncio
 from datetime import datetime, timezone
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, model_validator
 from typing import Literal, Optional
@@ -1505,7 +1505,13 @@ async def push_subscribe(request: Request, secret: str = ""):
 
 # ── Serve PWA static files ────────────────────────────────────────────────────
 import os as _os
-_frontend_dist = _os.path.join(_os.path.dirname(__file__), "..", "frontend", "dist")
-if _os.path.isdir(_frontend_dist):
-    from fastapi.staticfiles import StaticFiles
-    app.mount("/app", StaticFiles(directory=_frontend_dist, html=True), name="pwa")
+_pwa_dirs = [
+    _os.path.join(_os.path.dirname(__file__), "static_pwa"),      # committed build (Railway)
+    _os.path.join(_os.path.dirname(__file__), "..", "frontend", "dist"),  # local dev
+]
+for _pwa_dir in _pwa_dirs:
+    if _os.path.isdir(_pwa_dir):
+        from fastapi.staticfiles import StaticFiles
+        app.mount("/app", StaticFiles(directory=_pwa_dir, html=True), name="pwa")
+        print(f"[startup] PWA mounted from {_pwa_dir}")
+        break
