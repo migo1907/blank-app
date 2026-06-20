@@ -1345,3 +1345,167 @@ async def dashboard(secret: str = "", pool: str = "XAUUSD_2M"):
             for t in recent_trades
         ],
     }
+
+
+# ── PWA endpoints ─────────────────────────────────────────────────────────────
+
+_GOLD_POOLS   = ["XAUUSD_2M", "XAUUSD_5M", "XAUUSD_15M", "XAUUSD_30M", "XAUUSD_1H"]
+_STOCK_POOLS  = [
+    "STOCKS_MOMENTUM_15M", "STOCKS_MOMENTUM_30M",
+    "STOCKS_QUALITY_15M",  "STOCKS_QUALITY_30M",
+    "STOCKS_INDEX_15M",    "STOCKS_INDEX_30M",
+    "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",
+    "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",
+]
+
+
+def _session_now() -> str:
+    h = datetime.now(timezone.utc).hour
+    if 7 <= h < 16:
+        return "london" if h < 12 else "ny"
+    if 0 <= h < 7:
+        return "asian"
+    return "off"
+
+
+@app.get("/pulse")
+async def pulse():
+    from ml_model     import get_model
+    from ml_ensemble  import get_rf, get_gbm
+    from db           import recent_outcomes
+    from scheduler    import get_latest_news_sentiment, get_latest_velocity, get_latest_event
+    from market_macro import _macro_cache
+
+    pools_out: dict = {}
+    gold_scores:  list[float] = []
+    stock_scores: list[float] = []
+
+    for pool in _GOLD_POOLS + _STOCK_POOLS:
+        try:
+            model = get_model(pool)
+            rf    = get_rf(pool)
+            gbm   = get_gbm(pool)
+            # Use cached last signal from signals.json to avoid re-computing features
+            from db import _get_file as _db_get
+            sigs, _ = _db_get("data/signals.json")
+            last_sig = next(
+                (s for s in reversed(sigs or []) if s.get("pool") == pool),
+                None
+            )
+            if last_sig:
+                direction  = last_sig.get("direction", "NEUTRAL")
+                confidence = last_sig.get("confidence", 0.0)
+                ml_score   = last_sig.get("rf_score") or last_sig.get("ml_score") or 0.0
+                certainty  = last_sig.get("ml_certainty", "")
+            else:
+                direction, confidence, ml_score, certainty = "NEUTRAL", 0.0, 0.0, ""
+            pools_out[pool] = {
+                "direction":  direction,
+                "confidence": round(float(confidence), 3),
+                "ml_score":   round(float(ml_score), 3),
+                "certainty":  certainty,
+            }
+            # Directional score for aggregate bias
+            score = float(confidence) if direction == "LONG" else (-float(confidence) if direction == "SHORT" else 0.0)
+            if pool in _GOLD_POOLS:
+                gold_scores.append(score)
+            else:
+                stock_scores.append(score)
+        except Exception:
+            pools_out[pool] = {"direction": "NEUTRAL", "confidence": 0.0, "ml_score": 0.0, "certainty": ""}
+
+    def _bias(scores: list[float]) -> tuple[str, float]:
+        if not scores:
+            return "NEUTRAL", 0.0
+        avg = sum(scores) / len(scores)
+        label = "BULLISH" if avg > 0.05 else ("BEARISH" if avg < -0.05 else "NEUTRAL")
+        return label, round(avg, 3)
+
+    gold_bias,   gold_score   = _bias(gold_scores)
+    stocks_bias, stocks_score = _bias(stock_scores)
+    all_scores = gold_scores + stock_scores
+    overall_bias, _ = _bias(all_scores)
+
+    macro  = _macro_cache or {}
+    health = _get("/health") if False else {}  # avoid circular, use cached macro
+
+    return {
+        "gold_bias":    gold_bias,
+        "gold_score":   gold_score,
+        "stocks_bias":  stocks_bias,
+        "stocks_score": stocks_score,
+        "overall_bias": overall_bias,
+        "session":      _session_now(),
+        "next_event":   get_latest_event(),
+        "pools":        pools_out,
+        "macro_bias":   round(float(macro.get("macro_bias") or 0.0), 3),
+        "macro_label":  macro.get("macro_label", ""),
+        "vix":          macro.get("vix"),
+        "news_velocity": get_latest_velocity(),
+        "updated_at":   datetime.now(timezone.utc).isoformat(),
+    }
+
+
+@app.get("/news/feed")
+async def news_feed(secret: str = ""):
+    _validate_secret(secret)
+    from db        import recent_news
+    from scheduler import get_latest_news_sentiment, get_latest_velocity, get_latest_event
+
+    items_raw = recent_news(hours=24)
+    items_raw.sort(key=lambda x: x.get("fetched_at", ""), reverse=True)
+    items: list[dict] = []
+    for n in items_raw[:20]:
+        s = float(n.get("sentiment", 0.0) or 0.0)
+        if s > 0.1:
+            sent_label = "BULLISH"
+        elif s < -0.1:
+            sent_label = "BEARISH"
+        else:
+            sent_label = "NEUTRAL"
+        try:
+            from datetime import datetime as _dt
+            dt  = _dt.fromisoformat(n["fetched_at"].replace("Z", "+00:00"))
+            age = int((datetime.now(timezone.utc) - dt).total_seconds() / 60)
+        except Exception:
+            age = 0
+        items.append({
+            "headline":  n.get("title", n.get("headline", "")),
+            "source":    n.get("source", ""),
+            "sentiment": sent_label,
+            "score":     round(s, 3),
+            "age_min":   age,
+            "url":       n.get("url", ""),
+        })
+
+    return {
+        "items":             items,
+        "velocity":          get_latest_velocity().get("label", "NORMAL"),
+        "agg_score":         round(float(get_latest_news_sentiment()), 3),
+        "high_impact_event": get_latest_event(),
+    }
+
+
+@app.post("/push/subscribe")
+async def push_subscribe(request: Request, secret: str = ""):
+    _validate_secret(secret)
+    from db import _get_file, _put_file
+    body = await request.json()
+    sub  = body.get("subscription")
+    if not sub:
+        raise HTTPException(status_code=400, detail="Missing subscription")
+    subs, sha = _get_file("data/push_subscriptions.json")
+    subs = subs or []
+    endpoint = sub.get("endpoint", "")
+    if not any(s.get("endpoint") == endpoint for s in subs):
+        subs.append(sub)
+        _put_file("data/push_subscriptions.json", subs, sha, "data: new push subscription")
+    return {"ok": True, "total": len(subs)}
+
+
+# ── Serve PWA static files ────────────────────────────────────────────────────
+import os as _os
+_frontend_dist = _os.path.join(_os.path.dirname(__file__), "..", "frontend", "dist")
+if _os.path.isdir(_frontend_dist):
+    from fastapi.staticfiles import StaticFiles
+    app.mount("/app", StaticFiles(directory=_frontend_dist, html=True), name="pwa")
