@@ -1980,8 +1980,8 @@
     "id": 101
   },
   {
-    "symbol": "SPY",
-    "pool": "STOCKS_INDEX_30M",
+    "symbol": "QQQ",
+    "pool": "STOCKS_QQQ_30M",
     "direction": "NEUTRAL",
     "confidence": 0.0,
     "tier": "LOW",
@@ -1991,12 +1991,12 @@
     "news_score": -0.3314,
     "combined_score": 0.0,
     "session": "NYSE_AFTERNOON",
-    "regime": "TRENDING_BULL",
-    "regime_label": "TRENDING_BULL",
+    "regime": "NORMAL",
+    "regime_label": "NORMAL",
     "reasoning": "Weekend \u2014 market closed",
     "status": "NEUTRAL",
-    "expires_at": "2026-06-20T18:35:48.280153+00:00",
-    "created_at": "2026-06-20T18:05:48.280191+00:00",
+    "expires_at": "2026-06-20T18:35:51.410570+00:00",
+    "created_at": "2026-06-20T18:05:51.410615+00:00",
     "id": 101
   }
 ]
