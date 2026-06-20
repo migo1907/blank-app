@@ -1,9 +1,9 @@
 {
-  "timestamp": "2026-06-20T14:25:42.477663+00:00",
+  "timestamp": "2026-06-20T14:41:03.881110+00:00",
   "signal": "NEUTRAL",
   "confidence": 0.0,
-  "news_score": -0.1119,
-  "velocity": "LOW",
+  "news_score": -0.1218,
+  "velocity": "CONFLICTED",
   "breaking_count": 10,
   "trades_total": 500,
   "rf_trained": true,
@@ -13,6 +13,5 @@
   "macro_label": "NEUTRAL",
   "equity_macro_bias": -0.3566,
   "equity_macro_label": "BEARISH",
-  "scheduler": "running",
-  "startup_at": "2026-06-20T14:40:37.948808+00:00"
+  "scheduler": "running"
 }
