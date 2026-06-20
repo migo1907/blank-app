@@ -113,17 +113,42 @@ def iv_rank(current_iv: float) -> float | None:
 # ── Chain access (yfinance, delayed — paper baseline) ─────────────────────────
 
 def _spx_chain(expiry: str):
-    """Spot + option chain. Prefers Tradier (stable REST) when TRADIER_TOKEN is
-    set; falls back to yfinance (delayed scrape). Both return the same shape."""
+    """Spot + option chain. Priority: Tradier → Polygon → yfinance."""
     import tradier_data
     if tradier_data.available():
         spot = tradier_data.get_spot()
         chain = tradier_data.get_chain(tradier_data.SPX_SYMBOL, expiry)
         if spot and chain is not None and (len(chain.calls) or len(chain.puts)):
             return spot, chain
-        print("[options] Tradier chain empty — falling back to yfinance")
+        print("[options] Tradier chain empty — falling back")
+
+    # Polygon: 15-min delayed with real Greeks (better than yfinance scrape)
+    try:
+        import polygon_data
+        if polygon_data.available():
+            chain_data = polygon_data.get_options_chain("SPXW", expiry)
+            if chain_data and (chain_data["calls"] or chain_data["puts"]):
+                import yfinance as yf, pandas as pd
+                spot = polygon_data.get_spot("I:SPX")
+                if not spot:
+                    spot = float(yf.Ticker("^SPX").history(period="1d")["Close"].iloc[-1])
+                calls_df = pd.DataFrame(chain_data["calls"])
+                puts_df  = pd.DataFrame(chain_data["puts"])
+                for df in (calls_df, puts_df):
+                    for col in ("impliedVolatility", "lastPrice", "strike", "openInterest", "delta"):
+                        if col not in df.columns:
+                            df[col] = None
+
+                class _Chain:
+                    def __init__(self, c, p): self.calls, self.puts = c, p
+
+                print(f"[options] Polygon chain: {expiry} ({len(calls_df)}C {len(puts_df)}P, real Greeks)")
+                return spot, _Chain(calls_df, puts_df)
+    except Exception as e:
+        print(f"[options] Polygon chain failed: {e}")
+
     import yfinance as yf
-    tk = yf.Ticker("^SPX")
+    tk   = yf.Ticker("^SPX")
     spot = float(tk.history(period="1d")["Close"].iloc[-1])
     chain = tk.option_chain(expiry)
     return spot, chain

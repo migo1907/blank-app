@@ -1810,6 +1810,40 @@ async def market_commentary(secret: str = ""):
         return {"date": today, "commentary": f"Commentary unavailable: {e}", "cached": False}
 
 
+# ── Options flow (Polygon) ───────────────────────────────────────────────────
+_wrap_cache2 = {"date": None, "text": None, "sections": None}
+
+@app.get("/options/flow")
+async def options_flow(secret: str = ""):
+    _validate_secret(secret)
+    import polygon_data
+    flow = polygon_data.get_options_flow("SPXW", limit=30) if polygon_data.available() else []
+    pc   = polygon_data.get_put_call_ratio("SPXW")         if polygon_data.available() else None
+    from options_engine import get_vix_context, _atm_snapshot, iv_rank
+    vix_ctx       = get_vix_context()
+    atm_iv, em, spot = _atm_snapshot()
+    ivr = iv_rank(atm_iv) if atm_iv else None
+    from db import _get_file
+    trades, _ = _get_file("data/options_paper_SPX.json")
+    if not isinstance(trades, dict):
+        trades = {}
+    open_trades   = trades.get("open",   [])
+    closed_trades = trades.get("closed", [])[-10:]
+    return {
+        "polygon_available": polygon_data.available(),
+        "flow":            flow,
+        "put_call_ratio":  pc,
+        "vix":             vix_ctx,
+        "atm_iv":          round(atm_iv * 100, 1) if atm_iv else None,
+        "iv_rank":         ivr,
+        "expected_move":   round(em, 1) if em else None,
+        "spot":            round(spot, 1) if spot else None,
+        "open_positions":  len(open_trades),
+        "open_trades":     open_trades,
+        "closed_recent":   closed_trades,
+    }
+
+
 # ── Serve PWA static files ────────────────────────────────────────────────────
 import os as _os
 _pwa_dirs = [

@@ -6,7 +6,8 @@ import {
   ReferenceLine
 } from 'recharts'
 import { getDashboard, subscribePush, VAPID_PUBLIC,
-  getMarketOverview, getMarketQuotes, getMarketTicker, getMarketCompare, getMarketWrap, getMarketCommentary } from './api'
+  getMarketOverview, getMarketQuotes, getMarketTicker, getMarketCompare, getMarketWrap, getMarketCommentary,
+  getOptionsFlow } from './api'
 
 const BASE   = 'https://blank-app-production-a8bd.up.railway.app'
 const SECRET = 'gold2026'
@@ -34,6 +35,7 @@ const TABS = [
   { id: 'research',  ico: '🔍', label: 'Research'  },
   { id: 'compare',   ico: '⚖️', label: 'Compare'   },
   { id: 'wrap',      ico: '🗞️', label: 'Wrap-Up'   },
+  { id: 'options',   ico: '🎯', label: 'Options'   },
 ]
 
 const GOLD_POOLS  = ['XAUUSD_2M','XAUUSD_5M','XAUUSD_15M','XAUUSD_30M','XAUUSD_1H']
@@ -1377,6 +1379,169 @@ function WrapTab() {
 }
 
 // ══════════════════════════════════════════════════════════════════
+// TAB — OPTIONS FLOW (Polygon)
+// ══════════════════════════════════════════════════════════════════
+function OptionsTab() {
+  const { data, err, load } = useLoad(() => getOptionsFlow())
+  if (load) return <Spinner/>
+  if (err)  return <Err e={err}/>
+
+  const vix    = data?.vix || {}
+  const flow   = data?.flow || []
+  const open   = data?.open_trades || []
+  const closed = data?.closed_recent || []
+  const pc     = data?.put_call_ratio
+
+  return (
+    <div className="content">
+      {/* Status bar */}
+      <div className="card" style={{marginBottom:12}}>
+        <div style={{display:'flex',gap:20,flexWrap:'wrap',alignItems:'flex-start'}}>
+          {[
+            ['SPX SPOT',      data?.spot ? data.spot.toLocaleString() : '—', null],
+            ['ATM IV',        data?.atm_iv != null ? `${data.atm_iv}%` : '—', null],
+            ['IV RANK',       data?.iv_rank != null ? `${data.iv_rank}%` : '—',
+              data?.iv_rank != null ? (data.iv_rank < 50 ? 'var(--green)' : 'var(--red)') : null],
+            ['VIX',           vix.vix ?? '—', vix.backwardation ? 'var(--red)' : vix.half_size ? 'var(--gold)' : null],
+            ['EXP MOVE',      data?.expected_move != null ? `±${data.expected_move}` : '—', null],
+            ['OPEN POS',      data?.open_positions ?? 0, data?.open_positions ? 'var(--gold)' : null],
+          ].map(([label, val, color]) => (
+            <div key={label}>
+              <div style={{color:'var(--muted)',fontSize:10,marginBottom:2}}>{label}</div>
+              <div style={{fontSize:18,fontWeight:700,color:color||'var(--text)'}}>{val}</div>
+              {label==='IV RANK' && data?.iv_rank != null &&
+                <div style={{fontSize:10,color:'var(--muted)'}}>{data.iv_rank < 50 ? '✓ buy prem ok' : '✗ IV too high'}</div>}
+              {label==='VIX' && vix.backwardation &&
+                <div style={{fontSize:10,color:'var(--red)'}}>⚠ backwardation</div>}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Put/Call Ratio */}
+      {pc && (
+        <div className="card" style={{marginBottom:12}}>
+          <div className="card-title">Put / Call Ratio</div>
+          <div style={{display:'flex',gap:20,flexWrap:'wrap',alignItems:'center'}}>
+            <div>
+              <div style={{fontSize:28,fontWeight:800,
+                color: pc.put_call_ratio < 0.7 ? 'var(--green)' : pc.put_call_ratio > 1.2 ? 'var(--red)' : 'var(--text)'}}>
+                {pc.put_call_ratio?.toFixed(3)}
+              </div>
+              <div style={{fontSize:11,color:'var(--muted)'}}>
+                {pc.put_call_ratio < 0.7 ? '📈 Bullish (low P/C)' : pc.put_call_ratio > 1.2 ? '📉 Bearish (high P/C)' : '↔ Neutral'}
+              </div>
+            </div>
+            {[
+              ['CALL VOL', pc.call_volume?.toLocaleString(), 'var(--green)'],
+              ['PUT VOL',  pc.put_volume?.toLocaleString(),  'var(--red)'],
+              ['TOTAL',    pc.total_volume?.toLocaleString(), 'var(--muted)'],
+            ].map(([l,v,c]) => (
+              <div key={l}>
+                <div style={{color:'var(--muted)',fontSize:10}}>{l}</div>
+                <div style={{fontWeight:700,fontSize:15,color:c}}>{v ?? '—'}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Options Flow */}
+      {flow.length > 0 ? (
+        <div className="card" style={{marginBottom:12,overflowX:'auto'}}>
+          <div className="card-title">Options Flow — Top Volume</div>
+          <table className="tbl" style={{width:'100%',minWidth:520}}>
+            <thead><tr>
+              <th>Type</th><th>Strike</th><th>Expiry</th>
+              <th>Volume</th><th>OI</th><th>Vol/OI</th>
+              <th>IV</th><th>Delta</th><th>Last</th>
+            </tr></thead>
+            <tbody>
+              {flow.map((f,i) => (
+                <tr key={i}>
+                  <td><span style={{color:f.type==='call'?'var(--green)':'var(--red)',fontWeight:700,textTransform:'uppercase'}}>{f.type}</span></td>
+                  <td style={{fontWeight:600}}>{f.strike?.toLocaleString()}</td>
+                  <td style={{fontSize:11,color:'var(--muted)'}}>{f.expiry}</td>
+                  <td style={{fontWeight:600}}>{f.volume?.toLocaleString() ?? '—'}</td>
+                  <td style={{color:'var(--muted)'}}>{f.oi?.toLocaleString() ?? '—'}</td>
+                  <td style={{color:(f.vol_oi_ratio||0)>2?'var(--gold)':'var(--text)',fontWeight:(f.vol_oi_ratio||0)>2?700:400}}>
+                    {f.vol_oi_ratio ?? '—'}{(f.vol_oi_ratio||0)>2?' 🔥':''}
+                  </td>
+                  <td>{f.iv != null ? `${f.iv}%` : '—'}</td>
+                  <td style={{color:'var(--muted)',fontSize:12}}>{f.delta ?? '—'}</td>
+                  <td>{f.last != null ? `$${f.last.toFixed(2)}` : '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="card" style={{marginBottom:12,color:'var(--muted)',textAlign:'center',padding:24,fontSize:13}}>
+          {data?.polygon_available
+            ? 'No flow data available for today yet.'
+            : 'Set POLYGON_API_KEY in Railway env to enable live options flow with Greeks.'}
+        </div>
+      )}
+
+      {/* Open Positions */}
+      {open.length > 0 && (
+        <div className="card" style={{marginBottom:12}}>
+          <div className="card-title">Open Paper Positions ({open.length})</div>
+          {open.map((t,i) => (
+            <div key={i} style={{background:'var(--surface)',borderRadius:10,padding:'10px 14px',marginBottom:8,
+              borderLeft:`3px solid ${t.direction==='LONG'?'var(--green)':'var(--red)'}`}}>
+              <div style={{display:'flex',justifyContent:'space-between',flexWrap:'wrap',gap:6}}>
+                <div>
+                  <span style={{color:'var(--gold)',fontWeight:700,fontSize:13}}>{t.pool}</span>
+                  <span style={{marginLeft:10,color:t.direction==='LONG'?'var(--green)':'var(--red)',fontWeight:600}}>
+                    {t.direction} {t.option_type?.toUpperCase()}
+                  </span>
+                  <span style={{marginLeft:8,color:'var(--muted)',fontSize:12}}>Strike {t.strike} · {t.expiry}</span>
+                </div>
+                <div style={{fontSize:12,color:'var(--muted)'}}>
+                  Entry {t.entry_premium ? `$${t.entry_premium.toFixed(2)}` : '—'} ·
+                  Conf {t.confidence ? ` ${(t.confidence*100).toFixed(0)}%` : '—'}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Recent Closed */}
+      {closed.length > 0 && (
+        <div className="card">
+          <div className="card-title">Recent Closed Trades</div>
+          <div style={{overflowX:'auto'}}>
+            <table className="tbl" style={{width:'100%'}}>
+              <thead><tr><th>Pool</th><th>Dir</th><th>Strike</th><th>Entry</th><th>Exit</th><th>P&amp;L</th><th>Outcome</th></tr></thead>
+              <tbody>
+                {closed.map((t,i) => {
+                  const pnl = t.exit_premium && t.entry_premium ? t.exit_premium - t.entry_premium : null
+                  return (
+                    <tr key={i}>
+                      <td style={{fontSize:11}}>{t.pool}</td>
+                      <td style={{color:t.direction==='LONG'?'var(--green)':'var(--red)',fontWeight:600,fontSize:12}}>{t.direction}</td>
+                      <td>{t.strike}</td>
+                      <td>{t.entry_premium ? `$${t.entry_premium.toFixed(2)}` : '—'}</td>
+                      <td>{t.exit_premium  ? `$${t.exit_premium.toFixed(2)}`  : '—'}</td>
+                      <td style={{color: pnl==null?'var(--muted)':pnl>=0?'var(--green)':'var(--red)',fontWeight:600}}>
+                        {pnl != null ? `${pnl>=0?'+':''}$${pnl.toFixed(2)}` : '—'}
+                      </td>
+                      <td><span style={{color:t.outcome==='WIN'?'var(--green)':'var(--red)',fontWeight:700,fontSize:12}}>{t.outcome||'—'}</span></td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ══════════════════════════════════════════════════════════════════
 // APP ROOT
 // ══════════════════════════════════════════════════════════════════
 export default function App() {
@@ -1410,6 +1575,7 @@ export default function App() {
         {tab==='research'  && <ResearchTab/>}
         {tab==='compare'   && <CompareTab/>}
         {tab==='wrap'      && <WrapTab/>}
+        {tab==='options'   && <OptionsTab/>}
       </div>
     </>
   )
