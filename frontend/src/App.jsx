@@ -5,7 +5,8 @@ import {
   AreaChart, Area, LineChart, Line, PieChart, Pie,
   ReferenceLine
 } from 'recharts'
-import { getDashboard, subscribePush, VAPID_PUBLIC } from './api'
+import { getDashboard, subscribePush, VAPID_PUBLIC,
+  getMarketOverview, getMarketQuotes, getMarketTicker, getMarketCompare, getMarketWrap, getMarketCommentary } from './api'
 
 const BASE   = 'https://blank-app-production-a8bd.up.railway.app'
 const SECRET = 'gold2026'
@@ -20,13 +21,19 @@ async function api(path, params = {}) {
 }
 
 const TABS = [
-  { id: 'brief',   ico: '☀️', label: 'Brief'   },
-  { id: 'pulse',   ico: '📡', label: 'Pulse'   },
-  { id: 'signals', ico: '🧭', label: 'Signals' },
-  { id: 'ml',      ico: '🤖', label: 'ML'      },
-  { id: 'swing',   ico: '📈', label: 'Swing'   },
-  { id: 'macro',   ico: '🌍', label: 'Macro'   },
-  { id: 'news',    ico: '📰', label: 'News'    },
+  { id: 'markets',   ico: '📊', label: 'Markets'   },
+  { id: 'brief',     ico: '☀️', label: 'Brief'     },
+  { id: 'pulse',     ico: '📡', label: 'Pulse'     },
+  { id: 'signals',   ico: '🧭', label: 'Signals'   },
+  { id: 'ml',        ico: '🤖', label: 'ML'        },
+  { id: 'swing',     ico: '📈', label: 'Swing'     },
+  { id: 'macro',     ico: '🌍', label: 'Macro'     },
+  { id: 'news',      ico: '📰', label: 'News'      },
+  { id: 'portfolio', ico: '💼', label: 'Portfolio'  },
+  { id: 'watchlist', ico: '👁️', label: 'Watchlist' },
+  { id: 'research',  ico: '🔍', label: 'Research'  },
+  { id: 'compare',   ico: '⚖️', label: 'Compare'   },
+  { id: 'wrap',      ico: '🗞️', label: 'Wrap-Up'   },
 ]
 
 const GOLD_POOLS  = ['XAUUSD_2M','XAUUSD_5M','XAUUSD_15M','XAUUSD_30M','XAUUSD_1H']
@@ -1041,6 +1048,335 @@ function NewsTab() {
 }
 
 // ══════════════════════════════════════════════════════════════════
+// NEW TABS — MARKETS, PORTFOLIO, WATCHLIST, RESEARCH, COMPARE, WRAP
+// ══════════════════════════════════════════════════════════════════
+function CommentaryInline() {
+  const {data,load} = useLoad(()=>getMarketCommentary())
+  if(load) return <div style={{color:'var(--muted)',fontSize:13}}>Loading commentary…</div>
+  if(!data?.commentary) return null
+  return <div style={{color:'var(--text)',fontSize:13,lineHeight:1.6,fontStyle:'italic'}}>"{data.commentary}"</div>
+}
+
+function MarketsTab() {
+  const {data,err,load} = useLoad(()=>getMarketOverview())
+  if(load) return <Spinner/>
+  if(err)  return <Err e={err}/>
+  return (
+    <div className="content">
+      <div className="commentary-card" style={{margin:'10px 12px'}}>
+        <CommentaryInline/>
+      </div>
+      {Object.entries(data||{}).map(([grp,items])=>(
+        <div key={grp} className="card">
+          <h3 style={{color:'var(--gold)',marginBottom:12,fontSize:14}}>{grp}</h3>
+          <div className="market-grid">
+            {items.map(item=>{
+              const up=(item.change_pct||0)>=0
+              return (
+                <div key={item.symbol} className="market-tile">
+                  <div className="market-tile-name">{item.name}</div>
+                  <div className="market-tile-sym">{item.symbol}</div>
+                  <div className="market-tile-price">{item.error?'—':item.price?.toLocaleString('en-US',{maximumFractionDigits:2})}</div>
+                  <div className={`market-tile-chg ${up?'up':'dn'}`}>{item.error?'—':`${up?'▲':'▼'} ${Math.abs(item.change_pct||0).toFixed(2)}%`}</div>
+                  {!item.error&&<div className="market-tile-range">H: {item.day_high?.toFixed(2)} · L: {item.day_low?.toFixed(2)}</div>}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function PortfolioTab() {
+  const [holdings,setHoldings] = useState(()=>{try{return JSON.parse(localStorage.getItem('portfolio')||'[]')}catch{return[]}})
+  const [quotes,setQuotes]     = useState({})
+  const [adding,setAdding]     = useState(false)
+  const [form,setForm]         = useState({symbol:'',shares:'',avg_cost:'',name:''})
+  const [loading,setLoading]   = useState(false)
+  const [lastRefresh,setLastRefresh] = useState(null)
+
+  const refresh = useCallback(async()=>{
+    if(!holdings.length) return
+    setLoading(true)
+    try{const q=await getMarketQuotes(holdings.map(h=>h.symbol).join(','));setQuotes(q);setLastRefresh(new Date())}
+    catch(e){console.error(e)}finally{setLoading(false)}
+  },[holdings])
+  useEffect(()=>{refresh()},[refresh])
+  useEffect(()=>{const t=setInterval(refresh,30000);return()=>clearInterval(t)},[refresh])
+
+  const save=(h)=>{setHoldings(h);localStorage.setItem('portfolio',JSON.stringify(h))}
+  const remove=(i)=>{const h=[...holdings];h.splice(i,1);save(h)}
+  const addHolding=()=>{
+    const sym=form.symbol.trim().toUpperCase()
+    if(!sym||!form.shares||!form.avg_cost) return
+    save([...holdings,{symbol:sym,shares:Number(form.shares),avg_cost:Number(form.avg_cost),name:form.name||sym}])
+    setForm({symbol:'',shares:'',avg_cost:'',name:''});setAdding(false)
+  }
+
+  let totalCost=0,totalValue=0
+  holdings.forEach(h=>{const price=quotes[h.symbol]?.price||0;totalCost+=h.shares*h.avg_cost;totalValue+=h.shares*price})
+  const totalPnL=totalValue-totalCost,totalPnLPct=totalCost>0?totalPnL/totalCost*100:0
+
+  return (
+    <div className="content">
+      <div className="card">
+        <div style={{display:'flex',gap:24,flexWrap:'wrap',alignItems:'center'}}>
+          <div><div style={{color:'var(--muted)',fontSize:11}}>PORTFOLIO VALUE</div><div style={{fontSize:24,fontWeight:700,color:'var(--gold)'}}>${totalValue.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div></div>
+          <div><div style={{color:'var(--muted)',fontSize:11}}>TOTAL P&L</div><div style={{fontSize:20,fontWeight:700,color:totalPnL>=0?'var(--green)':'var(--red)'}}>{totalPnL>=0?'+':''}{totalPnL.toFixed(2)} ({totalPnLPct>=0?'+':''}{totalPnLPct.toFixed(2)}%)</div></div>
+          <div><div style={{color:'var(--muted)',fontSize:11}}>COST BASIS</div><div style={{fontSize:16,fontWeight:600}}>${totalCost.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div></div>
+          <div style={{marginLeft:'auto',display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
+            {loading&&<span style={{color:'var(--muted)',fontSize:12}}>↻</span>}
+            {lastRefresh&&<span style={{color:'var(--muted)',fontSize:11}}>Updated {lastRefresh.toLocaleTimeString()}</span>}
+            <button className="btn-sm" onClick={refresh}>Refresh</button>
+            <button className="btn-sm gold" onClick={()=>setAdding(!adding)}>{adding?'Cancel':'+ Add'}</button>
+          </div>
+        </div>
+      </div>
+      {adding&&(
+        <div className="card">
+          <h3 style={{color:'var(--gold)',marginBottom:12,fontSize:14}}>Add Holding</h3>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))',gap:10}}>
+            <input className="inp" placeholder="Symbol (e.g. AAPL)" value={form.symbol} onChange={e=>setForm({...form,symbol:e.target.value.toUpperCase()})}/>
+            <input className="inp" placeholder="Shares" type="number" value={form.shares} onChange={e=>setForm({...form,shares:e.target.value})}/>
+            <input className="inp" placeholder="Avg Cost ($)" type="number" value={form.avg_cost} onChange={e=>setForm({...form,avg_cost:e.target.value})}/>
+            <input className="inp" placeholder="Name (optional)" value={form.name} onChange={e=>setForm({...form,name:e.target.value})}/>
+          </div>
+          <button className="btn-sm gold" style={{marginTop:10}} onClick={addHolding}>Add</button>
+        </div>
+      )}
+      {holdings.length===0?(
+        <div className="card" style={{textAlign:'center',color:'var(--muted)',padding:40}}>No holdings yet. Click "+ Add" to track your portfolio.</div>
+      ):(
+        <div className="card" style={{overflowX:'auto'}}>
+          <table className="tbl" style={{width:'100%'}}>
+            <thead><tr><th>Symbol</th><th>Shares</th><th>Avg Cost</th><th>Price</th><th>Change</th><th>Value</th><th>P&L</th><th>P&L %</th><th></th></tr></thead>
+            <tbody>
+              {holdings.map((h,i)=>{
+                const q=quotes[h.symbol]||{},price=q.price||0,val=h.shares*price,cost=h.shares*h.avg_cost,pnl=val-cost,pnlp=cost>0?pnl/cost*100:0,up=pnl>=0
+                return(
+                  <tr key={i}>
+                    <td><strong style={{color:'var(--gold)'}}>{h.symbol}</strong><br/><small style={{color:'var(--muted)'}}>{h.name}</small></td>
+                    <td>{h.shares}</td><td>${h.avg_cost.toFixed(2)}</td>
+                    <td>{price?`$${price.toFixed(2)}`:'—'}</td>
+                    <td style={{color:q.change_pct>=0?'var(--green)':'var(--red)'}}>{q.change_pct!=null?`${q.change_pct>=0?'+':''}${q.change_pct.toFixed(2)}%`:'—'}</td>
+                    <td>{price?`$${val.toFixed(2)}`:'—'}</td>
+                    <td style={{color:up?'var(--green)':'var(--red)'}}>{price?`${up?'+':''}$${pnl.toFixed(2)}`:'—'}</td>
+                    <td style={{color:up?'var(--green)':'var(--red)'}}>{price?`${up?'+':''}${pnlp.toFixed(2)}%`:'—'}</td>
+                    <td><button className="btn-sm" style={{color:'var(--red)'}} onClick={()=>remove(i)}>✕</button></td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function WatchlistTab() {
+  const [list,setList]   = useState(()=>{try{return JSON.parse(localStorage.getItem('watchlist')||'[]')}catch{return[]}})
+  const [quotes,setQuotes]= useState({})
+  const [input,setInput] = useState('')
+  const [loading,setLoading]=useState(false)
+  const [lastRefresh,setLastRefresh]=useState(null)
+
+  const refresh=useCallback(async()=>{
+    if(!list.length) return
+    setLoading(true)
+    try{setQuotes(await getMarketQuotes(list.join(',')));setLastRefresh(new Date())}
+    catch(e){console.error(e)}finally{setLoading(false)}
+  },[list])
+  useEffect(()=>{refresh()},[refresh])
+  useEffect(()=>{const t=setInterval(refresh,30000);return()=>clearInterval(t)},[refresh])
+
+  const saveList=(l)=>{setList(l);localStorage.setItem('watchlist',JSON.stringify(l))}
+  const add=()=>{const sym=input.trim().toUpperCase();if(!sym||list.includes(sym))return;saveList([...list,sym]);setInput('')}
+  const remove=(sym)=>saveList(list.filter(s=>s!==sym))
+
+  return (
+    <div className="content">
+      <div className="card">
+        <div style={{display:'flex',gap:10,alignItems:'center',flexWrap:'wrap'}}>
+          <input className="inp" style={{flex:'1 1 160px'}} placeholder="Add symbol (e.g. TSLA)" value={input}
+            onChange={e=>setInput(e.target.value.toUpperCase())} onKeyDown={e=>e.key==='Enter'&&add()}/>
+          <button className="btn-sm gold" onClick={add}>Add</button>
+          <button className="btn-sm" onClick={refresh}>{loading?'↻':'Refresh'}</button>
+          {lastRefresh&&<span style={{color:'var(--muted)',fontSize:11}}>Updated {lastRefresh.toLocaleTimeString()}</span>}
+        </div>
+      </div>
+      {list.length===0?(
+        <div className="card" style={{textAlign:'center',color:'var(--muted)',padding:40}}>Watchlist is empty. Add symbols above.</div>
+      ):(
+        <div className="card" style={{overflowX:'auto'}}>
+          <table className="tbl" style={{width:'100%'}}>
+            <thead><tr><th>Symbol</th><th>Name</th><th>Price</th><th>Change</th><th>Change %</th><th></th></tr></thead>
+            <tbody>
+              {list.map(sym=>{
+                const q=quotes[sym]||{},up=(q.change_pct||0)>=0
+                return(
+                  <tr key={sym}>
+                    <td><strong style={{color:'var(--gold)'}}>{sym}</strong></td>
+                    <td style={{color:'var(--muted)',fontSize:12}}>{q.name||'—'}</td>
+                    <td>{q.price!=null?`$${q.price.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}`:'—'}</td>
+                    <td style={{color:up?'var(--green)':'var(--red)'}}>{q.change!=null?`${up?'+':''}${q.change.toFixed(2)}`:'—'}</td>
+                    <td style={{color:up?'var(--green)':'var(--red)'}}>{q.change_pct!=null?`${up?'+':''}${q.change_pct.toFixed(2)}%`:'—'}</td>
+                    <td><button className="btn-sm" style={{color:'var(--red)'}} onClick={()=>remove(sym)}>✕</button></td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ResearchTab() {
+  const [symbol,setSymbol]=useState(''),[query,setQuery]=useState(''),[data,setData]=useState(null)
+  const [loading,setLoading]=useState(false),[err,setErr]=useState(null)
+
+  const search=async()=>{
+    const sym=query.trim().toUpperCase()
+    if(!sym) return
+    setLoading(true);setErr(null);setData(null);setSymbol(sym)
+    try{setData(await getMarketTicker(sym))}catch(e){setErr(e.message)}finally{setLoading(false)}
+  }
+
+  const f=data?.fundamentals||{},p=data?.price_data||{},up=(p.change_pct||0)>=0
+  const fmtPct=v=>v!=null?`${(v*100).toFixed(1)}%`:'—'
+  const fmtNum=(v,d=2)=>v!=null?Number(v).toFixed(d):'—'
+  const fmtB=v=>{if(v==null)return'—';if(v>=1e12)return`$${(v/1e12).toFixed(2)}T`;if(v>=1e9)return`$${(v/1e9).toFixed(1)}B`;if(v>=1e6)return`$${(v/1e6).toFixed(1)}M`;return`$${v}`}
+
+  return (
+    <div className="content">
+      <div className="card">
+        <div style={{display:'flex',gap:10,alignItems:'center'}}>
+          <input className="inp" style={{flex:1}} placeholder="Enter ticker (e.g. AAPL, MSFT, GLD)" value={query}
+            onChange={e=>setQuery(e.target.value.toUpperCase())} onKeyDown={e=>e.key==='Enter'&&search()}/>
+          <button className="btn-sm gold" onClick={search} disabled={loading}>{loading?'…':'Search'}</button>
+        </div>
+      </div>
+      {err&&<Err e={err}/>}
+      {data&&(
+        <div>
+          <div className="card">
+            <div style={{display:'flex',justifyContent:'space-between',flexWrap:'wrap',gap:12}}>
+              <div><h2 style={{margin:0,fontSize:20,color:'var(--gold)'}}>{data.name}</h2><div style={{color:'var(--muted)',fontSize:13}}>{symbol} · {f.sector} · {f.industry}</div></div>
+              <div style={{textAlign:'right'}}><div style={{fontSize:26,fontWeight:700}}>${p.price?.toFixed(2)||'—'}</div><div style={{color:up?'var(--green)':'var(--red)',fontSize:14}}>{up?'▲':'▼'} {Math.abs(p.change_pct||0).toFixed(2)}%</div></div>
+            </div>
+            <div style={{display:'flex',gap:24,marginTop:12,flexWrap:'wrap',fontSize:12,color:'var(--muted)'}}>
+              <span>Day H: <b>${p.day_high?.toFixed(2)||'—'}</b></span>
+              <span>Day L: <b>${p.day_low?.toFixed(2)||'—'}</b></span>
+              <span>52W H: <b>${p.week52_high?.toFixed(2)||'—'}</b></span>
+              <span>52W L: <b>${p.week52_low?.toFixed(2)||'—'}</b></span>
+              <span>Mkt Cap: <b>{fmtB(p.market_cap)}</b></span>
+            </div>
+          </div>
+          <div className="card">
+            <h3 style={{color:'var(--gold)',marginBottom:12,fontSize:14}}>Fundamentals</h3>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))',gap:10}}>
+              {[['P/E (TTM)',fmtNum(f.pe)],['P/E (Fwd)',fmtNum(f.forward_pe)],['P/B',fmtNum(f.pb)],['P/S',fmtNum(f.ps)],['EV/EBITDA',fmtNum(f.ev_ebitda)],['ROE',fmtPct(f.roe)],['Rev Growth',fmtPct(f.revenue_growth)],['Gross Margin',fmtPct(f.gross_margin)],['Net Margin',fmtPct(f.profit_margin)],['Debt/Equity',fmtNum(f.debt_to_equity)],['Div Yield',fmtPct(f.dividend_yield)],['Beta',fmtNum(f.beta)]].map(([label,val])=>(
+                <div key={label} style={{background:'var(--bg)',borderRadius:8,padding:'10px 12px',border:'1px solid var(--border)'}}>
+                  <div style={{color:'var(--muted)',fontSize:10,marginBottom:3}}>{label}</div>
+                  <div style={{fontWeight:600,fontSize:14}}>{val}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+          {f.description&&<div className="card"><h3 style={{color:'var(--gold)',marginBottom:8,fontSize:14}}>About</h3><p style={{margin:0,color:'var(--muted)',fontSize:13,lineHeight:1.7}}>{f.description}</p></div>}
+          {data.news?.length>0&&(
+            <div className="card">
+              <h3 style={{color:'var(--gold)',marginBottom:12,fontSize:14}}>Recent News</h3>
+              <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                {data.news.map((item,i)=>(
+                  <a key={i} href={item.url} target="_blank" rel="noopener" style={{display:'block',color:'var(--text)',textDecoration:'none',padding:'10px 12px',background:'var(--bg)',borderRadius:8,border:'1px solid var(--border)',fontSize:13,lineHeight:1.5}}>
+                    {item.headline}<span style={{color:'var(--muted)',fontSize:11,marginLeft:8}}>{new Date(item.datetime*1000).toLocaleDateString()}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function CompareTab() {
+  const [input,setInput]=useState(''),[data,setData]=useState(null),[loading,setLoading]=useState(false),[err,setErr]=useState(null)
+
+  const compare=async()=>{if(!input.trim())return;setLoading(true);setErr(null);setData(null);try{setData(await getMarketCompare(input.trim()))}catch(e){setErr(e.message)}finally{setLoading(false)}}
+
+  const fmtPct=v=>v!=null?`${(v*100).toFixed(1)}%`:'—'
+  const fmtNum=(v,d=2)=>v!=null?Number(v).toFixed(d):'—'
+  const fmtB=v=>{if(v==null)return'—';if(v>=1e12)return`${(v/1e12).toFixed(2)}T`;if(v>=1e9)return`${(v/1e9).toFixed(1)}B`;return`${(v/1e6).toFixed(0)}M`}
+
+  const metrics=[
+    ['Price',d=>`$${d.price?.toFixed(2)||'—'}`],
+    ['Change %',d=>{const up=(d.change_pct||0)>=0;return<span style={{color:up?'var(--green)':'var(--red)'}}>{up?'+':''}{d.change_pct?.toFixed(2)||'—'}%</span>}],
+    ['Market Cap',d=>fmtB(d.market_cap)],['P/E (TTM)',d=>fmtNum(d.pe)],['P/E (Fwd)',d=>fmtNum(d.forward_pe)],
+    ['P/B',d=>fmtNum(d.pb)],['ROE',d=>fmtPct(d.roe)],['Rev Growth',d=>fmtPct(d.revenue_growth)],
+    ['Gross Margin',d=>fmtPct(d.gross_margin)],['Beta',d=>fmtNum(d.beta)],['Div Yield',d=>fmtPct(d.dividend_yield)],
+    ['52W High',d=>`$${d.week52_high?.toFixed(2)||'—'}`],['52W Low',d=>`$${d.week52_low?.toFixed(2)||'—'}`],['Sector',d=>d.sector||'—'],
+  ]
+
+  return (
+    <div className="content">
+      <div className="card">
+        <div style={{color:'var(--muted)',fontSize:12,marginBottom:8}}>Enter up to 6 symbols separated by commas</div>
+        <div style={{display:'flex',gap:10}}>
+          <input className="inp" style={{flex:1}} placeholder="e.g. AAPL, MSFT, GOOGL, AMZN" value={input}
+            onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&compare()}/>
+          <button className="btn-sm gold" onClick={compare} disabled={loading}>{loading?'…':'Compare'}</button>
+        </div>
+      </div>
+      {err&&<Err e={err}/>}
+      {data?.length>0&&(
+        <div className="card" style={{overflowX:'auto'}}>
+          <table className="tbl" style={{width:'100%',minWidth:400}}>
+            <thead><tr>
+              <th style={{textAlign:'left',color:'var(--muted)'}}>Metric</th>
+              {data.map(d=><th key={d.symbol} style={{color:'var(--gold)'}}>{d.symbol}<br/><span style={{fontSize:10,fontWeight:400,color:'var(--muted)'}}>{d.name}</span></th>)}
+            </tr></thead>
+            <tbody>
+              {metrics.map(([label,fn])=>(
+                <tr key={label}>
+                  <td style={{color:'var(--muted)',fontSize:12}}>{label}</td>
+                  {data.map(d=><td key={d.symbol}>{d.error?'—':fn(d)}</td>)}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function WrapTab() {
+  const {data,err,load}=useLoad(()=>getMarketWrap())
+  if(load) return <Spinner/>
+  if(err)  return <Err e={err}/>
+  const s=data?.sections||{}
+  return (
+    <div className="content">
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 12px 4px'}}>
+        <h2 style={{margin:0,fontSize:16,color:'var(--gold)'}}>🗞️ Daily Market Wrap-Up</h2>
+        <span style={{color:'var(--muted)',fontSize:12}}>{data?.date}{data?.cached?' (cached)':''}</span>
+      </div>
+      {s.overview&&<div className="card"><h3 style={{color:'var(--gold)',marginBottom:8,fontSize:13}}>Market Overview</h3><p style={{margin:0,color:'var(--text)',lineHeight:1.7,fontSize:14}}>{s.overview}</p></div>}
+      {s.themes?.length>0&&<div className="card"><h3 style={{color:'var(--gold)',marginBottom:10,fontSize:13}}>Key Themes</h3><ul style={{margin:0,padding:'0 0 0 18px',color:'var(--text)',lineHeight:2,fontSize:14}}>{s.themes.map((t,i)=><li key={i}>{t}</li>)}</ul></div>}
+      {s.outlook&&<div className="card"><h3 style={{color:'var(--gold)',marginBottom:8,fontSize:13}}>Outlook</h3><p style={{margin:0,color:'var(--text)',lineHeight:1.7,fontSize:14}}>{s.outlook}</p></div>}
+      {!s.overview&&!s.themes?.length&&!s.outlook&&data?.wrap&&<div className="card"><p style={{margin:0,color:'var(--text)',lineHeight:1.7,fontSize:14,whiteSpace:'pre-wrap'}}>{data.wrap}</p></div>}
+    </div>
+  )
+}
+
+// ══════════════════════════════════════════════════════════════════
 // APP ROOT
 // ══════════════════════════════════════════════════════════════════
 export default function App() {
@@ -1061,13 +1397,19 @@ export default function App() {
         ))}
       </nav>
       <div style={{flex:1}}>
-        {tab==='brief'   && <BriefTab/>}
-        {tab==='pulse'   && <PulseTab   pulse={pulse} health={health}/>}
-        {tab==='signals' && <SignalsTab pulse={pulse}/>}
-        {tab==='ml'      && <MLTab      health={health}/>}
-        {tab==='swing'   && <SwingTab/>}
-        {tab==='macro'   && <MacroTab   health={health}/>}
-        {tab==='news'    && <NewsTab/>}
+        {tab==='markets'   && <MarketsTab/>}
+        {tab==='brief'     && <BriefTab/>}
+        {tab==='pulse'     && <PulseTab   pulse={pulse} health={health}/>}
+        {tab==='signals'   && <SignalsTab pulse={pulse}/>}
+        {tab==='ml'        && <MLTab      health={health}/>}
+        {tab==='swing'     && <SwingTab/>}
+        {tab==='macro'     && <MacroTab   health={health}/>}
+        {tab==='news'      && <NewsTab/>}
+        {tab==='portfolio' && <PortfolioTab/>}
+        {tab==='watchlist' && <WatchlistTab/>}
+        {tab==='research'  && <ResearchTab/>}
+        {tab==='compare'   && <CompareTab/>}
+        {tab==='wrap'      && <WrapTab/>}
       </div>
     </>
   )

@@ -121,3 +121,27 @@ select.pro:focus { border-color: var(--gold); }
 .brief-change { font-size: 13px; font-weight: 600; margin-left: 8px; }
 .brief-change.pos { color: var(--green); }
 .brief-change.neg { color: var(--red); }
+
+/* ── Market tiles ── */
+.market-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+.market-tile { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px; cursor: default; }
+.market-tile-name { font-size: 12px; color: var(--muted); margin-bottom: 2px; }
+.market-tile-sym  { font-size: 10px; color: var(--muted); opacity: .6; margin-bottom: 6px; }
+.market-tile-price{ font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+.market-tile-chg  { font-size: 13px; font-weight: 600; }
+.market-tile-chg.up { color: var(--green); }
+.market-tile-chg.dn { color: var(--red); }
+.market-tile-range{ font-size: 10px; color: var(--muted); margin-top: 4px; }
+/* ── Input & button ── */
+.inp { background: var(--surface); border: 1px solid rgba(255,255,255,.1); border-radius: 8px; color: var(--text); padding: 8px 12px; font-size: 13px; outline: none; width: 100%; }
+.inp:focus { border-color: var(--gold); }
+.btn-sm { background: var(--surface); border: 1px solid rgba(255,255,255,.15); border-radius: 8px; color: var(--text); padding: 7px 14px; font-size: 12px; cursor: pointer; white-space: nowrap; }
+.btn-sm:hover { background: var(--card); }
+.btn-sm.gold { background: var(--gold); color: #000; border-color: var(--gold); font-weight: 600; }
+.btn-sm.gold:hover { opacity: .85; }
+/* ── Commentary card ── */
+.commentary-card { background: var(--surface); border-left: 3px solid var(--gold); border-radius: 0 10px 10px 0; padding: 14px 16px; }
+/* ── Table ── */
+.tbl { border-collapse: collapse; }
+.tbl th, .tbl td { padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--border); font-size: 12px; white-space: nowrap; }
+.tbl th { color: var(--muted); font-weight: 600; font-size: 11px; }

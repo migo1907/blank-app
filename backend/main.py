@@ -1566,6 +1566,250 @@ async def brief_data(secret: str = ""):
     }
 
 
+# ── Market data endpoints ────────────────────────────────────────────────────
+_OVERVIEW_SYMBOLS = {
+    "Indices":    {"S&P 500":"^GSPC","NASDAQ":"^IXIC","Dow Jones":"^DJI","Russell 2000":"^RUT","VIX":"^VIX"},
+    "Commodities":{"Gold":"GC=F","Oil (WTI)":"CL=F","Silver":"SI=F","Natural Gas":"NG=F"},
+    "Crypto":     {"Bitcoin":"BTC-USD","Ethereum":"ETH-USD"},
+    "Bonds":      {"10Y Yield":"^TNX","2Y Yield":"^IRX"},
+}
+_overview_cache = {"ts": 0, "data": None}
+
+@app.get("/market/overview")
+async def market_overview(secret: str = ""):
+    _validate_secret(secret)
+    import time, yfinance as yf
+    if time.time() - _overview_cache["ts"] < 60 and _overview_cache["data"]:
+        return _overview_cache["data"]
+    out = {}
+    all_syms = [(grp, name, sym) for grp, items in _OVERVIEW_SYMBOLS.items() for name, sym in items.items()]
+    tickers = yf.Tickers(" ".join(s for _,_,s in all_syms))
+    for grp, name, sym in all_syms:
+        try:
+            fi = tickers.tickers[sym].fast_info
+            price = fi.last_price
+            prev  = fi.previous_close or price
+            chg   = price - prev
+            chg_pct = (chg / prev * 100) if prev else 0
+            out.setdefault(grp, []).append({
+                "name": name, "symbol": sym,
+                "price": round(price, 4),
+                "change": round(chg, 4),
+                "change_pct": round(chg_pct, 2),
+                "day_high": fi.day_high,
+                "day_low":  fi.day_low,
+            })
+        except Exception as e:
+            out.setdefault(grp, []).append({"name": name, "symbol": sym, "error": str(e)})
+    _overview_cache.update({"ts": time.time(), "data": out})
+    return out
+
+
+@app.get("/market/quotes")
+async def market_quotes(symbols: str = "", secret: str = ""):
+    _validate_secret(secret)
+    import yfinance as yf
+    syms = [s.strip().upper() for s in symbols.split(",") if s.strip()]
+    if not syms:
+        return {}
+    result = {}
+    try:
+        tickers = yf.Tickers(" ".join(syms))
+        for sym in syms:
+            try:
+                fi = tickers.tickers[sym].fast_info
+                price = fi.last_price
+                prev  = fi.previous_close or price
+                chg   = price - prev
+                result[sym] = {
+                    "price": round(price, 4),
+                    "change": round(chg, 4),
+                    "change_pct": round((chg/prev*100) if prev else 0, 2),
+                    "name": getattr(fi, 'company_name', sym),
+                }
+            except Exception as e:
+                result[sym] = {"error": str(e)}
+    except Exception as e:
+        return {"error": str(e)}
+    return result
+
+
+@app.get("/market/ticker/{symbol}")
+async def market_ticker(symbol: str, secret: str = ""):
+    _validate_secret(secret)
+    import yfinance as yf, os
+    sym = symbol.upper()
+    tk  = yf.Ticker(sym)
+    info = {}
+    try:
+        info = tk.info or {}
+    except Exception:
+        pass
+    fi = {}
+    try:
+        raw = tk.fast_info
+        fi = {
+            "price":        raw.last_price,
+            "change_pct":   round(((raw.last_price - raw.previous_close) / raw.previous_close * 100) if raw.previous_close else 0, 2),
+            "day_high":     raw.day_high,
+            "day_low":      raw.day_low,
+            "week52_high":  raw.fifty_two_week_high,
+            "week52_low":   raw.fifty_two_week_low,
+            "market_cap":   raw.market_cap,
+            "volume":       raw.three_month_average_volume,
+        }
+    except Exception:
+        pass
+    fundamentals = {
+        "pe":           info.get("trailingPE"),
+        "forward_pe":   info.get("forwardPE"),
+        "pb":           info.get("priceToBook"),
+        "ps":           info.get("priceToSalesTrailing12Months"),
+        "ev_ebitda":    info.get("enterpriseToEbitda"),
+        "roe":          info.get("returnOnEquity"),
+        "revenue_growth": info.get("revenueGrowth"),
+        "gross_margin": info.get("grossMargins"),
+        "profit_margin":info.get("profitMargins"),
+        "debt_to_equity": info.get("debtToEquity"),
+        "dividend_yield": info.get("dividendYield"),
+        "beta":         info.get("beta"),
+        "sector":       info.get("sector"),
+        "industry":     info.get("industry"),
+        "description":  (info.get("longBusinessSummary") or "")[:500],
+    }
+    news = []
+    try:
+        import httpx, datetime as _dtt
+        fk = os.environ.get("FINNHUB_KEY", "")
+        if fk:
+            r = httpx.get(f"https://finnhub.io/api/v1/company-news?symbol={sym}&from={((_dtt.date.today() - _dtt.timedelta(days=7)).isoformat())}&to={_dtt.date.today().isoformat()}&token={fk}", timeout=8)
+            if r.status_code == 200:
+                news = [{"headline": n["headline"], "url": n["url"], "datetime": n["datetime"]} for n in r.json()[:8]]
+    except Exception:
+        pass
+    return {"symbol": sym, "name": info.get("shortName", sym), "price_data": fi, "fundamentals": fundamentals, "news": news}
+
+
+@app.get("/market/compare")
+async def market_compare(symbols: str = "", secret: str = ""):
+    _validate_secret(secret)
+    import yfinance as yf
+    syms = [s.strip().upper() for s in symbols.split(",") if s.strip()][:6]
+    if not syms:
+        return []
+    result = []
+    for sym in syms:
+        try:
+            tk   = yf.Ticker(sym)
+            info = tk.info or {}
+            fi   = tk.fast_info
+            price = fi.last_price
+            prev  = fi.previous_close or price
+            result.append({
+                "symbol": sym,
+                "name":   info.get("shortName", sym),
+                "price":  round(price, 2),
+                "change_pct": round((price-prev)/prev*100 if prev else 0, 2),
+                "market_cap": fi.market_cap,
+                "pe":         info.get("trailingPE"),
+                "forward_pe": info.get("forwardPE"),
+                "pb":         info.get("priceToBook"),
+                "roe":        info.get("returnOnEquity"),
+                "revenue_growth": info.get("revenueGrowth"),
+                "gross_margin": info.get("grossMargins"),
+                "beta":       info.get("beta"),
+                "dividend_yield": info.get("dividendYield"),
+                "sector":     info.get("sector"),
+                "week52_high": fi.fifty_two_week_high,
+                "week52_low":  fi.fifty_two_week_low,
+            })
+        except Exception as e:
+            result.append({"symbol": sym, "error": str(e)})
+    return result
+
+
+_wrap_cache = {"date": None, "text": None, "sections": None}
+
+@app.get("/market/wrap")
+async def market_wrap(secret: str = ""):
+    _validate_secret(secret)
+    import anthropic, os, datetime as _dtt
+    today = str(_dtt.date.today())
+    if _wrap_cache["date"] == today and _wrap_cache["text"]:
+        return {"date": today, "wrap": _wrap_cache["text"], "sections": _wrap_cache["sections"], "cached": True}
+    try:
+        from scheduler import get_latest_news_sentiment, get_latest_velocity, get_latest_event
+        from market_macro import get_macro_bias, get_equity_macro_bias
+        macro   = get_macro_bias()        or {}
+        equity  = get_equity_macro_bias() or {}
+        sentiment = get_latest_news_sentiment()
+        velocity  = get_latest_velocity()
+        event     = get_latest_event()
+        ctx = f"Date: {today}\nGold macro bias: {macro.get('label','N/A')} ({macro.get('bias',0):.2f})\nEquity macro: {equity.get('label','N/A')}\nVIX: {equity.get('vix','N/A')}\nNews sentiment: {sentiment:.3f}\nNews velocity: {velocity}\nNext key event: {event}"
+    except Exception as e:
+        ctx = f"Date: {today}. Market data unavailable: {e}"
+    try:
+        client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
+        msg = client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=1000,
+            messages=[{"role":"user","content":f"""Write a professional daily market wrap-up commentary for a trading dashboard. Be concise, insightful, data-driven. Use this context:\n{ctx}\n\nStructure: 3 sections — (1) Market Overview (2-3 sentences on overall tone), (2) Key Themes (bullet points on major drivers/risks), (3) Outlook (1-2 sentences forward-looking). Keep each section tight. No fluff."""}]
+        )
+        text = msg.content[0].text
+        sections = {"overview": "", "themes": [], "outlook": ""}
+        lines = text.split("\n")
+        current = None
+        for line in lines:
+            ll = line.lower().strip()
+            if "market overview" in ll or "overview" in ll:
+                current = "overview"
+            elif "key theme" in ll or "theme" in ll:
+                current = "themes"
+            elif "outlook" in ll:
+                current = "outlook"
+            elif current == "overview" and line.strip():
+                sections["overview"] += " " + line.strip()
+            elif current == "themes" and line.strip().startswith(("-","•","*","1","2","3","4","5")):
+                sections["themes"].append(line.strip().lstrip("-•* 1234567890.").strip())
+            elif current == "outlook" and line.strip():
+                sections["outlook"] += " " + line.strip()
+        _wrap_cache.update({"date": today, "text": text, "sections": sections})
+        return {"date": today, "wrap": text, "sections": sections, "cached": False}
+    except Exception as e:
+        return {"date": today, "wrap": f"Market wrap unavailable: {e}", "sections": None, "cached": False}
+
+
+_commentary_cache = {"date": None, "text": None}
+
+@app.get("/market/commentary")
+async def market_commentary(secret: str = ""):
+    _validate_secret(secret)
+    import anthropic, os, datetime as _dtt
+    today = str(_dtt.date.today())
+    if _commentary_cache["date"] == today and _commentary_cache["text"]:
+        return {"date": today, "commentary": _commentary_cache["text"], "cached": True}
+    try:
+        from market_macro import get_macro_bias, get_equity_macro_bias
+        from scheduler import get_latest_news_sentiment
+        macro  = get_macro_bias() or {}
+        equity = get_equity_macro_bias() or {}
+        ctx = f"Gold macro: {macro.get('label','?')} bias {macro.get('bias',0):.2f}. Equity: {equity.get('label','?')}. VIX: {equity.get('vix','?')}. News sentiment: {get_latest_news_sentiment():.3f}."
+    except Exception as e:
+        ctx = str(e)
+    try:
+        client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY",""))
+        msg = client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=400,
+            messages=[{"role":"user","content":f"Write a 3-sentence professional market commentary for today ({today}) based on: {ctx}. Sound like a seasoned trader. Be direct, not generic."}]
+        )
+        text = msg.content[0].text
+        _commentary_cache.update({"date": today, "text": text})
+        return {"date": today, "commentary": text, "cached": False}
+    except Exception as e:
+        return {"date": today, "commentary": f"Commentary unavailable: {e}", "cached": False}
+
+
 # ── Serve PWA static files ────────────────────────────────────────────────────
 import os as _os
 _pwa_dirs = [
