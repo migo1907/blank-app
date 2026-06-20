@@ -23,18 +23,54 @@
 - **Mean reversion levels in morning brief** ✅ — 20MA/50MA/200MA distances computed in `_technical_context()`, surfaced as `🔁 Reversion:` line per asset. Event calendar still at brief bottom.
 - **Swing ML ensemble** ⏳ — Waiting on ≥50 closed swing paper trades. Auto-enables. Uncomment 2 lines in scheduler.py ~L1668-1669 when ready.
 
-### Phase 4 — Improvements Backlog (To-Do, No Timeline)
+### Phase 4 — Dashboard & Intelligence ✅ Partially Complete (2026-06-20)
+
+#### PWA Dashboard ✅ Complete
+- **14-tab React PWA** served from `/app/` on Railway — phone-installable
+- Tabs: Markets · Brief · Pulse · Signals · ML · Swing · Macro · News · Portfolio · Watchlist · Research · Compare · Wrap-Up · Options
+- Live P&L portfolio tracker (localStorage, 30s refresh)
+- Watchlist with live prices (localStorage, 30s refresh)
+- Ticker research: fundamentals + news for any symbol
+- Side-by-side compare up to 6 tickers
+- AI market wrap-up (Claude Haiku, cached daily)
+- AI 3-sentence market commentary on Markets tab
+- Options tab: VIX, ATM IV, P/C ratio, paper positions, flow table
+
+#### Options ML v2 ✅ Complete (2026-06-20)
+- **Features: 18 → 25** — added vix9d_ratio, hour_dte_interaction, hv5_vs_iv, spx_intraday_range_pct, regime_encoded, opex_week, skew_25d
+- **Ensemble: RF+GBM → RF+GBM+LightGBM** (3-model average)
+- **Calibration stack:** Platt sigmoid per model → isotonic on OOS ensemble average
+- **Focal loss** sample weights — downweights spread/slippage stops, upweights uncertain edge cases
+- **SHAP explanations** — top 3 feature drivers shown per trade in Telegram + ledger
+- **Conformal prediction interval** — 80% coverage band; wide_uncertainty flag (>0.30) triggers half-size warning
+- **VIX9D** now fetched alongside VIX/VIX3M in `get_vix_context()`
+
+#### Options Strategies ✅ Complete (2026-06-20)
+- **Long option** (existing) — both timeframes agree, TP +100%, SL -50%
+- **Debit spread** (NEW) — one timeframe agrees, buy near-ATM sell further OTM, TP +80% net debit, SL -50%
+- **Straddle** (NEW) — conflicting signals but big move expected, ATM call+put, TP +60% either leg, SL -40%, 0DTE only before 13:00 ET
+
+#### Polygon.io Integration ✅ Complete (2026-06-20)
+- `backend/polygon_data.py` — REST client with graceful fallback when key absent
+- Priority chain for SPX chain: Tradier → Polygon → yfinance
+- P/C ratio: tries Polygon snapshots, falls back to yfinance SPX chain volume
+- Free-tier backtest script: `backend/polygon_backtest.py` — uses `/v3/reference/options/contracts` + `/v2/aggs/` (no paid tier needed)
+- Note: `/v3/snapshot/options/` (real-time flow) returns 403 on free tier — needs paid Polygon plan (~$29/mo Starter) to unlock live flow
+
+### Phase 5 — Improvements Backlog (To-Do, No Timeline)
 
 #### ML Methods — Intraday (Gold + Stocks)
-- **Conformal prediction** — calibrated uncertainty interval per signal instead of a single probability. Flags wide-uncertainty signals to avoid oversizing. ~10 lines on top of existing models. Low effort, medium lift.
+- **Conformal prediction** — calibrated uncertainty interval per signal instead of a single probability. Flags wide-uncertainty signals to avoid oversizing. ~10 lines on top of existing models. Low effort, medium lift. *(Done for options — replicate for intraday pools)*
 - **Label noise correction** — use joint LightGBM confidence as a label quality weight; downweight low-confidence LOSS labels (likely stopped by spread/slippage, not wrong direction). Expected 2–5pp accuracy lift.
 - **Regime-conditional retraining** — separate RF/GBM model per HMM regime (trending vs ranging), route inference through current regime. Medium effort. Wait until pools have more history.
 
 #### ML Methods — Options (SPX 0-1DTE)
-- **VIX9D term structure feature** — `^VIX9D` (CBOE 9-day VIX) vs VIX ratio. When VIX9D > VIX, near-term risk is priced above average — critical for 0DTE entry quality. Free on yfinance. High priority, low effort.
-- **Put/call skew feature** — 25-delta put IV minus 25-delta call IV from yfinance options chain at entry time. Overpriced puts = sell opportunity; overpriced calls = avoid. Medium effort.
-- **Hour × DTE interaction feature** — `hour_et × dte` product column. 0DTE at 10:00 ET vs 14:30 ET behaves completely differently; model needs this interaction explicitly. Low effort.
+- ✅ ~~VIX9D term structure feature~~ — done 2026-06-20
+- ✅ ~~Put/call skew feature~~ — done 2026-06-20 (`skew_25d`)
+- ✅ ~~Hour × DTE interaction feature~~ — done 2026-06-20 (`hour_dte_interaction`)
 - **CBOE daily put/call ratio** — free daily download, strong next-day sentiment signal. Low effort.
+- **Scaling exits** — take 50% off at +50% gain, let rest ride. Better real-world expectancy. Add after 50+ closed trades to analyse exit patterns first.
+- **Iron condor** — sell both sides in RANGING regime + VIX <15. Requires selling premium — add only after paper long-option edge is confirmed.
 
 #### ML Methods — Swing
 - **Analyst revision momentum** — Finnhub `/stock/recommendation` (free, existing key). EPS estimate revisions over 30/60/90 days is one of the most consistent swing predictors. Low effort, medium lift.
@@ -48,27 +84,21 @@
 - **Fear & Greed Index** (CNN) — free JSON endpoint, updates daily. Single cross-asset risk appetite number. Use as a soft regime gate across all three sections. Low effort.
 - **DXY 15-min proxy via UUP ETF** — add UUP to TradingView heartbeat for faster dollar signal on gold. Current macro refresh is hourly; correlation with gold is near-instant. Low effort.
 
-#### PWA Dashboard (React + FastAPI static serving)
-- **What:** Full system dashboard as a Progressive Web App — works in browser AND installs on phone (Add to Home Screen). No new accounts or platforms needed.
-- **Stack:** React frontend, built to `frontend/dist/`, served as static files from FastAPI on Railway. Same URL, same platform.
-- **Sections:** Health · Signals (per pool) · ML Models · Swing Brain · Options · Macro & Regime
-- **Deployment:** `npm run build` → FastAPI serves `/` → Railway auto-deploys on push. Zero extra cost.
-- **Decision made:** PWA (not web-only) — same build time, phone-installable for free.
-- **Effort:** Medium (~2-3h). No conditions — ready to build any time.
-
-#### Priority Order (when to pick up)
+#### Priority Order (what to pick up next)
 | Priority | Item | Effort | Condition to start |
 |----------|------|--------|--------------------|
-| 1 | **PWA Dashboard** | Medium | Any time — decided |
-| 2 | VIX9D term structure (options) | Low | Now — options pool accumulating |
-| 3 | Analyst revision momentum (swing) | Low | Now |
-| 4 | Relative volume (swing) | Low | Now |
-| 5 | Label noise correction (intraday) | Medium | When XAUUSD_2M OOS acc stabilises |
-| 6 | Hour×DTE interaction (options) | Low | Before options ML gate activates |
-| 7 | Fear & Greed Index (all) | Low | Any time |
-| 8 | Regime-conditional retraining | Medium | After pools reach 300+ trades each |
-| 9 | Half-Kelly sizing | Medium | When live capital deployed |
+| 1 | CBOE daily P/C ratio (options) | Low | Any time |
+| 2 | Analyst revision momentum (swing) | Low | Any time |
+| 3 | Relative volume (swing) | Low | Any time |
+| 4 | Fear & Greed Index (all sections) | Low | Any time |
+| 5 | Conformal prediction for intraday pools | Low | Any time — clone from options |
+| 6 | Label noise correction (intraday) | Medium | When XAUUSD_2M OOS acc stabilises |
+| 7 | Scaling exits (options) | Low | After 50+ closed options trades |
+| 8 | Half-Kelly sizing | Medium | When live capital deployed |
+| 9 | Regime-conditional retraining | Medium | After pools reach 300+ trades each |
 | 10 | Correlation filter | Medium | When 3+ stock pools fire concurrently |
+| 11 | Iron condor strategy | Medium | After paper long-option edge confirmed |
+| 12 | Polygon paid tier (live options flow) | External | If Polygon plan upgraded |
 
 ---
 
@@ -79,9 +109,10 @@
 - **Hard rules:** IV Rank <50, no VIX backwardation, no entries 24h before FOMC/CPI/NFP, 0DTE cutoff 13:00 ET (→ rolls to 1DTE).
 - **Exits:** +100% premium (TP), -50% premium (SL), hard exit 15:30 ET (0DTE) / 14:00 ET next session (1DTE). Managed hourly by `_options_paper_manage_cycle`.
 - **IV history:** ATM IV recorded daily at 15:45 ET → `data/options_iv_history.json`. IV Rank unlocks after 20 sessions, meaningful at 60.
-- **Training features (18):** confidence, iv, iv_rank, vix, vix_ratio, vix_backwardation_margin, delta, entry_premium, spot_vs_strike_pct, premium_vs_em_pct, iv_over_vix_ratio, dte, hour_et, day_of_week, entry_time_norm, time_to_hard_exit_hours, expected_move, pool_confluence.
+- **Training features (25):** confidence, iv, iv_rank, vix, vix_ratio, vix_backwardation_margin, vix9d_ratio, delta, entry_premium, spot_vs_strike_pct, premium_vs_em_pct, iv_over_vix_ratio, dte, hour_et, day_of_week, entry_time_norm, time_to_hard_exit_hours, hour_dte_interaction, expected_move, pool_confluence, spx_intraday_range_pct, hv5_vs_iv, regime_encoded, opex_week, skew_25d.
 - **Loss categorization:** WRONG_DIRECTION / THETA_DECAY / IV_CRUSH / OVERPAID / LATE_ENTRY / WIN — tagged at close in `manage_paper_positions()`.
-- **ML gate:** RF(200)+GBM(150) with walk-forward OOS + isotonic calibration. `_ML_SCORE_GATE = 0.52` activates at ≥50 closed trades. Auto-retrains after every close.
+- **ML gate:** RF(200)+GBM(150)+LGB(200) ensemble, Platt sigmoid per model → isotonic calibration on OOS ensemble. Focal-loss weights + SHAP explanations + conformal prediction interval. `_ML_SCORE_GATE = 0.52` activates at ≥50 closed trades. Auto-retrains after every close.
+- **Strategies (all paper):** long_option (both TFs agree, TP+100% SL-50%), debit_spread (one TF agrees, TP+80% net debit), straddle (conflicting signals, TP+60% either leg, 0DTE only).
 - **Weekly autopsy:** Monday 17:00 ET → personal Telegram via `send_critical_alert()`.
 - **Pools:** `SPX_0DTE` (entered before 13:00 ET) / `SPX_1DTE` (after 13:00 ET or explicit roll).
 - **Training readiness:** `GET /options/trades?secret=gold2026` — shows n_closed, win_rate, ready flag per pool.
