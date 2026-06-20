@@ -3,22 +3,23 @@ const S    = 'gold2026'
 
 async function _get(path, params = {}) {
   const url = new URL(BASE + path)
+  url.searchParams.set('secret', S)
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v))
-  const r = await fetch(url.toString(), { signal: AbortSignal.timeout(15000) })
+  const r = await fetch(url.toString(), { signal: AbortSignal.timeout(20000) })
   if (!r.ok) throw new Error(`${path} → ${r.status}`)
   return r.json()
 }
 
-export const getPulse   = ()           => _get('/pulse')
-export const getNewsFeed = ()          => _get('/news/feed', { secret: S })
-export const getHealth  = ()           => _get('/health',   { secret: S })
-export const getDashboard = (pool)     => _get('/dashboard', { secret: S, pool })
+export const getPulse    = ()       => fetch(`${BASE}/pulse`, { signal: AbortSignal.timeout(15000) }).then(r => r.json())
+export const getNewsFeed = ()       => _get('/news/feed')
+export const getHealth   = ()       => _get('/health')
+export const getDashboard = (pool)  => _get('/dashboard', { pool })
 
 export async function subscribePush(sub) {
   const r = await fetch(`${BASE}/push/subscribe?secret=${S}`, {
-    method: 'POST',
+    method:  'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ subscription: sub }),
+    body:    JSON.stringify({ subscription: sub }),
   })
   return r.json()
 }
