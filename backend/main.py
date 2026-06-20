@@ -1374,7 +1374,7 @@ async def pulse():
     from ml_ensemble  import get_rf, get_gbm
     from db           import recent_outcomes
     from scheduler    import get_latest_news_sentiment, get_latest_velocity, get_latest_event
-    from market_macro import _macro_cache
+    from market_macro import get_macro_bias, get_equity_macro_bias
 
     pools_out: dict = {}
     gold_scores:  list[float] = []
@@ -1426,8 +1426,8 @@ async def pulse():
     all_scores = gold_scores + stock_scores
     overall_bias, _ = _bias(all_scores)
 
-    macro  = _macro_cache or {}
-    health = _get("/health") if False else {}  # avoid circular, use cached macro
+    macro_gold   = get_macro_bias()   or {}
+    macro_equity = get_equity_macro_bias() or {}
 
     return {
         "gold_bias":    gold_bias,
@@ -1438,9 +1438,9 @@ async def pulse():
         "session":      _session_now(),
         "next_event":   get_latest_event(),
         "pools":        pools_out,
-        "macro_bias":   round(float(macro.get("macro_bias") or 0.0), 3),
-        "macro_label":  macro.get("macro_label", ""),
-        "vix":          macro.get("vix"),
+        "macro_bias":   round(float(macro_gold.get("bias") or 0.0), 3),
+        "macro_label":  macro_gold.get("label", ""),
+        "vix":          macro_equity.get("vix"),
         "news_velocity": get_latest_velocity(),
         "updated_at":   datetime.now(timezone.utc).isoformat(),
     }
