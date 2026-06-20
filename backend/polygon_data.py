@@ -138,28 +138,51 @@ def get_options_flow(underlying: str = "SPXW", limit: int = 30) -> list[dict]:
 
 
 def get_put_call_ratio(underlying: str = "SPXW") -> dict | None:
-    """Today's put/call volume ratio."""
-    if not available():
-        return None
-    today = date.today().isoformat()
-    data = _get(f"/v3/snapshot/options/{underlying}", {"expiration_date": today, "limit": 250})
-    if not data or not data.get("results"):
-        return None
-    call_vol = put_vol = 0
-    for r in data["results"]:
-        d   = r.get("details", {})
-        vol = r.get("day", {}).get("volume") or 0
-        if d.get("contract_type") == "call":
-            call_vol += vol
-        else:
-            put_vol  += vol
-    total = call_vol + put_vol
-    if not total:
-        return None
-    return {
-        "call_volume":    call_vol,
-        "put_volume":     put_vol,
-        "total_volume":   total,
-        "put_call_ratio": round(put_vol / call_vol, 3) if call_vol else None,
-        "sentiment":      "bullish" if call_vol > put_vol else "bearish",
-    }
+    """Today's put/call volume ratio. Tries Polygon (paid), falls back to yfinance."""
+    if available():
+        today = date.today().isoformat()
+        data = _get(f"/v3/snapshot/options/{underlying}", {"expiration_date": today, "limit": 250})
+        if data and data.get("results"):
+            call_vol = put_vol = 0
+            for r in data["results"]:
+                d   = r.get("details", {})
+                vol = r.get("day", {}).get("volume") or 0
+                if d.get("contract_type") == "call":
+                    call_vol += vol
+                else:
+                    put_vol  += vol
+            total = call_vol + put_vol
+            if total:
+                return {
+                    "call_volume":    call_vol,
+                    "put_volume":     put_vol,
+                    "total_volume":   total,
+                    "put_call_ratio": round(put_vol / call_vol, 3) if call_vol else None,
+                    "sentiment":      "bullish" if call_vol > put_vol else "bearish",
+                    "source":         "polygon",
+                }
+
+    # Fallback: yfinance SPX options chain (nearest expiry)
+    try:
+        import yfinance as yf
+        tk  = yf.Ticker("^SPX")
+        exp = tk.options[0] if tk.options else None
+        if not exp:
+            return None
+        chain = tk.option_chain(exp)
+        call_vol = int(chain.calls["volume"].fillna(0).sum())
+        put_vol  = int(chain.puts["volume"].fillna(0).sum())
+        total    = call_vol + put_vol
+        if not total:
+            return None
+        return {
+            "call_volume":    call_vol,
+            "put_volume":     put_vol,
+            "total_volume":   total,
+            "put_call_ratio": round(put_vol / call_vol, 3) if call_vol else None,
+            "sentiment":      "bullish" if call_vol > put_vol else "bearish",
+            "source":         "yfinance",
+        }
+    except Exception as e:
+        print(f"[polygon] put_call_ratio yfinance fallback failed: {e}")
+    return None
