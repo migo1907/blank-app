@@ -93,6 +93,7 @@ class RandomForestEnsemble:
         self._feature_importances: list[float] = [1.0 / len(FEATURE_NAMES)] * len(FEATURE_NAMES)
         self._feature_indices: list[int] = list(range(len(FEATURE_NAMES)))  # selected feature subset
         self._iso_calibrator: Optional[object] = None  # isotonic post-hoc calibrator (≥150 trades)
+        self._conformal_q: float = 0.20  # 90th-pctile OOS error — conformal interval half-width
 
     # ── Training ─────────────────────────────────────────────────────────────
 
@@ -182,6 +183,9 @@ class RandomForestEnsemble:
                     _oos_preds = (_oos_proba_win >= 0.5).astype(int)
                     _oos_acc = float(np.mean(_oos_preds == y[train_size:]))
                     print(f"[rf] Walk-forward OOS accuracy ({oos_size} trades): {_oos_acc:.3f}")
+                    _oos_errors = np.abs(_oos_proba_win - y[train_size:].astype(float))
+                    self._conformal_q = float(np.percentile(_oos_errors, 90))
+                    print(f"[rf] Conformal q={self._conformal_q:.3f} (90th-pctile OOS error, {oos_size} trades)")
                     if len(X_rows) >= _ISO_MIN_TRADES:
                         _iso = IsotonicRegression(y_min=0.0, y_max=1.0, out_of_bounds="clip")
                         _iso.fit(_oos_proba_win, y[train_size:])
@@ -253,6 +257,14 @@ class RandomForestEnsemble:
             print(f"[rf] predict error: {exc}")
             return 0.5
 
+    def predict_with_interval(self, features: list[float]) -> tuple[float, float, float, float]:
+        """Return (score, lo, hi, width) using conformal prediction interval.
+        Width reflects calibration uncertainty — narrow = reliable, wide = uncertain."""
+        score = self.predict(features)
+        q = self._conformal_q
+        lo, hi = max(0.0, score - q), min(1.0, score + q)
+        return score, lo, hi, hi - lo
+
     # ── Feature importance ────────────────────────────────────────────────────
 
     @property
@@ -320,6 +332,7 @@ class GradientBoostEnsemble:
         self._feature_importances: list[float] = [1.0 / len(FEATURE_NAMES)] * len(FEATURE_NAMES)
         self._feature_indices: list[int] = list(range(len(FEATURE_NAMES)))
         self._iso_calibrator: Optional[object] = None  # isotonic post-hoc calibrator (≥150 trades)
+        self._conformal_q: float = 0.20  # 90th-pctile OOS error — conformal interval half-width
 
     def train(self, history: list[dict]) -> bool:
         if not _SKLEARN_AVAILABLE:
@@ -380,6 +393,9 @@ class GradientBoostEnsemble:
                     _oos_preds = (_oos_proba_win >= 0.5).astype(int)
                     _oos_acc = float(np.mean(_oos_preds == y[train_size_gbm:]))
                     print(f"[gbm] Walk-forward OOS accuracy ({oos_size_gbm} trades): {_oos_acc:.3f}")
+                    _oos_errors = np.abs(_oos_proba_win - y[train_size_gbm:].astype(float))
+                    self._conformal_q = float(np.percentile(_oos_errors, 90))
+                    print(f"[gbm] Conformal q={self._conformal_q:.3f} (90th-pctile OOS error, {oos_size_gbm} trades)")
                     if len(X_rows) >= _ISO_MIN_TRADES:
                         _iso = IsotonicRegression(y_min=0.0, y_max=1.0, out_of_bounds="clip")
                         _iso.fit(_oos_proba_win, y[train_size_gbm:])
@@ -446,6 +462,13 @@ class GradientBoostEnsemble:
         except Exception as exc:
             print(f"[gbm] predict error: {exc}")
             return 0.5
+
+    def predict_with_interval(self, features: list[float]) -> tuple[float, float, float, float]:
+        """Return (score, lo, hi, width) using conformal prediction interval."""
+        score = self.predict(features)
+        q = self._conformal_q
+        lo, hi = max(0.0, score - q), min(1.0, score + q)
+        return score, lo, hi, hi - lo
 
     def rollback(self) -> bool:
         """Restore previous champion model."""

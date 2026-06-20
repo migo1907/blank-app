@@ -920,6 +920,14 @@ def generate_signal(
     rf_win_prob    = rf.predict(feat_list)
     gbm_win_prob   = gbm.predict(feat_list)
 
+    # Conformal prediction intervals — average RF + GBM uncertainty
+    _, _rf_lo,  _rf_hi,  _rf_w  = rf.predict_with_interval(feat_list)
+    _, _gbm_lo, _gbm_hi, _gbm_w = gbm.predict_with_interval(feat_list)
+    _ci_lo    = round((_rf_lo  + _gbm_lo)  / 2, 3)
+    _ci_hi    = round((_rf_hi  + _gbm_hi)  / 2, 3)
+    _ci_width = round((_rf_w   + _gbm_w)   / 2, 3)
+    _ci_label = "HIGH" if _ci_width <= 0.25 else ("MODERATE" if _ci_width <= 0.40 else "LOW")
+
     knn_directional = bull_score - bear_score
     rf_directional  = (rf_win_prob  - 0.5) * 2.0
     gbm_directional = (gbm_win_prob - 0.5) * 2.0
@@ -1063,9 +1071,12 @@ def generate_signal(
         "confidence":     round(confidence, 4),
         "tier":           tier,
         "ml_score":       round(ml_score_out, 4),
-        "rf_score":       round(rf_win_prob, 4),
-        "gbm_score":      round(gbm_win_prob, 4),
-        "news_score":     round(news_agg, 4),
+        "rf_score":           round(rf_win_prob, 4),
+        "gbm_score":          round(gbm_win_prob, 4),
+        "ml_interval":        [_ci_lo, _ci_hi],
+        "ml_interval_width":  _ci_width,
+        "ml_certainty":       _ci_label,
+        "news_score":         round(news_agg, 4),
         "macro_bias":     round(macro_val, 4),
         "macro_label":    macro_label,
         "combined_score": round(combined_score, 4),
