@@ -606,8 +606,8 @@ async def trade_outcome(payload: TradeOutcomePayload):
             f25=payload.f25, f26=payload.f26,
         )
 
-        # Signed realized move (favorable = positive). Lets the KNN re-classify a
-        # partial that actually closed negative (e.g. SL_TP1 on gold scalps) as a loss.
+        # Signed realized move (favorable = positive). KNN and RF/GBM both use this
+        # to re-classify PARTIAL trades with pnl_pct ≤ 0 as LOSS (43% of all PARTIALs).
         raw_pct = (payload.exit_price - payload.entry_price) / max(payload.entry_price, 0.0001) * 100
         pnl_pct = raw_pct if payload.direction == "LONG" else -raw_pct
 
@@ -671,9 +671,14 @@ async def trade_outcome(payload: TradeOutcomePayload):
             invalidate_history_cache(pool)
             history = await asyncio.to_thread(recent_outcomes, pool, 500)
 
-            # Record OOS prediction for champion-challenger tracking
+            # Record OOS prediction for champion-challenger tracking.
+            # PARTIAL is only a true win when pnl_pct > 0 — 43% of PARTIAL trades
+            # across all pools have negative PnL (SL hit after TP1 breakeven move).
+            # This mirrors the same guard already applied to the KNN weight update.
             _prev_score = outcome_row.get("ml_bull_score") or 0.5
-            _actual_win = outcome_row.get("outcome") in ("WIN", "PARTIAL")
+            _pnl = outcome_row.get("pnl_pct", 0.0) or 0.0
+            _raw_outcome = outcome_row.get("outcome")
+            _actual_win = _raw_outcome == "WIN" or (_raw_outcome == "PARTIAL" and _pnl > 0)
             record_oob_prediction(pool, float(_prev_score), bool(_actual_win))
 
             # Retrain when: (a) pool first reaches 50 trades, OR

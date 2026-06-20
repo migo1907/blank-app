@@ -14,6 +14,18 @@ from typing import Optional
 
 MIN_TRADES = 30  # minimum history before models will train
 
+
+def _win_label(row: dict) -> int:
+    """Binary training label. PARTIAL is only a win when pnl_pct > 0.
+    43% of PARTIAL trades across all pools have negative PnL (SL hit after
+    TP1 breakeven move) — labeling them WIN corrupts RF/GBM training."""
+    outcome = row.get("ml_outcome") or row.get("outcome", "LOSS")
+    if outcome == "WIN":
+        return 1
+    if outcome == "PARTIAL":
+        return 1 if float(row.get("pnl_pct") or 0.0) > 0 else 0
+    return 0
+
 try:
     from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
     from sklearn.calibration import CalibratedClassifierCV
@@ -111,11 +123,8 @@ class RandomForestEnsemble:
         y_rows = []
         for row in history:
             feat_vec = row_to_vector(row)
-            # PARTIAL is a profitable close (hit TP1+) — treat as win, not loss
-            outcome_val = row.get("ml_outcome") or row.get("outcome", "LOSS")
-            label = 1 if outcome_val in ("WIN", "PARTIAL") else 0
             X_rows.append(feat_vec)
-            y_rows.append(label)
+            y_rows.append(_win_label(row))
 
         X = np.array(X_rows, dtype=np.float64)
         y = np.array(y_rows, dtype=np.int32)
@@ -325,9 +334,7 @@ class GradientBoostEnsemble:
         X_rows, y_rows, w_rows = [], [], []
         for row in history:
             X_rows.append(row_to_vector(row))
-            # PARTIAL is a profitable close (hit TP1+) — treat as win, not loss
-            outcome_val = row.get("ml_outcome") or row.get("outcome", "LOSS")
-            y_rows.append(1 if outcome_val in ("WIN", "PARTIAL") else 0)
+            y_rows.append(_win_label(row))
             w_rows.append(_session_weight(row.get("created_at", "")) * _quality_weight(row))
 
         if len(set(y_rows)) < 2:
@@ -558,8 +565,7 @@ class JointGoldGBM:
                 continue
             for row in history:
                 feat = row_to_vector(row) + [float(tf_id)]
-                outcome_val = row.get("ml_outcome") or row.get("outcome", "LOSS")
-                label = 1 if outcome_val in ("WIN", "PARTIAL") else 0
+                label = _win_label(row)
                 X_rows.append(feat)
                 y_rows.append(label)
                 w_rows.append(_session_weight(row.get("created_at", "")) * _quality_weight(row))
@@ -640,8 +646,7 @@ class JointStocksGBM:
             cluster_id, tf_id = ids
             for row in history:
                 feat = row_to_vector(row) + [float(cluster_id), float(tf_id)]
-                outcome_val = row.get("ml_outcome") or row.get("outcome", "LOSS")
-                label = 1 if outcome_val in ("WIN", "PARTIAL") else 0
+                label = _win_label(row)
                 X_rows.append(feat)
                 y_rows.append(label)
                 w_rows.append(_session_weight(row.get("created_at", "")) * _quality_weight(row))
@@ -745,8 +750,7 @@ class TabPFNEnsemble:
         X_rows, y_rows = [], []
         for row in history:
             X_rows.append(row_to_vector(row))
-            outcome_val = row.get("ml_outcome") or row.get("outcome", "LOSS")
-            y_rows.append(1 if outcome_val in ("WIN", "PARTIAL") else 0)
+            y_rows.append(_win_label(row))
 
         if len(set(y_rows)) < 2:
             return False
@@ -839,8 +843,7 @@ def train_with_warm_start(
         xs, ys, ws = [], [], []
         for row in hist:
             xs.append(row_to_vector(row))
-            outcome_val = row.get("ml_outcome") or row.get("outcome", "LOSS")
-            ys.append(1 if outcome_val in ("WIN", "PARTIAL") else 0)
+            ys.append(_win_label(row))
             ws.append(_session_weight(row.get("created_at", "")))
         return (np.array(xs, np.float32), np.array(ys, np.int32), np.array(ws, np.float32))
 
