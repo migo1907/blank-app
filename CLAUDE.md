@@ -48,11 +48,19 @@
 - **Fear & Greed Index** (CNN) — free JSON endpoint, updates daily. Single cross-asset risk appetite number. Use as a soft regime gate across all three sections. Low effort.
 - **DXY 15-min proxy via UUP ETF** — add UUP to TradingView heartbeat for faster dollar signal on gold. Current macro refresh is hourly; correlation with gold is near-instant. Low effort.
 
+#### PWA Dashboard (React + FastAPI static serving)
+- **What:** Full system dashboard as a Progressive Web App — works in browser AND installs on phone (Add to Home Screen). No new accounts or platforms needed.
+- **Stack:** React frontend, built to `frontend/dist/`, served as static files from FastAPI on Railway. Same URL, same platform.
+- **Sections:** Health · Signals (per pool) · ML Models · Swing Brain · Options · Macro & Regime
+- **Deployment:** `npm run build` → FastAPI serves `/` → Railway auto-deploys on push. Zero extra cost.
+- **Decision made:** PWA (not web-only) — same build time, phone-installable for free.
+- **Effort:** Medium (~2-3h). No conditions — ready to build any time.
+
 #### Priority Order (when to pick up)
 | Priority | Item | Effort | Condition to start |
 |----------|------|--------|--------------------|
-| 1 | VIX9D term structure (options) | Low | Now — options pool accumulating |
-| 2 | Conformal prediction (intraday) | Low | Now |
+| 1 | **PWA Dashboard** | Medium | Any time — decided |
+| 2 | VIX9D term structure (options) | Low | Now — options pool accumulating |
 | 3 | Analyst revision momentum (swing) | Low | Now |
 | 4 | Relative volume (swing) | Low | Now |
 | 5 | Label noise correction (intraday) | Medium | When XAUUSD_2M OOS acc stabilises |
