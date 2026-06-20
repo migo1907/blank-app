@@ -140,20 +140,23 @@ float f25 = math.sin((todMins / 1440.0) * 2.0 * math.pi)
 float f26 = math.max(-1.0, math.min(1.0, (stochK - stochD) / 20.0))
 
 // ═══════════════════════════════════════════════════════════════════
-// WEIGHTS — seeded from backend weights.json (2026-06-03, XAUUSD)
+// WEIGHTS — seeded from backend weights_XAUUSD_2M.json (2026-06-19)
 // Adaptive loop refines these on current chart data.
-// Seed: 52W / 73L from live closed trades.
+// Seed: 378W / 467L (845 trades) — XAUUSD_2M pool, isotonic-calibrated.
+// Top learned features: F6 Williams%R (3.0), F13 Range (2.89),
+//   F12 Swing rejection (2.02), F19 RSI divergence (1.91),
+//   F24 FVG/Smart Money (1.44), F14 HL pattern (1.39), F15 Session (1.38).
 // ═══════════════════════════════════════════════════════════════════
 var float[] weights = array.from(
-    0.665, 0.812, 1.043, 0.574, 0.582,   // F1  F2  F3  F4  F5
-    1.507, 0.677, 0.723, 0.721, 0.931,   // F6  F7  F8  F9  F10
-    0.657, 1.150, 1.132, 1.101, 1.012,   // F11 F12 F13 F14 F15
-    0.844, 0.888, 0.443, 1.038, 0.795,   // F16 F17 F18 F19 F20
-    0.831, 0.726, 0.746, 1.039, 1.123,   // F21 F22 F23 F24 F25
-    1.000)                                // F26 Stochastic
+    0.200, 0.200, 1.249, 0.200, 0.200,   // F1  F2  F3  F4  F5
+    3.000, 0.200, 0.200, 0.200, 0.381,   // F6  F7  F8  F9  F10
+    0.200, 2.019, 2.893, 1.393, 1.383,   // F11 F12 F13 F14 F15
+    0.241, 0.222, 0.200, 1.909, 0.200,   // F16 F17 F18 F19 F20
+    0.220, 0.200, 0.200, 1.435, 0.988,   // F21 F22 F23 F24 F25
+    0.200)                                // F26 Stochastic
 
-var int totalWins   = 52
-var int totalLosses = 73
+var int totalWins   = 378
+var int totalLosses = 467
 
 clampW(w) => math.max(0.2, math.min(3.0, w))
 
@@ -413,7 +416,7 @@ if sigLong or sigShort
 
 color regClr = isSideways ? colWarn : (mainTrend == "UPTREND" ? colBull : mainTrend == "DOWNTREND" ? colBear : colNeu)
 
-// Top feature by current weight (F6=Williams %R seed=1.507)
+// Top feature by current weight (F6=Williams %R seed=3.000, F13=Range 2.893)
 int   topFIdx  = 0
 float topFW    = array.get(weights, 0)
 for _i = 1 to 25
