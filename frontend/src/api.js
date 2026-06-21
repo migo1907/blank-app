@@ -31,6 +31,7 @@ export const getMarketQuotes    = (symbols) => _get('/market/quotes', { symbols 
 export const getMarketTicker    = (symbol)  => _get(`/market/ticker/${symbol}`)
 export const getMarketCompare   = (symbols) => _get('/market/compare', { symbols })
 export const getMarketWrap      = ()        => _get('/market/wrap')
+export const getMarketSparklines= ()        => _get('/market/sparklines')
 export const getMarketCommentary= ()        => _get('/market/commentary')
 export const getOptionsFlow     = ()        => _get('/options/flow')
 export const getEconomicCalendar= ()        => _get('/calendar/economic')

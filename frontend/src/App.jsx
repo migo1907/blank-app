@@ -5,10 +5,10 @@ import {
   AreaChart, Area, LineChart, Line,
   ReferenceLine
 } from 'recharts'
-import { Crosshair, BarChart3, Globe, Briefcase, Newspaper } from 'lucide-react'
+import { Crosshair, BarChart3, CalendarDays, Briefcase, Newspaper } from 'lucide-react'
 import { getDashboard, subscribePush, VAPID_PUBLIC,
   getMarketOverview, getMarketQuotes, getMarketTicker, getMarketCompare, getMarketWrap, getMarketCommentary,
-  getOptionsFlow, getEconomicCalendar, getEarningsCalendar } from './api'
+  getMarketSparklines, getOptionsFlow, getEconomicCalendar, getEarningsCalendar } from './api'
 
 const BASE   = 'https://blank-app-production-a8bd.up.railway.app'
 const SECRET = 'gold2026'
@@ -27,7 +27,7 @@ async function api(path, params = {}) {
 const BOTTOM_NAV = [
   { id: 'signals',   Icon: Crosshair, label: 'Signals'   },
   { id: 'markets',   Icon: BarChart3, label: 'Markets'   },
-  { id: 'macro',     Icon: Globe,     label: 'Macro'     },
+  { id: 'calendar',  Icon: CalendarDays, label: 'Calendar' },
   { id: 'portfolio', Icon: Briefcase, label: 'Portfolio' },
   { id: 'news',      Icon: Newspaper, label: 'News'      },
 ]
@@ -991,8 +991,24 @@ function CommentaryInline() {
   )
 }
 
+// Lightweight inline SVG sparkline (no chart lib — cheap for many rows)
+function Spark({data,w=70,h=24}){
+  if(!data||data.length<2) return <span style={{color:'var(--muted)',fontSize:10}}>—</span>
+  const min=Math.min(...data), max=Math.max(...data), span=(max-min)||1
+  const pts=data.map((v,i)=>`${(i/(data.length-1))*w},${(h-2)-((v-min)/span)*(h-4)+2}`).join(' ')
+  const up=data[data.length-1]>=data[0]
+  const c=up?'var(--green)':'var(--red)'
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" style={{display:'block'}}>
+      <polyline points={pts} fill="none" stroke={c} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round"/>
+    </svg>
+  )
+}
+
 function MarketsGridTab() {
   const {data,err,load} = useLoad(()=>getMarketOverview())
+  const spark = useLoad(()=>getMarketSparklines())
+  const series = spark.data?.series || {}
   const [grpFilter,setGrpFilter] = useState('All')
   if(load) return <Spinner/>
   if(err)  return <Err e={err}/>
@@ -1040,7 +1056,7 @@ function MarketsGridTab() {
         <div key={grp} className="card" style={{overflowX:'auto'}}>
           <div className="card-title">{grp}</div>
           <table className="tbl" style={{width:'100%'}}>
-            <thead><tr><th>Instrument</th><th className="num">Price</th><th className="num">Change</th><th>Day Range</th></tr></thead>
+            <thead><tr><th>Instrument</th><th className="num">Price</th><th className="num">Change</th><th>30D</th><th>Day Range</th></tr></thead>
             <tbody>
               {items.map(item=>{
                 const up=(item.change_pct||0)>=0
@@ -1052,6 +1068,7 @@ function MarketsGridTab() {
                     <td><strong style={{color:'var(--text-hi)'}}>{item.name}</strong><br/><small style={{color:'var(--text-mut)'}}>{item.symbol}</small></td>
                     <td className="num">{item.error?'—':item.price?.toLocaleString('en-US',{maximumFractionDigits:2})}</td>
                     <td className="num" style={{color:item.error?'var(--muted)':clr}}>{item.error?'—':`${up?'▲':'▼'} ${Math.abs(item.change_pct||0).toFixed(2)}%`}</td>
+                    <td>{item.error?<span style={{color:'var(--muted)'}}>—</span>:<Spark data={series[item.symbol]}/>}</td>
                     <td>
                       {pos==null?<span style={{color:'var(--muted)'}}>—</span>:(
                         <div style={{position:'relative',height:4,borderRadius:2,background:'rgba(255,255,255,.08)',minWidth:60}}>
@@ -1076,11 +1093,11 @@ function MarketsTab({pulse, health}) {
     <div className="content">
       <div className="sub-tabs">
         <button className={`sub-tab${sub==='overview'?' active':''}`} onClick={()=>setSub('overview')}>Overview</button>
-        <button className={`sub-tab${sub==='pulse'?' active':''}`} onClick={()=>setSub('pulse')}>Pulse</button>
+        <button className={`sub-tab${sub==='pulse'?' active':''}`} onClick={()=>setSub('pulse')}>Pulse &amp; Regime</button>
         <button className={`sub-tab${sub==='wrap'?' active':''}`} onClick={()=>setSub('wrap')}>Wrap</button>
       </div>
       {sub==='overview' && <><MarketsGridTab/><BriefTab/></>}
-      {sub==='pulse'    && <PulseTab pulse={pulse} health={health}/>}
+      {sub==='pulse'    && <><PulseTab pulse={pulse} health={health}/><MacroTab health={health}/></>}
       {sub==='wrap'     && <WrapTab/>}
     </div>
   )
@@ -1475,20 +1492,6 @@ function CalendarTab() {
   )
 }
 
-function MacroHub({health}) {
-  const [subTab, setSubTab] = useState('regime')
-  return (
-    <div className="content">
-      <div className="sub-tabs">
-        <button className={`sub-tab${subTab==='regime'?' active':''}`} onClick={()=>setSubTab('regime')}>Regime</button>
-        <button className={`sub-tab${subTab==='calendar'?' active':''}`} onClick={()=>setSubTab('calendar')}>Calendar</button>
-      </div>
-      {subTab==='regime'   && <MacroTab health={health}/>}
-      {subTab==='calendar' && <CalendarTab/>}
-    </div>
-  )
-}
-
 function PortfolioHub() {
   const [subTab, setSubTab] = useState('holdings')
   return (
@@ -1719,6 +1722,7 @@ function Splash({onEnter}) {
       <div className="splash-glow"/>
       <div className="splash-inner">
         <img className="splash-logo" src="/app/sniper-logo.jpg" alt="Sniper Signals"
+          fetchpriority="high" decoding="async"
           onError={e=>{e.currentTarget.style.display='none'}}/>
         <div className="splash-name">SNIPER SIGNALS</div>
         <div className="splash-tag">Global Market Insights</div>
@@ -1748,7 +1752,7 @@ export default function App() {
       <div style={{flex:1, paddingBottom:64}}>
         {tab==='signals'   && <SignalsHub/>}
         {tab==='markets'   && <MarketsTab pulse={pulse} health={health}/>}
-        {tab==='macro'     && <MacroHub health={health}/>}
+        {tab==='calendar'  && <CalendarTab/>}
         {tab==='portfolio' && <PortfolioHub/>}
         {tab==='news'      && <NewsTab/>}
       </div>

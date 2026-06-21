@@ -1949,6 +1949,37 @@ async def market_commentary(secret: str = ""):
         return {"date": today, "commentary": text, "cached": False, "fallback": True}
 
 
+_sparkline_cache = {"ts": 0, "data": None}
+
+@app.get("/market/sparklines")
+async def market_sparklines(secret: str = ""):
+    """~1 month of daily closes per overview instrument, for inline sparklines."""
+    _validate_secret(secret)
+    import time, math, yfinance as yf
+    if time.time() - _sparkline_cache["ts"] < 900 and _sparkline_cache["data"]:
+        return _sparkline_cache["data"]
+    syms = [s for items in _OVERVIEW_SYMBOLS.values() for s in items.values()]
+    out = {}
+    try:
+        df = yf.download(" ".join(syms), period="1mo", interval="1d",
+                         progress=False, group_by="ticker", threads=True)
+        for s in syms:
+            closes = []
+            try:
+                col = df[s]["Close"] if s in df.columns.get_level_values(0) else None
+                if col is not None:
+                    closes = [round(float(c), 4) for c in col.tolist()
+                              if c is not None and not math.isnan(float(c))]
+            except Exception:
+                closes = []
+            out[s] = closes[-22:]
+    except Exception as e:
+        return {"series": {}, "error": str(e)}
+    res = {"series": out}
+    _sparkline_cache.update({"ts": time.time(), "data": res})
+    return res
+
+
 @app.get("/calendar/economic")
 async def calendar_economic(secret: str = ""):
     """This-week high/medium-impact US economic events (Forex Factory feed), Dubai time."""
