@@ -643,167 +643,163 @@ function SignalsTab() {
 // ══════════════════════════════════════════════════════════════════
 // TAB 5 — SWING
 // ══════════════════════════════════════════════════════════════════
+
 function SwingTab() {
-  const stats=useLoad(()=>api('/swing/trades'))
-  const cands=useLoad(()=>api('/swing/candidates'))
-  const [showThesis,setShowThesis]=useState(false)
-  const [convFilter,setConvFilter]=useState('ALL')
-  const [sortBy,setSortBy]=useState('combined_score')
+  const stats = useLoad(()=>api('/swing/trades'))
+  const cands = useLoad(()=>api('/swing/candidates'), [])
+  const [expanded, setExpanded] = useState(null)
 
-  const ss  = stats.data||{}
-  const all = cands.data?.candidates||[]
+  const ss  = stats.data || {}
+  const all = cands.data?.candidates || []
+  const meta = cands.data || {}
 
-  const filtered = all
-    .filter(c=>convFilter==='ALL'||(c.conviction||'')==convFilter)
-    .sort((a,b)=>(b[sortBy]||0)-(a[sortBy]||0))
+  const eqClr = q => q==='STRONG'?'var(--green)':q==='FAIR'?'var(--gold)':q==='AVOID'?'var(--red)':'var(--muted)'
+  const eqBg  = q => q==='STRONG'?'rgba(34,197,94,.1)':q==='FAIR'?'rgba(245,158,11,.1)':q==='AVOID'?'rgba(239,68,68,.1)':'rgba(100,116,139,.08)'
 
-  const top = all[0]
-
-  // Score chart
-  const chartData = filtered.slice(0,10).map(c=>({
-    name: c.ticker,
-    score: Math.round((c.combined_score||0)*100),
-    fund:  Math.round((c.fundamental_score||0)*100),
-    tech:  Math.round((c.technical_score||0)*100),
-  }))
-
-  if(stats.load&&!ss.open&&!ss.closed) return <Spinner/>
-
-  const rrTop = (top&&top.tp!=null&&top.entry!=null&&top.sl!=null&&(top.entry-top.sl)!==0)
-    ? (top.tp-top.entry)/(top.entry-top.sl) : null
-  const rrTopClr = rrTop==null?'var(--muted)':rrTop>=2?'var(--green)':rrTop>=1?'var(--gold)':'var(--red)'
-
-  const qc = cands.data?.qualified_count
+  if(cands.load && !all.length) return <Spinner/>
 
   return (
     <div className="content">
-      {/* Daily scan intro */}
-      <div className="commentary-card" style={{margin:'10px'}}>
-        <div style={{fontSize:13,color:'var(--text)',lineHeight:1.55}}>
-          <b style={{color:'var(--gold-text)'}}>Daily swing scan.</b> Locked on the 10 best names with strong fundamentals <i>and</i> a technical entry.
-          {qc!=null && <> <span style={{color:'var(--green-text)',fontWeight:700}}>{qc} qualify</span> today.</>}
-          {cands.data?.updated_at && <span style={{color:'var(--text-mut)'}}> · Updated {age(cands.data.updated_at)}</span>}
+
+      {/* Header bar */}
+      <div style={{padding:'10px 10px 4px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+        <div>
+          <div style={{fontSize:13,fontWeight:800,color:'var(--text)'}}>Top Swing Picks</div>
+          <div style={{fontSize:10,color:'var(--muted)',marginTop:1}}>
+            {meta.scanned||50} scanned · {meta.passed_gates||0} passed gates · locked {all.length}
+            {meta.updated_at&&<span style={{marginLeft:6}}>· {age(meta.updated_at)}</span>}
+          </div>
+        </div>
+        <div style={{textAlign:'right',fontSize:10,color:'var(--muted)'}}>
+          <div>Gate 1: fundamentals &gt; 0</div>
+          <div style={{color:'var(--gold)'}}>Gate 2: upside ≥ 20%</div>
         </div>
       </div>
 
-      {/* Top pick */}
-      {top&&(
-        <div className="card" style={{borderColor:'rgba(245,158,11,.3)'}}>
-          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:12}}>
-            <div>
-              <div style={{fontSize:10,color:'var(--muted)',fontWeight:700,textTransform:'uppercase',marginBottom:4}}>Top Pick</div>
-              <div style={{fontSize:26,fontWeight:800,color:'var(--gold)',letterSpacing:'-.01em'}}>{top.ticker}</div>
-            </div>
-            <div style={{display:'flex',alignItems:'center',gap:10}}>
-              {top.qualified&&(
-                <span style={{fontSize:9,fontWeight:700,color:'var(--green-text)',background:'var(--green-dim)',borderRadius:3,padding:'3px 7px',whiteSpace:'nowrap'}}>
-                  ✓ FUND + TECH
-                </span>
-              )}
-              {rrTop!=null&&(
-                <span style={{fontSize:10,fontWeight:700,color:rrTopClr,border:`1px solid ${rrTopClr}`,borderRadius:3,padding:'2px 7px',whiteSpace:'nowrap'}}>
-                  R:R 1:{rrTop.toFixed(1)}
-                </span>
-              )}
-              <ScoreRing value={top.combined_score||0} size={70} color={top.conviction==='STRONG'?'var(--green)':'var(--gold)'} sublabel={top.conviction||''}/>
-            </div>
-          </div>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginBottom:10}}>
-            <div className="metric"><div className="metric-val" style={{fontSize:12}}>{top.entry?money(top.entry):'—'}</div><div className="metric-lbl">Entry</div></div>
-            <div className="metric"><div className="metric-val" style={{fontSize:12,color:'var(--green)'}}>{top.tp?money(top.tp):'—'}</div><div className="metric-lbl">Target</div></div>
-            <div className="metric"><div className="metric-val" style={{fontSize:12,color:'var(--red)'}}>{top.sl?money(top.sl):'—'}</div><div className="metric-lbl">Stop</div></div>
-          </div>
-          {top.thesis&&(
-            <>
-              <button onClick={()=>setShowThesis(!showThesis)}
-                style={{background:'rgba(245,158,11,.1)',border:'1px solid rgba(245,158,11,.3)',color:'var(--gold)',borderRadius:8,padding:'8px 12px',fontSize:12,fontWeight:700,cursor:'pointer',width:'100%'}}>
-                {showThesis?'▲ Hide Analysis':'▼ View Analysis & Thesis'}
-              </button>
-              {showThesis&&<div style={{marginTop:12,fontSize:12,lineHeight:1.7,color:'var(--text)',borderTop:'1px solid var(--border)',paddingTop:12}}>{top.thesis}</div>}
-            </>
-          )}
+      {/* Candidate cards */}
+      {all.length===0 ? (
+        <div style={{padding:'40px 20px',textAlign:'center',color:'var(--muted)'}}>
+          <div style={{fontSize:32,marginBottom:10}}>📈</div>
+          <div style={{fontSize:14,fontWeight:600,marginBottom:6}}>No candidates yet</div>
+          <div style={{fontSize:12}}>Screen runs at 09:45 ET and 16:30 ET on trading days. Stocks must have ≥20% analyst upside and positive fundamentals.</div>
+        </div>
+      ) : (
+        <div style={{padding:'0 10px',display:'flex',flexDirection:'column',gap:10}}>
+          {all.map((c,i)=>{
+            const tech   = c.technical   || {}
+            const fund   = c.fundamental || {}
+            const eq     = c.entry_quality || tech.entry_quality || 'WAIT'
+            const isExp  = expanded===i
+            const entry  = tech.entry  || c.entry
+            const sl     = tech.stop   || c.sl
+            const t1     = tech.t1     || c.tp
+            const t2     = tech.t2
+            const t3     = tech.t3
+            const upside = c.upside_pct
+            const target = c.analyst_target
+            const score  = Math.round((c.combined_score||0)*100)
+            const fScore = Math.round((fund.score||0)*100)
+            const tScore = Math.round((tech.score||0)*100)
+            const rr     = (entry&&sl&&t1&&entry!==sl) ? (t1-entry)/(entry-sl) : null
+
+            return (
+              <div key={i} style={{
+                background:'var(--surface)',
+                border:`1px solid ${c.entry_now||tech.entry_now?'rgba(34,197,94,.3)':'var(--border)'}`,
+                borderLeft:`3px solid ${eqClr(eq)}`,
+                borderRadius:6,padding:'12px',cursor:'pointer'
+              }} onClick={()=>setExpanded(isExp?null:i)}>
+
+                {/* Header */}
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
+                  <div>
+                    <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+                      <span style={{fontSize:20,fontWeight:800,color:'var(--gold)'}}>{c.ticker}</span>
+                      {(c.entry_now||tech.entry_now)&&(
+                        <span style={{fontSize:10,fontWeight:700,color:'var(--green)',background:'rgba(34,197,94,.12)',border:'1px solid rgba(34,197,94,.3)',borderRadius:3,padding:'2px 6px'}}>⚡ ENTRY NOW</span>
+                      )}
+                    </div>
+                    <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+                      <span style={{fontSize:10,fontWeight:700,color:eqClr(eq),background:eqBg(eq),border:`1px solid ${eqClr(eq)}40`,borderRadius:3,padding:'2px 7px'}}>{eq}</span>
+                      <span style={{fontSize:10,color:'var(--muted)',fontWeight:600}}>{tech.trend||'—'}</span>
+                      {tech.rsi!=null&&<span style={{fontSize:10,color:'var(--muted)'}}>RSI {tech.rsi}</span>}
+                    </div>
+                  </div>
+                  <div style={{textAlign:'right'}}>
+                    <div className="mono" style={{fontSize:16,fontWeight:800,color:'var(--green)'}}>
+                      {upside!=null?`+${upside.toFixed(0)}%`:'—'}
+                    </div>
+                    <div style={{fontSize:9,color:'var(--muted)',fontWeight:600}}>UPSIDE</div>
+                    {target&&<div style={{fontSize:10,color:'var(--muted)',marginTop:2}}>Target {money(target)}</div>}
+                  </div>
+                </div>
+
+                {/* Score bar */}
+                <div style={{display:'flex',gap:4,marginBottom:10,alignItems:'center'}}>
+                  <div style={{flex:1}}>
+                    <div style={{display:'flex',justifyContent:'space-between',fontSize:9,color:'var(--muted)',marginBottom:3}}>
+                      <span>Score</span><span style={{color:'var(--gold)',fontWeight:700}}>{score}%</span>
+                    </div>
+                    <div className="bar-wrap">
+                      <div className="bar-fill" style={{width:`${Math.max(0,score)}%`,background:'var(--gold)'}}/>
+                    </div>
+                  </div>
+                  <div style={{width:1,height:24,background:'var(--border)',margin:'0 4px'}}/>
+                  <div style={{fontSize:9,color:'var(--blue)',textAlign:'center',minWidth:28}}>
+                    <div style={{fontWeight:700}}>{fScore}%</div><div>Fund</div>
+                  </div>
+                  <div style={{fontSize:9,color:'var(--green)',textAlign:'center',minWidth:28}}>
+                    <div style={{fontWeight:700}}>{tScore}%</div><div>Tech</div>
+                  </div>
+                  {rr!=null&&<div style={{fontSize:9,color:rr>=2?'var(--green)':rr>=1?'var(--gold)':'var(--red)',textAlign:'center',minWidth:34}}>
+                    <div style={{fontWeight:700}}>1:{rr.toFixed(1)}</div><div>R:R</div>
+                  </div>}
+                </div>
+
+                {/* Levels grid */}
+                <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:3}}>
+                  {[['Entry',entry,'var(--text)'],['TP1',t1,'var(--green)'],['TP2',t2,'var(--green)'],['TP3',t3,'#16a34a'],['SL',sl,'var(--red)']].map(([lbl,val,clr])=>(
+                    <div key={lbl} style={{background:'var(--surface2)',borderRadius:4,padding:'5px 3px',textAlign:'center'}}>
+                      <div className="mono" style={{fontSize:10,fontWeight:700,color:clr}}>{val?money(val):'—'}</div>
+                      <div style={{fontSize:8,color:'var(--muted)',fontWeight:600,marginTop:1}}>{lbl}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Expanded: thesis + fundamentals */}
+                {isExp&&(
+                  <div style={{marginTop:12,paddingTop:12,borderTop:'1px solid var(--border)'}}>
+                    {c.thesis&&<div style={{fontSize:12,color:'var(--text)',lineHeight:1.7,marginBottom:10}}>{c.thesis}</div>}
+                    <div style={{display:'flex',gap:12,flexWrap:'wrap',fontSize:11,color:'var(--muted)'}}>
+                      {fund.pe_ratio&&<span>P/E {n(fund.pe_ratio,1)}</span>}
+                      {fund.piotroski_f!=null&&<span>Piotroski {fund.piotroski_f}/9</span>}
+                      {fund.roe!=null&&<span>ROE {n(fund.roe*100,1)}%</span>}
+                      {fund.revenue_growth!=null&&<span>Rev growth {n(fund.revenue_growth*100,1)}%</span>}
+                      {tech.rel_strength_pct!=null&&<span>Rel str {tech.rel_strength_pct>0?'+':''}{tech.rel_strength_pct}%</span>}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
       )}
 
-      {/* Score comparison chart */}
-      {chartData.length>0&&(
-        <div className="card">
-          <div className="card-title">Candidate Score Comparison (Top 10)</div>
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={chartData} layout="vertical" margin={{left:0,right:8,top:0,bottom:0}}>
-              <XAxis type="number" domain={[0,100]} tick={{fill:'#64748b',fontSize:9}} tickFormatter={v=>`${v}%`}/>
-              <YAxis type="category" dataKey="name" tick={{fill:'#f59e0b',fontSize:10,fontWeight:700}} width={50}/>
-              <Tooltip content={<ChartTip fmt={v=>`${v}%`}/>}/>
-              <Bar dataKey="fund" name="Fundamental" fill={C.indigo} radius={[0,0,0,0]} stackId="a"/>
-              <Bar dataKey="tech"  name="Technical"   fill={C.green} radius={[0,3,3,0]} stackId="a"/>
-            </BarChart>
-          </ResponsiveContainer>
-          <div style={{display:'flex',gap:16,justifyContent:'center',marginTop:8}}>
-            <span style={{fontSize:10,color:'var(--blue)'}}>■ Fundamental</span>
-            <span style={{fontSize:10,color:'var(--green)'}}>■ Technical</span>
-          </div>
-        </div>
-      )}
-
-      {/* Filters + table */}
-      <div className="section-h">
-        Best 10 · Fundamentals + Technical
-        <div style={{display:'flex',gap:6}}>
-          <select className="pro" style={{width:'auto',padding:'4px 8px',fontSize:10}} value={sortBy} onChange={e=>setSortBy(e.target.value)}>
-            <option value="combined_score">Sort: Score</option>
-            <option value="fundamental_score">Sort: Fundamental</option>
-            <option value="technical_score">Sort: Technical</option>
-          </select>
-        </div>
-      </div>
-      <div className="filter-bar">
-        {['ALL','STRONG','GOOD','MODERATE','WEAK'].map(c=>(
-          <button key={c} className={`filter-chip ${convFilter===c?'active':''}`} onClick={()=>setConvFilter(c)}>{c}</button>
-        ))}
-      </div>
-      <div className="card" style={{padding:0,overflow:'hidden'}}>
-        <div style={{overflowX:'auto'}}>
-          <table className="tbl">
-            <thead><tr>
-              <th>Ticker</th><th>Score</th><th>Conv.</th><th>Fund.</th><th>Tech.</th><th>Entry</th><th>TP</th><th>SL</th>
-            </tr></thead>
-            <tbody>
-              {filtered.slice(0,20).map((c,i)=>(
-                <tr key={i}>
-                  <td style={{color:'var(--gold)',fontWeight:800,fontSize:13}}>{c.ticker}{c.qualified&&<span title="Strong fundamentals + technical entry" style={{color:'var(--green-text)',marginLeft:4,fontSize:11}}>✓</span>}</td>
-                  <td style={{color:'var(--green)',fontWeight:700}}>{((c.combined_score||0)*100).toFixed(0)}%</td>
-                  <td><span className={`bdg bdg-${c.conviction==='STRONG'?'bull':c.conviction==='GOOD'?'blue':'muted'}`}>{c.conviction||'—'}</span></td>
-                  <td style={{color:'var(--blue)'}}>{((c.fundamental_score||0)*100).toFixed(0)}%</td>
-                  <td style={{color:'var(--green)'}}>{((c.technical_score||0)*100).toFixed(0)}%</td>
-                  <td style={{color:'var(--text)'}}>{c.entry?money(c.entry):'—'}</td>
-                  <td style={{color:'var(--green)'}}>{c.tp?money(c.tp):'—'}</td>
-                  <td style={{color:'var(--red)'}}>{c.sl?money(c.sl):'—'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Swing ML training pipeline (diagnostic — bottom) */}
-      <div className="card">
-        <div className="card-title">Swing ML Training Pipeline</div>
+      {/* ML training progress */}
+      <div className="card" style={{marginTop:10}}>
+        <div className="card-title">Swing ML Pipeline</div>
         <div className="metrics">
           <div className="metric"><div className="metric-val">{ss.open||0}</div><div className="metric-lbl">Open</div></div>
           <div className="metric"><div className="metric-val">{ss.closed||0}</div><div className="metric-lbl">Closed</div></div>
           <div className="metric"><div className="metric-val">{ss.win_rate!=null?pct(ss.win_rate):'—'}</div><div className="metric-lbl">Win Rate</div></div>
           <div className="metric">
             <div className="metric-val" style={{fontSize:12,color:ss.ready?'var(--green)':'var(--gold)'}}>{ss.ready?'✅':'⏳'}</div>
-            <div className="metric-lbl">{ss.ready?'ML Ready':`${50-(ss.closed||0)} left`}</div>
+            <div className="metric-lbl">{ss.ready?'ML Ready':`${50-(ss.closed||0)} to ML`}</div>
           </div>
         </div>
         {!ss.ready&&(
-          <div style={{marginTop:10}}>
-            <div style={{display:'flex',justifyContent:'space-between',fontSize:11,marginBottom:4}}>
-              <span style={{color:'var(--muted)'}}>Progress to ML gate</span>
-              <span style={{color:'var(--gold)',fontWeight:700}}>{ss.closed||0}/50</span>
-            </div>
-            <div className="bar-wrap"><div className="bar-fill" style={{width:`${((ss.closed||0)/50*100).toFixed(0)}%`,background:'var(--gold)'}}/></div>
+          <div style={{marginTop:8}}>
+            <div className="bar-wrap"><div className="bar-fill" style={{width:`${Math.min(100,((ss.closed||0)/50*100)).toFixed(0)}%`,background:'var(--gold)'}}/></div>
           </div>
         )}
       </div>
@@ -814,6 +810,7 @@ function SwingTab() {
 // ══════════════════════════════════════════════════════════════════
 // TAB 6 — MACRO & REGIME
 // ══════════════════════════════════════════════════════════════════
+
 function MacroTab({health}) {
   const {data:hd,err,load}=health
   if(load&&!hd) return <Spinner/>

@@ -1,8 +1,11 @@
 """
 Swing addon — Screener engine.
 
-Scans a watchlist (top 50 S&P 500 by weight) once per evening after the close,
-scoring each name on two axes and ranking the best swing-trade candidates:
+Scans a watchlist (top 50 S&P 500 by weight) twice daily (09:45 ET + 16:30 ET),
+scoring each name on two axes, then applies two hard gates before ranking:
+
+  Gate 1 — Fundamental quality: fundamental score > 0  (positive composite)
+  Gate 2 — Valuation upside:    analyst mean target ≥ 20% above current price
 
   • Fundamental score  (fundamental_data.fetch_fundamentals) — the "why":
     analyst consensus, earnings surprise/drift, insider buying, growth, news.
@@ -10,17 +13,11 @@ scoring each name on two axes and ranking the best swing-trade candidates:
     trend / momentum / RSI read, fused with the existing backend context layers
     (MTF confluence + HMM regime, both already computed for the intraday system).
 
-This is deliberately a separate brain from the intraday signal engine: daily
-horizon (3–15 day holds), no Pine Script / TradingView involvement, pure backend
-yfinance pulls (with the Stooq daily fallback baked into market_data).
+Locks on the best 10 stocks that pass both gates. Each candidate carries
+entry price, TP1/TP2/TP3 and SL (ATR-based) + entry quality flag so the
+Telegram brief + PWA show actionable levels.
 
-The ML entry-timing ensemble is intentionally NOT wired in yet — there are no
-closed swing trades to train it on. Per the cold-start rule, the technical score
-is rules-based until the swing pool accumulates real outcomes, at which point the
-ensemble plugs into `_technical_score` exactly like the intraday pools.
-
-Cached in memory + persisted to the data branch, refreshed nightly. Graceful
-neutral fallback at every layer.
+Cached in memory + persisted to the data branch. Graceful neutral fallback.
 """
 
 from __future__ import annotations
@@ -100,13 +97,55 @@ def _atr(d, period: int = 14) -> float | None:
         return None
 
 
+def _analyst_target(ticker: str) -> dict:
+    """
+    Fetch analyst consensus price target from Finnhub.
+    Returns {mean_target, upside_pct, n_analysts} or {} on failure.
+    Upside gate: mean_target >= current * 1.20  (≥20% upside).
+    """
+    import os, httpx
+    key = os.environ.get("FINNHUB_KEY", "")
+    if not key:
+        return {}
+    try:
+        r = httpx.get(
+            "https://finnhub.io/api/v1/stock/price-target",
+            params={"symbol": ticker, "token": key},
+            timeout=8,
+        )
+        if r.status_code != 200:
+            return {}
+        data = r.json()
+        mean_t = data.get("targetMean") or data.get("targetMedian")
+        n = data.get("lastUpdated") and data.get("symbol") and 1  # just check it came back
+        if not mean_t:
+            return {}
+        # Get current price from yfinance fast_info
+        import yfinance as yf
+        price = yf.Ticker(ticker).fast_info.last_price
+        if not price or price <= 0:
+            return {}
+        upside = (mean_t - price) / price
+        return {
+            "analyst_target": round(float(mean_t), 2),
+            "current_price":  round(float(price), 2),
+            "upside_pct":     round(upside * 100, 1),
+        }
+    except Exception as e:
+        print(f"[swing] analyst target {ticker} failed: {e}")
+        return {}
+
+
 def _technical_score(ticker: str) -> dict:
     """
-    Daily-bar timing read → score ∈ [-1, +1]. Combines EMA trend, momentum, and a
-    mean-reversion-aware RSI band. Sector relative strength applied as a tilt.
+    Daily-bar timing read → score ∈ [-1, +1].
+    Now also returns:
+      entry_quality: STRONG | FAIR | WAIT | AVOID
+      entry_now:     bool — True when RSI + price position indicate a good entry TODAY
     """
     out = {"score": 0.0, "rsi": None, "trend": "NEUTRAL", "rel_strength_pct": None,
-           "entry": None, "atr": None, "stop": None, "t1": None, "t2": None}
+           "entry": None, "atr": None, "stop": None, "t1": None, "t2": None, "t3": None,
+           "entry_quality": "WAIT", "entry_now": False}
     try:
         from market_data import fetch_daily
 
@@ -117,56 +156,83 @@ def _technical_score(ticker: str) -> dict:
         if len(c) < 60:
             return out
 
-        # Suggested levels — same ATR basis the paper-trade tracker grades on, so the
-        # displayed entry/stop/targets match how WIN/LOSS is later judged.
         atr = _atr(d)
         if atr:
             entry = float(c[-1])
             out["entry"] = round(entry, 2)
             out["atr"]   = round(atr, 2)
-            out["stop"]  = round(entry - 1.0 * atr, 2)   # -1 ATR  (paper SL)
-            out["t1"]    = round(entry + 2.0 * atr, 2)   # +2 ATR  (paper TP)
-            out["t2"]    = round(entry + 3.0 * atr, 2)   # +3 ATR  (stretch)
+            out["stop"]  = round(entry - 1.0 * atr, 2)   # -1 ATR  SL
+            out["t1"]    = round(entry + 2.0 * atr, 2)   # +2 ATR  TP1
+            out["t2"]    = round(entry + 3.0 * atr, 2)   # +3 ATR  TP2
+            out["t3"]    = round(entry + 5.0 * atr, 2)   # +5 ATR  TP3 (swing extension)
 
-        ef, es = _ema(c, 20), _ema(c, 50)
-        spread = (ef[-1] - es[-1]) / max(abs(es[-1]), 1e-9)
-        trend_score = float(np.clip(spread / 0.05, -1, 1))  # ±5% EMA gap → ±1
+        ef20, es50, el200 = _ema(c, 20), _ema(c, 50), _ema(c, 200)
+        spread = (ef20[-1] - es50[-1]) / max(abs(es50[-1]), 1e-9)
+        trend_score = float(np.clip(spread / 0.05, -1, 1))
 
-        mom = (c[-1] / c[-20] - 1.0) if len(c) >= 20 else 0.0
-        mom_score = float(np.clip(mom / 0.10, -1, 1))        # ±10% in 20d → ±1
+        mom20 = (c[-1] / c[-20] - 1.0) if len(c) >= 20 else 0.0
+        mom_score = float(np.clip(mom20 / 0.10, -1, 1))
 
         rsi = _rsi(c)
         out["rsi"] = round(rsi, 1)
-        # Reward pullbacks inside an uptrend (RSI 40–55), penalize overbought
+
         if rsi >= 75:
             rsi_score = -0.5
         elif rsi <= 30:
-            rsi_score = 0.3   # oversold bounce candidate
-        elif 40 <= rsi <= 55:
-            rsi_score = 0.4   # healthy pullback entry zone
+            rsi_score = 0.3
+        elif 40 <= rsi <= 58:
+            rsi_score = 0.4   # healthy pullback — best entry zone
         else:
             rsi_score = 0.0
 
         score = 0.45 * trend_score + 0.35 * mom_score + 0.20 * rsi_score
-        out["trend"] = "BULL" if trend_score > 0.15 else "BEAR" if trend_score < -0.15 else "NEUTRAL"
 
-        # Sector relative strength tilt (stock 20d vs its sector ETF 20d)
+        # Sector relative strength tilt
         etf = _TICKER_SECTOR.get(ticker, "SPY")
+        rel = 0.0
         try:
             ed = fetch_daily(etf, period="3mo")
             if len(ed) >= 20:
                 ec = ed["Close"].to_numpy(dtype=float)
                 stock_20 = c[-1] / c[-20] - 1.0
-                etf_20 = ec[-1] / ec[-20] - 1.0
+                etf_20   = ec[-1] / ec[-20] - 1.0
                 rel = stock_20 - etf_20
                 out["rel_strength_pct"] = round(rel * 100, 1)
-                score += float(np.clip(rel / 0.10, -0.2, 0.2))  # bounded tilt
+                score += float(np.clip(rel / 0.10, -0.2, 0.2))
         except Exception:
             pass
 
         if np.isnan(score):
             score = 0.0
         out["score"] = round(float(np.clip(score, -1, 1)), 3)
+        out["trend"] = "BULL" if trend_score > 0.15 else "BEAR" if trend_score < -0.15 else "NEUTRAL"
+
+        # ── Entry quality assessment ─────────────────────────────────
+        # STRONG: uptrend (price > EMA20 > EMA50 > EMA200) + RSI pullback 40-58
+        # FAIR:   uptrend + RSI 58-65 (a bit stretched but ok)
+        # WAIT:   mixed trend or RSI overbought
+        # AVOID:  downtrend or RSI > 70
+        price_above_200 = c[-1] > el200[-1]
+        price_above_50  = c[-1] > es50[-1]
+        ema_stack_bull  = ef20[-1] > es50[-1] > el200[-1]
+        near_ema20      = abs(c[-1] - ef20[-1]) / ef20[-1] < 0.03  # within 3% of 20EMA
+
+        if rsi > 70 or trend_score < -0.1:
+            entry_quality = "AVOID"
+            entry_now = False
+        elif ema_stack_bull and 40 <= rsi <= 58:
+            entry_quality = "STRONG"
+            entry_now = True
+        elif (price_above_50 or price_above_200) and rsi <= 65:
+            entry_quality = "FAIR"
+            entry_now = (rsi <= 60 and near_ema20)
+        else:
+            entry_quality = "WAIT"
+            entry_now = False
+
+        out["entry_quality"] = entry_quality
+        out["entry_now"]     = entry_now
+
     except Exception as e:
         print(f"[swing] technical {ticker} failed: {e}")
     return out
@@ -176,53 +242,71 @@ def _combined(fund_score: float, tech_score: float, imminent_earnings: bool) -> 
     """Fundamental 'why' (0.55) + technical 'when' (0.45). De-risk into earnings."""
     combined = 0.55 * fund_score + 0.45 * tech_score
     if imminent_earnings:
-        combined *= 0.6   # binary-event risk — shrink conviction before the print
+        combined *= 0.6
     return round(combined, 3)
 
 
 def screen_one(ticker: str) -> dict:
-    """Full swing read for one ticker: fundamental + technical + combined score."""
+    """Full swing read for one ticker: fundamental + technical + valuation upside."""
     from fundamental_data import fetch_fundamentals
 
-    fund = fetch_fundamentals(ticker)
-    tech = _technical_score(ticker)
+    fund    = fetch_fundamentals(ticker)
+    tech    = _technical_score(ticker)
+    val     = _analyst_target(ticker)
     imminent = bool(fund["earnings"]["imminent"])
     combined = _combined(fund["score"], tech["score"], imminent)
     return {
-        "ticker":        ticker,
+        "ticker":         ticker,
         "combined_score": combined,
-        "fundamental":   fund,
-        "technical":     tech,
-        "updated_at":    _now(),
+        "upside_pct":     val.get("upside_pct"),
+        "analyst_target": val.get("analyst_target"),
+        "current_price":  val.get("current_price"),
+        "entry_quality":  tech.get("entry_quality", "WAIT"),
+        "entry_now":      tech.get("entry_now", False),
+        "fundamental":    fund,
+        "technical":      tech,
+        "updated_at":     _now(),
     }
 
 
 def run_screen(top_n: int = 10) -> dict:
-    """Scan the full watchlist and lock on the best `top_n` names that have BOTH
-    good fundamentals and a positive technical entry. Qualified names (fundamental
-    score > 0 AND technical score > 0) rank first, then by combined score. Nightly."""
+    """
+    Scan full watchlist, apply fundamental + 20% upside gates, rank by combined
+    score, lock the best 10. Runs twice daily: 09:45 ET (morning) + 16:30 ET (close).
+    """
     global _cached
     rows = []
+    skipped_upside   = 0
+    skipped_fundament = 0
+
     for t in WATCHLIST:
         try:
-            rows.append(screen_one(t))
+            r = screen_one(t)
+            # Gate 1: positive fundamental score
+            if r["fundamental"]["score"] <= 0:
+                skipped_fundament += 1
+                continue
+            # Gate 2: ≥20% analyst upside (skip if target unavailable — don't penalise)
+            upside = r.get("upside_pct")
+            if upside is not None and upside < 20.0:
+                skipped_upside += 1
+                continue
+            rows.append(r)
         except Exception as e:
             print(f"[swing] screen {t} failed: {e}")
 
-    # Flag names with both good fundamentals and a positive technical entry
-    for r in rows:
-        fs = (r.get("fundamental") or {}).get("score", 0) or 0
-        ts = (r.get("technical")   or {}).get("score", 0) or 0
-        r["qualified"] = bool(fs > 0 and ts > 0)
+    # Sort: entry_now stocks first, then by combined score
+    rows.sort(key=lambda r: (r.get("entry_now", False), r["combined_score"]), reverse=True)
+    top = rows[:top_n]
 
-    # Lock on the best: qualified (fundamentals + technical) first, then combined score
-    rows.sort(key=lambda r: (r["qualified"], r["combined_score"]), reverse=True)
     result = {
-        "candidates":      rows[:top_n],
-        "qualified_count": sum(1 for r in rows if r["qualified"]),
-        "scanned":         len(rows),
-        "top_n":           top_n,
-        "updated_at":      _now(),
+        "candidates":         top,
+        "scanned":            len(WATCHLIST),
+        "passed_gates":       len(rows),
+        "top_n":              top_n,
+        "skipped_upside":     skipped_upside,
+        "skipped_fundamental": skipped_fundament,
+        "updated_at":         _now(),
     }
     _cached = result
     try:
@@ -232,8 +316,11 @@ def run_screen(top_n: int = 10) -> dict:
     except Exception as e:
         print(f"[swing] persist failed: {e}")
 
-    top = " | ".join(f"{r['ticker']}({r['combined_score']:+.2f}{'✓' if r['qualified'] else ''})" for r in rows[:top_n])
-    print(f"[swing] screened {len(rows)} names, {result['qualified_count']} qualified — top: {top}")
+    summary = " | ".join(
+        f"{r['ticker']}({r['combined_score']:+.2f} ↑{r['upside_pct']:.0f}%{'⚡' if r['entry_now'] else ''})"
+        for r in top
+    )
+    print(f"[swing] {len(WATCHLIST)} scanned → {len(rows)} passed gates → top {len(top)}: {summary}")
     return result
 
 
