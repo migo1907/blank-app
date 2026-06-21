@@ -1805,6 +1805,7 @@ function Splash({onEnter}) {
   return (
     <div className={`splash${leaving?' leaving':''}`} onClick={enter}>
       <div className="splash-glow"/>
+      <div className="splash-watermark" aria-hidden="true">MIGO</div>
       <div className="splash-inner">
         <img className="splash-logo" src="/app/sniper-logo.jpg" alt="Sniper Signals"
           fetchpriority="high" decoding="async"
