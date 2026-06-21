@@ -21,21 +21,20 @@ async function api(path, params = {}) {
   return r.json()
 }
 
-const TABS = [
+const BOTTOM_NAV = [
   { id: 'markets',   ico: '📊', label: 'Markets'   },
-  { id: 'brief',     ico: '☀️', label: 'Brief'     },
-  { id: 'pulse',     ico: '📡', label: 'Pulse'     },
   { id: 'signals',   ico: '🧭', label: 'Signals'   },
-  { id: 'ml',        ico: '🤖', label: 'ML'        },
-  { id: 'swing',     ico: '📈', label: 'Swing'     },
-  { id: 'macro',     ico: '🌍', label: 'Macro'     },
-  { id: 'news',      ico: '📰', label: 'News'      },
-  { id: 'portfolio', ico: '💼', label: 'Portfolio'  },
-  { id: 'watchlist', ico: '👁️', label: 'Watchlist' },
-  { id: 'research',  ico: '🔍', label: 'Research'  },
-  { id: 'compare',   ico: '⚖️', label: 'Compare'   },
-  { id: 'wrap',      ico: '🗞️', label: 'Wrap-Up'   },
   { id: 'options',   ico: '🎯', label: 'Options'   },
+  { id: 'positions', ico: '💼', label: 'Positions'  },
+  { id: 'more',      ico: '•••', label: 'More'     },
+]
+
+const DRAWER_ITEMS = [
+  { id: 'intel',  ico: '☀️', label: 'Daily Intel' },
+  { id: 'swing',  ico: '📈', label: 'Swing'       },
+  { id: 'macro',  ico: '🌍', label: 'Macro'       },
+  { id: 'news',   ico: '📰', label: 'News'        },
+  { id: 'analyst',ico: '🔍', label: 'Analyst'     },
 ]
 
 const GOLD_POOLS  = ['XAUUSD_2M','XAUUSD_5M','XAUUSD_15M','XAUUSD_30M','XAUUSD_1H']
@@ -462,7 +461,8 @@ function PoolDetail({pool}) {
   )
 }
 
-function SignalsTab({pulse}) {
+function SignalsTab({pulse, health}) {
+  const [subTab,setSubTab] = useState('signals')
   const [expanded,setExpanded] = useState(null)
   const [dirFilter,setDirFilter] = useState('ALL')
   const [minConf,setMinConf] = useState(0)
@@ -480,6 +480,12 @@ function SignalsTab({pulse}) {
 
   return (
     <div className="content">
+      <div className="sub-tabs">
+        <button className={`sub-tab${subTab==='signals'?' active':''}`} onClick={()=>setSubTab('signals')}>Signals</button>
+        <button className={`sub-tab${subTab==='ml'?' active':''}`} onClick={()=>setSubTab('ml')}>ML</button>
+      </div>
+      {subTab==='ml' && <MLTab health={health}/>}
+      {subTab==='signals' && <>
       {/* Filters */}
       <div style={{padding:'8px 12px 4px'}}>
         <div style={{fontSize:9,color:'var(--muted)',fontWeight:700,textTransform:'uppercase',letterSpacing:'.08em',marginBottom:6}}>Filter by Direction</div>
@@ -548,6 +554,7 @@ function SignalsTab({pulse}) {
         })}
         {filtered(STOCK_POOLS).length===0&&<div style={{color:'var(--muted)',fontSize:12,padding:'8px 0',gridColumn:'1/-1'}}>No pools match filters.</div>}
       </div>
+      </>}
     </div>
   )
 }
@@ -1379,6 +1386,53 @@ function WrapTab() {
 }
 
 // ══════════════════════════════════════════════════════════════════
+// WRAPPER COMPONENTS — merged tab groups
+// ══════════════════════════════════════════════════════════════════
+function DailyIntelTab({pulse, health}) {
+  const [subTab, setSubTab] = useState('brief')
+  return (
+    <div className="content">
+      <div className="sub-tabs">
+        <button className={`sub-tab${subTab==='brief'?' active':''}`} onClick={()=>setSubTab('brief')}>Brief</button>
+        <button className={`sub-tab${subTab==='pulse'?' active':''}`} onClick={()=>setSubTab('pulse')}>Pulse</button>
+      </div>
+      {subTab==='brief' && <BriefTab/>}
+      {subTab==='pulse' && <PulseTab pulse={pulse} health={health}/>}
+    </div>
+  )
+}
+
+function MyPositionsTab() {
+  const [subTab, setSubTab] = useState('portfolio')
+  return (
+    <div className="content">
+      <div className="sub-tabs">
+        <button className={`sub-tab${subTab==='portfolio'?' active':''}`} onClick={()=>setSubTab('portfolio')}>Portfolio</button>
+        <button className={`sub-tab${subTab==='watchlist'?' active':''}`} onClick={()=>setSubTab('watchlist')}>Watchlist</button>
+      </div>
+      {subTab==='portfolio' && <PortfolioTab/>}
+      {subTab==='watchlist' && <WatchlistTab/>}
+    </div>
+  )
+}
+
+function AnalystTab() {
+  const [subTab, setSubTab] = useState('research')
+  return (
+    <div className="content">
+      <div className="sub-tabs">
+        <button className={`sub-tab${subTab==='research'?' active':''}`} onClick={()=>setSubTab('research')}>Research</button>
+        <button className={`sub-tab${subTab==='compare'?' active':''}`} onClick={()=>setSubTab('compare')}>Compare</button>
+        <button className={`sub-tab${subTab==='wrap'?' active':''}`} onClick={()=>setSubTab('wrap')}>Wrap-Up</button>
+      </div>
+      {subTab==='research' && <ResearchTab/>}
+      {subTab==='compare' && <CompareTab/>}
+      {subTab==='wrap' && <WrapTab/>}
+    </div>
+  )
+}
+
+// ══════════════════════════════════════════════════════════════════
 // TAB — OPTIONS FLOW (Polygon)
 // ══════════════════════════════════════════════════════════════════
 function OptionsTab() {
@@ -1545,38 +1599,57 @@ function OptionsTab() {
 // APP ROOT
 // ══════════════════════════════════════════════════════════════════
 export default function App() {
-  const [tab,setTab] = useState('brief')
+  const [tab,setTab]       = useState('markets')
+  const [drawer,setDrawer] = useState(false)
   const pulse  = useLoad(()=>fetch(`${BASE}/pulse`,{signal:AbortSignal.timeout(15000)}).then(r=>r.json()))
   const health = useLoad(()=>api('/health'))
 
   useEffect(()=>{ const id=setInterval(pulse.reload,  60_000); return()=>clearInterval(id) },[])
   useEffect(()=>{ const id=setInterval(health.reload,120_000); return()=>clearInterval(id) },[])
 
+  const selectTab = (id) => { setTab(id); setDrawer(false) }
+
   return (
     <>
-      <nav className="nav">
-        {TABS.map(t=>(
-          <button key={t.id} className={tab===t.id?'active':''} onClick={()=>setTab(t.id)}>
-            <span className="ico">{t.ico}</span>{t.label}
+      <div style={{flex:1, paddingBottom:64}}>
+        {tab==='markets'   && <MarketsTab/>}
+        {tab==='signals'   && <SignalsTab pulse={pulse} health={health}/>}
+        {tab==='options'   && <OptionsTab/>}
+        {tab==='positions' && <MyPositionsTab/>}
+        {tab==='intel'     && <DailyIntelTab pulse={pulse} health={health}/>}
+        {tab==='swing'     && <SwingTab/>}
+        {tab==='macro'     && <MacroTab health={health}/>}
+        {tab==='news'      && <NewsTab/>}
+        {tab==='analyst'   && <AnalystTab/>}
+      </div>
+
+      {/* More drawer overlay */}
+      {drawer && (
+        <div className="drawer-overlay" onClick={()=>setDrawer(false)}>
+          <div className="drawer" onClick={e=>e.stopPropagation()}>
+            <div className="drawer-handle"/>
+            {DRAWER_ITEMS.map(item=>(
+              <button key={item.id} className={`drawer-item${tab===item.id?' active':''}`}
+                onClick={()=>selectTab(item.id)}>
+                <span style={{fontSize:20}}>{item.ico}</span>
+                <span>{item.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Fixed bottom nav */}
+      <nav className="bottom-nav">
+        {BOTTOM_NAV.map(item=>(
+          <button key={item.id}
+            className={tab===item.id||(item.id==='more'&&drawer)?'active':''}
+            onClick={()=>item.id==='more'?setDrawer(!drawer):selectTab(item.id)}>
+            <span className="ico">{item.ico}</span>
+            <span>{item.label}</span>
           </button>
         ))}
       </nav>
-      <div style={{flex:1}}>
-        {tab==='markets'   && <MarketsTab/>}
-        {tab==='brief'     && <BriefTab/>}
-        {tab==='pulse'     && <PulseTab   pulse={pulse} health={health}/>}
-        {tab==='signals'   && <SignalsTab pulse={pulse}/>}
-        {tab==='ml'        && <MLTab      health={health}/>}
-        {tab==='swing'     && <SwingTab/>}
-        {tab==='macro'     && <MacroTab   health={health}/>}
-        {tab==='news'      && <NewsTab/>}
-        {tab==='portfolio' && <PortfolioTab/>}
-        {tab==='watchlist' && <WatchlistTab/>}
-        {tab==='research'  && <ResearchTab/>}
-        {tab==='compare'   && <CompareTab/>}
-        {tab==='wrap'      && <WrapTab/>}
-        {tab==='options'   && <OptionsTab/>}
-      </div>
     </>
   )
 }
