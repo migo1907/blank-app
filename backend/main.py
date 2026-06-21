@@ -1121,6 +1121,35 @@ async def test_session_report(secret: str = ""):
     return {"status": "sent" if sent else "no_trades_today"}
 
 
+@app.get("/signals/levels")
+async def signals_levels(secret: str = ""):
+    """Return cached entry/TP/SL levels per symbol+direction+timeframe."""
+    _validate_secret(secret)
+    import time as _time
+    now = _time.monotonic()
+    out = []
+    for key, val in list(_entry_price_cache.items()):
+        sym, direction, tf = key.split("|", 2)
+        entry, tp1, tp2, tp3, sl, ts = val
+        age_min = round((now - ts) / 60, 1)
+        if age_min > 240:
+            continue
+        out.append({
+            "key":       key,
+            "symbol":    sym,
+            "direction": direction,
+            "timeframe": tf,
+            "entry":     entry or None,
+            "tp1":       tp1 or None,
+            "tp2":       tp2 or None,
+            "tp3":       tp3 or None,
+            "sl":        sl  or None,
+            "age_min":   age_min,
+        })
+    out.sort(key=lambda x: x["age_min"])
+    return {"levels": out}
+
+
 @app.get("/signal/now")
 async def signal_now(secret: str = ""):
     _validate_secret(secret)

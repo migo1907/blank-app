@@ -22,7 +22,7 @@ async function api(path, params = {}) {
 }
 
 const BOTTOM_NAV = [
-  { id: 'markets',   ico: '📊', label: 'Markets'   },
+  { id: 'markets',   ico: '📊', label: 'Overview'  },
   { id: 'signals',   ico: '🧭', label: 'Signals'   },
   { id: 'options',   ico: '🎯', label: 'Options'   },
   { id: 'positions', ico: '💼', label: 'Positions'  },
@@ -30,11 +30,10 @@ const BOTTOM_NAV = [
 ]
 
 const DRAWER_ITEMS = [
-  { id: 'intel',  ico: '☀️', label: 'Daily Intel' },
-  { id: 'swing',  ico: '📈', label: 'Swing'       },
-  { id: 'macro',  ico: '🌍', label: 'Macro'       },
-  { id: 'news',   ico: '📰', label: 'News'        },
-  { id: 'analyst',ico: '🔍', label: 'Analyst'     },
+  { id: 'swing',   ico: '📈', label: 'Swing'       },
+  { id: 'macro',   ico: '🌍', label: 'Macro'       },
+  { id: 'news',    ico: '📰', label: 'News'        },
+  { id: 'analyst', ico: '🔍', label: 'Analyst'     },
 ]
 
 const GOLD_POOLS  = ['XAUUSD_2M','XAUUSD_5M','XAUUSD_15M','XAUUSD_30M','XAUUSD_1H']
@@ -461,100 +460,159 @@ function PoolDetail({pool}) {
   )
 }
 
-function SignalsTab({pulse, health}) {
-  const [subTab,setSubTab] = useState('signals')
-  const [expanded,setExpanded] = useState(null)
+const TF_LABELS = {'5':'5M','15':'15M','30':'30M','60':'1H','240':'4H'}
+const GOLD_POOLS_VISIBLE  = GOLD_POOLS.filter(p=>!p.includes('2M'))
+const POOL_TF = p => {
+  const m = p.match(/(\d+)M$|_(\d+)H$/)
+  if (!m) return null
+  if (m[2]) return String(Number(m[2])*60)
+  return m[1]
+}
+
+function SignalsTab({pulse}) {
+  const {data:levels, reload:reloadLevels} = useLoad(()=>api('/signals/levels'))
+  const [expanded,setExpanded]   = useState(null)
   const [dirFilter,setDirFilter] = useState('ALL')
-  const [minConf,setMinConf] = useState(0)
+  const [tfFilter,setTfFilter]   = useState('ALL')
+  const [minConf,setMinConf]     = useState(0)
+
+  useEffect(()=>{ const id=setInterval(reloadLevels,30_000); return()=>clearInterval(id) },[])
 
   const pools = pulse.data?.pools || {}
+  const lvlMap = {}
+  for (const l of levels?.levels || []) {
+    lvlMap[`${l.symbol}|${l.direction}|${l.timeframe}`] = l
+  }
 
   const filtered = (list) => list.filter(name=>{
     const p = pools[name]||{}
     if(dirFilter!=='ALL'&&p.direction!==dirFilter) return false
     if(minConf>0&&(p.confidence||0)<minConf/100) return false
+    if(tfFilter!=='ALL'){
+      const tf = POOL_TF(name)
+      if(tf !== tfFilter) return false
+    }
     return true
   })
 
+  const LevelsRow = ({pool, dir}) => {
+    const sym = pool.startsWith('XAUUSD')? 'XAUUSD' : pool.replace(/^STOCKS_/,'').replace(/_\d+M$/,'').replace(/_\d+H$/,'')
+    const key = `${sym}|${dir}|${POOL_TF(pool)||''}`
+    const lv  = lvlMap[key]
+    if(!lv||!lv.entry) return null
+    return (
+      <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:4,marginTop:8,paddingTop:8,borderTop:'1px solid var(--border)'}}>
+        <div style={{textAlign:'center'}}>
+          <div className="mono" style={{fontSize:11,color:'var(--text)',fontWeight:700}}>{lv.entry ? money(lv.entry) : '—'}</div>
+          <div style={{fontSize:9,color:'var(--muted)',fontWeight:600,textTransform:'uppercase'}}>Entry</div>
+        </div>
+        <div style={{textAlign:'center'}}>
+          <div className="mono" style={{fontSize:11,color:'var(--green)',fontWeight:700}}>{lv.tp1 ? money(lv.tp1) : '—'}</div>
+          <div style={{fontSize:9,color:'var(--muted)',fontWeight:600,textTransform:'uppercase'}}>TP1</div>
+        </div>
+        <div style={{textAlign:'center'}}>
+          <div className="mono" style={{fontSize:11,color:'var(--green)',fontWeight:700}}>{lv.tp2 ? money(lv.tp2) : '—'}</div>
+          <div style={{fontSize:9,color:'var(--muted)',fontWeight:600,textTransform:'uppercase'}}>TP2</div>
+        </div>
+        <div style={{textAlign:'center'}}>
+          <div className="mono" style={{fontSize:11,color:'var(--green)',fontWeight:700}}>{lv.tp3 ? money(lv.tp3) : '—'}</div>
+          <div style={{fontSize:9,color:'var(--muted)',fontWeight:600,textTransform:'uppercase'}}>TP3</div>
+        </div>
+        <div style={{textAlign:'center'}}>
+          <div className="mono" style={{fontSize:11,color:'var(--red)',fontWeight:700}}>{lv.sl ? money(lv.sl) : '—'}</div>
+          <div style={{fontSize:9,color:'var(--muted)',fontWeight:600,textTransform:'uppercase'}}>SL</div>
+        </div>
+      </div>
+    )
+  }
+
   if(pulse.load&&!pulse.data) return <Spinner/>
+
+  const TF_OPTIONS = ['ALL','5','15','30','60','240']
 
   return (
     <div className="content">
-      <div className="sub-tabs">
-        <button className={`sub-tab${subTab==='signals'?' active':''}`} onClick={()=>setSubTab('signals')}>Signals</button>
-        <button className={`sub-tab${subTab==='ml'?' active':''}`} onClick={()=>setSubTab('ml')}>ML</button>
+      {/* TF filter */}
+      <div className="filter-bar">
+        {TF_OPTIONS.map(tf=>(
+          <button key={tf} className={`filter-chip${tfFilter===tf?' active':''}`} onClick={()=>setTfFilter(tf)}>
+            {tf==='ALL'?'All TF':TF_LABELS[tf]||tf}
+          </button>
+        ))}
       </div>
-      {subTab==='ml' && <MLTab health={health}/>}
-      {subTab==='signals' && <>
-      {/* Filters */}
-      <div style={{padding:'8px 12px 4px'}}>
-        <div style={{fontSize:9,color:'var(--muted)',fontWeight:700,textTransform:'uppercase',letterSpacing:'.08em',marginBottom:6}}>Filter by Direction</div>
-        <div className="filter-bar" style={{padding:0}}>
+
+      {/* Direction + conf filters */}
+      <div style={{padding:'0 10px 8px',display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
+        <div className="filter-bar" style={{padding:0,flex:1}}>
           {['ALL','LONG','SHORT','NEUTRAL'].map(d=>(
-            <button key={d} className={`filter-chip ${dirFilter===d?'active':''}`} onClick={()=>setDirFilter(d)}
+            <button key={d} className={`filter-chip${dirFilter===d?' active':''}`} onClick={()=>setDirFilter(d)}
               style={dirFilter===d?{}:{color:d==='LONG'?'var(--green)':d==='SHORT'?'var(--red)':undefined}}>
               {d==='LONG'?'▲ Long':d==='SHORT'?'▼ Short':d==='NEUTRAL'?'— Neutral':'All'}
             </button>
           ))}
         </div>
-        <div style={{marginTop:8}}>
-          <div style={{fontSize:9,color:'var(--muted)',fontWeight:700,textTransform:'uppercase',letterSpacing:'.08em',marginBottom:4}}>
-            Min Confidence: <span style={{color:'var(--gold)'}}>{minConf}%</span>
-          </div>
+        <div style={{display:'flex',alignItems:'center',gap:6,whiteSpace:'nowrap'}}>
+          <span style={{fontSize:10,color:'var(--muted)'}}>Conf ≥</span>
+          <span style={{fontSize:10,color:'var(--gold)',fontWeight:700,minWidth:28}}>{minConf}%</span>
           <input type="range" min="0" max="80" step="5" value={minConf} onChange={e=>setMinConf(+e.target.value)}
-            style={{width:'100%',accentColor:'var(--gold)'}}/>
+            style={{accentColor:'var(--gold)',width:80}}/>
         </div>
       </div>
 
       {/* Gold pools */}
-      <div className="section-h">🥇 Gold Pools <span style={{color:'var(--muted)',fontWeight:400,fontSize:10}}>{filtered(GOLD_POOLS).length} shown</span></div>
-      <div style={{margin:'0 12px',display:'flex',flexDirection:'column',gap:8}}>
-        {filtered(GOLD_POOLS).map(name=>{
-          const p=pools[name]||{}, short=name.replace('XAUUSD_',''), isExp=expanded===name
+      <div className="section-h">🥇 Gold <span style={{color:'var(--muted)',fontWeight:400,fontSize:10}}>{filtered(GOLD_POOLS_VISIBLE).length} shown</span></div>
+      <div style={{margin:'0 10px',display:'flex',flexDirection:'column',gap:8}}>
+        {filtered(GOLD_POOLS_VISIBLE).map(name=>{
+          const p=pools[name]||{}, tf=POOL_TF(name), isExp=expanded===name
           return (
             <div key={name} className={`pool-item ${p.direction==='LONG'?'long':p.direction==='SHORT'?'short':'neutral'}`}
               onClick={()=>setExpanded(isExp?null:name)}>
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                 <div>
-                  <div style={{fontSize:10,color:'var(--muted)',marginBottom:2,fontWeight:600}}>{short}</div>
-                  <div style={{fontSize:14,fontWeight:800,color:dirClr(p.direction)}}>
+                  <div style={{fontSize:10,color:'var(--muted)',marginBottom:3,fontWeight:700,letterSpacing:'.04em'}}>
+                    XAUUSD · <span style={{color:'var(--gold)'}}>{TF_LABELS[tf]||tf}</span>
+                  </div>
+                  <div style={{fontSize:15,fontWeight:800,color:dirClr(p.direction)}}>
                     {p.direction==='LONG'?'▲ LONG':p.direction==='SHORT'?'▼ SHORT':'— NEUTRAL'}
-                    {p.certainty&&<span style={{marginLeft:6,fontSize:12}}>{cert(p.certainty)}</span>}
+                    {p.certainty&&<span style={{marginLeft:6,fontSize:11,opacity:.8}}>{cert(p.certainty)}</span>}
                   </div>
                 </div>
-                <div style={{textAlign:'right'}}>
-                  <ScoreRing value={p.confidence||0} size={52} color={dirClr(p.direction)} sublabel="conf"/>
+                <div style={{textAlign:'center'}}>
+                  <div className="mono" style={{fontSize:18,fontWeight:800,color:dirClr(p.direction)}}>{((p.confidence||0)*100).toFixed(0)}%</div>
+                  <div style={{fontSize:9,color:'var(--muted)',fontWeight:600}}>CONF</div>
                 </div>
               </div>
+              <LevelsRow pool={name} dir={p.direction}/>
               {isExp&&<PoolDetail pool={name}/>}
             </div>
           )
         })}
-        {filtered(GOLD_POOLS).length===0&&<div style={{color:'var(--muted)',fontSize:12,padding:'8px 0'}}>No pools match filters.</div>}
+        {filtered(GOLD_POOLS_VISIBLE).length===0&&<div style={{color:'var(--muted)',fontSize:12,padding:'8px 0'}}>No pools match filters.</div>}
       </div>
 
       {/* Stock pools */}
-      <div className="section-h">📈 Stock Pools <span style={{color:'var(--muted)',fontWeight:400,fontSize:10}}>{filtered(STOCK_POOLS).length} shown</span></div>
-      <div style={{margin:'0 12px',display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,paddingBottom:16}}>
+      <div className="section-h">📈 Stocks <span style={{color:'var(--muted)',fontWeight:400,fontSize:10}}>{filtered(STOCK_POOLS).length} shown</span></div>
+      <div style={{margin:'0 10px',display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,paddingBottom:16}}>
         {filtered(STOCK_POOLS).map(name=>{
-          const p=pools[name]||{}, short=name.replace('STOCKS_',''), isExp=expanded===name
+          const p=pools[name]||{}, tf=POOL_TF(name), short=name.replace('STOCKS_','').replace(/_\d+M$/,`·${TF_LABELS[tf]||tf}`).replace(/_\d+H$/,`·${TF_LABELS[tf]||tf}`), isExp=expanded===name
           return (
             <div key={name} className={`pool-item ${p.direction==='LONG'?'long':p.direction==='SHORT'?'short':'neutral'}`}
               style={{gridColumn:isExp?'1/-1':'auto'}}
               onClick={()=>setExpanded(isExp?null:name)}>
-              <div style={{fontSize:9,color:'var(--muted)',marginBottom:2,fontWeight:600}}>{short}</div>
-              <div style={{fontSize:12,fontWeight:800,color:dirClr(p.direction)}}>
-                {p.direction==='LONG'?'▲ L':p.direction==='SHORT'?'▼ S':'—'}
-                {p.certainty&&<span style={{marginLeft:4,fontSize:10}}>{cert(p.certainty)}</span>}
+              <div style={{fontSize:9,color:'var(--muted)',marginBottom:3,fontWeight:700}}>{short}</div>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                <div style={{fontSize:13,fontWeight:800,color:dirClr(p.direction)}}>
+                  {p.direction==='LONG'?'▲ L':p.direction==='SHORT'?'▼ S':'—'}
+                  {p.certainty&&<span style={{marginLeft:4,fontSize:10}}>{cert(p.certainty)}</span>}
+                </div>
+                <div className="mono" style={{fontSize:12,fontWeight:700,color:dirClr(p.direction)}}>{((p.confidence||0)*100).toFixed(0)}%</div>
               </div>
-              <div style={{fontSize:10,color:'var(--muted)',marginTop:2}}>{((p.confidence||0)*100).toFixed(0)}% conf</div>
               {isExp&&<PoolDetail pool={name}/>}
             </div>
           )
         })}
         {filtered(STOCK_POOLS).length===0&&<div style={{color:'var(--muted)',fontSize:12,padding:'8px 0',gridColumn:'1/-1'}}>No pools match filters.</div>}
       </div>
-      </>}
     </div>
   )
 }
@@ -1066,18 +1124,18 @@ function CommentaryInline() {
   return <div style={{color:'var(--text)',fontSize:13,lineHeight:1.6,fontStyle:'italic'}}>"{data.commentary}"</div>
 }
 
-function MarketsTab() {
+function MarketsGridTab() {
   const {data,err,load} = useLoad(()=>getMarketOverview())
   if(load) return <Spinner/>
   if(err)  return <Err e={err}/>
   return (
-    <div className="content">
-      <div className="commentary-card" style={{margin:'10px 12px'}}>
+    <div>
+      <div className="commentary-card" style={{margin:'10px 10px'}}>
         <CommentaryInline/>
       </div>
       {Object.entries(data||{}).map(([grp,items])=>(
         <div key={grp} className="card">
-          <h3 style={{color:'var(--gold)',marginBottom:12,fontSize:14}}>{grp}</h3>
+          <div className="card-title">{grp}</div>
           <div className="market-grid">
             {items.map(item=>{
               const up=(item.change_pct||0)>=0
@@ -1094,6 +1152,22 @@ function MarketsTab() {
           </div>
         </div>
       ))}
+    </div>
+  )
+}
+
+function MarketsTab({pulse, health}) {
+  const [sub,setSub] = useState('overview')
+  return (
+    <div className="content">
+      <div className="sub-tabs">
+        <button className={`sub-tab${sub==='overview'?' active':''}`} onClick={()=>setSub('overview')}>Overview</button>
+        <button className={`sub-tab${sub==='brief'?' active':''}`} onClick={()=>setSub('brief')}>Brief</button>
+        <button className={`sub-tab${sub==='pulse'?' active':''}`} onClick={()=>setSub('pulse')}>Pulse</button>
+      </div>
+      {sub==='overview' && <MarketsGridTab/>}
+      {sub==='brief'    && <BriefTab/>}
+      {sub==='pulse'    && <PulseTab pulse={pulse} health={health}/>}
     </div>
   )
 }
@@ -1612,11 +1686,10 @@ export default function App() {
   return (
     <>
       <div style={{flex:1, paddingBottom:64}}>
-        {tab==='markets'   && <MarketsTab/>}
-        {tab==='signals'   && <SignalsTab pulse={pulse} health={health}/>}
+        {tab==='markets'   && <MarketsTab pulse={pulse} health={health}/>}
+        {tab==='signals'   && <SignalsTab pulse={pulse}/>}
         {tab==='options'   && <OptionsTab/>}
         {tab==='positions' && <MyPositionsTab/>}
-        {tab==='intel'     && <DailyIntelTab pulse={pulse} health={health}/>}
         {tab==='swing'     && <SwingTab/>}
         {tab==='macro'     && <MacroTab health={health}/>}
         {tab==='news'      && <NewsTab/>}
