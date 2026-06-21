@@ -13,7 +13,7 @@ import { getDashboard, subscribePush, VAPID_PUBLIC,
 const BASE   = 'https://blank-app-production-a8bd.up.railway.app'
 const SECRET = 'gold2026'
 
-const C = { green:'#22c55e', red:'#ef4444', muted:'#64748b', gold:'#f59e0b', blue:'#3b82f6', purple:'#a855f7', indigo:'#6366f1' }
+const C = { green:'#2ebd85', red:'#f6465d', muted:'#8089a0', gold:'#f5b027', blue:'#3b82f6', purple:'#a855f7', indigo:'#6366f1' }
 
 async function api(path, params = {}) {
   const url = new URL(BASE + path)
