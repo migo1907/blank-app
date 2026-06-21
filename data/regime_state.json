@@ -9,10 +9,10 @@
     "probs": {
       "RANGING": 0.001,
       "TRENDING_BEAR": 0.998,
-      "VOLATILE": 0.002
+      "VOLATILE": 0.001
     },
     "method": "hmm",
-    "updated_at": "2026-06-21T22:27:59.549025+00:00"
+    "updated_at": "2026-06-21T22:33:08.630236+00:00"
   },
   "SPY": {
     "asset": "SPY",
@@ -27,7 +27,7 @@
       "VOLATILE": 0.021
     },
     "method": "hmm",
-    "updated_at": "2026-06-21T22:28:00.776297+00:00"
+    "updated_at": "2026-06-21T22:33:09.353334+00:00"
   },
   "QQQ": {
     "asset": "QQQ",
@@ -42,6 +42,6 @@
       "VOLATILE": 0.001
     },
     "method": "hmm",
-    "updated_at": "2026-06-21T22:28:01.953629+00:00"
+    "updated_at": "2026-06-21T22:33:10.065125+00:00"
   }
 }
