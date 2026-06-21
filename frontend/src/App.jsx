@@ -5,7 +5,7 @@ import {
   AreaChart, Area, LineChart, Line,
   ReferenceLine
 } from 'recharts'
-import { Crosshair, BarChart3, CalendarDays, Briefcase, Newspaper, LogOut } from 'lucide-react'
+import { Crosshair, BarChart3, CalendarDays, Briefcase, Newspaper, LogOut, Menu, X, Moon, Sun, FileText } from 'lucide-react'
 import { getDashboard, subscribePush, VAPID_PUBLIC,
   getMarketOverview, getMarketQuotes, getMarketTicker, getMarketCompare, getMarketWrap, getMarketCommentary,
   getMarketSparklines, getOptionsFlow, getEconomicCalendar, getEarningsCalendar,
@@ -1130,8 +1130,8 @@ function MarketsGridTab() {
   )
 }
 
-function MarketsTab({pulse, health}) {
-  const [sub,setSub] = useState('overview')
+function MarketsTab({pulse, health, initialSub}) {
+  const [sub,setSub] = useState(initialSub||'overview')
   return (
     <div className="content">
       <div className="sub-tabs">
@@ -1824,6 +1824,10 @@ function Splash({onEnter}) {
 // ══════════════════════════════════════════════════════════════════
 function MainApp({onLock}) {
   const [tab,setTab] = useState('signals')
+  const [menu,setMenu] = useState(false)
+  const [marketsSub,setMarketsSub] = useState('overview')
+  const [theme,setTheme] = useState(()=>{ try{ return localStorage.getItem('theme')||'dark' }catch{ return 'dark' } })
+  useEffect(()=>{ try{ document.documentElement.setAttribute('data-theme',theme); localStorage.setItem('theme',theme) }catch{} },[theme])
   const pulse  = useLoad(()=>fetch(`${BASE}/pulse`,{signal:AbortSignal.timeout(15000)}).then(r=>r.json()))
   const health = useLoad(()=>api('/health'))
 
@@ -1834,21 +1838,52 @@ function MainApp({onLock}) {
     <>
       <div style={{flex:1, paddingBottom:64}}>
         {tab==='signals'   && <SignalsHub/>}
-        {tab==='markets'   && <MarketsTab pulse={pulse} health={health}/>}
+        {tab==='markets'   && <MarketsTab key={'mk-'+marketsSub} initialSub={marketsSub} pulse={pulse} health={health}/>}
         {tab==='calendar'  && <CalendarTab/>}
         {tab==='portfolio' && <PortfolioHub/>}
         {tab==='news'      && <NewsTab/>}
       </div>
 
-      {/* Lock / sign-out */}
-      <button onClick={onLock} title="Lock app" aria-label="Lock app"
+      {/* Menu button */}
+      <button onClick={()=>setMenu(true)} title="Menu" aria-label="Menu"
         style={{position:'fixed', right:14, bottom:'calc(64px + env(safe-area-inset-bottom) + 12px)', zIndex:120,
-          width:40, height:40, borderRadius:'50%', border:'1px solid var(--border-2)',
-          background:'rgba(21,23,27,.92)', backdropFilter:'blur(8px)', color:'var(--text-mut)',
+          width:44, height:44, borderRadius:'50%', border:'1px solid var(--border-2)',
+          background:'var(--surface)', color:'var(--text-hi)',
           display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer',
           boxShadow:'var(--shadow-pop)'}}>
-        <LogOut size={17} strokeWidth={2}/>
+        <Menu size={19} strokeWidth={2}/>
       </button>
+
+      {/* Side menu */}
+      {menu && (
+        <>
+          <div className="side-overlay" onClick={()=>setMenu(false)}/>
+          <div className="side-menu">
+            <div className="side-head">
+              <img src="/app/sniper-logo.jpg" alt="" onError={e=>{e.currentTarget.style.display='none'}}/>
+              <div>
+                <div className="sh-name">Sniper Signals</div>
+                <div className="sh-sub">Global Market Insights</div>
+              </div>
+              <button onClick={()=>setMenu(false)} aria-label="Close"
+                style={{marginLeft:'auto',background:'none',border:'none',color:'var(--text-mut)',cursor:'pointer',padding:4}}>
+                <X size={20}/>
+              </button>
+            </div>
+            <button className="menu-item" onClick={()=>{ setMarketsSub('wrap'); setTab('markets'); setMenu(false) }}>
+              <span className="m-ico"><FileText size={18}/></span> Daily Wrap-Up
+            </button>
+            <button className="menu-item" onClick={()=>setTheme(theme==='light'?'dark':'light')}>
+              <span className="m-ico">{theme==='light'?<Moon size={18}/>:<Sun size={18}/>}</span>
+              {theme==='light'?'Night Mode':'Day Mode'}
+              <span className="m-meta">{theme==='light'?'Light':'Dark'}</span>
+            </button>
+            <button className="menu-item danger" onClick={()=>{ setMenu(false); onLock() }}>
+              <span className="m-ico"><LogOut size={18}/></span> Lock / Sign Out
+            </button>
+          </div>
+        </>
+      )}
 
       {/* Fixed bottom nav */}
       <nav className="bottom-nav">
