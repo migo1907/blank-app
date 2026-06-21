@@ -540,20 +540,29 @@ function SignalsTab() {
             const lvMin  = lvVals.length?Math.min(...lvVals):0
             const lvMax  = lvVals.length?Math.max(...lvVals):1
             const lvSpan = Math.max(1e-9,lvMax-lvMin)
+            // Telegram-style fields
+            const isGold     = ['XAUUSD','GOLD','GC'].includes(String(s.symbol||'').toUpperCase())
+            const assetEmoji = isGold?'🥇':'📊'
+            const dirEmoji   = isLong?'🟢':'🔴'
+            const conf       = qs   // ML P(reach TP1+) → shown as Confidence
+            const convHdr    = conf==null?null:conf>=1.0?'‼️ MAXIMUM CONVICTION':conf>=0.75?'‼️ HIGH CONVICTION':null
+            const utcStamp   = s.fired_at ? (()=>{const d=new Date(s.fired_at);const p=x=>String(x).padStart(2,'0');const mon=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getUTCMonth()];return `${p(d.getUTCHours())}:${p(d.getUTCMinutes())} UTC — ${d.getUTCDate()} ${mon} ${d.getUTCFullYear()}`})() : ''
             return (
               <div key={i} style={{
                 background:'var(--surface)',border:`1px solid var(--border)`,
                 borderLeft:`3px solid ${clr}`,borderRadius:6,padding:'12px'
               }}>
+                {/* Conviction header */}
+                {convHdr&&<div style={{fontSize:11,fontWeight:800,color:'var(--gold)',letterSpacing:'.04em',marginBottom:6}}>{convHdr}</div>}
+
                 {/* Header row */}
-                <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:8}}>
                   <div>
-                    <div style={{fontSize:16,fontWeight:800,color:clr,letterSpacing:'.02em'}}>
-                      {isLong?'▲ LONG':'▼ SHORT'}
+                    <div style={{fontSize:15,fontWeight:800,color:clr,letterSpacing:'.02em'}}>
+                      {dirEmoji} {isLong?'LONG':'SHORT'} <span style={{color:'var(--text)'}}>— {assetEmoji} {s.symbol}</span>
                     </div>
-                    <div style={{fontSize:12,color:'var(--text)',fontWeight:600,marginTop:2}}>
-                      {s.symbol} · <span style={{color:'var(--gold)'}}>{tf}</span>
-                      {s.htf_context==='htf_direct'&&<span style={{marginLeft:6,fontSize:10,color:'var(--purple)',fontWeight:700}}> HTF</span>}
+                    <div style={{fontSize:12,color:'var(--text-mut)',fontWeight:600,marginTop:3}}>
+                      {tf}{s.htf_context==='htf_direct'&&<span style={{marginLeft:6,fontSize:10,color:'var(--purple)',fontWeight:700}}>🏔 HTF</span>}
                     </div>
                   </div>
                   <div style={{display:'flex',alignItems:'center',gap:8}}>
@@ -562,11 +571,15 @@ function SignalsTab() {
                         R:R 1:{rr.toFixed(1)}
                       </span>
                     )}
-                    <div style={{textAlign:'right'}}>
-                      <div style={{fontSize:10,color:'var(--muted)'}}>{age(s.fired_at)}</div>
-                      <div style={{fontSize:10,color:tierClr(s.tier),fontWeight:700,marginTop:2}}>{s.tier||'—'}</div>
-                    </div>
+                    <span style={{fontSize:10,color:tierClr(s.tier),fontWeight:700}}>{s.tier||'—'}</span>
                   </div>
+                </div>
+
+                {/* Confidence · Session · Event */}
+                <div style={{display:'flex',flexWrap:'wrap',gap:'4px 14px',marginBottom:10,fontSize:12}}>
+                  <span style={{color:'var(--text-mut)'}}>Confidence: <span style={{color:qClr,fontWeight:800}}>{conf!=null?`${(conf*100).toFixed(0)}%`:'—'}</span>{conf!=null&&<span style={{color:qClr,fontWeight:700,marginLeft:5,fontSize:10}}>{qLbl}</span>}</span>
+                  {s.session&&<span style={{color:'var(--text-mut)'}}>Session: <span style={{color:'var(--text)',fontWeight:600}}>{s.session}</span></span>}
+                  {s.event&&<span style={{color:'var(--red)',fontWeight:700}}>⚡ {s.event}</span>}
                 </div>
 
                 {/* Price ladder */}
@@ -595,14 +608,11 @@ function SignalsTab() {
                   ))}
                 </div>
 
-                {/* ML quality + event row */}
-                <div style={{display:'flex',gap:8,flexWrap:'wrap',alignItems:'center'}}>
-                  <span style={{fontSize:10,background:'var(--surface2)',border:'1px solid var(--border)',borderRadius:3,padding:'2px 7px',color:qClr,fontWeight:700}}>
-                    ML {qLbl}{qs!=null?` ${(qs*100).toFixed(0)}%`:''}
-                  </span>
+                {/* Footer: velocity/HTF + UTC timestamp (Telegram style) */}
+                <div style={{display:'flex',gap:8,flexWrap:'wrap',alignItems:'center',marginTop:2}}>
                   {s.velocity&&s.velocity!=='NORMAL'&&<span style={{fontSize:10,color:'var(--muted)',fontWeight:600}}>{s.velocity}</span>}
-                  {s.event&&<span style={{fontSize:10,color:'var(--red)',fontWeight:700}}>⚡ {s.event}</span>}
                   {s.htf_bias&&<span style={{fontSize:10,color:'var(--green)',fontWeight:600}}>HTF bias ✓</span>}
+                  <span style={{marginLeft:'auto',fontSize:10,color:'var(--text-mut)'}}>⏰ {utcStamp}</span>
                 </div>
               </div>
             )

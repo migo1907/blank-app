@@ -38,6 +38,23 @@ def _feed_push(entry: dict) -> None:
     if len(_signal_feed) > _SIGNAL_FEED_MAX:
         _signal_feed = _signal_feed[-_SIGNAL_FEED_MAX:]
 
+_SESSION_LABELS = {
+    "OVERLAP": "London/NY Overlap", "LONDON": "London", "LONDON_OPEN": "London Open",
+    "NEW_YORK": "New York", "NY_LATE": "New York Late", "ASIAN": "Asian", "OFF": "Off-Hours",
+    "NYSE_OPEN": "NYSE Open", "NYSE_AFTERNOON": "NYSE Afternoon",
+    "PRE_MARKET": "Pre-Market", "CLOSED": "Closed",
+}
+
+def _session_label(symbol: str) -> str:
+    """Friendly current-session label, matching the Telegram alert wording."""
+    try:
+        from signal_engine import _session_multiplier
+        is_stock = (symbol or "").upper() not in ("XAUUSD", "GOLD", "GC")
+        _, name = _session_multiplier(datetime.now(timezone.utc), is_stock)
+        return _SESSION_LABELS.get(name, name)
+    except Exception:
+        return ""
+
 
 def _outcome_is_duplicate(symbol: str, direction: str, entry_price: float, exit_price: float, timeframe: str) -> bool:
     """Returns True if this exact outcome was already processed within TTL window."""
@@ -803,6 +820,7 @@ async def signal_entry(payload: SignalEntryPayload):
         "htf_bias":    bias,
         "contra_bias": contra_bias,
         "htf_context": htf_context,
+        "session":     _session_label(sym),
         "fired_at":    datetime.now(timezone.utc).isoformat(),
     }
     _feed_push(_sig_payload)
@@ -916,6 +934,7 @@ async def unified_webhook(payload: UnifiedPayload):
             "htf_bias":    bias,
             "contra_bias": contra_bias,
             "htf_context": htf_context,
+            "session":     _session_label(sym),
             "fired_at":    datetime.now(timezone.utc).isoformat(),
         }
         _feed_push(_sig_payload2)
