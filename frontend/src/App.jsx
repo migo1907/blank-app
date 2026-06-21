@@ -2,9 +2,10 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   RadialBarChart, RadialBar, Cell,
-  AreaChart, Area, LineChart, Line, PieChart, Pie,
+  AreaChart, Area, LineChart, Line,
   ReferenceLine
 } from 'recharts'
+import { Crosshair, BarChart3, Globe, Briefcase, Newspaper } from 'lucide-react'
 import { getDashboard, subscribePush, VAPID_PUBLIC,
   getMarketOverview, getMarketQuotes, getMarketTicker, getMarketCompare, getMarketWrap, getMarketCommentary,
   getOptionsFlow } from './api'
@@ -24,18 +25,11 @@ async function api(path, params = {}) {
 }
 
 const BOTTOM_NAV = [
-  { id: 'markets',   ico: '📊', label: 'Overview'  },
-  { id: 'signals',   ico: '🧭', label: 'Signals'   },
-  { id: 'options',   ico: '🎯', label: 'Options'   },
-  { id: 'positions', ico: '💼', label: 'Positions'  },
-  { id: 'more',      ico: '•••', label: 'More'     },
-]
-
-const DRAWER_ITEMS = [
-  { id: 'swing',   ico: '📈', label: 'Swing'       },
-  { id: 'macro',   ico: '🌍', label: 'Macro'       },
-  { id: 'news',    ico: '📰', label: 'News'        },
-  { id: 'analyst', ico: '🔍', label: 'Analyst'     },
+  { id: 'signals',   Icon: Crosshair, label: 'Signals'   },
+  { id: 'markets',   Icon: BarChart3, label: 'Markets'   },
+  { id: 'macro',     Icon: Globe,     label: 'Macro'     },
+  { id: 'portfolio', Icon: Briefcase, label: 'Portfolio' },
+  { id: 'news',      Icon: Newspaper, label: 'News'      },
 ]
 
 const GOLD_POOLS  = ['XAUUSD_2M','XAUUSD_5M','XAUUSD_15M','XAUUSD_30M','XAUUSD_1H']
@@ -769,7 +763,6 @@ function SwingTab() {
 // TAB 6 — MACRO & REGIME
 // ══════════════════════════════════════════════════════════════════
 function MacroTab({health}) {
-  const opts=useLoad(()=>api('/options/trades'))
   const {data:hd,err,load}=health
   if(load&&!hd) return <Spinner/>
   if(err&&!hd)  return <Err e={err}/>
@@ -786,8 +779,6 @@ function MacroTab({health}) {
     name: asset, alignment: m.alignment||'—',
     bull: Math.round((m.bull_score||0)*100), bear: Math.round((m.bear_score||0)*100)
   }))
-
-  const od=opts.data||{}, optPools=od.pools||{}
 
   return (
     <div className="content">
@@ -867,41 +858,6 @@ function MacroTab({health}) {
         </div>
       )}
 
-      {/* Options */}
-      <div className="card">
-        <div className="card-title">SPX 0-1DTE Options Paper Trades</div>
-        {opts.load&&!od.pools?<div style={{color:'var(--muted)',fontSize:12}}>Loading…</div>:
-        Object.keys(optPools).length===0?<div style={{color:'var(--muted)',fontSize:12}}>No options data yet.</div>:(
-          <table className="tbl"><thead><tr><th>Pool</th><th>Open</th><th>Closed</th><th>Win%</th><th>Gate</th></tr></thead>
-          <tbody>{Object.entries(optPools).map(([pool,ps])=>(
-            <tr key={pool}>
-              <td style={{fontSize:10,fontWeight:700}}>{pool}</td>
-              <td>{ps.open||0}</td>
-              <td>{ps.closed||0}</td>
-              <td style={{color:(ps.win_rate||0)>0.5?'var(--green)':'var(--red)',fontWeight:700}}>{((ps.win_rate||0)*100).toFixed(1)}%</td>
-              <td>{ps.ml_gate_active?<span className="bdg bdg-bull">Active</span>:<span style={{color:'var(--muted)',fontSize:10}}>⏳{50-(ps.closed||0)}</span>}</td>
-            </tr>
-          ))}</tbody></table>
-        )}
-        <div style={{fontSize:10,color:'var(--muted)',marginTop:8}}>ML gate activates at ≥50 closed trades per pool.</div>
-      </div>
-
-      {od.open_positions?.length>0&&(
-        <div className="card">
-          <div className="card-title">Open Options Positions ({od.open_positions.length})</div>
-          <table className="tbl"><thead><tr><th>Pool</th><th>Dir</th><th>Strike</th><th>DTE</th><th>Entry</th><th>Age</th></tr></thead>
-          <tbody>{od.open_positions.map((p,i)=>(
-            <tr key={i}>
-              <td style={{fontSize:10}}>{p.pool||''}</td>
-              <td style={{color:p.direction==='CALL'?'var(--green)':'var(--red)',fontWeight:700}}>{p.direction}</td>
-              <td style={{color:'var(--gold)'}}>{p.strike||'—'}</td>
-              <td>{p.dte||'—'}</td>
-              <td>${n(p.entry_premium,2)}</td>
-              <td style={{color:'var(--muted)',fontSize:10}}>{age(p.entry_time)}</td>
-            </tr>
-          ))}</tbody></table>
-        </div>
-      )}
     </div>
   )
 }
@@ -928,7 +884,7 @@ function NewsTab() {
   // Sentiment breakdown
   const allItems=data?.items||[]
   const sentCounts={BULLISH:allItems.filter(i=>i.sentiment==='BULLISH').length,BEARISH:allItems.filter(i=>i.sentiment==='BEARISH').length,NEUTRAL:allItems.filter(i=>i.sentiment==='NEUTRAL').length}
-  const sentPie=[
+  const sentRows=[
     {name:'Bullish',value:sentCounts.BULLISH,fill:C.green},
     {name:'Bearish',value:sentCounts.BEARISH,fill:C.red},
     {name:'Neutral',value:sentCounts.NEUTRAL,fill:C.muted},
@@ -954,24 +910,20 @@ function NewsTab() {
         </div>
       )}
 
-      {/* Sentiment pie */}
-      {sentPie.length>0&&(
+      {/* Net sentiment */}
+      {sentRows.length>0&&(
         <div className="card">
           <div className="card-title">Sentiment Distribution</div>
-          <div style={{display:'flex',alignItems:'center',gap:16}}>
-            <PieChart width={100} height={100}>
-              <Pie data={sentPie} cx="50%" cy="50%" innerRadius={28} outerRadius={44} dataKey="value" paddingAngle={2}>
-                {sentPie.map((e,i)=><Cell key={i} fill={e.fill}/>)}
-              </Pie>
-            </PieChart>
-            <div style={{flex:1}}>
-              {sentPie.map((s,i)=>(
-                <div key={i} style={{display:'flex',justifyContent:'space-between',fontSize:12,padding:'3px 0'}}>
-                  <span style={{color:s.fill,fontWeight:700}}>■ {s.name}</span>
-                  <span style={{color:'var(--text)',fontWeight:700}}>{s.value}</span>
-                </div>
-              ))}
-            </div>
+          <div style={{marginBottom:14}}>
+            <BiasBar value={((data?.agg_score||0)+1)/2} label="Net Sentiment"/>
+          </div>
+          <div>
+            {sentRows.map((s,i)=>(
+              <div key={i} style={{display:'flex',justifyContent:'space-between',fontSize:12,padding:'3px 0'}}>
+                <span style={{color:s.fill,fontWeight:700}}>■ {s.name}</span>
+                <span style={{color:'var(--text)',fontWeight:700}}>{s.value}</span>
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -1041,6 +993,8 @@ function MarketsGridTab() {
           <div className="market-grid">
             {items.map(item=>{
               const up=(item.change_pct||0)>=0
+              const rng=(item.day_high!=null&&item.day_low!=null)?(item.day_high-item.day_low):0
+              const pos=rng>0?Math.min(1,Math.max(0,(item.price-item.day_low)/rng)):null
               return (
                 <div key={item.symbol} className="market-tile">
                   <div className="market-tile-name">{item.name}</div>
@@ -1048,6 +1002,11 @@ function MarketsGridTab() {
                   <div className="market-tile-price">{item.error?'—':item.price?.toLocaleString('en-US',{maximumFractionDigits:2})}</div>
                   <div className={`market-tile-chg ${up?'up':'dn'}`}>{item.error?'—':`${up?'▲':'▼'} ${Math.abs(item.change_pct||0).toFixed(2)}%`}</div>
                   {!item.error&&<div className="market-tile-range">H: {item.day_high?.toFixed(2)} · L: {item.day_low?.toFixed(2)}</div>}
+                  {!item.error&&pos!=null&&(
+                    <div style={{position:'relative',height:4,borderRadius:2,background:'rgba(255,255,255,.08)',marginTop:4}}>
+                      <div style={{position:'absolute',top:-1,height:6,width:6,borderRadius:3,transform:'translateX(-50%)',left:`${pos*100}%`,background:up?'var(--green)':'var(--red)'}}/>
+                    </div>
+                  )}
                 </div>
               )
             })}
@@ -1066,10 +1025,12 @@ function MarketsTab({pulse, health}) {
         <button className={`sub-tab${sub==='overview'?' active':''}`} onClick={()=>setSub('overview')}>Overview</button>
         <button className={`sub-tab${sub==='brief'?' active':''}`} onClick={()=>setSub('brief')}>Brief</button>
         <button className={`sub-tab${sub==='pulse'?' active':''}`} onClick={()=>setSub('pulse')}>Pulse</button>
+        <button className={`sub-tab${sub==='wrap'?' active':''}`} onClick={()=>setSub('wrap')}>Wrap</button>
       </div>
       {sub==='overview' && <MarketsGridTab/>}
       {sub==='brief'    && <BriefTab/>}
       {sub==='pulse'    && <PulseTab pulse={pulse} health={health}/>}
+      {sub==='wrap'     && <WrapTab/>}
     </div>
   )
 }
@@ -1364,32 +1325,48 @@ function WrapTab() {
 // ══════════════════════════════════════════════════════════════════
 // WRAPPER COMPONENTS — merged tab groups
 // ══════════════════════════════════════════════════════════════════
-function MyPositionsTab() {
-  const [subTab, setSubTab] = useState('portfolio')
+function SignalsHub() {
+  const [subTab, setSubTab] = useState('intraday')
   return (
     <div className="content">
       <div className="sub-tabs">
-        <button className={`sub-tab${subTab==='portfolio'?' active':''}`} onClick={()=>setSubTab('portfolio')}>Portfolio</button>
-        <button className={`sub-tab${subTab==='watchlist'?' active':''}`} onClick={()=>setSubTab('watchlist')}>Watchlist</button>
+        <button className={`sub-tab${subTab==='intraday'?' active':''}`} onClick={()=>setSubTab('intraday')}>Intraday</button>
+        <button className={`sub-tab${subTab==='swing'?' active':''}`} onClick={()=>setSubTab('swing')}>Swing</button>
       </div>
-      {subTab==='portfolio' && <PortfolioTab/>}
-      {subTab==='watchlist' && <WatchlistTab/>}
+      {subTab==='intraday' && <SignalsTab/>}
+      {subTab==='swing'    && <SwingTab/>}
     </div>
   )
 }
 
-function AnalystTab() {
-  const [subTab, setSubTab] = useState('research')
+function MacroHub({health}) {
+  const [subTab, setSubTab] = useState('regime')
   return (
     <div className="content">
       <div className="sub-tabs">
+        <button className={`sub-tab${subTab==='regime'?' active':''}`} onClick={()=>setSubTab('regime')}>Regime</button>
+        <button className={`sub-tab${subTab==='options'?' active':''}`} onClick={()=>setSubTab('options')}>Options</button>
+      </div>
+      {subTab==='regime'  && <MacroTab health={health}/>}
+      {subTab==='options' && <OptionsTab/>}
+    </div>
+  )
+}
+
+function PortfolioHub() {
+  const [subTab, setSubTab] = useState('holdings')
+  return (
+    <div className="content">
+      <div className="sub-tabs">
+        <button className={`sub-tab${subTab==='holdings'?' active':''}`} onClick={()=>setSubTab('holdings')}>Holdings</button>
+        <button className={`sub-tab${subTab==='watchlist'?' active':''}`} onClick={()=>setSubTab('watchlist')}>Watchlist</button>
         <button className={`sub-tab${subTab==='research'?' active':''}`} onClick={()=>setSubTab('research')}>Research</button>
         <button className={`sub-tab${subTab==='compare'?' active':''}`} onClick={()=>setSubTab('compare')}>Compare</button>
-        <button className={`sub-tab${subTab==='wrap'?' active':''}`} onClick={()=>setSubTab('wrap')}>Wrap-Up</button>
       </div>
-      {subTab==='research' && <ResearchTab/>}
-      {subTab==='compare' && <CompareTab/>}
-      {subTab==='wrap' && <WrapTab/>}
+      {subTab==='holdings'  && <PortfolioTab/>}
+      {subTab==='watchlist' && <WatchlistTab/>}
+      {subTab==='research'  && <ResearchTab/>}
+      {subTab==='compare'   && <CompareTab/>}
     </div>
   )
 }
@@ -1399,6 +1376,7 @@ function AnalystTab() {
 // ══════════════════════════════════════════════════════════════════
 function OptionsTab() {
   const { data, err, load } = useLoad(() => getOptionsFlow())
+  const opts = useLoad(()=>api('/options/trades'))
   if (load) return <Spinner/>
   if (err)  return <Err e={err}/>
 
@@ -1407,6 +1385,7 @@ function OptionsTab() {
   const open   = data?.open_trades || []
   const closed = data?.closed_recent || []
   const pc     = data?.put_call_ratio
+  const od     = opts.data||{}, optPools = od.pools||{}
 
   return (
     <div className="content">
@@ -1553,6 +1532,42 @@ function OptionsTab() {
           </div>
         </div>
       )}
+
+      {/* SPX 0-1DTE paper-trade pools */}
+      <div className="card" style={{marginBottom:12}}>
+        <div className="card-title">SPX 0-1DTE Options Paper Trades</div>
+        {opts.load&&!od.pools?<div style={{color:'var(--muted)',fontSize:12}}>Loading…</div>:
+        Object.keys(optPools).length===0?<div style={{color:'var(--muted)',fontSize:12}}>No options data yet.</div>:(
+          <table className="tbl"><thead><tr><th>Pool</th><th>Open</th><th>Closed</th><th>Win%</th><th>Gate</th></tr></thead>
+          <tbody>{Object.entries(optPools).map(([pool,ps])=>(
+            <tr key={pool}>
+              <td style={{fontSize:10,fontWeight:700}}>{pool}</td>
+              <td>{ps.open||0}</td>
+              <td>{ps.closed||0}</td>
+              <td style={{color:(ps.win_rate||0)>0.5?'var(--green)':'var(--red)',fontWeight:700}}>{((ps.win_rate||0)*100).toFixed(1)}%</td>
+              <td>{ps.ml_gate_active?<span className="bdg bdg-bull">Active</span>:<span style={{color:'var(--muted)',fontSize:10}}>⏳{50-(ps.closed||0)}</span>}</td>
+            </tr>
+          ))}</tbody></table>
+        )}
+        <div style={{fontSize:10,color:'var(--muted)',marginTop:8}}>ML gate activates at ≥50 closed trades per pool.</div>
+      </div>
+
+      {od.open_positions?.length>0&&(
+        <div className="card">
+          <div className="card-title">Open Options Positions ({od.open_positions.length})</div>
+          <table className="tbl"><thead><tr><th>Pool</th><th>Dir</th><th>Strike</th><th>DTE</th><th>Entry</th><th>Age</th></tr></thead>
+          <tbody>{od.open_positions.map((p,i)=>(
+            <tr key={i}>
+              <td style={{fontSize:10}}>{p.pool||''}</td>
+              <td style={{color:p.direction==='CALL'?'var(--green)':'var(--red)',fontWeight:700}}>{p.direction}</td>
+              <td style={{color:'var(--gold)'}}>{p.strike||'—'}</td>
+              <td>{p.dte||'—'}</td>
+              <td>${n(p.entry_premium,2)}</td>
+              <td style={{color:'var(--muted)',fontSize:10}}>{age(p.entry_time)}</td>
+            </tr>
+          ))}</tbody></table>
+        </div>
+      )}
     </div>
   )
 }
@@ -1561,52 +1576,30 @@ function OptionsTab() {
 // APP ROOT
 // ══════════════════════════════════════════════════════════════════
 export default function App() {
-  const [tab,setTab]       = useState('signals')
-  const [drawer,setDrawer] = useState(false)
+  const [tab,setTab] = useState('signals')
   const pulse  = useLoad(()=>fetch(`${BASE}/pulse`,{signal:AbortSignal.timeout(15000)}).then(r=>r.json()))
   const health = useLoad(()=>api('/health'))
 
   useEffect(()=>{ const id=setInterval(pulse.reload,  60_000); return()=>clearInterval(id) },[])
   useEffect(()=>{ const id=setInterval(health.reload,120_000); return()=>clearInterval(id) },[])
 
-  const selectTab = (id) => { setTab(id); setDrawer(false) }
-
   return (
     <>
       <div style={{flex:1, paddingBottom:64}}>
+        {tab==='signals'   && <SignalsHub/>}
         {tab==='markets'   && <MarketsTab pulse={pulse} health={health}/>}
-        {tab==='signals'   && <SignalsTab/>}
-        {tab==='options'   && <OptionsTab/>}
-        {tab==='positions' && <MyPositionsTab/>}
-        {tab==='swing'     && <SwingTab/>}
-        {tab==='macro'     && <MacroTab health={health}/>}
+        {tab==='macro'     && <MacroHub health={health}/>}
+        {tab==='portfolio' && <PortfolioHub/>}
         {tab==='news'      && <NewsTab/>}
-        {tab==='analyst'   && <AnalystTab/>}
       </div>
-
-      {/* More drawer overlay */}
-      {drawer && (
-        <div className="drawer-overlay" onClick={()=>setDrawer(false)}>
-          <div className="drawer" onClick={e=>e.stopPropagation()}>
-            <div className="drawer-handle"/>
-            {DRAWER_ITEMS.map(item=>(
-              <button key={item.id} className={`drawer-item${tab===item.id?' active':''}`}
-                onClick={()=>selectTab(item.id)}>
-                <span style={{fontSize:20}}>{item.ico}</span>
-                <span>{item.label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Fixed bottom nav */}
       <nav className="bottom-nav">
         {BOTTOM_NAV.map(item=>(
           <button key={item.id}
-            className={tab===item.id||(item.id==='more'&&drawer)?'active':''}
-            onClick={()=>item.id==='more'?setDrawer(!drawer):selectTab(item.id)}>
-            <span className="b-ico">{item.ico}</span>
+            className={tab===item.id?'active':''}
+            onClick={()=>setTab(item.id)}>
+            <item.Icon size={20} strokeWidth={2}/>
             <span>{item.label}</span>
           </button>
         ))}
