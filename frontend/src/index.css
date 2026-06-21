@@ -237,3 +237,49 @@ select.pro:focus { border-color: var(--gold); }
 .alert-btn { width: 100%; padding: 12px; border-radius: 4px; border: none; font-size: 14px; font-weight: 700; cursor: pointer; letter-spacing: .04em; }
 .alert-btn.on  { background: var(--green); color: #000; }
 .alert-btn.off { background: var(--surface2); border: 1px solid var(--border); color: var(--text); }
+
+/* ── COVER / SPLASH ── */
+.splash{
+  position:fixed; inset:0; z-index:1000; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  background:radial-gradient(120% 90% at 50% 35%, #0e1320 0%, var(--bg) 70%);
+  padding:calc(24px + env(safe-area-inset-top)) 24px calc(24px + env(safe-area-inset-bottom));
+  animation:splashIn .5s ease both;
+}
+.splash.leaving{ animation:splashOut .45s ease forwards; }
+.splash-glow{
+  position:absolute; top:32%; left:50%; width:340px; height:340px;
+  transform:translate(-50%,-50%);
+  background:radial-gradient(circle, var(--gold-dim) 0%, transparent 65%);
+  filter:blur(8px); pointer-events:none;
+}
+.splash-inner{ position:relative; display:flex; flex-direction:column; align-items:center; text-align:center; }
+.splash-logo{
+  width:min(58vw,230px); height:auto; border-radius:50%;
+  box-shadow:0 0 0 1px rgba(245,176,39,.25), 0 12px 48px rgba(0,0,0,.65), 0 0 60px rgba(245,176,39,.18);
+  animation:logoPop .7s cubic-bezier(.34,1.56,.64,1) both;
+}
+.splash-name{
+  margin-top:26px; font-size:26px; font-weight:800; letter-spacing:.22em;
+  color:var(--text-hi); animation:fadeUp .6s ease .15s both;
+}
+.splash-tag{
+  margin-top:8px; font-size:12px; font-weight:600; letter-spacing:.28em;
+  text-transform:uppercase; color:var(--gold); animation:fadeUp .6s ease .28s both;
+}
+.splash-enter{
+  margin-top:34px; padding:13px 38px; border:none; border-radius:var(--r-pill);
+  background:var(--gold); color:#1a1205; font-size:15px; font-weight:800;
+  letter-spacing:.04em; cursor:pointer; box-shadow:0 6px 22px rgba(245,176,39,.32);
+  animation:fadeUp .6s ease .42s both, pulseBtn 2.4s ease 1.2s infinite;
+}
+.splash-enter:active{ transform:scale(.96); }
+.splash-hint{
+  margin-top:16px; font-size:11px; color:var(--text-dim); letter-spacing:.04em;
+  animation:fadeUp .6s ease .55s both;
+}
+@keyframes splashIn{ from{opacity:0} to{opacity:1} }
+@keyframes splashOut{ to{opacity:0; transform:scale(1.04)} }
+@keyframes logoPop{ from{opacity:0; transform:scale(.82)} to{opacity:1; transform:scale(1)} }
+@keyframes fadeUp{ from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:translateY(0)} }
+@keyframes pulseBtn{ 0%,100%{box-shadow:0 6px 22px rgba(245,176,39,.32)} 50%{box-shadow:0 6px 30px rgba(245,176,39,.55)} }

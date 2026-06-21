@@ -1573,15 +1573,39 @@ function OptionsTab() {
 }
 
 // ══════════════════════════════════════════════════════════════════
+// COVER / SPLASH SCREEN
+// ══════════════════════════════════════════════════════════════════
+function Splash({onEnter}) {
+  const [leaving,setLeaving] = useState(false)
+  const enter = () => { if(leaving) return; setLeaving(true); setTimeout(onEnter,460) }
+  return (
+    <div className={`splash${leaving?' leaving':''}`} onClick={enter}>
+      <div className="splash-glow"/>
+      <div className="splash-inner">
+        <img className="splash-logo" src="/app/sniper-logo.jpg" alt="Sniper Signals"
+          onError={e=>{e.currentTarget.style.display='none'}}/>
+        <div className="splash-name">SNIPER SIGNALS</div>
+        <div className="splash-tag">Global Market Insights</div>
+        <button className="splash-enter" onClick={e=>{e.stopPropagation();enter()}}>Enter →</button>
+        <div className="splash-hint">tap anywhere to continue</div>
+      </div>
+    </div>
+  )
+}
+
+// ══════════════════════════════════════════════════════════════════
 // APP ROOT
 // ══════════════════════════════════════════════════════════════════
 export default function App() {
+  const [entered,setEntered] = useState(false)
   const [tab,setTab] = useState('signals')
   const pulse  = useLoad(()=>fetch(`${BASE}/pulse`,{signal:AbortSignal.timeout(15000)}).then(r=>r.json()))
   const health = useLoad(()=>api('/health'))
 
   useEffect(()=>{ const id=setInterval(pulse.reload,  60_000); return()=>clearInterval(id) },[])
   useEffect(()=>{ const id=setInterval(health.reload,120_000); return()=>clearInterval(id) },[])
+
+  if(!entered) return <Splash onEnter={()=>setEntered(true)}/>
 
   return (
     <>

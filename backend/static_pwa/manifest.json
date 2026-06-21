@@ -9,6 +9,12 @@
   "orientation": "portrait-primary",
   "icons": [
     {
+      "src": "/app/sniper-logo.jpg",
+      "sizes": "640x640",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
       "src": "/app/logo.svg",
       "sizes": "any",
       "type": "image/svg+xml",
