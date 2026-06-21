@@ -993,37 +993,77 @@ function CommentaryInline() {
 
 function MarketsGridTab() {
   const {data,err,load} = useLoad(()=>getMarketOverview())
+  const [grpFilter,setGrpFilter] = useState('All')
   if(load) return <Spinner/>
   if(err)  return <Err e={err}/>
+  const groups = Object.entries(data||{})
+  // Flatten all instruments for the Market Movers chart, sort by % change desc
+  const movers = groups.flatMap(([,items])=>items)
+    .filter(it=>!it.error&&it.change_pct!=null)
+    .map(it=>({name:it.name,chg:Number(it.change_pct)||0}))
+    .sort((a,b)=>b.chg-a.chg)
+  const chips = ['All',...groups.map(([g])=>g)]
+  const visible = grpFilter==='All'?groups:groups.filter(([g])=>g===grpFilter)
   return (
     <div>
       <div className="commentary-card" style={{margin:'10px 10px'}}>
         <CommentaryInline/>
       </div>
-      {Object.entries(data||{}).map(([grp,items])=>(
-        <div key={grp} className="card">
+
+      {/* Market Movers — hero bar chart */}
+      {movers.length>0&&(
+        <div className="card">
+          <div className="card-title">Market Movers</div>
+          <ResponsiveContainer width="100%" height={Math.max(160,movers.length*26)}>
+            <BarChart data={movers} layout="vertical" margin={{top:4,right:16,left:8,bottom:4}}>
+              <XAxis type="number" tick={{fill:'var(--text-mut)',fontSize:10}} tickFormatter={v=>`${v}%`} axisLine={false} tickLine={false}/>
+              <YAxis type="category" dataKey="name" width={86} tick={{fill:'var(--text-mut)',fontSize:10}} axisLine={false} tickLine={false}/>
+              <ReferenceLine x={0} stroke="var(--border-2)"/>
+              <Tooltip cursor={{fill:'rgba(255,255,255,.04)'}} content={<ChartTip fmt={v=>`${v>=0?'+':''}${Number(v).toFixed(2)}%`}/>}/>
+              <Bar dataKey="chg" name="Change" radius={[0,3,3,0]}>
+                {movers.map((m,i)=><Cell key={i} fill={m.chg>=0?'var(--green)':'var(--red)'}/>)}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Group filter */}
+      <div className="filter-bar">
+        {chips.map(c=>(
+          <button key={c} className={`filter-chip ${grpFilter===c?'active':''}`} onClick={()=>setGrpFilter(c)}>{c}</button>
+        ))}
+      </div>
+
+      {/* Per-group tables */}
+      {visible.map(([grp,items])=>(
+        <div key={grp} className="card" style={{overflowX:'auto'}}>
           <div className="card-title">{grp}</div>
-          <div className="market-grid">
-            {items.map(item=>{
-              const up=(item.change_pct||0)>=0
-              const rng=(item.day_high!=null&&item.day_low!=null)?(item.day_high-item.day_low):0
-              const pos=rng>0?Math.min(1,Math.max(0,(item.price-item.day_low)/rng)):null
-              return (
-                <div key={item.symbol} className="market-tile">
-                  <div className="market-tile-name">{item.name}</div>
-                  <div className="market-tile-sym">{item.symbol}</div>
-                  <div className="market-tile-price">{item.error?'—':item.price?.toLocaleString('en-US',{maximumFractionDigits:2})}</div>
-                  <div className={`market-tile-chg ${up?'up':'dn'}`}>{item.error?'—':`${up?'▲':'▼'} ${Math.abs(item.change_pct||0).toFixed(2)}%`}</div>
-                  {!item.error&&<div className="market-tile-range">H: {item.day_high?.toFixed(2)} · L: {item.day_low?.toFixed(2)}</div>}
-                  {!item.error&&pos!=null&&(
-                    <div style={{position:'relative',height:4,borderRadius:2,background:'rgba(255,255,255,.08)',marginTop:4}}>
-                      <div style={{position:'absolute',top:-1,height:6,width:6,borderRadius:3,transform:'translateX(-50%)',left:`${pos*100}%`,background:up?'var(--green)':'var(--red)'}}/>
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
+          <table className="tbl" style={{width:'100%'}}>
+            <thead><tr><th>Instrument</th><th className="num">Price</th><th className="num">Change</th><th>Day Range</th></tr></thead>
+            <tbody>
+              {items.map(item=>{
+                const up=(item.change_pct||0)>=0
+                const clr=up?'var(--green)':'var(--red)'
+                const rng=(!item.error&&item.day_high!=null&&item.day_low!=null)?(item.day_high-item.day_low):0
+                const pos=rng>0?Math.min(1,Math.max(0,(item.price-item.day_low)/rng)):null
+                return (
+                  <tr key={item.symbol}>
+                    <td><strong style={{color:'var(--text-hi)'}}>{item.name}</strong><br/><small style={{color:'var(--text-mut)'}}>{item.symbol}</small></td>
+                    <td className="num">{item.error?'—':item.price?.toLocaleString('en-US',{maximumFractionDigits:2})}</td>
+                    <td className="num" style={{color:item.error?'var(--muted)':clr}}>{item.error?'—':`${up?'▲':'▼'} ${Math.abs(item.change_pct||0).toFixed(2)}%`}</td>
+                    <td>
+                      {pos==null?<span style={{color:'var(--muted)'}}>—</span>:(
+                        <div style={{position:'relative',height:4,borderRadius:2,background:'rgba(255,255,255,.08)',minWidth:60}}>
+                          <div style={{position:'absolute',top:-1,height:6,width:6,borderRadius:3,transform:'translateX(-50%)',left:`${pos*100}%`,background:clr}}/>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
         </div>
       ))}
     </div>
