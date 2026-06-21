@@ -4,20 +4,20 @@
   "description": "ML-powered trading signals — Gold, Stocks & SPX Options",
   "start_url": "/app/",
   "display": "standalone",
-  "background_color": "#0a0a0a",
-  "theme_color": "#0a0a0a",
+  "background_color": "#0a0b0d",
+  "theme_color": "#0a0b0d",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/app/sniper-logo.jpg",
-      "sizes": "640x640",
-      "type": "image/jpeg",
-      "purpose": "any"
+      "src": "/app/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "/app/logo.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "/app/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ]
