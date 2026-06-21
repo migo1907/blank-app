@@ -68,6 +68,29 @@
       "htf_context": "scalp",
       "session": "Off-Hours",
       "fired_at": "2026-06-21T23:07:01.834344+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "5",
+      "trigger": "FVG",
+      "symbol": "XAUUSD",
+      "entry_price": 4160.71,
+      "tp1": 4166.76,
+      "tp2": 4170.79,
+      "tp3": 4176.83,
+      "sl": 4154.66,
+      "ml_score": 0.375,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.4214,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.2401,
+      "velocity": "CONFLICTED",
+      "event": "GEOPOLITICAL",
+      "htf_bias": null,
+      "contra_bias": null,
+      "htf_context": "scalp",
+      "session": "Off-Hours",
+      "fired_at": "2026-06-21T23:12:01.193781+00:00"
     }
   ]
 }
