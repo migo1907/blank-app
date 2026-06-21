@@ -460,159 +460,107 @@ function PoolDetail({pool}) {
   )
 }
 
-const TF_LABELS = {'5':'5M','15':'15M','30':'30M','60':'1H','240':'4H'}
-const GOLD_POOLS_VISIBLE  = GOLD_POOLS.filter(p=>!p.includes('2M'))
-const POOL_TF = p => {
-  const m = p.match(/(\d+)M$|_(\d+)H$/)
-  if (!m) return null
-  if (m[2]) return String(Number(m[2])*60)
-  return m[1]
-}
+const TF_LABELS = {'2':'2M','5':'5M','15':'15M','30':'30M','60':'1H','240':'4H'}
 
-function SignalsTab({pulse}) {
-  const {data:levels, reload:reloadLevels} = useLoad(()=>api('/signals/levels'))
-  const [expanded,setExpanded]   = useState(null)
-  const [dirFilter,setDirFilter] = useState('ALL')
-  const [tfFilter,setTfFilter]   = useState('ALL')
-  const [minConf,setMinConf]     = useState(0)
+function SignalsTab() {
+  const {data, load, reload} = useLoad(()=>api('/signals/feed'))
+  const [dirFilter, setDirFilter] = useState('ALL')
+  const [tfFilter,  setTfFilter]  = useState('ALL')
 
-  useEffect(()=>{ const id=setInterval(reloadLevels,30_000); return()=>clearInterval(id) },[])
+  useEffect(()=>{ const id=setInterval(reload,30_000); return()=>clearInterval(id) },[])
 
-  const pools = pulse.data?.pools || {}
-  const lvlMap = {}
-  for (const l of levels?.levels || []) {
-    lvlMap[`${l.symbol}|${l.direction}|${l.timeframe}`] = l
-  }
-
-  const filtered = (list) => list.filter(name=>{
-    const p = pools[name]||{}
-    if(dirFilter!=='ALL'&&p.direction!==dirFilter) return false
-    if(minConf>0&&(p.confidence||0)<minConf/100) return false
-    if(tfFilter!=='ALL'){
-      const tf = POOL_TF(name)
-      if(tf !== tfFilter) return false
-    }
+  const signals = (data?.signals || []).filter(s=>{
+    if(dirFilter!=='ALL' && s.direction!==dirFilter) return false
+    if(tfFilter!=='ALL'  && String(s.timeframe)!==tfFilter) return false
     return true
   })
 
-  const LevelsRow = ({pool, dir}) => {
-    const sym = pool.startsWith('XAUUSD')? 'XAUUSD' : pool.replace(/^STOCKS_/,'').replace(/_\d+M$/,'').replace(/_\d+H$/,'')
-    const key = `${sym}|${dir}|${POOL_TF(pool)||''}`
-    const lv  = lvlMap[key]
-    if(!lv||!lv.entry) return null
-    return (
-      <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:4,marginTop:8,paddingTop:8,borderTop:'1px solid var(--border)'}}>
-        <div style={{textAlign:'center'}}>
-          <div className="mono" style={{fontSize:11,color:'var(--text)',fontWeight:700}}>{lv.entry ? money(lv.entry) : '—'}</div>
-          <div style={{fontSize:9,color:'var(--muted)',fontWeight:600,textTransform:'uppercase'}}>Entry</div>
-        </div>
-        <div style={{textAlign:'center'}}>
-          <div className="mono" style={{fontSize:11,color:'var(--green)',fontWeight:700}}>{lv.tp1 ? money(lv.tp1) : '—'}</div>
-          <div style={{fontSize:9,color:'var(--muted)',fontWeight:600,textTransform:'uppercase'}}>TP1</div>
-        </div>
-        <div style={{textAlign:'center'}}>
-          <div className="mono" style={{fontSize:11,color:'var(--green)',fontWeight:700}}>{lv.tp2 ? money(lv.tp2) : '—'}</div>
-          <div style={{fontSize:9,color:'var(--muted)',fontWeight:600,textTransform:'uppercase'}}>TP2</div>
-        </div>
-        <div style={{textAlign:'center'}}>
-          <div className="mono" style={{fontSize:11,color:'var(--green)',fontWeight:700}}>{lv.tp3 ? money(lv.tp3) : '—'}</div>
-          <div style={{fontSize:9,color:'var(--muted)',fontWeight:600,textTransform:'uppercase'}}>TP3</div>
-        </div>
-        <div style={{textAlign:'center'}}>
-          <div className="mono" style={{fontSize:11,color:'var(--red)',fontWeight:700}}>{lv.sl ? money(lv.sl) : '—'}</div>
-          <div style={{fontSize:9,color:'var(--muted)',fontWeight:600,textTransform:'uppercase'}}>SL</div>
-        </div>
-      </div>
-    )
-  }
+  const tierClr = t => t==='HIGH'?'var(--green)':t==='MED'?'var(--gold)':'var(--muted)'
 
-  if(pulse.load&&!pulse.data) return <Spinner/>
-
-  const TF_OPTIONS = ['ALL','5','15','30','60','240']
+  if(load && !data) return <Spinner/>
 
   return (
     <div className="content">
-      {/* TF filter */}
+      {/* Filters */}
       <div className="filter-bar">
-        {TF_OPTIONS.map(tf=>(
+        {['ALL','5','15','30','60','240'].map(tf=>(
           <button key={tf} className={`filter-chip${tfFilter===tf?' active':''}`} onClick={()=>setTfFilter(tf)}>
-            {tf==='ALL'?'All TF':TF_LABELS[tf]||tf}
+            {tf==='ALL'?'All TF':TF_LABELS[tf]||tf+'M'}
           </button>
         ))}
       </div>
-
-      {/* Direction + conf filters */}
-      <div style={{padding:'0 10px 8px',display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
-        <div className="filter-bar" style={{padding:0,flex:1}}>
-          {['ALL','LONG','SHORT','NEUTRAL'].map(d=>(
-            <button key={d} className={`filter-chip${dirFilter===d?' active':''}`} onClick={()=>setDirFilter(d)}
-              style={dirFilter===d?{}:{color:d==='LONG'?'var(--green)':d==='SHORT'?'var(--red)':undefined}}>
-              {d==='LONG'?'▲ Long':d==='SHORT'?'▼ Short':d==='NEUTRAL'?'— Neutral':'All'}
-            </button>
-          ))}
-        </div>
-        <div style={{display:'flex',alignItems:'center',gap:6,whiteSpace:'nowrap'}}>
-          <span style={{fontSize:10,color:'var(--muted)'}}>Conf ≥</span>
-          <span style={{fontSize:10,color:'var(--gold)',fontWeight:700,minWidth:28}}>{minConf}%</span>
-          <input type="range" min="0" max="80" step="5" value={minConf} onChange={e=>setMinConf(+e.target.value)}
-            style={{accentColor:'var(--gold)',width:80}}/>
-        </div>
+      <div className="filter-bar" style={{paddingTop:0}}>
+        {['ALL','LONG','SHORT'].map(d=>(
+          <button key={d} className={`filter-chip${dirFilter===d?' active':''}`} onClick={()=>setDirFilter(d)}
+            style={dirFilter===d?{}:{color:d==='LONG'?'var(--green)':d==='SHORT'?'var(--red)':undefined}}>
+            {d==='LONG'?'▲ Long':d==='SHORT'?'▼ Short':'All'}
+          </button>
+        ))}
+        <button onClick={reload} style={{marginLeft:'auto',background:'none',border:'1px solid var(--border)',color:'var(--muted)',borderRadius:4,padding:'4px 10px',fontSize:11,cursor:'pointer'}}>↻</button>
       </div>
 
-      {/* Gold pools */}
-      <div className="section-h">🥇 Gold <span style={{color:'var(--muted)',fontWeight:400,fontSize:10}}>{filtered(GOLD_POOLS_VISIBLE).length} shown</span></div>
-      <div style={{margin:'0 10px',display:'flex',flexDirection:'column',gap:8}}>
-        {filtered(GOLD_POOLS_VISIBLE).map(name=>{
-          const p=pools[name]||{}, tf=POOL_TF(name), isExp=expanded===name
-          return (
-            <div key={name} className={`pool-item ${p.direction==='LONG'?'long':p.direction==='SHORT'?'short':'neutral'}`}
-              onClick={()=>setExpanded(isExp?null:name)}>
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                <div>
-                  <div style={{fontSize:10,color:'var(--muted)',marginBottom:3,fontWeight:700,letterSpacing:'.04em'}}>
-                    XAUUSD · <span style={{color:'var(--gold)'}}>{TF_LABELS[tf]||tf}</span>
+      {/* Signal cards */}
+      {signals.length===0 ? (
+        <div style={{padding:'40px 20px',textAlign:'center',color:'var(--muted)'}}>
+          <div style={{fontSize:32,marginBottom:12}}>🧭</div>
+          <div style={{fontSize:14,fontWeight:600,marginBottom:6}}>No signals yet</div>
+          <div style={{fontSize:12}}>Signals appear here the moment TradingView fires an entry — same data as Telegram.</div>
+        </div>
+      ) : (
+        <div style={{padding:'0 10px 16px',display:'flex',flexDirection:'column',gap:10}}>
+          {signals.map((s,i)=>{
+            const isLong = s.direction==='LONG'
+            const clr    = isLong?'var(--green)':'var(--red)'
+            const tf     = TF_LABELS[String(s.timeframe)] || `${s.timeframe}M`
+            const qs     = s.quality_score
+            const qClr   = qs==null?'var(--muted)':qs>=0.55?'var(--green)':qs>=0.40?'var(--gold)':'var(--red)'
+            const qLbl   = qs==null?'—':qs>=0.55?'STRONG':qs>=0.40?'FAIR':'WEAK'
+            return (
+              <div key={i} style={{
+                background:'var(--surface)',border:`1px solid var(--border)`,
+                borderLeft:`3px solid ${clr}`,borderRadius:6,padding:'12px'
+              }}>
+                {/* Header row */}
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
+                  <div>
+                    <div style={{fontSize:16,fontWeight:800,color:clr,letterSpacing:'.02em'}}>
+                      {isLong?'▲ LONG':'▼ SHORT'}
+                    </div>
+                    <div style={{fontSize:12,color:'var(--text)',fontWeight:600,marginTop:2}}>
+                      {s.symbol} · <span style={{color:'var(--gold)'}}>{tf}</span>
+                      {s.htf_context==='htf_direct'&&<span style={{marginLeft:6,fontSize:10,color:'var(--purple)',fontWeight:700}}> HTF</span>}
+                    </div>
                   </div>
-                  <div style={{fontSize:15,fontWeight:800,color:dirClr(p.direction)}}>
-                    {p.direction==='LONG'?'▲ LONG':p.direction==='SHORT'?'▼ SHORT':'— NEUTRAL'}
-                    {p.certainty&&<span style={{marginLeft:6,fontSize:11,opacity:.8}}>{cert(p.certainty)}</span>}
+                  <div style={{textAlign:'right'}}>
+                    <div style={{fontSize:10,color:'var(--muted)'}}>{age(s.fired_at)}</div>
+                    <div style={{fontSize:10,color:tierClr(s.tier),fontWeight:700,marginTop:2}}>{s.tier||'—'}</div>
                   </div>
                 </div>
-                <div style={{textAlign:'center'}}>
-                  <div className="mono" style={{fontSize:18,fontWeight:800,color:dirClr(p.direction)}}>{((p.confidence||0)*100).toFixed(0)}%</div>
-                  <div style={{fontSize:9,color:'var(--muted)',fontWeight:600}}>CONF</div>
+
+                {/* Levels grid */}
+                <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:4,marginBottom:10}}>
+                  {[['Entry',s.entry_price,'var(--text)'],['TP1',s.tp1,'var(--green)'],['TP2',s.tp2,'var(--green)'],['TP3',s.tp3,'var(--green)'],['SL',s.sl,'var(--red)']].map(([lbl,val,c])=>(
+                    <div key={lbl} style={{background:'var(--surface2)',borderRadius:4,padding:'6px 4px',textAlign:'center'}}>
+                      <div className="mono" style={{fontSize:11,fontWeight:700,color:c}}>{val?n(val,2):'—'}</div>
+                      <div style={{fontSize:9,color:'var(--muted)',fontWeight:600,marginTop:1}}>{lbl}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* ML quality + event row */}
+                <div style={{display:'flex',gap:8,flexWrap:'wrap',alignItems:'center'}}>
+                  <span style={{fontSize:10,background:'var(--surface2)',border:'1px solid var(--border)',borderRadius:3,padding:'2px 7px',color:qClr,fontWeight:700}}>
+                    ML {qLbl}{qs!=null?` ${(qs*100).toFixed(0)}%`:''}
+                  </span>
+                  {s.velocity&&s.velocity!=='NORMAL'&&<span style={{fontSize:10,color:'var(--muted)',fontWeight:600}}>{s.velocity}</span>}
+                  {s.event&&<span style={{fontSize:10,color:'var(--red)',fontWeight:700}}>⚡ {s.event}</span>}
+                  {s.htf_bias&&<span style={{fontSize:10,color:'var(--green)',fontWeight:600}}>HTF bias ✓</span>}
                 </div>
               </div>
-              <LevelsRow pool={name} dir={p.direction}/>
-              {isExp&&<PoolDetail pool={name}/>}
-            </div>
-          )
-        })}
-        {filtered(GOLD_POOLS_VISIBLE).length===0&&<div style={{color:'var(--muted)',fontSize:12,padding:'8px 0'}}>No pools match filters.</div>}
-      </div>
-
-      {/* Stock pools */}
-      <div className="section-h">📈 Stocks <span style={{color:'var(--muted)',fontWeight:400,fontSize:10}}>{filtered(STOCK_POOLS).length} shown</span></div>
-      <div style={{margin:'0 10px',display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,paddingBottom:16}}>
-        {filtered(STOCK_POOLS).map(name=>{
-          const p=pools[name]||{}, tf=POOL_TF(name), short=name.replace('STOCKS_','').replace(/_\d+M$/,`·${TF_LABELS[tf]||tf}`).replace(/_\d+H$/,`·${TF_LABELS[tf]||tf}`), isExp=expanded===name
-          return (
-            <div key={name} className={`pool-item ${p.direction==='LONG'?'long':p.direction==='SHORT'?'short':'neutral'}`}
-              style={{gridColumn:isExp?'1/-1':'auto'}}
-              onClick={()=>setExpanded(isExp?null:name)}>
-              <div style={{fontSize:9,color:'var(--muted)',marginBottom:3,fontWeight:700}}>{short}</div>
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                <div style={{fontSize:13,fontWeight:800,color:dirClr(p.direction)}}>
-                  {p.direction==='LONG'?'▲ L':p.direction==='SHORT'?'▼ S':'—'}
-                  {p.certainty&&<span style={{marginLeft:4,fontSize:10}}>{cert(p.certainty)}</span>}
-                </div>
-                <div className="mono" style={{fontSize:12,fontWeight:700,color:dirClr(p.direction)}}>{((p.confidence||0)*100).toFixed(0)}%</div>
-              </div>
-              {isExp&&<PoolDetail pool={name}/>}
-            </div>
-          )
-        })}
-        {filtered(STOCK_POOLS).length===0&&<div style={{color:'var(--muted)',fontSize:12,padding:'8px 0',gridColumn:'1/-1'}}>No pools match filters.</div>}
-      </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }
@@ -1687,7 +1635,7 @@ export default function App() {
     <>
       <div style={{flex:1, paddingBottom:64}}>
         {tab==='markets'   && <MarketsTab pulse={pulse} health={health}/>}
-        {tab==='signals'   && <SignalsTab pulse={pulse}/>}
+        {tab==='signals'   && <SignalsTab/>}
         {tab==='options'   && <OptionsTab/>}
         {tab==='positions' && <MyPositionsTab/>}
         {tab==='swing'     && <SwingTab/>}

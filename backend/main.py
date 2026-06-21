@@ -27,6 +27,17 @@ _OUTCOME_DEDUP_TTL = 30.0  # seconds
 _entry_price_cache: dict[str, tuple] = {}
 _ENTRY_CACHE_TTL = 86400.0  # 24h — covers overnight/multi-day trades
 
+# Triggered signal feed — mirrors what is sent to Telegram (last 100)
+_signal_feed: list[dict] = []
+_SIGNAL_FEED_MAX = 100
+
+def _feed_push(entry: dict) -> None:
+    """Append a triggered signal to the in-memory feed."""
+    global _signal_feed
+    _signal_feed.append(entry)
+    if len(_signal_feed) > _SIGNAL_FEED_MAX:
+        _signal_feed = _signal_feed[-_SIGNAL_FEED_MAX:]
+
 
 def _outcome_is_duplicate(symbol: str, direction: str, entry_price: float, exit_price: float, timeframe: str) -> bool:
     """Returns True if this exact outcome was already processed within TTL window."""
@@ -772,7 +783,7 @@ async def signal_entry(payload: SignalEntryPayload):
     htf_context = "htf_direct" if is_htf(tf) else ("with_bias" if bias else ("counter_trend" if contra_bias else "scalp"))
     print(f"[signal-entry] {payload.direction} {sym} TF={tf} htf={htf_context} → sending to Telegram")
 
-    asyncio.create_task(send_entry_signal({
+    _sig_payload = {
         "direction":   payload.direction,
         "timeframe":   tf,
         "trigger":     payload.trigger or "RSI",
@@ -792,7 +803,10 @@ async def signal_entry(payload: SignalEntryPayload):
         "htf_bias":    bias,
         "contra_bias": contra_bias,
         "htf_context": htf_context,
-    }))
+        "fired_at":    datetime.now(timezone.utc).isoformat(),
+    }
+    _feed_push(_sig_payload)
+    asyncio.create_task(send_entry_signal(_sig_payload))
     return {"status": "ok", "routed_to": "signal-entry", "direction": payload.direction, "htf_context": htf_context}
 
 
@@ -882,7 +896,7 @@ async def unified_webhook(payload: UnifiedPayload):
         htf_context = "htf_direct" if is_htf(tf) else ("with_bias" if bias else ("counter_trend" if contra_bias else "scalp"))
         print(f"[webhook] {payload.direction} {sym} TF={tf} htf={htf_context} → sending to Telegram")
 
-        asyncio.create_task(send_entry_signal({
+        _sig_payload2 = {
             "direction":   payload.direction,
             "timeframe":   tf,
             "trigger":     payload.trigger or "RSI",
@@ -902,7 +916,10 @@ async def unified_webhook(payload: UnifiedPayload):
             "htf_bias":    bias,
             "contra_bias": contra_bias,
             "htf_context": htf_context,
-        }))
+            "fired_at":    datetime.now(timezone.utc).isoformat(),
+        }
+        _feed_push(_sig_payload2)
+        asyncio.create_task(send_entry_signal(_sig_payload2))
         return {"status": "ok", "routed_to": "signal-entry", "direction": payload.direction, "htf_context": htf_context}
 
     if payload.outcome == "HEARTBEAT":
@@ -1119,6 +1136,14 @@ async def test_session_report(secret: str = ""):
     from telegram_bot import send_stocks_session_report
     sent = await send_stocks_session_report()
     return {"status": "sent" if sent else "no_trades_today"}
+
+
+@app.get("/signals/feed")
+async def signals_feed(secret: str = "", limit: int = 50):
+    """Return the last N triggered entry signals (same data sent to Telegram)."""
+    _validate_secret(secret)
+    feed = list(reversed(_signal_feed[-limit:]))
+    return {"signals": feed, "count": len(feed)}
 
 
 @app.get("/signals/levels")
