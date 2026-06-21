@@ -671,8 +671,8 @@ function SwingTab() {
           </div>
         </div>
         <div style={{textAlign:'right',fontSize:10,color:'var(--muted)'}}>
-          <div>Gate 1: fundamentals &gt; 0</div>
-          <div style={{color:'var(--gold)'}}>Gate 2: upside ≥ 20%</div>
+          <div>Gate 1: analyst upside ≥ 20%</div>
+          <div style={{color:'var(--gold)'}}>Gate 2: entry STRONG or FAIR</div>
         </div>
       </div>
 
@@ -681,7 +681,7 @@ function SwingTab() {
         <div style={{padding:'40px 20px',textAlign:'center',color:'var(--muted)'}}>
           <div style={{fontSize:32,marginBottom:10}}>📈</div>
           <div style={{fontSize:14,fontWeight:600,marginBottom:6}}>No candidates yet</div>
-          <div style={{fontSize:12}}>Screen runs at 09:45 ET and 16:30 ET on trading days. 70 stocks scanned — top 15 with ≥20% analyst upside and positive fundamentals shown here.</div>
+          <div style={{fontSize:12}}>Screen runs at 09:45 ET and 16:30 ET on trading days. 70 stocks scanned — top 15 with ≥20% analyst upside (Gate 1) and STRONG/FAIR technical entry (Gate 2) shown here.</div>
         </div>
       ) : (
         <div style={{padding:'0 10px',display:'flex',flexDirection:'column',gap:10}}>

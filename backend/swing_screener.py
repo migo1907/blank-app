@@ -282,25 +282,35 @@ def screen_one(ticker: str) -> dict:
 
 def run_screen(top_n: int = 15) -> dict:
     """
-    Scan full watchlist, apply fundamental + 20% upside gates, rank by combined
-    score, lock the best 15. Runs twice daily: 09:45 ET (morning) + 16:30 ET (close).
+    Scan full watchlist, apply two gates, rank by combined score, lock the best 15.
+    Runs twice daily: 09:45 ET (morning) + 16:30 ET (close).
+
+    Gate 1 — Valuation (≥20% upside): analyst mean target must be ≥20% above current
+              price — confirms the stock is cheap/undervalued relative to consensus.
+              Skipped (not failed) when analyst target is unavailable.
+
+    Gate 2 — Technical entry: entry_quality must be STRONG or FAIR (EMA stack + RSI
+              pullback confirms timing). WAIT and AVOID are rejected — good value alone
+              is not enough without a technical entry trigger.
     """
     global _cached
     rows = []
     skipped_upside   = 0
-    skipped_fundament = 0
+    skipped_technical = 0
 
     for t in WATCHLIST:
         try:
             r = screen_one(t)
-            # Gate 1: positive fundamental score
-            if r["fundamental"]["score"] <= 0:
-                skipped_fundament += 1
-                continue
-            # Gate 2: ≥20% analyst upside (skip if target unavailable — don't penalise)
+            # Gate 1: ≥20% analyst upside — stock must be undervalued vs consensus
+            # (skip gracefully when Finnhub target is unavailable, don't penalise)
             upside = r.get("upside_pct")
             if upside is not None and upside < 20.0:
                 skipped_upside += 1
+                continue
+            # Gate 2: technical entry quality must be actionable (STRONG or FAIR)
+            eq = r.get("entry_quality") or r["technical"].get("entry_quality", "WAIT")
+            if eq not in ("STRONG", "FAIR"):
+                skipped_technical += 1
                 continue
             rows.append(r)
         except Exception as e:
@@ -311,13 +321,13 @@ def run_screen(top_n: int = 15) -> dict:
     top = rows[:top_n]
 
     result = {
-        "candidates":         top,
-        "scanned":            len(WATCHLIST),
-        "passed_gates":       len(rows),
-        "top_n":              top_n,
-        "skipped_upside":     skipped_upside,
-        "skipped_fundamental": skipped_fundament,
-        "updated_at":         _now(),
+        "candidates":          top,
+        "scanned":             len(WATCHLIST),
+        "passed_gates":        len(rows),
+        "top_n":               top_n,
+        "skipped_upside":      skipped_upside,
+        "skipped_technical":   skipped_technical,
+        "updated_at":          _now(),
     }
     _cached = result
     try:
@@ -328,10 +338,10 @@ def run_screen(top_n: int = 15) -> dict:
         print(f"[swing] persist failed: {e}")
 
     summary = " | ".join(
-        f"{r['ticker']}({r['combined_score']:+.2f} ↑{r['upside_pct']:.0f}%{'⚡' if r['entry_now'] else ''})"
+        f"{r['ticker']}({r['combined_score']:+.2f} ↑{r['upside_pct']:.0f}% [{r.get('entry_quality','?')}])"
         for r in top
     )
-    print(f"[swing] {len(WATCHLIST)} scanned → {len(rows)} passed gates → top {len(top)}: {summary}")
+    print(f"[swing] {len(WATCHLIST)} scanned → {skipped_upside} failed upside gate → {skipped_technical} failed tech entry → {len(rows)} passed → top {len(top)}: {summary}")
     return result
 
 
