@@ -1980,8 +1980,8 @@
     "id": 101
   },
   {
-    "symbol": "QQQ",
-    "pool": "STOCKS_QQQ_30M",
+    "symbol": "SPX500",
+    "pool": "STOCKS_SPX500_30M",
     "direction": "NEUTRAL",
     "confidence": 0.0,
     "tier": "LOW",
@@ -1995,8 +1995,8 @@
     "regime_label": "NORMAL",
     "reasoning": "Weekend \u2014 market closed",
     "status": "NEUTRAL",
-    "expires_at": "2026-06-22T00:17:25.418367+00:00",
-    "created_at": "2026-06-21T23:47:25.418415+00:00",
+    "expires_at": "2026-06-22T00:17:26.854928+00:00",
+    "created_at": "2026-06-21T23:47:26.854970+00:00",
     "id": 101
   }
 ]
