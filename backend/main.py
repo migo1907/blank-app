@@ -1285,6 +1285,14 @@ async def swing_candidates(secret: str = ""):
             "conviction":        conv,
             "qualified":         c.get("qualified", bool((fs or 0) > 0 and (ts or 0) > 0)),
             "thesis":            c.get("thesis"),
+            # full nested objects for the dashboard
+            "fundamental":       f,
+            "technical":         t,
+            "upside_pct":        c.get("upside_pct"),
+            "analyst_target":    c.get("analyst_target"),
+            "current_price":     c.get("current_price"),
+            "entry_quality":     c.get("entry_quality") or t.get("entry_quality"),
+            "entry_now":         c.get("entry_now") or t.get("entry_now", False),
         })
     return {
         "candidates":      out,
