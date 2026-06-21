@@ -8,7 +8,7 @@ import {
 import { Crosshair, BarChart3, Globe, Briefcase, Newspaper } from 'lucide-react'
 import { getDashboard, subscribePush, VAPID_PUBLIC,
   getMarketOverview, getMarketQuotes, getMarketTicker, getMarketCompare, getMarketWrap, getMarketCommentary,
-  getOptionsFlow } from './api'
+  getOptionsFlow, getEconomicCalendar, getEarningsCalendar } from './api'
 
 const BASE   = 'https://blank-app-production-a8bd.up.railway.app'
 const SECRET = 'gold2026'
@@ -1343,9 +1343,94 @@ function SignalsHub() {
       <div className="sub-tabs">
         <button className={`sub-tab${subTab==='intraday'?' active':''}`} onClick={()=>setSubTab('intraday')}>Intraday</button>
         <button className={`sub-tab${subTab==='swing'?' active':''}`} onClick={()=>setSubTab('swing')}>Swing</button>
+        <button className={`sub-tab${subTab==='options'?' active':''}`} onClick={()=>setSubTab('options')}>Options</button>
       </div>
       {subTab==='intraday' && <SignalsTab/>}
       {subTab==='swing'    && <SwingTab/>}
+      {subTab==='options'  && <OptionsTab/>}
+    </div>
+  )
+}
+
+function CalendarTab() {
+  const eco = useLoad(()=>getEconomicCalendar())
+  const ern = useLoad(()=>getEarningsCalendar())
+  const [view,setView] = useState('economic')
+
+  const events = eco.data?.events || []
+  // group economic events by date
+  const byDay = {}
+  events.forEach(e=>{ (byDay[e.date]=byDay[e.date]||[]).push(e) })
+  const days = Object.keys(byDay).sort()
+  const todayStr = new Date().toISOString().slice(0,10)
+
+  const earnings = ern.data?.earnings || []
+  const ernByDay = {}
+  earnings.forEach(e=>{ (ernByDay[e.date]=ernByDay[e.date]||[]).push(e) })
+  const ernDays = Object.keys(ernByDay).sort()
+
+  const impClr = i => i==='high'?'var(--red)':i==='medium'?'var(--gold)':'var(--muted)'
+
+  return (
+    <div className="content">
+      <div className="filter-bar">
+        <button className={`filter-chip${view==='economic'?' active':''}`} onClick={()=>setView('economic')}>📆 Economic</button>
+        <button className={`filter-chip${view==='earnings'?' active':''}`} onClick={()=>setView('earnings')}>📊 Earnings</button>
+      </div>
+
+      {view==='economic' && (
+        eco.load&&!eco.data ? <Spinner/> :
+        days.length===0 ? <div className="card" style={{textAlign:'center',color:'var(--muted)',padding:32,fontSize:13}}>No high-impact US events this week.</div> :
+        days.map(d=>{
+          const dd = byDay[d]
+          const lbl = new Date(d+'T00:00:00').toLocaleDateString('en-US',{weekday:'long',day:'numeric',month:'short'})
+          return (
+            <div key={d} className="card">
+              <div className="card-title" style={{color:d===todayStr?'var(--gold)':'var(--muted)'}}>{d===todayStr?'● Today · ':''}{lbl}</div>
+              {dd.map((e,i)=>(
+                <div key={i} style={{display:'flex',gap:10,alignItems:'center',padding:'7px 0',borderBottom:i<dd.length-1?'1px solid var(--border)':'none'}}>
+                  <span className="mono" style={{color:'var(--gold)',fontWeight:700,fontSize:12,minWidth:44}}>{e.time_dubai}</span>
+                  <span style={{flex:1,fontSize:12,color:'var(--text)'}}>{e.name}</span>
+                  {(e.forecast||e.previous)&&(
+                    <span style={{fontSize:10,color:'var(--muted)',whiteSpace:'nowrap'}}>
+                      {e.forecast?`Est ${e.forecast}`:''}{e.forecast&&e.previous?' · ':''}{e.previous?`Prev ${e.previous}`:''}
+                    </span>
+                  )}
+                  <span style={{fontSize:9,fontWeight:700,padding:'2px 7px',borderRadius:'var(--r-pill)',background:`${impClr(e.impact)}22`,color:impClr(e.impact),textTransform:'uppercase'}}>{e.impact}</span>
+                </div>
+              ))}
+            </div>
+          )
+        })
+      )}
+
+      {view==='earnings' && (
+        ern.load&&!ern.data ? <Spinner/> :
+        ern.data?.error ? <div className="card" style={{textAlign:'center',color:'var(--muted)',padding:24,fontSize:12}}>{ern.data.error}</div> :
+        ernDays.length===0 ? <div className="card" style={{textAlign:'center',color:'var(--muted)',padding:32,fontSize:13}}>No major-cap earnings in the next 7 days.</div> :
+        ernDays.map(d=>{
+          const dd = ernByDay[d]
+          const lbl = new Date(d+'T00:00:00').toLocaleDateString('en-US',{weekday:'long',day:'numeric',month:'short'})
+          return (
+            <div key={d} className="card">
+              <div className="card-title" style={{color:d===todayStr?'var(--gold)':'var(--muted)'}}>{d===todayStr?'● Today · ':''}{lbl}</div>
+              <table className="tbl" style={{width:'100%'}}>
+                <thead><tr><th>Ticker</th><th>Company</th><th>When</th><th className="num">EPS Est.</th></tr></thead>
+                <tbody>
+                  {dd.map((e,i)=>(
+                    <tr key={i}>
+                      <td style={{color:'var(--gold)',fontWeight:800}}>{e.symbol}</td>
+                      <td style={{color:'var(--text)'}}>{e.name}</td>
+                      <td style={{color:'var(--muted)',fontSize:10}}>{e.when||'—'}</td>
+                      <td className="num" style={{color:'var(--text)'}}>{e.eps_estimate!=null?e.eps_estimate:'—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )
+        })
+      )}
     </div>
   )
 }
@@ -1356,10 +1441,10 @@ function MacroHub({health}) {
     <div className="content">
       <div className="sub-tabs">
         <button className={`sub-tab${subTab==='regime'?' active':''}`} onClick={()=>setSubTab('regime')}>Regime</button>
-        <button className={`sub-tab${subTab==='options'?' active':''}`} onClick={()=>setSubTab('options')}>Options</button>
+        <button className={`sub-tab${subTab==='calendar'?' active':''}`} onClick={()=>setSubTab('calendar')}>Calendar</button>
       </div>
-      {subTab==='regime'  && <MacroTab health={health}/>}
-      {subTab==='options' && <OptionsTab/>}
+      {subTab==='regime'   && <MacroTab health={health}/>}
+      {subTab==='calendar' && <CalendarTab/>}
     </div>
   )
 }

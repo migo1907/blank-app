@@ -1949,6 +1949,109 @@ async def market_commentary(secret: str = ""):
         return {"date": today, "commentary": text, "cached": False, "fallback": True}
 
 
+@app.get("/calendar/economic")
+async def calendar_economic(secret: str = ""):
+    """This-week high/medium-impact US economic events (Forex Factory feed), Dubai time."""
+    _validate_secret(secret)
+    import httpx
+    from datetime import datetime as _dt, timezone as _tz, timedelta as _td
+    url = "https://nfs.faireconomy.media/ff_calendar_thisweek.json"
+    out = []
+    try:
+        with httpx.Client(timeout=12, follow_redirects=True) as client:
+            resp = client.get(url, headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+                "Accept": "application/json, text/plain, */*",
+                "Accept-Language": "en-US,en;q=0.9",
+                "Referer": "https://www.forexfactory.com/",
+            })
+            resp.raise_for_status()
+            data = resp.json() or []
+        for ev in data:
+            impact = (ev.get("impact") or "").lower()
+            if impact not in ("high", "medium"):
+                continue
+            if (ev.get("country") or "").upper() not in ("USD", "US", "USA"):
+                continue
+            try:
+                ts = _dt.fromisoformat(ev.get("date", "")).astimezone(_tz.utc)
+            except Exception:
+                continue
+            dubai = ts + _td(hours=4)
+            out.append({
+                "date":        dubai.strftime("%Y-%m-%d"),
+                "weekday":     dubai.strftime("%a"),
+                "time_dubai":  dubai.strftime("%H:%M"),
+                "ts":          ts.isoformat(),
+                "name":        ev.get("title") or ev.get("event") or "Event",
+                "impact":      impact,
+                "forecast":    ev.get("forecast") or "",
+                "previous":    ev.get("previous") or "",
+                "actual":      ev.get("actual") or "",
+            })
+        out.sort(key=lambda x: x["ts"])
+    except Exception as e:
+        return {"events": [], "tz": "Dubai (UTC+4)", "error": str(e)}
+    return {"events": out, "tz": "Dubai (UTC+4)"}
+
+
+# Curated large/mega-cap universe for the earnings calendar (symbol → display name)
+_EARNINGS_MAJORS = {
+    "AAPL": "Apple", "MSFT": "Microsoft", "GOOGL": "Alphabet", "AMZN": "Amazon",
+    "NVDA": "NVIDIA", "META": "Meta", "TSLA": "Tesla", "AVGO": "Broadcom",
+    "BRK.B": "Berkshire", "JPM": "JPMorgan", "V": "Visa", "MA": "Mastercard",
+    "UNH": "UnitedHealth", "XOM": "ExxonMobil", "CVX": "Chevron", "LLY": "Eli Lilly",
+    "JNJ": "Johnson & Johnson", "PG": "Procter & Gamble", "HD": "Home Depot",
+    "COST": "Costco", "WMT": "Walmart", "ABBV": "AbbVie", "KO": "Coca-Cola",
+    "PEP": "PepsiCo", "BAC": "Bank of America", "ADBE": "Adobe", "CRM": "Salesforce",
+    "NFLX": "Netflix", "AMD": "AMD", "INTC": "Intel", "QCOM": "Qualcomm",
+    "ORCL": "Oracle", "CSCO": "Cisco", "MCD": "McDonald's", "DIS": "Disney",
+    "NKE": "Nike", "WFC": "Wells Fargo", "GS": "Goldman Sachs", "MS": "Morgan Stanley",
+    "PFE": "Pfizer", "TMO": "Thermo Fisher", "BA": "Boeing", "CAT": "Caterpillar",
+    "GE": "GE Aerospace", "PYPL": "PayPal", "UBER": "Uber", "T": "AT&T",
+    "VZ": "Verizon", "C": "Citigroup", "PLTR": "Palantir",
+}
+
+
+@app.get("/calendar/earnings")
+async def calendar_earnings(secret: str = ""):
+    """Upcoming earnings (next 7 days) for major caps, via Finnhub earnings calendar."""
+    _validate_secret(secret)
+    import httpx
+    from datetime import datetime as _dt, timezone as _tz, timedelta as _td
+    from news_fetcher import FINNHUB_KEY
+    if not FINNHUB_KEY:
+        return {"earnings": [], "error": "FINNHUB_KEY not set"}
+    today = _dt.now(_tz.utc).date()
+    frm, to = today.isoformat(), (today + _td(days=7)).isoformat()
+    try:
+        with httpx.Client(timeout=12) as client:
+            resp = client.get("https://finnhub.io/api/v1/calendar/earnings", params={
+                "from": frm, "to": to, "token": FINNHUB_KEY,
+            })
+            resp.raise_for_status()
+            data = resp.json().get("earningsCalendar", []) or []
+    except Exception as e:
+        return {"earnings": [], "from": frm, "to": to, "error": str(e)}
+    _HR = {"bmo": "Pre-mkt", "amc": "After-close", "dmh": "Mid-day"}
+    out = []
+    for ev in data:
+        sym = (ev.get("symbol") or "").upper()
+        if sym not in _EARNINGS_MAJORS:
+            continue
+        out.append({
+            "symbol":       sym,
+            "name":         _EARNINGS_MAJORS[sym],
+            "date":         ev.get("date"),
+            "when":         _HR.get((ev.get("hour") or "").lower(), ev.get("hour") or ""),
+            "eps_estimate": ev.get("epsEstimate"),
+            "eps_actual":   ev.get("epsActual"),
+            "rev_estimate": ev.get("revenueEstimate"),
+        })
+    out.sort(key=lambda x: (x["date"] or "", x["symbol"]))
+    return {"earnings": out, "from": frm, "to": to}
+
+
 @app.get("/options/flow")
 async def options_flow(secret: str = ""):
     _validate_secret(secret)
