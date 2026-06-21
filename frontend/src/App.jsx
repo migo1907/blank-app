@@ -12,6 +12,8 @@ import { getDashboard, subscribePush, VAPID_PUBLIC,
 const BASE   = 'https://blank-app-production-a8bd.up.railway.app'
 const SECRET = 'gold2026'
 
+const C = { green:'#22c55e', red:'#ef4444', muted:'#64748b', gold:'#f59e0b', blue:'#3b82f6', purple:'#a855f7', indigo:'#6366f1' }
+
 async function api(path, params = {}) {
   const url = new URL(BASE + path)
   url.searchParams.set('secret', SECRET)
@@ -100,6 +102,26 @@ function ScoreRing({value,size=80,color,label,sublabel}) {
         {sublabel&&<text x="40" y="52" textAnchor="middle" fill="var(--muted)" fontSize="8">{sublabel}</text>}
       </svg>
       {label&&<div style={{fontSize:10,color:'var(--muted)',marginTop:2,textAlign:'center',fontWeight:700,textTransform:'uppercase',letterSpacing:'.06em'}}>{label}</div>}
+    </div>
+  )
+}
+
+// Diverging bias bar centered on neutral
+function BiasBar({value,label,height=8}){
+  // value 0..1 ; 0.5 = neutral. Diverging bar centered on neutral.
+  const v=Math.min(1,Math.max(0,value??0.5)), p=Math.round(v*100)
+  const lbl=v>0.6?'Bullish':v<0.4?'Bearish':'Neutral'
+  const clr=v>0.6?'var(--green)':v<0.4?'var(--red)':'var(--gold)'
+  return (
+    <div style={{width:'100%'}}>
+      <div style={{display:'flex',justifyContent:'space-between',fontSize:11,marginBottom:4}}>
+        <span style={{color:'var(--muted)',fontWeight:700,textTransform:'uppercase',letterSpacing:'.06em',fontSize:10}}>{label}</span>
+        <span style={{color:clr,fontWeight:700}}>{lbl} {p}%</span>
+      </div>
+      <div style={{background:'rgba(255,255,255,.06)',borderRadius:4,height,position:'relative'}}>
+        <div style={{position:'absolute',left:'50%',top:0,bottom:0,width:1,background:'var(--muted)',opacity:.4}}/>
+        <div style={{position:'absolute',height,borderRadius:4,left:p>=50?'50%':`${p}%`,width:`${Math.abs(p-50)}%`,background:clr,transition:'all .6s'}}/>
+      </div>
     </div>
   )
 }
@@ -344,7 +366,7 @@ function PulseTab({pulse,health}) {
       name: p.replace('XAUUSD_','').replace('STOCKS_',''),
       conf: Math.round((pools[p].confidence||0)*100),
       dir:  pools[p].direction,
-      fill: pools[p].direction==='LONG'?'#10b981':pools[p].direction==='SHORT'?'#ef4444':'#64748b'
+      fill: pools[p].direction==='LONG'?C.green:pools[p].direction==='SHORT'?C.red:C.muted
     }))
 
   return (
@@ -352,10 +374,10 @@ function PulseTab({pulse,health}) {
       {/* Bias rings */}
       <div className="card">
         <div className="card-title">Market Pulse</div>
-        <div style={{display:'flex',justifyContent:'space-around',marginBottom:16}}>
-          <ScoreRing value={(pd?.gold_score||0)+0.5} color={bclr(pd?.gold_bias)} label="Gold" sublabel={pd?.gold_bias||'—'}/>
-          <ScoreRing value={0.5} color="var(--gold)" size={60} label="Overall" sublabel={pd?.overall_bias||'—'}/>
-          <ScoreRing value={(pd?.stocks_score||0)+0.5} color={bclr(pd?.stocks_bias)} label="Stocks" sublabel={pd?.stocks_bias||'—'}/>
+        <div style={{display:'flex',flexDirection:'column',gap:12,marginBottom:16}}>
+          <BiasBar value={(pd?.gold_score||0)+0.5} label="Gold"/>
+          <BiasBar value={pd?.overall_score!=null?(pd.overall_score+0.5):(((pd?.gold_score||0)+(pd?.stocks_score||0))/2+0.5)} label="Overall"/>
+          <BiasBar value={(pd?.stocks_score||0)+0.5} label="Stocks"/>
         </div>
         <div style={{display:'flex',gap:10,flexWrap:'wrap',justifyContent:'center'}}>
           <span className={`bias ${bc(pd?.gold_bias)}`}>{bico(pd?.gold_bias)} Gold</span>
@@ -515,6 +537,15 @@ function SignalsTab() {
             const qs     = s.quality_score
             const qClr   = qs==null?'var(--muted)':qs>=0.55?'var(--green)':qs>=0.40?'var(--gold)':'var(--red)'
             const qLbl   = qs==null?'—':qs>=0.55?'STRONG':qs>=0.40?'FAIR':'WEAK'
+            const rr     = (s.entry_price&&s.sl&&s.tp1) ? Math.abs(s.tp1-s.entry_price)/Math.max(1e-9,Math.abs(s.entry_price-s.sl)) : null
+            const rrClr  = rr==null?'var(--muted)':rr>=2?'var(--green)':rr>=1?'var(--gold)':'var(--red)'
+            // Price ladder normalization
+            const ladder = [['SL',s.sl,'var(--red)'],['Entry',s.entry_price,'var(--gold)'],['TP1',s.tp1,'var(--green)'],['TP2',s.tp2,'var(--green)'],['TP3',s.tp3,'var(--green)']]
+              .filter(([,v])=>v!=null)
+            const lvVals = ladder.map(([,v])=>v)
+            const lvMin  = lvVals.length?Math.min(...lvVals):0
+            const lvMax  = lvVals.length?Math.max(...lvVals):1
+            const lvSpan = Math.max(1e-9,lvMax-lvMin)
             return (
               <div key={i} style={{
                 background:'var(--surface)',border:`1px solid var(--border)`,
@@ -531,17 +562,40 @@ function SignalsTab() {
                       {s.htf_context==='htf_direct'&&<span style={{marginLeft:6,fontSize:10,color:'var(--purple)',fontWeight:700}}> HTF</span>}
                     </div>
                   </div>
-                  <div style={{textAlign:'right'}}>
-                    <div style={{fontSize:10,color:'var(--muted)'}}>{age(s.fired_at)}</div>
-                    <div style={{fontSize:10,color:tierClr(s.tier),fontWeight:700,marginTop:2}}>{s.tier||'—'}</div>
+                  <div style={{display:'flex',alignItems:'center',gap:8}}>
+                    {rr!=null&&(
+                      <span style={{fontSize:10,fontWeight:700,color:rrClr,border:`1px solid ${rrClr}`,borderRadius:3,padding:'2px 7px',whiteSpace:'nowrap'}}>
+                        R:R 1:{rr.toFixed(1)}
+                      </span>
+                    )}
+                    <div style={{textAlign:'right'}}>
+                      <div style={{fontSize:10,color:'var(--muted)'}}>{age(s.fired_at)}</div>
+                      <div style={{fontSize:10,color:tierClr(s.tier),fontWeight:700,marginTop:2}}>{s.tier||'—'}</div>
+                    </div>
                   </div>
                 </div>
 
+                {/* Price ladder */}
+                {ladder.length>1&&(
+                  <div style={{position:'relative',height:26,marginBottom:10}}>
+                    <div style={{position:'absolute',left:0,right:0,top:12,height:2,background:'var(--surface2)',borderRadius:2}}/>
+                    {ladder.map(([lbl,val,c])=>{
+                      const left=((val-lvMin)/lvSpan)*100
+                      const op=lbl==='TP1'?1:lbl==='TP2'?0.7:lbl==='TP3'?0.45:1
+                      return (
+                        <div key={lbl} title={`${lbl} ${n(val,2)}`} style={{position:'absolute',left:`${left}%`,top:5,transform:'translateX(-50%)'}}>
+                          <div style={{width:2,height:16,background:c,opacity:op,borderRadius:1}}/>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+
                 {/* Levels grid */}
                 <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:4,marginBottom:10}}>
-                  {[['Entry',s.entry_price,'var(--text)'],['TP1',s.tp1,'var(--green)'],['TP2',s.tp2,'var(--green)'],['TP3',s.tp3,'var(--green)'],['SL',s.sl,'var(--red)']].map(([lbl,val,c])=>(
+                  {[['Entry',s.entry_price,'var(--text)',1],['TP1',s.tp1,'var(--green)',1],['TP2',s.tp2,'var(--green)',0.7],['TP3',s.tp3,'var(--green)',0.45],['SL',s.sl,'var(--red)',1]].map(([lbl,val,c,op])=>(
                     <div key={lbl} style={{background:'var(--surface2)',borderRadius:4,padding:'6px 4px',textAlign:'center'}}>
-                      <div className="mono" style={{fontSize:11,fontWeight:700,color:c}}>{val?n(val,2):'—'}</div>
+                      <div className="mono" style={{fontSize:11,fontWeight:700,color:c,opacity:op}}>{val?n(val,2):'—'}</div>
                       <div style={{fontSize:9,color:'var(--muted)',fontWeight:600,marginTop:1}}>{lbl}</div>
                     </div>
                   ))}
@@ -561,106 +615,6 @@ function SignalsTab() {
           })}
         </div>
       )}
-    </div>
-  )
-}
-
-// ══════════════════════════════════════════════════════════════════
-// TAB 4 — ML INTEL
-// ══════════════════════════════════════════════════════════════════
-function MLTab({health}) {
-  const [fPool,setFPool]=useState('XAUUSD_2M')
-  const {data:fi,load:fiLoad}=useLoad(()=>api('/feature-importance',{pool:fPool}),[fPool])
-  const {data:hd,err,load}=health
-  if(load&&!hd) return <Spinner/>
-  if(err&&!hd)  return <Err e={err}/>
-
-  const ml=hd?.ml||{}, pools=ml.pools||{}
-  const poolArr = Object.entries(pools)
-
-  // Win rate chart
-  const wrData = poolArr.map(([p,d])=>({
-    name: p.replace('XAUUSD_','').replace('STOCKS_',''),
-    oos:  d.oos_accuracy!=null?Math.round(d.oos_accuracy*100):null,
-    thresh: Math.round((d.threshold||0.5)*100),
-  })).filter(d=>d.oos!=null)
-
-  return (
-    <div className="content">
-      {/* ML model matrix */}
-      <div className="card">
-        <div className="card-title">Pool ML Status</div>
-        <div style={{overflowX:'auto'}}>
-          <table className="tbl">
-            <thead><tr>
-              <th>Pool</th><th>RF</th><th>GBM</th><th>OOS Acc</th><th>Cert</th><th>Retrains</th>
-            </tr></thead>
-            <tbody>
-              {poolArr.map(([pool,p])=>(
-                <tr key={pool}>
-                  <td style={{fontSize:10,color:'var(--text)',fontWeight:600}}>{pool.replace('STOCKS_','').replace('XAUUSD_','')}</td>
-                  <td>{p.rf_trained?'✅':'❌'}</td>
-                  <td>{p.gbm_trained?'✅':'❌'}</td>
-                  <td style={{color:p.oos_accuracy>0.55?'var(--green)':p.oos_accuracy>0.5?'var(--gold)':'var(--red)',fontWeight:700}}>
-                    {p.oos_accuracy!=null?`${(p.oos_accuracy*100).toFixed(1)}%`:'—'}
-                  </td>
-                  <td>{p.ml_certainty?cert(p.ml_certainty):''} <span style={{fontSize:10,color:'var(--muted)'}}>{p.ml_certainty||'—'}</span></td>
-                  <td style={{color:'var(--muted)'}}>{p.retrain_count||0}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* OOS Accuracy chart */}
-      {wrData.length>0&&(
-        <div className="card">
-          <div className="card-title">OOS Walk-Forward Accuracy</div>
-          <ResponsiveContainer width="100%" height={180}>
-            <BarChart data={wrData} margin={{left:-20,right:8,top:4,bottom:0}}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(30,30,58,.8)"/>
-              <XAxis dataKey="name" tick={{fill:'#64748b',fontSize:8}} interval={0} angle={-30} textAnchor="end" height={40}/>
-              <YAxis tick={{fill:'#64748b',fontSize:9}} domain={[40,75]} tickFormatter={v=>`${v}%`}/>
-              <Tooltip content={<ChartTip fmt={v=>`${v}%`}/>}/>
-              <ReferenceLine y={50} stroke="var(--muted)" strokeDasharray="4 4" label={{value:'50%',fill:'var(--muted)',fontSize:9}}/>
-              <Bar dataKey="oos" name="OOS Acc" radius={3}>
-                {wrData.map((e,i)=><Cell key={i} fill={e.oos>=55?'#10b981':e.oos>=50?'#f59e0b':'#ef4444'}/>)}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      )}
-
-      {/* Advanced models */}
-      <div className="card">
-        <div className="card-title">Advanced Models & Libraries</div>
-        <div className="metrics">
-          {[['JointGold',ml.joint_gold_trained],['JointStocks',ml.joint_stocks_trained],['TabPFN',ml.tabpfn_available],['LightGBM',ml.lgbm_available],['Optuna',ml.optuna_available],['SHAP',ml.shap_available]].map(([l,v])=>(
-            <div key={l} className="metric"><div className="metric-val" style={{fontSize:16}}>{v?'✅':'❌'}</div><div className="metric-lbl">{l}</div></div>
-          ))}
-        </div>
-      </div>
-
-      {/* Feature importance */}
-      <div className="card">
-        <div className="card-title">Feature Importance</div>
-        <select className="pro" value={fPool} onChange={e=>setFPool(e.target.value)} style={{marginBottom:12}}>
-          {[...GOLD_POOLS,...STOCK_POOLS].map(p=><option key={p} value={p}>{p}</option>)}
-        </select>
-        {fiLoad?<div style={{color:'var(--muted)',fontSize:12,textAlign:'center',padding:16}}>Loading…</div>:fi&&(
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
-            <div>
-              <div style={{fontSize:9,color:'var(--gold)',fontWeight:700,textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>RF Features</div>
-              <HBar data={(fi.rf?.top_features||[]).map(f=>({name:f.name||f.feature,value:f.importance}))} color="var(--green)" maxItems={10}/>
-            </div>
-            <div>
-              <div style={{fontSize:9,color:'var(--blue)',fontWeight:700,textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>GBM Features</div>
-              <HBar data={(fi.gbm?.top_features||[]).map(f=>({name:f.name||f.feature,value:f.importance}))} color="var(--blue)" maxItems={10}/>
-            </div>
-          </div>
-        )}
-      </div>
     </div>
   )
 }
@@ -757,8 +711,8 @@ function SwingTab() {
               <XAxis type="number" domain={[0,100]} tick={{fill:'#64748b',fontSize:9}} tickFormatter={v=>`${v}%`}/>
               <YAxis type="category" dataKey="name" tick={{fill:'#f59e0b',fontSize:10,fontWeight:700}} width={50}/>
               <Tooltip content={<ChartTip fmt={v=>`${v}%`}/>}/>
-              <Bar dataKey="fund" name="Fundamental" fill="#6366f1" radius={[0,0,0,0]} stackId="a"/>
-              <Bar dataKey="tech"  name="Technical"   fill="#10b981" radius={[0,3,3,0]} stackId="a"/>
+              <Bar dataKey="fund" name="Fundamental" fill={C.indigo} radius={[0,0,0,0]} stackId="a"/>
+              <Bar dataKey="tech"  name="Technical"   fill={C.green} radius={[0,3,3,0]} stackId="a"/>
             </BarChart>
           </ResponsiveContainer>
           <div style={{display:'flex',gap:16,justifyContent:'center',marginTop:8}}>
@@ -825,7 +779,7 @@ function MacroTab({health}) {
   const regData = Object.entries(reg).map(([asset,r])=>({
     name: asset, label: r.label||r.regime||'—',
     conf: Math.round((r.confidence||0)*100),
-    color: r.regime?.includes('BULL')?'#10b981':r.regime?.includes('BEAR')?'#ef4444':'#64748b'
+    color: r.regime?.includes('BULL')?C.green:r.regime?.includes('BEAR')?C.red:C.muted
   }))
 
   const mtfData = Object.entries(mtf).map(([asset,m])=>({
@@ -880,8 +834,8 @@ function MacroTab({health}) {
               <XAxis dataKey="name" tick={{fill:'#94a3b8',fontSize:11}}/>
               <YAxis tick={{fill:'#64748b',fontSize:9}} domain={[0,100]} tickFormatter={v=>`${v}%`}/>
               <Tooltip content={<ChartTip fmt={v=>`${v}%`}/>}/>
-              <Bar dataKey="bull" name="Bull" fill="#10b981" radius={[3,3,0,0]} stackId="a"/>
-              <Bar dataKey="bear" name="Bear" fill="#ef4444" radius={[0,0,3,3]} stackId="a"/>
+              <Bar dataKey="bull" name="Bull" fill={C.green} radius={[3,3,0,0]} stackId="a"/>
+              <Bar dataKey="bear" name="Bear" fill={C.red} radius={[0,0,3,3]} stackId="a"/>
             </BarChart>
           </ResponsiveContainer>
           <div style={{display:'flex',gap:16,justifyContent:'center',marginTop:6}}>
@@ -975,9 +929,9 @@ function NewsTab() {
   const allItems=data?.items||[]
   const sentCounts={BULLISH:allItems.filter(i=>i.sentiment==='BULLISH').length,BEARISH:allItems.filter(i=>i.sentiment==='BEARISH').length,NEUTRAL:allItems.filter(i=>i.sentiment==='NEUTRAL').length}
   const sentPie=[
-    {name:'Bullish',value:sentCounts.BULLISH,fill:'#10b981'},
-    {name:'Bearish',value:sentCounts.BEARISH,fill:'#ef4444'},
-    {name:'Neutral',value:sentCounts.NEUTRAL,fill:'#64748b'},
+    {name:'Bullish',value:sentCounts.BULLISH,fill:C.green},
+    {name:'Bearish',value:sentCounts.BEARISH,fill:C.red},
+    {name:'Neutral',value:sentCounts.NEUTRAL,fill:C.muted},
   ].filter(d=>d.value>0)
 
   return (
@@ -1410,20 +1364,6 @@ function WrapTab() {
 // ══════════════════════════════════════════════════════════════════
 // WRAPPER COMPONENTS — merged tab groups
 // ══════════════════════════════════════════════════════════════════
-function DailyIntelTab({pulse, health}) {
-  const [subTab, setSubTab] = useState('brief')
-  return (
-    <div className="content">
-      <div className="sub-tabs">
-        <button className={`sub-tab${subTab==='brief'?' active':''}`} onClick={()=>setSubTab('brief')}>Brief</button>
-        <button className={`sub-tab${subTab==='pulse'?' active':''}`} onClick={()=>setSubTab('pulse')}>Pulse</button>
-      </div>
-      {subTab==='brief' && <BriefTab/>}
-      {subTab==='pulse' && <PulseTab pulse={pulse} health={health}/>}
-    </div>
-  )
-}
-
 function MyPositionsTab() {
   const [subTab, setSubTab] = useState('portfolio')
   return (
@@ -1621,7 +1561,7 @@ function OptionsTab() {
 // APP ROOT
 // ══════════════════════════════════════════════════════════════════
 export default function App() {
-  const [tab,setTab]       = useState('markets')
+  const [tab,setTab]       = useState('signals')
   const [drawer,setDrawer] = useState(false)
   const pulse  = useLoad(()=>fetch(`${BASE}/pulse`,{signal:AbortSignal.timeout(15000)}).then(r=>r.json()))
   const health = useLoad(()=>api('/health'))
