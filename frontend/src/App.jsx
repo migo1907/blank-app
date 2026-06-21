@@ -666,7 +666,7 @@ function SwingTab() {
         <div>
           <div style={{fontSize:13,fontWeight:800,color:'var(--text)'}}>Top Swing Picks</div>
           <div style={{fontSize:10,color:'var(--muted)',marginTop:1}}>
-            {meta.scanned||50} scanned · {meta.passed_gates||0} passed gates · locked {all.length}
+            {meta.scanned||70} scanned · {meta.passed_gates||0} passed gates · top {all.length}
             {meta.updated_at&&<span style={{marginLeft:6}}>· {age(meta.updated_at)}</span>}
           </div>
         </div>
@@ -681,7 +681,7 @@ function SwingTab() {
         <div style={{padding:'40px 20px',textAlign:'center',color:'var(--muted)'}}>
           <div style={{fontSize:32,marginBottom:10}}>📈</div>
           <div style={{fontSize:14,fontWeight:600,marginBottom:6}}>No candidates yet</div>
-          <div style={{fontSize:12}}>Screen runs at 09:45 ET and 16:30 ET on trading days. Stocks must have ≥20% analyst upside and positive fundamentals.</div>
+          <div style={{fontSize:12}}>Screen runs at 09:45 ET and 16:30 ET on trading days. 70 stocks scanned — top 15 with ≥20% analyst upside and positive fundamentals shown here.</div>
         </div>
       ) : (
         <div style={{padding:'0 10px',display:'flex',flexDirection:'column',gap:10}}>

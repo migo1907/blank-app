@@ -1,7 +1,7 @@
 """
 Swing addon — Screener engine.
 
-Scans a watchlist (top 50 S&P 500 by weight) twice daily (09:45 ET + 16:30 ET),
+Scans a watchlist (top 70 S&P 500 by weight) twice daily (09:45 ET + 16:30 ET),
 scoring each name on two axes, then applies two hard gates before ranking:
 
   Gate 1 — Fundamental quality: fundamental score > 0  (positive composite)
@@ -13,9 +13,9 @@ scoring each name on two axes, then applies two hard gates before ranking:
     trend / momentum / RSI read, fused with the existing backend context layers
     (MTF confluence + HMM regime, both already computed for the intraday system).
 
-Locks on the best 10 stocks that pass both gates. Each candidate carries
+Locks on the best 15 stocks that pass both gates. Each candidate carries
 entry price, TP1/TP2/TP3 and SL (ATR-based) + entry quality flag so the
-Telegram brief + PWA show actionable levels.
+PWA shows actionable levels. Telegram swing channel is silent — app-only.
 
 Cached in memory + persisted to the data branch. Graceful neutral fallback.
 """
@@ -26,28 +26,39 @@ from datetime import datetime, timezone
 
 import numpy as np
 
-# Top 50 S&P 500 constituents by index weight (mega-caps + sector leaders).
+# Top 70 S&P 500 constituents by index weight (mega-caps + sector leaders).
 # Static list — index turnover is slow; revisit quarterly.
 WATCHLIST = [
+    # 1-10: mega-cap tech + consumer
     "AAPL", "MSFT", "NVDA", "AMZN", "META", "GOOGL", "GOOG", "BRK-B", "AVGO", "TSLA",
+    # 11-20: healthcare, financials, consumer
     "LLY", "JPM", "V", "XOM", "UNH", "MA", "COST", "HD", "PG", "JNJ",
+    # 21-30: consumer, tech, pharma, energy
     "WMT", "NFLX", "ABBV", "BAC", "CRM", "ORCL", "MRK", "CVX", "KO", "AMD",
+    # 31-40: consumer, tech, financials, healthcare
     "PEP", "ADBE", "WFC", "LIN", "TMO", "MCD", "CSCO", "ACN", "ABT", "GE",
+    # 41-50: healthcare, tech, consumer, industrials
     "DHR", "TXN", "QCOM", "DIS", "VZ", "INTU", "AMGN", "CAT", "PFE", "IBM",
+    # 51-60: financials, tech, industrials, healthcare (new)
+    "GS", "MS", "NOW", "SPGI", "RTX", "HON", "AXP", "NEE", "AMAT", "LOW",
+    # 61-70: tech, healthcare, industrials, consumer (new)
+    "PANW", "ISRG", "SYK", "ETN", "BSX", "BLK", "UBER", "LRCX", "T", "SBUX",
 ]
 
 # Sector ETF map for relative-strength (subset — defaults to SPY if unmapped).
 _SECTOR = {
     "XLK": ["AAPL", "MSFT", "NVDA", "AVGO", "CRM", "ORCL", "AMD", "ADBE", "CSCO", "ACN",
-            "TXN", "QCOM", "INTU", "IBM"],
-    "XLC": ["META", "GOOGL", "GOOG", "NFLX", "DIS", "VZ"],
-    "XLY": ["AMZN", "TSLA", "HD", "MCD", "COST"],
-    "XLV": ["LLY", "UNH", "JNJ", "ABBV", "MRK", "TMO", "ABT", "DHR", "AMGN", "PFE"],
-    "XLF": ["BRK-B", "JPM", "V", "MA", "BAC", "WFC"],
+            "TXN", "QCOM", "INTU", "IBM", "NOW", "AMAT", "PANW", "LRCX"],
+    "XLC": ["META", "GOOGL", "GOOG", "NFLX", "DIS", "VZ", "T", "UBER"],
+    "XLY": ["AMZN", "TSLA", "HD", "MCD", "COST", "LOW", "SBUX"],
+    "XLV": ["LLY", "UNH", "JNJ", "ABBV", "MRK", "TMO", "ABT", "DHR", "AMGN", "PFE",
+            "ISRG", "SYK", "BSX"],
+    "XLF": ["BRK-B", "JPM", "V", "MA", "BAC", "WFC", "GS", "MS", "AXP", "SPGI", "BLK"],
     "XLE": ["XOM", "CVX"],
     "XLP": ["PG", "WMT", "KO", "PEP"],
-    "XLI": ["GE", "CAT"],
+    "XLI": ["GE", "CAT", "RTX", "HON", "ETN"],
     "XLB": ["LIN"],
+    "XLU": ["NEE"],
 }
 _TICKER_SECTOR = {t: etf for etf, ts in _SECTOR.items() for t in ts}
 
@@ -269,10 +280,10 @@ def screen_one(ticker: str) -> dict:
     }
 
 
-def run_screen(top_n: int = 10) -> dict:
+def run_screen(top_n: int = 15) -> dict:
     """
     Scan full watchlist, apply fundamental + 20% upside gates, rank by combined
-    score, lock the best 10. Runs twice daily: 09:45 ET (morning) + 16:30 ET (close).
+    score, lock the best 15. Runs twice daily: 09:45 ET (morning) + 16:30 ET (close).
     """
     global _cached
     rows = []
