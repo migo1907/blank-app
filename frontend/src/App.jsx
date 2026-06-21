@@ -1645,7 +1645,7 @@ export default function App() {
           <button key={item.id}
             className={tab===item.id||(item.id==='more'&&drawer)?'active':''}
             onClick={()=>item.id==='more'?setDrawer(!drawer):selectTab(item.id)}>
-            <span className="ico">{item.ico}</span>
+            <span className="b-ico">{item.ico}</span>
             <span>{item.label}</span>
           </button>
         ))}
