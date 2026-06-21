@@ -1,25 +1,5 @@
 [
   {
-    "symbol": "QQQ",
-    "pool": "STOCKS_QQQ_30M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "news_score": -0.1615,
-    "combined_score": 0.0,
-    "session": "NYSE_AFTERNOON",
-    "regime": "NORMAL",
-    "regime_label": "NORMAL",
-    "reasoning": "Weekend \u2014 market closed",
-    "status": "NEUTRAL",
-    "expires_at": "2026-06-21T17:35:50.746066+00:00",
-    "created_at": "2026-06-21T17:05:50.746103+00:00",
-    "id": 101
-  },
-  {
     "symbol": "SPX500",
     "pool": "STOCKS_SPX500_30M",
     "direction": "NEUTRAL",
@@ -1980,8 +1960,8 @@
     "id": 101
   },
   {
-    "symbol": "SPX500",
-    "pool": "STOCKS_SPX500_30M",
+    "symbol": "QQQ",
+    "pool": "STOCKS_QQQ_30M",
     "direction": "NEUTRAL",
     "confidence": 0.0,
     "tier": "LOW",
@@ -1995,8 +1975,28 @@
     "regime_label": "NORMAL",
     "reasoning": "Weekend \u2014 market closed",
     "status": "NEUTRAL",
-    "expires_at": "2026-06-22T00:17:26.854928+00:00",
-    "created_at": "2026-06-21T23:47:26.854970+00:00",
+    "expires_at": "2026-06-22T00:17:25.418367+00:00",
+    "created_at": "2026-06-21T23:47:25.418415+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "SPX500",
+    "pool": "STOCKS_SPX500_15M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "news_score": -0.292,
+    "combined_score": 0.0,
+    "session": "CLOSED",
+    "regime": "NORMAL",
+    "regime_label": "NORMAL",
+    "reasoning": "Weekend \u2014 market closed",
+    "status": "NEUTRAL",
+    "expires_at": "2026-06-22T00:17:29.654142+00:00",
+    "created_at": "2026-06-21T23:47:29.654196+00:00",
     "id": 101
   }
 ]
