@@ -1,0 +1,27 @@
+{
+  "signals": [
+    {
+      "direction": "SHORT",
+      "timeframe": "5",
+      "trigger": "RSI",
+      "symbol": "XAUUSD",
+      "entry_price": 4150.99,
+      "tp1": 4144.39,
+      "tp2": 4139.98,
+      "tp3": 4133.38,
+      "sl": 4157.59,
+      "ml_score": 0.875,
+      "tier": "\u2b50 HIGH",
+      "quality_score": 0.5355,
+      "quality_reason": "approved",
+      "news_score": -0.1796,
+      "velocity": "CONFLICTED",
+      "event": "GEOPOLITICAL",
+      "htf_bias": null,
+      "contra_bias": null,
+      "htf_context": "scalp",
+      "session": "Off-Hours",
+      "fired_at": "2026-06-21T22:37:01.350367+00:00"
+    }
+  ]
+}
