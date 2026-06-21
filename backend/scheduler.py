@@ -1219,9 +1219,9 @@ async def _weekly_mistake_autopsy() -> None:
         except Exception as _swe:
             print(f"[autopsy] swing section failed: {_swe}")
 
-        from telegram_bot import send_text
-        await send_text("\n".join(lines))
-        print("[autopsy] Weekly autopsy sent.")
+        from telegram_bot import send_personal_text
+        await send_personal_text("\n".join(lines))
+        print("[autopsy] Weekly autopsy sent to personal chat.")
     except Exception as e:
         print(f"[autopsy] Error: {e}")
 
@@ -1297,9 +1297,9 @@ async def _weekly_model_comparison() -> None:
             print(f"[model_compare] swing shadow failed: {_swe}")
 
         if len(results) > 1:
-            from telegram_bot import send_text
-            await send_text("\n".join(results))
-            print("[model_compare] Weekly comparison sent.")
+            from telegram_bot import send_personal_text
+            await send_personal_text("\n".join(results))
+            print("[model_compare] Weekly comparison sent to personal chat.")
     except Exception as e:
         print(f"[model_compare] Error: {e}")
 

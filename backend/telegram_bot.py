@@ -190,8 +190,13 @@ async def send_signal(signal: dict) -> bool:
 
 
 async def send_text(text: str) -> None:
-    """Send a plain text message."""
+    """Send a plain text message to the main channel."""
     await _send(text)
+
+
+async def send_personal_text(text: str) -> bool:
+    """Send a plain Markdown message to the personal chat (same as system alerts)."""
+    return await _send_to(PERSONAL_CHAT_ID, text)
 
 
 async def send_breaking_news(items: list[dict], seen_headlines: set) -> set:
