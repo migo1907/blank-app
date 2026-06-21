@@ -1835,6 +1835,81 @@ async def market_wrap(secret: str = ""):
 
 _commentary_cache = {"date": None, "text": None}
 
+def _build_commentary_context() -> dict:
+    """Gather per-asset technicals + pivot levels + macro/fundamental backdrop
+    for a professional, numbers-and-levels market commentary."""
+    from daily_analysis import _technical_context, _load_from_json, _fetch_live_price
+    from market_macro import get_macro_bias, get_equity_macro_bias
+    from scheduler import get_latest_news_sentiment
+
+    try:
+        levels_raw = _load_from_json()
+    except Exception:
+        levels_raw = {}
+
+    assets = {}
+    for name, dec in [("XAUUSD", 2), ("SPY", 2), ("QQQ", 2)]:
+        try:
+            tc = _technical_context(name, dec) or {}
+        except Exception:
+            tc = {}
+        try:
+            price = _fetch_live_price(name, dec)
+        except Exception:
+            price = None
+        assets[name] = {"tc": tc, "lv": levels_raw.get(name, {}) or {}, "price": price}
+
+    macro  = get_macro_bias()        or {}
+    macro_c = macro.get("components", {}) or {}
+    equity = get_equity_macro_bias() or {}
+    try:
+        news = get_latest_news_sentiment()
+    except Exception:
+        news = 0.0
+    return {
+        "assets": assets,
+        "macro": {
+            "label":      macro.get("label", "?"),
+            "bias":       macro.get("bias", 0.0),
+            "real_yield": macro_c.get("real_yield"),
+            "dxy":        macro_c.get("dxy"),
+            "vix":        equity.get("vix"),
+            "equity_label": equity.get("label", "?"),
+            "news":       news,
+        },
+    }
+
+
+def _commentary_lines(ctx: dict) -> list[str]:
+    """Deterministic, data-rich commentary used as the LLM prompt source AND as a
+    graceful fallback when no LLM key is present — always cites real numbers/levels."""
+    names = {"XAUUSD": "Gold", "SPY": "S&P 500 (SPY)", "QQQ": "Nasdaq 100 (QQQ)"}
+    lines = []
+    for key, label in names.items():
+        a = ctx["assets"].get(key, {})
+        tc, lv, price = a.get("tc", {}), a.get("lv", {}), a.get("price")
+        if not tc:
+            continue
+        px = f"${price:,.2f}" if isinstance(price, (int, float)) else "—"
+        seg = (f"{label}: {px} · {tc.get('direction','?')} {tc.get('bias_pct','?')}% "
+               f"({tc.get('trend','?')}, RSI {tc.get('rsi','?')} {tc.get('rsi_band','')}, "
+               f"20d mom {tc.get('mom20','?')}%). MAs 20/50/200 = "
+               f"{tc.get('ma20','n/a')}/{tc.get('ma50','n/a')}/{tc.get('ma200','n/a')}.")
+        if lv.get("pivot") is not None:
+            seg += (f" Pivot {lv.get('pivot')}; R {lv.get('r1')}/{lv.get('r2')}, "
+                    f"S {lv.get('s1')}/{lv.get('s2')}. ATR {tc.get('atr','?')}.")
+        lines.append(seg)
+    m = ctx["macro"]
+    macro_bits = [f"Backdrop: {m['equity_label']} equities"]
+    if m.get("vix") is not None:        macro_bits.append(f"VIX {m['vix']}")
+    if m.get("real_yield") is not None: macro_bits.append(f"10y real yield {m['real_yield']}%")
+    if m.get("dxy") is not None:        macro_bits.append(f"DXY {m['dxy']}")
+    macro_bits.append(f"gold macro {m['label']} ({m['bias']:+.2f})")
+    macro_bits.append(f"news sentiment {m['news']:+.2f}")
+    lines.append(" · ".join(macro_bits) + ".")
+    return lines
+
+
 @app.get("/market/commentary")
 async def market_commentary(secret: str = ""):
     _validate_secret(secret)
@@ -1842,26 +1917,36 @@ async def market_commentary(secret: str = ""):
     today = str(_dtt.date.today())
     if _commentary_cache["date"] == today and _commentary_cache["text"]:
         return {"date": today, "commentary": _commentary_cache["text"], "cached": True}
+
     try:
-        from market_macro import get_macro_bias, get_equity_macro_bias
-        from scheduler import get_latest_news_sentiment
-        macro  = get_macro_bias() or {}
-        equity = get_equity_macro_bias() or {}
-        ctx = f"Gold macro: {macro.get('label','?')} bias {macro.get('bias',0):.2f}. Equity: {equity.get('label','?')}. VIX: {equity.get('vix','?')}. News sentiment: {get_latest_news_sentiment():.3f}."
-    except Exception as e:
-        ctx = str(e)
-    try:
-        client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY",""))
-        msg = client.messages.create(
-            model="claude-haiku-4-5-20251001",
-            max_tokens=400,
-            messages=[{"role":"user","content":f"Write a 3-sentence professional market commentary for today ({today}) based on: {ctx}. Sound like a seasoned trader. Be direct, not generic."}]
-        )
-        text = msg.content[0].text
-        _commentary_cache.update({"date": today, "text": text})
-        return {"date": today, "commentary": text, "cached": False}
+        ctx = _build_commentary_context()
+        data_lines = _commentary_lines(ctx)
     except Exception as e:
         return {"date": today, "commentary": f"Commentary unavailable: {e}", "cached": False}
+
+    data_block = "\n".join(data_lines)
+    prompt = (
+        f"You are a senior markets desk strategist. Using ONLY the data below for {today}, write a concise, "
+        "professional market commentary (3 short paragraphs). Paragraph 1: the cross-market read and the macro/"
+        "fundamental backdrop (real yields, the dollar, VIX, risk tone). Paragraph 2: the technical posture for gold "
+        "and the equity indices — trend, momentum and RSI. Paragraph 3: the key actionable levels to watch today "
+        "(cite specific pivot, support and resistance numbers). Reference concrete numbers and price levels throughout. "
+        "Be direct and analytical, no hedging or filler, no disclaimers.\n\nDATA:\n" + data_block
+    )
+    try:
+        client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
+        msg = client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=700,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        text = msg.content[0].text.strip()
+        _commentary_cache.update({"date": today, "text": text})
+        return {"date": today, "commentary": text, "cached": False}
+    except Exception:
+        # Graceful fallback: deterministic data-rich note (still has numbers + levels)
+        text = "\n\n".join(data_lines)
+        return {"date": today, "commentary": text, "cached": False, "fallback": True}
 
 
 @app.get("/options/flow")

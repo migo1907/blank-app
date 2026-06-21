@@ -975,7 +975,20 @@ function CommentaryInline() {
   const {data,load} = useLoad(()=>getMarketCommentary())
   if(load) return <div style={{color:'var(--muted)',fontSize:13}}>Loading commentary…</div>
   if(!data?.commentary) return null
-  return <div style={{color:'var(--text)',fontSize:13,lineHeight:1.6,fontStyle:'italic'}}>"{data.commentary}"</div>
+  const paras = String(data.commentary).split(/\n{2,}/).map(p=>p.trim()).filter(Boolean)
+  return (
+    <div>
+      <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
+        <span style={{fontSize:10,fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',color:'var(--gold)'}}>Desk Commentary</span>
+        {data.fallback&&<span style={{fontSize:9,color:'var(--text-dim)'}}>· data view</span>}
+      </div>
+      <div style={{display:'flex',flexDirection:'column',gap:8}}>
+        {paras.map((p,i)=>(
+          <div key={i} style={{color:'var(--text)',fontSize:13,lineHeight:1.65}}>{p}</div>
+        ))}
+      </div>
+    </div>
+  )
 }
 
 function MarketsGridTab() {
@@ -1023,12 +1036,10 @@ function MarketsTab({pulse, health}) {
     <div className="content">
       <div className="sub-tabs">
         <button className={`sub-tab${sub==='overview'?' active':''}`} onClick={()=>setSub('overview')}>Overview</button>
-        <button className={`sub-tab${sub==='brief'?' active':''}`} onClick={()=>setSub('brief')}>Brief</button>
         <button className={`sub-tab${sub==='pulse'?' active':''}`} onClick={()=>setSub('pulse')}>Pulse</button>
         <button className={`sub-tab${sub==='wrap'?' active':''}`} onClick={()=>setSub('wrap')}>Wrap</button>
       </div>
-      {sub==='overview' && <MarketsGridTab/>}
-      {sub==='brief'    && <BriefTab/>}
+      {sub==='overview' && <><MarketsGridTab/><BriefTab/></>}
       {sub==='pulse'    && <PulseTab pulse={pulse} health={health}/>}
       {sub==='wrap'     && <WrapTab/>}
     </div>
