@@ -28,15 +28,40 @@ _entry_price_cache: dict[str, tuple] = {}
 _ENTRY_CACHE_TTL = 86400.0  # 24h — covers overnight/multi-day trades
 
 # Triggered signal feed — mirrors what is sent to Telegram (last 100)
+# Persisted to data branch so signals survive Railway restarts.
 _signal_feed: list[dict] = []
 _SIGNAL_FEED_MAX = 100
+_SIGNAL_FEED_PATH = "data/signal_feed.json"
 
 def _feed_push(entry: dict) -> None:
-    """Append a triggered signal to the in-memory feed."""
+    """Append a triggered signal to the in-memory feed and persist to data branch."""
     global _signal_feed
     _signal_feed.append(entry)
     if len(_signal_feed) > _SIGNAL_FEED_MAX:
         _signal_feed = _signal_feed[-_SIGNAL_FEED_MAX:]
+    # Persist in a background thread — best-effort, never blocks signal delivery
+    _snap = list(_signal_feed)
+    def _persist():
+        try:
+            from db import _get_file, _put_file
+            _, sha = _get_file(_SIGNAL_FEED_PATH)
+            _put_file(_SIGNAL_FEED_PATH, {"signals": _snap}, sha, "data: signal feed update")
+        except Exception as _e:
+            print(f"[feed] persist failed (non-fatal): {_e}")
+    import threading
+    threading.Thread(target=_persist, daemon=True).start()
+
+def _load_signal_feed() -> None:
+    """Load persisted signal feed from data branch on startup."""
+    global _signal_feed
+    try:
+        from db import _get_file
+        data, _ = _get_file(_SIGNAL_FEED_PATH)
+        if isinstance(data, dict) and isinstance(data.get("signals"), list):
+            _signal_feed = data["signals"][-_SIGNAL_FEED_MAX:]
+            print(f"[startup] Signal feed loaded: {len(_signal_feed)} signals from data branch")
+    except Exception as _e:
+        print(f"[startup] Signal feed load failed (non-fatal): {_e}")
 
 _SESSION_LABELS = {
     "OVERLAP": "London/NY Overlap", "LONDON": "London", "LONDON_OPEN": "London Open",
@@ -174,6 +199,9 @@ async def lifespan(app: FastAPI):
     print("[startup] Loading swing candidates from GitHub…")
     from swing_screener import load_candidates
     load_candidates()
+
+    print("[startup] Loading signal feed from GitHub…")
+    _load_signal_feed()
 
     if not WEBHOOK_SECRET:
         print("[startup] ⚠ WARNING: WEBHOOK_SECRET is not set — all webhook endpoints are open to unauthenticated requests.")
