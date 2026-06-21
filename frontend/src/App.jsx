@@ -767,18 +767,50 @@ function SwingTab() {
                 </div>
 
                 {/* Expanded: thesis + fundamentals */}
-                {isExp&&(
-                  <div style={{marginTop:12,paddingTop:12,borderTop:'1px solid var(--border)'}}>
-                    {c.thesis&&<div style={{fontSize:12,color:'var(--text)',lineHeight:1.7,marginBottom:10}}>{c.thesis}</div>}
-                    <div style={{display:'flex',gap:12,flexWrap:'wrap',fontSize:11,color:'var(--muted)'}}>
-                      {fund.pe_ratio&&<span>P/E {n(fund.pe_ratio,1)}</span>}
-                      {fund.piotroski_f!=null&&<span>Piotroski {fund.piotroski_f}/9</span>}
-                      {fund.roe!=null&&<span>ROE {n(fund.roe*100,1)}%</span>}
-                      {fund.revenue_growth!=null&&<span>Rev growth {n(fund.revenue_growth*100,1)}%</span>}
-                      {tech.rel_strength_pct!=null&&<span>Rel str {tech.rel_strength_pct>0?'+':''}{tech.rel_strength_pct}%</span>}
+                {isExp&&(()=>{
+                  const eq2   = fund.earnings_quality  || {}
+                  const ar    = fund.analyst_revision   || {}
+                  const adv   = fund.advanced           || {}
+                  const fhm   = fund.finnhub_metrics    || {}
+                  const beatClr = eq2.beat_rate!=null ? (eq2.beat_rate>=0.75?'var(--green)':eq2.beat_rate>=0.5?'var(--gold)':'var(--red)') : 'var(--muted)'
+                  const revClr  = ar.revision_score>0.05?'var(--green)':ar.revision_score<-0.05?'var(--red)':'var(--muted)'
+                  return (
+                    <div style={{marginTop:12,paddingTop:12,borderTop:'1px solid var(--border)'}}>
+                      {c.thesis&&<div style={{fontSize:12,color:'var(--text)',lineHeight:1.7,marginBottom:10}}>{c.thesis}</div>}
+
+                      {/* Earnings quality row */}
+                      {eq2.beat_rate!=null&&(
+                        <div style={{display:'flex',gap:6,marginBottom:8,flexWrap:'wrap'}}>
+                          <span style={{fontSize:10,fontWeight:700,color:beatClr,background:`${beatClr}18`,border:`1px solid ${beatClr}40`,borderRadius:3,padding:'2px 7px'}}>
+                            Beats {Math.round(eq2.beat_rate*100)}% ({eq2.consecutive_beats} straight)
+                          </span>
+                          {eq2.avg_surprise_pct!=null&&(
+                            <span style={{fontSize:10,color:'var(--muted)',border:'1px solid var(--border)',borderRadius:3,padding:'2px 7px'}}>
+                              Avg surprise {eq2.avg_surprise_pct>0?'+':''}{n(eq2.avg_surprise_pct,1)}%
+                            </span>
+                          )}
+                          {ar.buy_pct_now!=null&&(
+                            <span style={{fontSize:10,color:revClr,border:`1px solid ${revClr}40`,borderRadius:3,padding:'2px 7px'}}>
+                              Buy consensus {ar.buy_pct_now}% {ar.revision_score>0.05?'↑':ar.revision_score<-0.05?'↓':'→'}
+                            </span>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Key ratios */}
+                      <div style={{display:'flex',gap:12,flexWrap:'wrap',fontSize:11,color:'var(--muted)'}}>
+                        {adv.pe_ratio!=null&&<span>P/E {n(adv.pe_ratio,1)}</span>}
+                        {adv.piotroski_f!=null&&<span>Piotroski {adv.piotroski_f}/9</span>}
+                        {adv.roe_pct!=null&&<span>ROE {n(adv.roe_pct,1)}%</span>}
+                        {adv.fcf_yield_pct!=null&&<span>FCF {n(adv.fcf_yield_pct,1)}%</span>}
+                        {(fhm.revenueGrowthTTMYoy||fund.growth?.revenue_growth_pct)!=null&&(
+                          <span>Rev +{n(fhm.revenueGrowthTTMYoy||fund.growth?.revenue_growth_pct,1)}%</span>
+                        )}
+                        {tech.rel_strength_pct!=null&&<span>Rel str {tech.rel_strength_pct>0?'+':''}{tech.rel_strength_pct}%</span>}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )
+                })()}
               </div>
             )
           })}
