@@ -1,9 +1,22 @@
 const BASE = 'https://blank-app-production-a8bd.up.railway.app'
-const S    = 'gold2026'
+
+// API secret is obtained via passcode login (never hardcoded in the bundle).
+export const getSecret = () => { try { return localStorage.getItem('app_secret') || '' } catch { return '' } }
+export const clearSecret = () => { try { localStorage.removeItem('app_secret') } catch {} }
+export async function login(passcode) {
+  const url = new URL(BASE + '/auth/login')
+  url.searchParams.set('passcode', passcode)
+  const r = await fetch(url.toString(), { signal: AbortSignal.timeout(15000) })
+  if (!r.ok) throw new Error(r.status === 401 ? 'Incorrect passcode' : `Login failed (${r.status})`)
+  const d = await r.json()
+  if (!d.secret) throw new Error('Incorrect passcode')
+  try { localStorage.setItem('app_secret', d.secret) } catch {}
+  return d.secret
+}
 
 async function _get(path, params = {}) {
   const url = new URL(BASE + path)
-  url.searchParams.set('secret', S)
+  url.searchParams.set('secret', getSecret())
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v))
   const r = await fetch(url.toString(), { signal: AbortSignal.timeout(20000) })
   if (!r.ok) throw new Error(`${path} → ${r.status}`)

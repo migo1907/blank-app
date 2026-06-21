@@ -438,6 +438,17 @@ def _validate_secret(secret: str) -> None:
         raise HTTPException(status_code=403, detail="Invalid webhook secret.")
 
 
+@app.get("/auth/login")
+async def auth_login(passcode: str = ""):
+    """Passcode gate for the PWA. Validates against APP_PASSCODE (Railway env);
+    on success returns the API secret so the client can call protected endpoints.
+    The secret is therefore never shipped in the static bundle."""
+    expected = os.environ.get("APP_PASSCODE") or WEBHOOK_SECRET or "gold2026"
+    if passcode and passcode == expected:
+        return {"ok": True, "secret": WEBHOOK_SECRET or "gold2026"}
+    raise HTTPException(status_code=401, detail="Invalid passcode")
+
+
 @app.get("/market-hours")
 async def market_hours():
     from market_calendar import get_market_status

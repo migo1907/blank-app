@@ -8,16 +8,16 @@ import {
 import { Crosshair, BarChart3, CalendarDays, Briefcase, Newspaper } from 'lucide-react'
 import { getDashboard, subscribePush, VAPID_PUBLIC,
   getMarketOverview, getMarketQuotes, getMarketTicker, getMarketCompare, getMarketWrap, getMarketCommentary,
-  getMarketSparklines, getOptionsFlow, getEconomicCalendar, getEarningsCalendar } from './api'
+  getMarketSparklines, getOptionsFlow, getEconomicCalendar, getEarningsCalendar,
+  login, getSecret, clearSecret } from './api'
 
-const BASE   = 'https://blank-app-production-a8bd.up.railway.app'
-const SECRET = 'gold2026'
+const BASE = 'https://blank-app-production-a8bd.up.railway.app'
 
 const C = { green:'#2ebd85', red:'#f6465d', muted:'#8089a0', gold:'#f5b027', blue:'#3b82f6', purple:'#a855f7', indigo:'#6366f1' }
 
 async function api(path, params = {}) {
   const url = new URL(BASE + path)
-  url.searchParams.set('secret', SECRET)
+  url.searchParams.set('secret', getSecret())
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v))
   const r = await fetch(url.toString(), { signal: AbortSignal.timeout(20000) })
   if (!r.ok) throw new Error(`${r.status}`)
@@ -1821,16 +1821,13 @@ function Splash({onEnter}) {
 // ══════════════════════════════════════════════════════════════════
 // APP ROOT
 // ══════════════════════════════════════════════════════════════════
-export default function App() {
-  const [entered,setEntered] = useState(false)
+function MainApp() {
   const [tab,setTab] = useState('signals')
   const pulse  = useLoad(()=>fetch(`${BASE}/pulse`,{signal:AbortSignal.timeout(15000)}).then(r=>r.json()))
   const health = useLoad(()=>api('/health'))
 
   useEffect(()=>{ const id=setInterval(pulse.reload,  60_000); return()=>clearInterval(id) },[])
   useEffect(()=>{ const id=setInterval(health.reload,120_000); return()=>clearInterval(id) },[])
-
-  if(!entered) return <Splash onEnter={()=>setEntered(true)}/>
 
   return (
     <>
@@ -1855,4 +1852,52 @@ export default function App() {
       </nav>
     </>
   )
+}
+
+// ══════════════════════════════════════════════════════════════════
+// PASSCODE GATE
+// ══════════════════════════════════════════════════════════════════
+function Lock({onUnlock}) {
+  const [code,setCode] = useState('')
+  const [err,setErr]   = useState('')
+  const [busy,setBusy] = useState(false)
+  const submit = async () => {
+    if(!code||busy) return
+    setBusy(true); setErr('')
+    try { await login(code); onUnlock() }
+    catch(e){ setErr(e.message||'Incorrect passcode'); setBusy(false); setCode('') }
+  }
+  return (
+    <div className="splash" style={{cursor:'default'}}>
+      <div className="splash-glow"/>
+      <div className="splash-inner" style={{width:'min(88vw,330px)'}}>
+        <img className="splash-logo" src="/app/sniper-logo.jpg" alt="" style={{width:'min(40vw,140px)'}}
+          fetchpriority="high" decoding="async" onError={e=>{e.currentTarget.style.display='none'}}/>
+        <div className="splash-name" style={{fontSize:18,letterSpacing:'.16em',marginTop:16}}>SNIPER SIGNALS</div>
+        <div className="splash-tag">Enter passcode</div>
+        <input
+          type="password" inputMode="numeric" autoFocus value={code}
+          onChange={e=>{setCode(e.target.value); setErr('')}}
+          onKeyDown={e=>e.key==='Enter'&&submit()}
+          placeholder="••••••"
+          style={{marginTop:22,width:'100%',textAlign:'center',letterSpacing:'.3em',
+            background:'var(--surface-2)',border:`1px solid ${err?'var(--red)':'var(--border-2)'}`,
+            borderRadius:'var(--r-md)',color:'var(--text-hi)',padding:'13px 14px',fontSize:18,outline:'none'}}/>
+        {err && <div style={{color:'var(--red-text)',fontSize:12,marginTop:10}}>{err}</div>}
+        <button className="splash-enter" style={{marginTop:18,opacity:busy?.6:1}}
+          onClick={submit} disabled={busy}>{busy?'Checking…':'Unlock →'}</button>
+      </div>
+    </div>
+  )
+}
+
+// ══════════════════════════════════════════════════════════════════
+// ROOT — splash → passcode gate → app
+// ══════════════════════════════════════════════════════════════════
+export default function App() {
+  const [entered,setEntered]   = useState(false)
+  const [unlocked,setUnlocked] = useState(()=>!!getSecret())
+  if(!entered)  return <Splash onEnter={()=>setEntered(true)}/>
+  if(!unlocked) return <Lock onUnlock={()=>setUnlocked(true)}/>
+  return <MainApp/>
 }
