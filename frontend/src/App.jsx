@@ -5,7 +5,7 @@ import {
   AreaChart, Area, LineChart, Line,
   ReferenceLine
 } from 'recharts'
-import { Crosshair, BarChart3, CalendarDays, Briefcase, Newspaper } from 'lucide-react'
+import { Crosshair, BarChart3, CalendarDays, Briefcase, Newspaper, LogOut } from 'lucide-react'
 import { getDashboard, subscribePush, VAPID_PUBLIC,
   getMarketOverview, getMarketQuotes, getMarketTicker, getMarketCompare, getMarketWrap, getMarketCommentary,
   getMarketSparklines, getOptionsFlow, getEconomicCalendar, getEarningsCalendar,
@@ -1822,7 +1822,7 @@ function Splash({onEnter}) {
 // ══════════════════════════════════════════════════════════════════
 // APP ROOT
 // ══════════════════════════════════════════════════════════════════
-function MainApp() {
+function MainApp({onLock}) {
   const [tab,setTab] = useState('signals')
   const pulse  = useLoad(()=>fetch(`${BASE}/pulse`,{signal:AbortSignal.timeout(15000)}).then(r=>r.json()))
   const health = useLoad(()=>api('/health'))
@@ -1839,6 +1839,16 @@ function MainApp() {
         {tab==='portfolio' && <PortfolioHub/>}
         {tab==='news'      && <NewsTab/>}
       </div>
+
+      {/* Lock / sign-out */}
+      <button onClick={onLock} title="Lock app" aria-label="Lock app"
+        style={{position:'fixed', right:14, bottom:'calc(64px + env(safe-area-inset-bottom) + 12px)', zIndex:120,
+          width:40, height:40, borderRadius:'50%', border:'1px solid var(--border-2)',
+          background:'rgba(21,23,27,.92)', backdropFilter:'blur(8px)', color:'var(--text-mut)',
+          display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer',
+          boxShadow:'var(--shadow-pop)'}}>
+        <LogOut size={17} strokeWidth={2}/>
+      </button>
 
       {/* Fixed bottom nav */}
       <nav className="bottom-nav">
@@ -1900,5 +1910,5 @@ export default function App() {
   const [unlocked,setUnlocked] = useState(()=>!!getSecret())
   if(!entered)  return <Splash onEnter={()=>setEntered(true)}/>
   if(!unlocked) return <Lock onUnlock={()=>setUnlocked(true)}/>
-  return <MainApp/>
+  return <MainApp onLock={()=>{ clearSecret(); setUnlocked(false) }}/>
 }
