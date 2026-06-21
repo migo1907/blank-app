@@ -1732,7 +1732,7 @@ async def _swing_screen_cycle() -> None:
     try:
         from swing_screener import run_screen
         from swing_tracker import open_paper_trades
-        screen = await asyncio.to_thread(run_screen, 5)
+        screen = await asyncio.to_thread(run_screen, 10)
         # Log top candidates as paper trades — this is what accumulates the ML
         # training data (features → WIN/LOSS) the ensemble will later learn from.
         # SILENT during training phase — Telegram send disabled until ≥50 closed

@@ -673,8 +673,19 @@ function SwingTab() {
     ? (top.tp-top.entry)/(top.entry-top.sl) : null
   const rrTopClr = rrTop==null?'var(--muted)':rrTop>=2?'var(--green)':rrTop>=1?'var(--gold)':'var(--red)'
 
+  const qc = cands.data?.qualified_count
+
   return (
     <div className="content">
+      {/* Daily scan intro */}
+      <div className="commentary-card" style={{margin:'10px'}}>
+        <div style={{fontSize:13,color:'var(--text)',lineHeight:1.55}}>
+          <b style={{color:'var(--gold-text)'}}>Daily swing scan.</b> Locked on the 10 best names with strong fundamentals <i>and</i> a technical entry.
+          {qc!=null && <> <span style={{color:'var(--green-text)',fontWeight:700}}>{qc} qualify</span> today.</>}
+          {cands.data?.updated_at && <span style={{color:'var(--text-mut)'}}> · Updated {age(cands.data.updated_at)}</span>}
+        </div>
+      </div>
+
       {/* Top pick */}
       {top&&(
         <div className="card" style={{borderColor:'rgba(245,158,11,.3)'}}>
@@ -684,6 +695,11 @@ function SwingTab() {
               <div style={{fontSize:26,fontWeight:800,color:'var(--gold)',letterSpacing:'-.01em'}}>{top.ticker}</div>
             </div>
             <div style={{display:'flex',alignItems:'center',gap:10}}>
+              {top.qualified&&(
+                <span style={{fontSize:9,fontWeight:700,color:'var(--green-text)',background:'var(--green-dim)',borderRadius:3,padding:'3px 7px',whiteSpace:'nowrap'}}>
+                  ✓ FUND + TECH
+                </span>
+              )}
               {rrTop!=null&&(
                 <span style={{fontSize:10,fontWeight:700,color:rrTopClr,border:`1px solid ${rrTopClr}`,borderRadius:3,padding:'2px 7px',whiteSpace:'nowrap'}}>
                   R:R 1:{rrTop.toFixed(1)}
@@ -731,7 +747,7 @@ function SwingTab() {
 
       {/* Filters + table */}
       <div className="section-h">
-        Candidates ({filtered.length})
+        Best 10 · Fundamentals + Technical
         <div style={{display:'flex',gap:6}}>
           <select className="pro" style={{width:'auto',padding:'4px 8px',fontSize:10}} value={sortBy} onChange={e=>setSortBy(e.target.value)}>
             <option value="combined_score">Sort: Score</option>
@@ -754,7 +770,7 @@ function SwingTab() {
             <tbody>
               {filtered.slice(0,20).map((c,i)=>(
                 <tr key={i}>
-                  <td style={{color:'var(--gold)',fontWeight:800,fontSize:13}}>{c.ticker}</td>
+                  <td style={{color:'var(--gold)',fontWeight:800,fontSize:13}}>{c.ticker}{c.qualified&&<span title="Strong fundamentals + technical entry" style={{color:'var(--green-text)',marginLeft:4,fontSize:11}}>✓</span>}</td>
                   <td style={{color:'var(--green)',fontWeight:700}}>{((c.combined_score||0)*100).toFixed(0)}%</td>
                   <td><span className={`bdg bdg-${c.conviction==='STRONG'?'bull':c.conviction==='GOOD'?'blue':'muted'}`}>{c.conviction||'—'}</span></td>
                   <td style={{color:'var(--blue)'}}>{((c.fundamental_score||0)*100).toFixed(0)}%</td>

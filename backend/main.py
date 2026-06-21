@@ -1221,7 +1221,7 @@ async def swing_now(secret: str = ""):
     async def _run():
         from swing_screener import run_screen
         from telegram_bot import send_swing_brief
-        screen = await asyncio.to_thread(run_screen, 5)
+        screen = await asyncio.to_thread(run_screen, 10)
         await send_swing_brief(screen)
 
     asyncio.create_task(_run())
@@ -1230,10 +1230,40 @@ async def swing_now(secret: str = ""):
 
 @app.get("/swing/candidates")
 async def swing_candidates(secret: str = ""):
-    """Return the latest cached swing candidates (no rescan)."""
+    """Latest cached swing candidates (no rescan), flattened for the dashboard:
+    surfaces fundamental/technical scores, ATR levels, conviction and the
+    fundamentals+technical 'qualified' flag."""
     _validate_secret(secret)
     from swing_screener import get_candidates
-    return get_candidates()
+    data = get_candidates() or {}
+    out = []
+    for c in (data.get("candidates") or []):
+        f  = c.get("fundamental") or {}
+        t  = c.get("technical")   or {}
+        cs = c.get("combined_score", 0) or 0
+        conv = ("STRONG" if cs >= 0.50 else "GOOD" if cs >= 0.35
+                else "MODERATE" if cs >= 0.15 else "WEAK")
+        fs, ts = f.get("score"), t.get("score")
+        out.append({
+            "ticker":            c.get("ticker"),
+            "combined_score":    cs,
+            "fundamental_score": fs,
+            "technical_score":   ts,
+            "entry":             t.get("entry"),
+            "tp":                t.get("t1"),
+            "sl":                t.get("stop"),
+            "rsi":               t.get("rsi"),
+            "trend":             t.get("trend"),
+            "conviction":        conv,
+            "qualified":         c.get("qualified", bool((fs or 0) > 0 and (ts or 0) > 0)),
+            "thesis":            c.get("thesis"),
+        })
+    return {
+        "candidates":      out,
+        "qualified_count": data.get("qualified_count"),
+        "scanned":         data.get("scanned"),
+        "updated_at":      data.get("updated_at"),
+    }
 
 
 @app.get("/swing/trades")

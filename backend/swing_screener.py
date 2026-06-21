@@ -197,8 +197,10 @@ def screen_one(ticker: str) -> dict:
     }
 
 
-def run_screen(top_n: int = 5) -> dict:
-    """Scan the full watchlist, rank by combined score, cache + persist. Nightly."""
+def run_screen(top_n: int = 10) -> dict:
+    """Scan the full watchlist and lock on the best `top_n` names that have BOTH
+    good fundamentals and a positive technical entry. Qualified names (fundamental
+    score > 0 AND technical score > 0) rank first, then by combined score. Nightly."""
     global _cached
     rows = []
     for t in WATCHLIST:
@@ -207,12 +209,20 @@ def run_screen(top_n: int = 5) -> dict:
         except Exception as e:
             print(f"[swing] screen {t} failed: {e}")
 
-    rows.sort(key=lambda r: r["combined_score"], reverse=True)
+    # Flag names with both good fundamentals and a positive technical entry
+    for r in rows:
+        fs = (r.get("fundamental") or {}).get("score", 0) or 0
+        ts = (r.get("technical")   or {}).get("score", 0) or 0
+        r["qualified"] = bool(fs > 0 and ts > 0)
+
+    # Lock on the best: qualified (fundamentals + technical) first, then combined score
+    rows.sort(key=lambda r: (r["qualified"], r["combined_score"]), reverse=True)
     result = {
-        "candidates": rows[:top_n],
-        "scanned":    len(rows),
-        "top_n":      top_n,
-        "updated_at": _now(),
+        "candidates":      rows[:top_n],
+        "qualified_count": sum(1 for r in rows if r["qualified"]),
+        "scanned":         len(rows),
+        "top_n":           top_n,
+        "updated_at":      _now(),
     }
     _cached = result
     try:
@@ -222,8 +232,8 @@ def run_screen(top_n: int = 5) -> dict:
     except Exception as e:
         print(f"[swing] persist failed: {e}")
 
-    top = " | ".join(f"{r['ticker']}({r['combined_score']:+.2f})" for r in rows[:top_n])
-    print(f"[swing] screened {len(rows)} names — top: {top}")
+    top = " | ".join(f"{r['ticker']}({r['combined_score']:+.2f}{'✓' if r['qualified'] else ''})" for r in rows[:top_n])
+    print(f"[swing] screened {len(rows)} names, {result['qualified_count']} qualified — top: {top}")
     return result
 
 
