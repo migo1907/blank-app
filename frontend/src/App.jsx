@@ -495,8 +495,25 @@ function SignalsTab() {
 
   if(load && !data) return <Spinner/>
 
+  const allSignals = data?.signals || []
+  const nLong  = allSignals.filter(s=>s.direction==='LONG').length
+  const nShort = allSignals.filter(s=>s.direction==='SHORT').length
+  const topSig = allSignals.reduce((a,s)=>(s.quality_score||0)>((a?.quality_score)||0)?s:a, null)
+
   return (
     <div className="content">
+      {/* Summary strip */}
+      {allSignals.length>0&&(
+        <div className="card">
+          <div className="metrics">
+            <div className="metric"><div className="metric-val">{allSignals.length}</div><div className="metric-lbl">Live</div></div>
+            <div className="metric"><div className="metric-val" style={{color:'var(--green)'}}>{nLong}</div><div className="metric-lbl">Long</div></div>
+            <div className="metric"><div className="metric-val" style={{color:'var(--red)'}}>{nShort}</div><div className="metric-lbl">Short</div></div>
+            <div className="metric"><div className="metric-val accent" style={{fontSize:13}}>{topSig?.symbol||'—'}</div><div className="metric-lbl">Top Conf</div></div>
+          </div>
+        </div>
+      )}
+
       {/* Filters */}
       <div className="filter-bar">
         {['ALL','5','15','30','60','240'].map(tf=>(
@@ -652,31 +669,12 @@ function SwingTab() {
 
   if(stats.load&&!ss.open&&!ss.closed) return <Spinner/>
 
+  const rrTop = (top&&top.tp!=null&&top.entry!=null&&top.sl!=null&&(top.entry-top.sl)!==0)
+    ? (top.tp-top.entry)/(top.entry-top.sl) : null
+  const rrTopClr = rrTop==null?'var(--muted)':rrTop>=2?'var(--green)':rrTop>=1?'var(--gold)':'var(--red)'
+
   return (
     <div className="content">
-      {/* Stats */}
-      <div className="card">
-        <div className="card-title">Swing ML Training Pipeline</div>
-        <div className="metrics">
-          <div className="metric"><div className="metric-val">{ss.open||0}</div><div className="metric-lbl">Open</div></div>
-          <div className="metric"><div className="metric-val">{ss.closed||0}</div><div className="metric-lbl">Closed</div></div>
-          <div className="metric"><div className="metric-val">{ss.win_rate!=null?pct(ss.win_rate):'—'}</div><div className="metric-lbl">Win Rate</div></div>
-          <div className="metric">
-            <div className="metric-val" style={{fontSize:12,color:ss.ready?'var(--green)':'var(--gold)'}}>{ss.ready?'✅':'⏳'}</div>
-            <div className="metric-lbl">{ss.ready?'ML Ready':`${50-(ss.closed||0)} left`}</div>
-          </div>
-        </div>
-        {!ss.ready&&(
-          <div style={{marginTop:10}}>
-            <div style={{display:'flex',justifyContent:'space-between',fontSize:11,marginBottom:4}}>
-              <span style={{color:'var(--muted)'}}>Progress to ML gate</span>
-              <span style={{color:'var(--gold)',fontWeight:700}}>{ss.closed||0}/50</span>
-            </div>
-            <div className="bar-wrap"><div className="bar-fill" style={{width:`${((ss.closed||0)/50*100).toFixed(0)}%`,background:'var(--gold)'}}/></div>
-          </div>
-        )}
-      </div>
-
       {/* Top pick */}
       {top&&(
         <div className="card" style={{borderColor:'rgba(245,158,11,.3)'}}>
@@ -685,7 +683,12 @@ function SwingTab() {
               <div style={{fontSize:10,color:'var(--muted)',fontWeight:700,textTransform:'uppercase',marginBottom:4}}>Top Pick</div>
               <div style={{fontSize:26,fontWeight:800,color:'var(--gold)',letterSpacing:'-.01em'}}>{top.ticker}</div>
             </div>
-            <div style={{textAlign:'right'}}>
+            <div style={{display:'flex',alignItems:'center',gap:10}}>
+              {rrTop!=null&&(
+                <span style={{fontSize:10,fontWeight:700,color:rrTopClr,border:`1px solid ${rrTopClr}`,borderRadius:3,padding:'2px 7px',whiteSpace:'nowrap'}}>
+                  R:R 1:{rrTop.toFixed(1)}
+                </span>
+              )}
               <ScoreRing value={top.combined_score||0} size={70} color={top.conviction==='STRONG'?'var(--green)':'var(--gold)'} sublabel={top.conviction||''}/>
             </div>
           </div>
@@ -764,6 +767,29 @@ function SwingTab() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Swing ML training pipeline (diagnostic — bottom) */}
+      <div className="card">
+        <div className="card-title">Swing ML Training Pipeline</div>
+        <div className="metrics">
+          <div className="metric"><div className="metric-val">{ss.open||0}</div><div className="metric-lbl">Open</div></div>
+          <div className="metric"><div className="metric-val">{ss.closed||0}</div><div className="metric-lbl">Closed</div></div>
+          <div className="metric"><div className="metric-val">{ss.win_rate!=null?pct(ss.win_rate):'—'}</div><div className="metric-lbl">Win Rate</div></div>
+          <div className="metric">
+            <div className="metric-val" style={{fontSize:12,color:ss.ready?'var(--green)':'var(--gold)'}}>{ss.ready?'✅':'⏳'}</div>
+            <div className="metric-lbl">{ss.ready?'ML Ready':`${50-(ss.closed||0)} left`}</div>
+          </div>
+        </div>
+        {!ss.ready&&(
+          <div style={{marginTop:10}}>
+            <div style={{display:'flex',justifyContent:'space-between',fontSize:11,marginBottom:4}}>
+              <span style={{color:'var(--muted)'}}>Progress to ML gate</span>
+              <span style={{color:'var(--gold)',fontWeight:700}}>{ss.closed||0}/50</span>
+            </div>
+            <div className="bar-wrap"><div className="bar-fill" style={{width:`${((ss.closed||0)/50*100).toFixed(0)}%`,background:'var(--gold)'}}/></div>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -902,14 +928,6 @@ function NewsTab() {
 
   return (
     <div className="content">
-      {/* Velocity */}
-      {vel&&(
-        <div className={`vel ${vel==='ACCELERATING'?'acc':vel==='QUIET'?'quiet':'norm'}`} style={{marginTop:10}}>
-          {vel==='ACCELERATING'?'⚡ Accelerating':vel==='QUIET'?'🟢 Quiet':'📰 Normal velocity'}
-          <span style={{marginLeft:'auto',fontSize:12}}>Agg {data.agg_score>=0?'+':''}{((data.agg_score||0)*100).toFixed(0)}%</span>
-        </div>
-      )}
-
       {data?.high_impact_event?.detected&&(
         <div className="event-card">
           <span style={{fontSize:18}}>⚡</span>
@@ -920,23 +938,20 @@ function NewsTab() {
         </div>
       )}
 
-      {/* Net sentiment */}
-      {sentRows.length>0&&(
-        <div className="card">
-          <div className="card-title">Sentiment Distribution</div>
-          <div style={{marginBottom:14}}>
-            <BiasBar value={((data?.agg_score||0)+1)/2} label="Net Sentiment"/>
-          </div>
-          <div>
-            {sentRows.map((s,i)=>(
-              <div key={i} style={{display:'flex',justifyContent:'space-between',fontSize:12,padding:'3px 0'}}>
-                <span style={{color:s.fill,fontWeight:700}}>■ {s.name}</span>
-                <span style={{color:'var(--text)',fontWeight:700}}>{s.value}</span>
-              </div>
-            ))}
-          </div>
+      {/* Sentiment hero — net sentiment + counts + velocity */}
+      <div className="card">
+        <div style={{marginBottom:12}}>
+          <BiasBar value={((data?.agg_score||0)+1)/2} label="Net Sentiment"/>
         </div>
-      )}
+        <div style={{display:'flex',gap:14,flexWrap:'wrap',alignItems:'center',fontSize:12}}>
+          <span style={{color:C.green,fontWeight:700}}>■ {sentCounts.BULLISH} Bull</span>
+          <span style={{color:C.red,fontWeight:700}}>■ {sentCounts.BEARISH} Bear</span>
+          <span style={{color:C.muted,fontWeight:700}}>■ {sentCounts.NEUTRAL} Neutral</span>
+          {vel&&<span style={{marginLeft:'auto',fontSize:11,color:vel==='ACCELERATING'?'var(--red)':vel==='QUIET'?'var(--green)':'var(--muted)',fontWeight:700}}>
+            {vel==='ACCELERATING'?'⚡ Accelerating':vel==='QUIET'?'🟢 Quiet':'📰 Normal'}
+          </span>}
+        </div>
+      </div>
 
       {/* Search + filters */}
       <div style={{padding:'0 12px 6px'}}>
@@ -957,9 +972,12 @@ function NewsTab() {
         <div style={{display:'flex',justifyContent:'flex-end',marginBottom:8}}>
           <span style={{fontSize:11,color:'var(--gold)',cursor:'pointer',fontWeight:700}} onClick={reload}>↻ Refresh</span>
         </div>
-        {items.length===0?<div style={{color:'var(--muted)',fontSize:13,padding:'8px 0'}}>No headlines match filters.</div>:
-        items.map((item,i)=>(
-          <div key={i} className="news-item">
+        {items.length===0?<div className="empty"><span className="emoji">📭</span><div className="title">No headlines match filters</div><div className="sub">Try a different sentiment filter or clear your search.</div></div>:
+        items.map((item,i)=>{
+          const lb=item.sentiment==='BULLISH'?'lb-up':item.sentiment==='BEARISH'?'lb-dn':'lb-muted'
+          const pillBg=item.sentiment==='BULLISH'?'rgba(46,189,133,.14)':item.sentiment==='BEARISH'?'rgba(246,70,93,.14)':'rgba(255,255,255,.06)'
+          return (
+          <div key={i} className={`news-item ${lb}`}>
             <div style={{fontSize:13,lineHeight:1.45,marginBottom:5,fontWeight:500}}>
               {item.url
                 ?<a href={item.url} target="_blank" rel="noopener noreferrer" style={{color:'var(--text)',textDecoration:'none'}}>{item.headline}</a>
@@ -969,10 +987,11 @@ function NewsTab() {
               <span style={{fontSize:10,color:'var(--muted)',background:'rgba(255,255,255,.04)',padding:'2px 6px',borderRadius:4}}>{item.source}</span>
               <span style={{fontSize:10,color:'var(--muted)'}}>{item.age_min}m ago</span>
               <span style={{fontSize:10,color:sentClr(item.sentiment),fontWeight:700}}>{sentIco(item.sentiment)} {item.sentiment}</span>
-              <span style={{fontSize:10,color:'var(--muted)',marginLeft:'auto'}}>{item.score>=0?'+':''}{((item.score||0)*100).toFixed(0)}%</span>
+              <span style={{fontSize:10,fontWeight:700,marginLeft:'auto',color:sentClr(item.sentiment),background:pillBg,padding:'2px 7px',borderRadius:20}}>{item.score>=0?'+':''}{((item.score||0)*100).toFixed(0)}%</span>
             </div>
           </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )
@@ -1028,26 +1047,40 @@ function MarketsGridTab() {
     .filter(it=>!it.error&&it.change_pct!=null)
     .map(it=>({name:it.name,chg:Number(it.change_pct)||0}))
     .sort((a,b)=>b.chg-a.chg)
+  // Market breadth from full movers set
+  const adv = movers.filter(m=>m.chg>0).length
+  const dec = movers.filter(m=>m.chg<0).length
+  const avgChg = movers.length?(movers.reduce((s,m)=>s+m.chg,0)/movers.length):0
+  // Top 8 gainers + bottom 8 losers for the capped chart
+  const topMovers = movers.length>16
+    ? [...movers.slice(0,8),...movers.slice(-8)]
+    : movers
   const chips = ['All',...groups.map(([g])=>g)]
   const visible = grpFilter==='All'?groups:groups.filter(([g])=>g===grpFilter)
   return (
     <div>
+      {movers.length>0&&(
+        <div style={{padding:'10px 12px 0',fontSize:12,color:'var(--text-mut)',fontWeight:600}}>
+          <span style={{color:'var(--green)'}}>{adv} advancing</span> · <span style={{color:'var(--red)'}}>{dec} declining</span> · avg <span style={{color:avgChg>=0?'var(--green)':'var(--red)'}}>{avgChg>=0?'+':''}{avgChg.toFixed(2)}%</span>
+        </div>
+      )}
+
       <div className="commentary-card" style={{margin:'10px 10px'}}>
         <CommentaryInline/>
       </div>
 
       {/* Market Movers — hero bar chart */}
-      {movers.length>0&&(
+      {topMovers.length>0&&(
         <div className="card">
           <div className="card-title">Market Movers</div>
-          <ResponsiveContainer width="100%" height={Math.max(160,movers.length*26)}>
-            <BarChart data={movers} layout="vertical" margin={{top:4,right:16,left:8,bottom:4}}>
+          <ResponsiveContainer width="100%" height={360}>
+            <BarChart data={topMovers} layout="vertical" margin={{top:4,right:16,left:8,bottom:4}}>
               <XAxis type="number" tick={{fill:'var(--text-mut)',fontSize:10}} tickFormatter={v=>`${v}%`} axisLine={false} tickLine={false}/>
               <YAxis type="category" dataKey="name" width={86} tick={{fill:'var(--text-mut)',fontSize:10}} axisLine={false} tickLine={false}/>
               <ReferenceLine x={0} stroke="var(--border-2)"/>
               <Tooltip cursor={{fill:'rgba(255,255,255,.04)'}} content={<ChartTip fmt={v=>`${v>=0?'+':''}${Number(v).toFixed(2)}%`}/>}/>
               <Bar dataKey="chg" name="Change" radius={[0,3,3,0]}>
-                {movers.map((m,i)=><Cell key={i} fill={m.chg>=0?'var(--green)':'var(--red)'}/>)}
+                {topMovers.map((m,i)=><Cell key={i} fill={m.chg>=0?'var(--green)':'var(--red)'}/>)}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
@@ -1171,7 +1204,7 @@ function PortfolioTab() {
         </div>
       )}
       {holdings.length===0?(
-        <div className="card" style={{textAlign:'center',color:'var(--muted)',padding:40}}>No holdings yet. Click "+ Add" to track your portfolio.</div>
+        <div className="empty"><span className="emoji">💼</span><div className="title">No holdings yet</div><div className="sub">Click "+ Add" to start tracking your portfolio P&amp;L live.</div></div>
       ):(
         <div className="card" style={{overflowX:'auto'}}>
           <table className="tbl" style={{width:'100%'}}>
@@ -1232,7 +1265,7 @@ function WatchlistTab() {
         </div>
       </div>
       {list.length===0?(
-        <div className="card" style={{textAlign:'center',color:'var(--muted)',padding:40}}>Watchlist is empty. Add symbols above.</div>
+        <div className="empty"><span className="emoji">⭐</span><div className="title">Watchlist is empty</div><div className="sub">Add symbols above to track live prices.</div></div>
       ):(
         <div className="card" style={{overflowX:'auto'}}>
           <table className="tbl" style={{width:'100%'}}>
@@ -1339,13 +1372,14 @@ function CompareTab() {
   const fmtNum=(v,d=2)=>v!=null?Number(v).toFixed(d):'—'
   const fmtB=v=>{if(v==null)return'—';if(v>=1e12)return`${(v/1e12).toFixed(2)}T`;if(v>=1e9)return`${(v/1e9).toFixed(1)}B`;return`${(v/1e6).toFixed(0)}M`}
 
+  // [label, formatter, rawValueGetter|null, direction('min'|'max')|null]
   const metrics=[
-    ['Price',d=>`$${d.price?.toFixed(2)||'—'}`],
-    ['Change %',d=>{const up=(d.change_pct||0)>=0;return<span style={{color:up?'var(--green)':'var(--red)'}}>{up?'+':''}{d.change_pct?.toFixed(2)||'—'}%</span>}],
-    ['Market Cap',d=>fmtB(d.market_cap)],['P/E (TTM)',d=>fmtNum(d.pe)],['P/E (Fwd)',d=>fmtNum(d.forward_pe)],
-    ['P/B',d=>fmtNum(d.pb)],['ROE',d=>fmtPct(d.roe)],['Rev Growth',d=>fmtPct(d.revenue_growth)],
-    ['Gross Margin',d=>fmtPct(d.gross_margin)],['Beta',d=>fmtNum(d.beta)],['Div Yield',d=>fmtPct(d.dividend_yield)],
-    ['52W High',d=>`$${d.week52_high?.toFixed(2)||'—'}`],['52W Low',d=>`$${d.week52_low?.toFixed(2)||'—'}`],['Sector',d=>d.sector||'—'],
+    ['Price',d=>`$${d.price?.toFixed(2)||'—'}`,null,null],
+    ['Change %',d=>{const up=(d.change_pct||0)>=0;return<span style={{color:up?'var(--green)':'var(--red)'}}>{up?'+':''}{d.change_pct?.toFixed(2)||'—'}%</span>},d=>d.change_pct,'max'],
+    ['Market Cap',d=>fmtB(d.market_cap),d=>d.market_cap,'max'],['P/E (TTM)',d=>fmtNum(d.pe),d=>d.pe,'min'],['P/E (Fwd)',d=>fmtNum(d.forward_pe),d=>d.forward_pe,'min'],
+    ['P/B',d=>fmtNum(d.pb),d=>d.pb,'min'],['ROE',d=>fmtPct(d.roe),d=>d.roe,'max'],['Rev Growth',d=>fmtPct(d.revenue_growth),d=>d.revenue_growth,'max'],
+    ['Gross Margin',d=>fmtPct(d.gross_margin),d=>d.gross_margin,'max'],['Beta',d=>fmtNum(d.beta),null,null],['Div Yield',d=>fmtPct(d.dividend_yield),d=>d.dividend_yield,'max'],
+    ['52W High',d=>`$${d.week52_high?.toFixed(2)||'—'}`,null,null],['52W Low',d=>`$${d.week52_low?.toFixed(2)||'—'}`,null,null],['Sector',d=>d.sector||'—',null,null],
   ]
 
   return (
@@ -1359,6 +1393,9 @@ function CompareTab() {
         </div>
       </div>
       {err&&<Err e={err}/>}
+      {data&&data.length===0&&(
+        <div className="empty"><span className="emoji">📊</span><div className="title">No data to compare</div><div className="sub">Enter valid tickers (e.g. AAPL, MSFT) and press Compare.</div></div>
+      )}
       {data?.length>0&&(
         <div className="card" style={{overflowX:'auto'}}>
           <table className="tbl" style={{width:'100%',minWidth:400}}>
@@ -1367,12 +1404,27 @@ function CompareTab() {
               {data.map(d=><th key={d.symbol} style={{color:'var(--gold)'}}>{d.symbol}<br/><span style={{fontSize:10,fontWeight:400,color:'var(--muted)'}}>{d.name}</span></th>)}
             </tr></thead>
             <tbody>
-              {metrics.map(([label,fn])=>(
+              {metrics.map(([label,fn,getVal,dir])=>{
+                // find the best symbol for this row
+                let bestSym=null
+                if(getVal&&dir){
+                  const vals=data.filter(d=>!d.error&&getVal(d)!=null&&isFinite(getVal(d))).map(d=>({sym:d.symbol,v:Number(getVal(d))}))
+                  if(vals.length>1){
+                    const best=vals.reduce((a,b)=>dir==='min'?(b.v<a.v?b:a):(b.v>a.v?b:a))
+                    bestSym=best.sym
+                  }
+                }
+                return (
                 <tr key={label}>
                   <td style={{color:'var(--muted)',fontSize:12}}>{label}</td>
-                  {data.map(d=><td key={d.symbol}>{d.error?'—':fn(d)}</td>)}
+                  {data.map(d=>(
+                    <td key={d.symbol} style={d.symbol===bestSym?{color:'var(--green)',fontWeight:800}:undefined}>
+                      {d.error?'—':fn(d)}
+                    </td>
+                  ))}
                 </tr>
-              ))}
+                )
+              })}
             </tbody>
           </table>
         </div>
@@ -1438,6 +1490,11 @@ function CalendarTab() {
 
   const impClr = i => i==='high'?'var(--red)':i==='medium'?'var(--gold)':'var(--muted)'
 
+  // Today summary
+  const todayEvents = byDay[todayStr] || []
+  const todayHigh = todayEvents.filter(e=>e.impact==='high').length
+  const nextEvent = todayEvents[0]
+
   return (
     <div className="content">
       <div className="filter-bar">
@@ -1445,9 +1502,22 @@ function CalendarTab() {
         <button className={`filter-chip${view==='earnings'?' active':''}`} onClick={()=>setView('earnings')}>📊 Earnings</button>
       </div>
 
+      {view==='economic' && eco.data && days.length>0 && (
+        <div className="card">
+          <div className="card-title">● Today</div>
+          <div className="metrics">
+            <div className="metric"><div className="metric-val accent">{todayHigh}</div><div className="metric-lbl">High-Impact</div></div>
+            <div className="metric" style={{gridColumn:'span 2'}}>
+              <div className="metric-val" style={{fontSize:13}}>{nextEvent?nextEvent.name:'—'}</div>
+              <div className="metric-lbl">{nextEvent?`Next · ${nextEvent.time_dubai}`:'No events today'}</div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {view==='economic' && (
         eco.load&&!eco.data ? <Spinner/> :
-        days.length===0 ? <div className="card" style={{textAlign:'center',color:'var(--muted)',padding:32,fontSize:13}}>No high-impact US events this week.</div> :
+        days.length===0 ? <div className="empty"><span className="emoji">📆</span><div className="title">No high-impact US events this week</div><div className="sub">Check back as the week's calendar fills in.</div></div> :
         days.map(d=>{
           const dd = byDay[d]
           const lbl = new Date(d+'T00:00:00').toLocaleDateString('en-US',{weekday:'long',day:'numeric',month:'short'})
@@ -1455,7 +1525,7 @@ function CalendarTab() {
             <div key={d} className="card">
               <div className="card-title" style={{color:d===todayStr?'var(--gold)':'var(--muted)'}}>{d===todayStr?'● Today · ':''}{lbl}</div>
               {dd.map((e,i)=>(
-                <div key={i} style={{display:'flex',gap:10,alignItems:'center',padding:'7px 0',borderBottom:i<dd.length-1?'1px solid var(--border)':'none'}}>
+                <div key={i} className={e.impact==='high'?'lb-dn':e.impact==='medium'?'lb-gold':'lb-muted'} style={{display:'flex',gap:10,alignItems:'center',padding:'7px 0 7px 8px',borderBottom:i<dd.length-1?'1px solid var(--border)':'none'}}>
                   <span className="mono" style={{color:'var(--gold)',fontWeight:700,fontSize:12,minWidth:44}}>{e.time_dubai}</span>
                   <span style={{flex:1,fontSize:12,color:'var(--text)'}}>{e.name}</span>
                   {(e.forecast||e.previous)&&(
@@ -1473,8 +1543,8 @@ function CalendarTab() {
 
       {view==='earnings' && (
         ern.load&&!ern.data ? <Spinner/> :
-        ern.data?.error ? <div className="card" style={{textAlign:'center',color:'var(--muted)',padding:24,fontSize:12}}>{ern.data.error}</div> :
-        ernDays.length===0 ? <div className="card" style={{textAlign:'center',color:'var(--muted)',padding:32,fontSize:13}}>No major-cap earnings in the next 7 days.</div> :
+        ern.data?.error ? <div className="empty"><span className="emoji">⚠️</span><div className="title">Earnings unavailable</div><div className="sub">{ern.data.error}</div></div> :
+        ernDays.length===0 ? <div className="empty"><span className="emoji">📊</span><div className="title">No major-cap earnings in the next 7 days</div><div className="sub">Earnings appear here as report dates approach.</div></div> :
         ernDays.map(d=>{
           const dd = ernByDay[d]
           const lbl = new Date(d+'T00:00:00').toLocaleDateString('en-US',{weekday:'long',day:'numeric',month:'short'})
@@ -1538,25 +1608,25 @@ function OptionsTab() {
 
   return (
     <div className="content">
+      <div className="section-h">Market State</div>
       {/* Status bar */}
       <div className="card" style={{marginBottom:12}}>
-        <div style={{display:'flex',gap:20,flexWrap:'wrap',alignItems:'flex-start'}}>
+        <div className="metrics">
           {[
-            ['SPX SPOT',      data?.spot ? data.spot.toLocaleString() : '—', null],
-            ['ATM IV',        data?.atm_iv != null ? `${data.atm_iv}%` : '—', null],
+            ['SPX SPOT',      data?.spot ? data.spot.toLocaleString() : '—', null, null],
+            ['ATM IV',        data?.atm_iv != null ? `${data.atm_iv}%` : '—', null, null],
             ['IV RANK',       data?.iv_rank != null ? `${data.iv_rank}%` : '—',
-              data?.iv_rank != null ? (data.iv_rank < 50 ? 'var(--green)' : 'var(--red)') : null],
-            ['VIX',           vix.vix ?? '—', vix.backwardation ? 'var(--red)' : vix.half_size ? 'var(--gold)' : null],
-            ['EXP MOVE',      data?.expected_move != null ? `±${data.expected_move}` : '—', null],
-            ['OPEN POS',      data?.open_positions ?? 0, data?.open_positions ? 'var(--gold)' : null],
-          ].map(([label, val, color]) => (
-            <div key={label}>
-              <div style={{color:'var(--muted)',fontSize:10,marginBottom:2}}>{label}</div>
-              <div style={{fontSize:18,fontWeight:700,color:color||'var(--text)'}}>{val}</div>
-              {label==='IV RANK' && data?.iv_rank != null &&
-                <div style={{fontSize:10,color:'var(--muted)'}}>{data.iv_rank < 50 ? '✓ buy prem ok' : '✗ IV too high'}</div>}
-              {label==='VIX' && vix.backwardation &&
-                <div style={{fontSize:10,color:'var(--red)'}}>⚠ backwardation</div>}
+              data?.iv_rank != null ? (data.iv_rank < 50 ? 'var(--green)' : 'var(--red)') : null,
+              data?.iv_rank != null ? (data.iv_rank < 50 ? '✓ buy prem ok' : '✗ IV too high') : null],
+            ['VIX',           vix.vix ?? '—', vix.backwardation ? 'var(--red)' : vix.half_size ? 'var(--gold)' : null,
+              vix.backwardation ? '⚠ backwardation' : null],
+            ['EXP MOVE',      data?.expected_move != null ? `±${data.expected_move}` : '—', null, null],
+            ['OPEN POS',      data?.open_positions ?? 0, data?.open_positions ? 'var(--gold)' : null, null],
+          ].map(([label, val, color, sub]) => (
+            <div className="metric" key={label}>
+              <div className="metric-val" style={color?{color}:undefined}>{val}</div>
+              <div className="metric-lbl">{label}</div>
+              {sub && <div style={{fontSize:9,color:color||'var(--muted)',marginTop:3}}>{sub}</div>}
             </div>
           ))}
         </div>
@@ -1574,6 +1644,9 @@ function OptionsTab() {
               </div>
               <div style={{fontSize:11,color:'var(--muted)'}}>
                 {pc.put_call_ratio < 0.7 ? '📈 Bullish (low P/C)' : pc.put_call_ratio > 1.2 ? '📉 Bearish (high P/C)' : '↔ Neutral'}
+              </div>
+              <div style={{width:140,marginTop:8}}>
+                <BiasBar value={Math.max(0,Math.min(1,(1.3-pc.put_call_ratio)/0.6))} label="P/C Sentiment"/>
               </div>
             </div>
             {[
@@ -1626,6 +1699,8 @@ function OptionsTab() {
             : 'Set POLYGON_API_KEY in Railway env to enable live options flow with Greeks.'}
         </div>
       )}
+
+      <div className="section-h">Paper Trades</div>
 
       {/* Open Positions */}
       {open.length > 0 && (
