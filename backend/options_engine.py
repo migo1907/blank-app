@@ -796,6 +796,7 @@ def manage_paper_positions() -> list[str]:
         from db import _get_file, _put_file
         now_et = datetime.now(_NY)
         for attempt in range(4):
+            closed = []   # reset on each attempt — avoids duplicate entries on 409 retry
             ledger, sha = _get_file(_PAPER_PATH)
             if not isinstance(ledger, list) or not ledger:
                 return closed

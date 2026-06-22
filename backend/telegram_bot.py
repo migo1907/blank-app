@@ -549,7 +549,7 @@ async def send_swing_brief(screen: dict) -> bool:
             pass
         entry, stop = tech.get("entry"), tech.get("stop")
         t1, t2 = tech.get("t1"), tech.get("t2")
-        if entry is not None and stop is not None:
+        if entry is not None and stop is not None and t1 is not None and t2 is not None:
             line += f"\n📍 Entry ~{entry:.2f}  🛑 Stop {stop:.2f}  🎯 T1 {t1:.2f}  🎯 T2 {t2:.2f}\n"
         blocks.append(line)
 
