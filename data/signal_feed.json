@@ -648,6 +648,29 @@
       "htf_context": "counter_trend",
       "session": "London/NY Overlap",
       "fired_at": "2026-06-22T13:47:02.997107+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "15",
+      "trigger": "BOS",
+      "symbol": "QQQ",
+      "entry_price": 744.67,
+      "tp1": 749.18,
+      "tp2": 752.57,
+      "tp3": 757.08,
+      "sl": 740.16,
+      "ml_score": 0.625,
+      "tier": "\u2705 MED",
+      "quality_score": 0.6402,
+      "quality_reason": "approved",
+      "news_score": -0.1328,
+      "velocity": "CONFLICTED",
+      "event": "CPI",
+      "htf_bias": null,
+      "contra_bias": null,
+      "htf_context": "scalp",
+      "session": "NYSE Open",
+      "fired_at": "2026-06-22T14:00:04.378966+00:00"
     }
   ]
 }
