@@ -74,7 +74,6 @@ html, body {
   -webkit-font-smoothing: antialiased;
   min-height: 100dvh;
   overflow-x: hidden;
-  overscroll-behavior-y: contain;
 }
 #root { display: flex; flex-direction: column; min-height: 100dvh; }
 
