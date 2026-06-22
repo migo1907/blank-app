@@ -3367,13 +3367,13 @@
   },
   {
     "symbol": "SPX500",
-    "pool": "STOCKS_SPX500_30M",
+    "pool": "STOCKS_SPX500_15M",
     "direction": "LONG",
     "lean_direction": "LONG",
-    "lean_pct": 62,
+    "lean_pct": 75,
     "confidence": 0.3,
     "tier": "LOW",
-    "ml_score": 0.625,
+    "ml_score": 0.75,
     "rf_score": 0.5,
     "gbm_score": 0.5,
     "ml_interval": [
@@ -3385,7 +3385,7 @@
     "news_score": -0.2961,
     "macro_bias": -0.3566,
     "macro_label": "BEARISH",
-    "combined_score": 0.0145,
+    "combined_score": 0.1811,
     "session": "NYSE_AFTERNOON",
     "regime": "NORMAL",
     "regime_label": "NORMAL",
@@ -3393,10 +3393,10 @@
     "intermarket": "imkt:na",
     "mtf_confluence": "mtf:2/3",
     "post_event": "evt:na",
-    "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:RANGING(0.99)\u00d71.00 | imkt:na\u00d71.00 | mtf:2/3\u00d71.03 | evt:na\u00d71.00 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d70.83 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.22) | news:bearish(-0.296) | macro:BEARISH(-0.357) | combined:+0.014 \u2192 conf:0.300 \u26a1 GEOPOLITICAL",
+    "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:RANGING(0.99)\u00d71.00 | imkt:na\u00d71.00 | mtf:2/3\u00d71.03 | evt:na\u00d71.00 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d70.91 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.29) | news:bearish(-0.296) | macro:BEARISH(-0.357) | combined:+0.181 \u2192 conf:0.300 \u26a1 GEOPOLITICAL",
     "status": "ACTIVE",
-    "expires_at": "2026-06-22T20:44:20.626149+00:00",
-    "created_at": "2026-06-22T20:14:21.272131+00:00",
+    "expires_at": "2026-06-22T20:44:23.084613+00:00",
+    "created_at": "2026-06-22T20:14:23.436066+00:00",
     "id": 101
   }
 ]
