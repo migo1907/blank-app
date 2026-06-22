@@ -674,7 +674,7 @@ async def trade_outcome(payload: TradeOutcomePayload):
         print(f"[trade-outcome] Missing entry/exit price for {sym} {payload.direction} — skipping (no cache hit)")
         return {"status": "ok", "skipped": "missing_prices"}
 
-    try:
+    def _sync_process_outcome():
         pool = symbol_to_pool(sym, payload.timeframe or "")
         model = get_model(pool)
         features = Features(
@@ -686,23 +686,22 @@ async def trade_outcome(payload: TradeOutcomePayload):
             f21=payload.f21, f22=payload.f22, f23=payload.f23, f24=payload.f24,
             f25=payload.f25, f26=payload.f26,
         )
-
-        # Signed realized move (favorable = positive). KNN and RF/GBM both use this
-        # to re-classify PARTIAL trades with pnl_pct ≤ 0 as LOSS (43% of all PARTIALs).
         raw_pct = (payload.exit_price - payload.entry_price) / max(payload.entry_price, 0.0001) * 100
         pnl_pct = raw_pct if payload.direction == "LONG" else -raw_pct
-
         ml_label = payload.ml_outcome or payload.outcome
         _is_dup = _outcome_is_duplicate(sym, payload.direction, payload.entry_price, payload.exit_price, payload.timeframe or "")
         if not _is_dup:
             model.update_on_outcome(features, payload.direction, ml_label, tp_stage=payload.tp_stage or "", pnl=pnl_pct)
         else:
             print(f"[trade-outcome] Duplicate within {_OUTCOME_DEDUP_TTL}s — skipping weight update for {sym} {payload.direction} entry={payload.entry_price}")
-
         from signal_engine import _detect_regime, _session_multiplier
         _is_stock_pool = not pool.startswith("XAUUSD")
         _, _session = _session_multiplier(datetime.now(timezone.utc), is_stock=_is_stock_pool)
-        _regime     = _detect_regime(features)
+        _regime = _detect_regime(features)
+        return pool, model, features, pnl_pct, ml_label, _regime, _session
+
+    try:
+        pool, model, features, pnl_pct, ml_label, _regime, _session = await asyncio.to_thread(_sync_process_outcome)
     except Exception as _exc:
         print(f"[trade-outcome] ERROR processing {sym} {payload.direction} outcome={payload.outcome}: {_exc}")
         import traceback; traceback.print_exc()
@@ -841,7 +840,9 @@ async def signal_entry(payload: SignalEntryPayload):
     from signal_engine import score_entry_gate
     from db import symbol_to_pool
     try:
-        _gate = score_entry_gate(symbol_to_pool(sym, tf), payload.direction, payload.trigger or "")
+        _gate = await asyncio.to_thread(
+            score_entry_gate, symbol_to_pool(sym, tf), payload.direction, payload.trigger or ""
+        )
     except Exception as _ge:
         print(f"[signal-entry] gate error (non-fatal): {_ge}")
         _gate = {"pass": True, "score": 0.5, "reason": "gate_error", "components": {}}
@@ -941,7 +942,9 @@ async def unified_webhook(payload: UnifiedPayload):
         from signal_engine import score_entry_gate
         from db import symbol_to_pool
         try:
-            _gate = score_entry_gate(symbol_to_pool(sym, tf), payload.direction, payload.trigger or "")
+            _gate = await asyncio.to_thread(
+                score_entry_gate, symbol_to_pool(sym, tf), payload.direction, payload.trigger or ""
+            )
         except Exception as _ge:
             print(f"[webhook] gate error (non-fatal): {_ge}")
             _gate = {"pass": True, "score": 0.5, "reason": "gate_error", "components": {}}
