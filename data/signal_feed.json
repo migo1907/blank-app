@@ -702,6 +702,29 @@
       "htf_context": "counter_trend",
       "session": "London/NY Overlap",
       "fired_at": "2026-06-22T14:17:02.330801+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "15",
+      "trigger": "FVG",
+      "symbol": "QQQ",
+      "entry_price": 737.3,
+      "tp1": 732.45,
+      "tp2": 728.82,
+      "tp3": 723.97,
+      "sl": 742.15,
+      "ml_score": 0.5,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.4889,
+      "quality_reason": "approved",
+      "news_score": -0.2395,
+      "velocity": "CONFLICTED",
+      "event": "GEOPOLITICAL",
+      "htf_bias": null,
+      "contra_bias": null,
+      "htf_context": "scalp",
+      "session": "NYSE Open",
+      "fired_at": "2026-06-22T14:45:04.070545+00:00"
     }
   ]
 }
