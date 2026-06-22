@@ -1307,9 +1307,33 @@ async def swing_candidates(secret: str = ""):
             "current_price":     c.get("current_price"),
             "entry_quality":     c.get("entry_quality") or t.get("entry_quality"),
             "entry_now":         c.get("entry_now") or t.get("entry_now", False),
+            "upside_source":     c.get("upside_source"),
         })
+
+    # Watchlist: WAIT-quality stocks that passed Gate 1 (good value, not yet timed)
+    watch_out = []
+    for c in (data.get("watchlist") or []):
+        f = c.get("fundamental") or {}
+        t = c.get("technical")   or {}
+        watch_out.append({
+            "ticker":        c.get("ticker"),
+            "combined_score": c.get("combined_score"),
+            "upside_pct":    c.get("upside_pct"),
+            "upside_source": c.get("upside_source"),
+            "entry_quality": "WAIT",
+            "rsi":           t.get("rsi"),
+            "trend":         t.get("trend"),
+            "entry":         t.get("entry"),
+            "stop":          t.get("stop"),
+            "t1":            t.get("t1"),
+            "fundamental":   f,
+            "technical":     t,
+        })
+
     return {
         "candidates":      out,
+        "watchlist":       watch_out,
+        "watching":        data.get("watching", 0),
         "qualified_count": data.get("qualified_count"),
         "scanned":         data.get("scanned"),
         "updated_at":      data.get("updated_at"),

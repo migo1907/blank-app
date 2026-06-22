@@ -310,50 +310,82 @@ def screen_one(ticker: str) -> dict:
     }
 
 
+def _upside_score_bonus(upside_pct: float | None) -> float:
+    """
+    Soft upside contribution to combined score.
+    15–25% upside → linear ramp 0→+0.05. Above 25% → flat +0.05.
+    Applied on top of combined_score so stocks at 15% don't tie with 30%+ ones.
+    """
+    if upside_pct is None:
+        return 0.0
+    if upside_pct >= 25.0:
+        return 0.05
+    if upside_pct >= 15.0:
+        return round((upside_pct - 15.0) / 10.0 * 0.05, 4)
+    return 0.0
+
+
 def run_screen(top_n: int = 15) -> dict:
     """
     Scan full watchlist, apply two gates, rank by combined score, lock the best 15.
+    Also produces a watchlist of WAIT-quality stocks passing Gate 1 (not ready to
+    enter but worth monitoring — may flip STRONG/FAIR within days).
     Runs twice daily: 09:45 ET (morning) + 16:30 ET (close).
 
-    Gate 1 — Valuation (≥20% upside): analyst mean target must be ≥20% above current
-              price — confirms the stock is cheap/undervalued relative to consensus.
-              Skipped (not failed) when analyst target is unavailable.
+    Gate 1 — Valuation (≥15% upside, soft): hard floor at 15%; stocks 15–25% get a
+              small score nudge (+0–0.05) so 30%+ upside outranks 15% upside naturally.
+              Skipped gracefully when no target is available (not penalised).
 
-    Gate 2 — Technical entry: entry_quality must be STRONG or FAIR (EMA stack + RSI
-              pullback confirms timing). WAIT and AVOID are rejected — good value alone
-              is not enough without a technical entry trigger.
+    Gate 2 — Technical entry: STRONG or FAIR → active candidates.
+              WAIT (good value, not timed) → watchlist only.
+              AVOID → rejected entirely.
     """
     global _cached
-    rows = []
-    skipped_upside   = 0
+    rows        = []
+    watchlist   = []   # WAIT-quality stocks that pass Gate 1
+    skipped_upside    = 0
     skipped_technical = 0
 
     for t in WATCHLIST:
         try:
             r = screen_one(t)
-            # Gate 1: ≥20% analyst upside — stock must be undervalued vs consensus
-            # (skip gracefully when Finnhub target is unavailable, don't penalise)
+
+            # Gate 1: hard floor ≥15% upside (down from 20% cliff)
             upside = r.get("upside_pct")
-            if upside is not None and upside < 20.0:
+            if upside is not None and upside < 15.0:
                 skipped_upside += 1
                 continue
-            # Gate 2: technical entry quality must be actionable (STRONG or FAIR)
+
+            # Soft upside bonus nudges score ranking between 15–25%
+            bonus = _upside_score_bonus(upside)
+            if bonus:
+                r["combined_score"] = round(
+                    float(np.clip(r["combined_score"] + bonus, -1, 1)), 3
+                )
+
+            # Gate 2: active entry vs watch-only vs reject
             eq = r.get("entry_quality") or r["technical"].get("entry_quality", "WAIT")
-            if eq not in ("STRONG", "FAIR"):
+            if eq in ("STRONG", "FAIR"):
+                rows.append(r)
+            elif eq == "WAIT":
+                watchlist.append(r)
+            else:
                 skipped_technical += 1
-                continue
-            rows.append(r)
+
         except Exception as e:
             print(f"[swing] screen {t} failed: {e}")
 
-    # Sort: entry_now stocks first, then by combined score
+    # Sort: entry_now first, then combined score
     rows.sort(key=lambda r: (r.get("entry_now", False), r["combined_score"]), reverse=True)
+    watchlist.sort(key=lambda r: r["combined_score"], reverse=True)
     top = rows[:top_n]
 
     result = {
         "candidates":          top,
+        "watchlist":           watchlist[:10],   # top 10 WAIT names worth monitoring
         "scanned":             len(WATCHLIST),
         "passed_gates":        len(rows),
+        "watching":            len(watchlist),
         "top_n":               top_n,
         "skipped_upside":      skipped_upside,
         "skipped_technical":   skipped_technical,
@@ -371,7 +403,10 @@ def run_screen(top_n: int = 15) -> dict:
         f"{r['ticker']}({r['combined_score']:+.2f} ↑{r['upside_pct']:.0f}% [{r.get('entry_quality','?')}])"
         for r in top
     )
-    print(f"[swing] {len(WATCHLIST)} scanned → {skipped_upside} failed upside gate → {skipped_technical} failed tech entry → {len(rows)} passed → top {len(top)}: {summary}")
+    watch_summary = ", ".join(r['ticker'] for r in watchlist[:5])
+    print(f"[swing] {len(WATCHLIST)} scanned → {skipped_upside} failed upside → "
+          f"{skipped_technical} AVOID → {len(rows)} active → {len(watchlist)} watching → "
+          f"top {len(top)}: {summary} | watch: {watch_summary}")
     return result
 
 

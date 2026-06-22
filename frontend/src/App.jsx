@@ -672,7 +672,7 @@ function SwingTab() {
           </div>
         </div>
         <div style={{textAlign:'right',fontSize:10,color:'var(--muted)'}}>
-          <div>Gate 1: valuation upside ≥ 20%</div>
+          <div>Gate 1: valuation upside ≥ 15%</div>
           <div style={{color:'var(--gold)'}}>Gate 2: entry STRONG or FAIR</div>
         </div>
       </div>
@@ -682,7 +682,7 @@ function SwingTab() {
         <div style={{padding:'40px 20px',textAlign:'center',color:'var(--muted)'}}>
           <div style={{fontSize:32,marginBottom:10}}>📈</div>
           <div style={{fontSize:14,fontWeight:600,marginBottom:6}}>No candidates yet</div>
-          <div style={{fontSize:12}}>Screen runs at 09:45 ET and 16:30 ET on trading days. 70 stocks scanned — top 15 with ≥20% analyst upside (Gate 1) and STRONG/FAIR technical entry (Gate 2) shown here.</div>
+          <div style={{fontSize:12}}>Screen runs at 09:45 ET and 16:30 ET on trading days. 70 stocks scanned — top 15 with ≥15% valuation upside (Gate 1) and STRONG/FAIR technical entry (Gate 2) shown here. WAIT-quality names appear below as watching.</div>
         </div>
       ) : (
         <div style={{padding:'0 10px',display:'flex',flexDirection:'column',gap:10}}>
@@ -818,6 +818,35 @@ function SwingTab() {
               </div>
             )
           })}
+        </div>
+      )}
+
+      {/* Watchlist — WAIT-quality stocks passing Gate 1 */}
+      {(cands.data?.watchlist||[]).length>0&&(
+        <div style={{padding:'8px 10px 0'}}>
+          <div style={{fontSize:11,fontWeight:700,color:'var(--gold)',marginBottom:6,letterSpacing:.5}}>
+            WATCHING — good value, entry not ready ({cands.data.watchlist.length})
+          </div>
+          <div style={{display:'flex',flexDirection:'column',gap:6}}>
+            {(cands.data.watchlist||[]).map(w=>(
+              <div key={w.ticker} style={{background:'var(--card)',borderRadius:8,padding:'8px 10px',
+                display:'flex',justifyContent:'space-between',alignItems:'center',
+                borderLeft:'3px solid var(--gold)'}}>
+                <div>
+                  <span style={{fontWeight:800,fontSize:13}}>{w.ticker}</span>
+                  <span style={{marginLeft:6,fontSize:10,color:'var(--muted)',background:'rgba(245,158,11,.12)',
+                    padding:'1px 5px',borderRadius:4}}>WAIT</span>
+                  {w.trend&&<span style={{marginLeft:5,fontSize:10,color:w.trend==='BULL'?'var(--green)':w.trend==='BEAR'?'var(--red)':'var(--muted)'}}>
+                    {w.trend==='BULL'?'▲':w.trend==='BEAR'?'▼':'—'} {w.trend}
+                  </span>}
+                </div>
+                <div style={{textAlign:'right'}}>
+                  {w.upside_pct!=null&&<div style={{fontSize:12,fontWeight:700,color:'var(--green)'}}>↑{w.upside_pct.toFixed(0)}%</div>}
+                  {w.rsi!=null&&<div style={{fontSize:10,color:'var(--muted)'}}>RSI {w.rsi}</div>}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
