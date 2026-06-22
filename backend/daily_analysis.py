@@ -480,12 +480,22 @@ def _format_levels_for_prompt(name: str, levels: dict, live_price: float | None,
     )
 
 
+_ff_cache: dict = {"data": None, "fetched_date": None}
+
+
 def _ff_calendar_events(now: datetime) -> list[tuple]:
     """
     Today's high-impact USD events from the free Forex Factory weekly JSON feed.
     Returns list of (ts_utc, name, detail) tuples. Empty on any failure.
+    Cached for the calendar day — FF returns a weekly JSON that never changes
+    mid-day, and repeated fetches from cloud IPs trigger 429 rate-limits.
     """
+    today_str = now.strftime("%Y-%m-%d")
+    if _ff_cache["fetched_date"] == today_str and _ff_cache["data"] is not None:
+        return _ff_cache["data"]   # serve from cache — avoids 429 on repeated calls
+
     url = "https://nfs.faireconomy.media/ff_calendar_thisweek.json"
+    raw = []
     try:
         with httpx.Client(timeout=12, follow_redirects=True) as client:
             resp = client.get(url, headers={
@@ -495,13 +505,13 @@ def _ff_calendar_events(now: datetime) -> list[tuple]:
                 "Referer": "https://www.forexfactory.com/",
             })
             resp.raise_for_status()
-            data = resp.json() or []
+            raw = resp.json() or []
     except Exception as e:
         print(f"[daily_brief] Forex Factory calendar fetch failed: {e}")
-        return []
+        return _ff_cache["data"] or []  # return stale cache rather than empty on failure
 
     out = []
-    for ev in data:
+    for ev in raw:
         if (ev.get("impact") or "").lower() != "high":
             continue
         if (ev.get("country") or "").upper() not in ("USD", "US", "USA"):
@@ -519,7 +529,9 @@ def _ff_calendar_events(now: datetime) -> list[tuple]:
         detail   = f" · Actual: {actual}" if actual else (f" · Est: {forecast}" if forecast else "")
         out.append((ts_utc, name, detail))
 
-    print(f"[daily_brief] Forex Factory: {len(out)} high-impact USD event(s) today")
+    _ff_cache["data"] = out
+    _ff_cache["fetched_date"] = today_str
+    print(f"[daily_brief] Forex Factory: {len(out)} high-impact USD event(s) today (cached)")
     return out
 
 
