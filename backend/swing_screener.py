@@ -80,17 +80,22 @@ def _ema(x: np.ndarray, span: int) -> np.ndarray:
 
 
 def _rsi(close: np.ndarray, period: int = 14) -> float:
-    if len(close) < period + 1:
+    """Wilder-smoothed RSI (α = 1/period), consistent with TradingView + Pine Script."""
+    if len(close) < period + 2:
         return 50.0
     d = np.diff(close)
     gain = np.where(d > 0, d, 0.0)
     loss = np.where(d < 0, -d, 0.0)
-    ag = gain[-period:].mean()
-    al = loss[-period:].mean()
+    # seed with simple average over first window
+    ag = gain[:period].mean()
+    al = loss[:period].mean()
+    alpha = 1.0 / period
+    for i in range(period, len(d)):
+        ag = alpha * gain[i] + (1 - alpha) * ag
+        al = alpha * loss[i] + (1 - alpha) * al
     if al == 0:
         return 100.0
-    rs = ag / al
-    return 100.0 - 100.0 / (1.0 + rs)
+    return 100.0 - 100.0 / (1.0 + ag / al)
 
 
 def _atr(d, period: int = 14) -> float | None:
@@ -108,43 +113,35 @@ def _atr(d, period: int = 14) -> float | None:
         return None
 
 
-def _analyst_target(ticker: str) -> dict:
+def _self_computed_upside(fund: dict) -> float | None:
     """
-    Fetch analyst consensus price target from Finnhub.
-    Returns {mean_target, upside_pct, n_analysts} or {} on failure.
-    Upside gate: mean_target >= current * 1.20  (≥20% upside).
+    Estimate implied upside % from FCF yield + PEG when analyst target unavailable.
+    Both signals are already computed inside fetch_fundamentals() — no extra calls.
+    Conservative: takes the lower of the two to avoid overstating cheapness.
     """
-    import os, httpx
-    key = os.environ.get("FINNHUB_KEY", "")
-    if not key:
-        return {}
-    try:
-        r = httpx.get(
-            "https://finnhub.io/api/v1/stock/price-target",
-            params={"symbol": ticker, "token": key},
-            timeout=8,
-        )
-        if r.status_code != 200:
-            return {}
-        data = r.json()
-        mean_t = data.get("targetMean") or data.get("targetMedian")
-        n = data.get("lastUpdated") and data.get("symbol") and 1  # just check it came back
-        if not mean_t:
-            return {}
-        # Get current price from yfinance fast_info
-        import yfinance as yf
-        price = yf.Ticker(ticker).fast_info.last_price
-        if not price or price <= 0:
-            return {}
-        upside = (mean_t - price) / price
-        return {
-            "analyst_target": round(float(mean_t), 2),
-            "current_price":  round(float(price), 2),
-            "upside_pct":     round(upside * 100, 1),
-        }
-    except Exception as e:
-        print(f"[swing] analyst target {ticker} failed: {e}")
-        return {}
+    adv = fund.get("advanced", {})
+    fh  = fund.get("finnhub_metrics", {})
+    signals = []
+
+    # FCF yield vs 5% anchor: an 8% FCF yield implies ~60% upside to a 5%-yield fair value
+    fcf_raw = fh.get("fcfYieldTTM")
+    if fcf_raw is None and adv.get("fcf_yield_pct") is not None:
+        fcf_raw = adv["fcf_yield_pct"] / 100.0
+    if fcf_raw is not None:
+        fcf_v = float(fcf_raw)
+        if fcf_v > 0.02:  # only positive FCF yield is meaningful
+            signals.append((fcf_v / 0.05 - 1.0) * 100)
+
+    # PEG < 1.0 implies discount to fair growth-adjusted value
+    peg = fh.get("pegAnnual") or adv.get("peg")
+    if peg is not None:
+        peg_v = float(peg)
+        if 0.1 < peg_v < 5:
+            signals.append((1.0 / peg_v - 1.0) * 50)  # PEG 0.5 → +50%, PEG 2 → −25%
+
+    if not signals:
+        return None
+    return round(min(signals), 1)  # conservative: take the lower signal
 
 
 def _technical_score(ticker: str) -> dict:
@@ -181,8 +178,9 @@ def _technical_score(ticker: str) -> dict:
         spread = (ef20[-1] - es50[-1]) / max(abs(es50[-1]), 1e-9)
         trend_score = float(np.clip(spread / 0.05, -1, 1))
 
-        mom20 = (c[-1] / c[-20] - 1.0) if len(c) >= 20 else 0.0
-        mom_score = float(np.clip(mom20 / 0.10, -1, 1))
+        # 63-day (3-month) momentum — captures sustained trend, not noise
+        mom63 = (c[-1] / c[-63] - 1.0) if len(c) >= 63 else (c[-1] / c[-20] - 1.0 if len(c) >= 20 else 0.0)
+        mom_score = float(np.clip(mom63 / 0.15, -1, 1))  # 15% 3-month move → full score
 
         rsi = _rsi(c)
         out["rsi"] = round(rsi, 1)
@@ -242,7 +240,7 @@ def _technical_score(ticker: str) -> dict:
         ema_stack_bull  = ef20[-1] > es50[-1] > el200[-1]
         near_ema20      = abs(c[-1] - ef20[-1]) / ef20[-1] < 0.03  # within 3% of 20EMA
 
-        if rsi > 70 or trend_score < -0.1:
+        if rsi > 70 or trend_score < -0.1 or not price_above_200:
             entry_quality = "AVOID"
             entry_now = False
         elif ema_stack_bull and 40 <= rsi <= 58:
@@ -272,20 +270,38 @@ def _combined(fund_score: float, tech_score: float, imminent_earnings: bool) -> 
 
 
 def screen_one(ticker: str) -> dict:
-    """Full swing read for one ticker: fundamental + technical + valuation upside."""
+    """Full swing read for one ticker: fundamental + technical + valuation upside.
+
+    Upside source priority:
+      1. yfinance analyst consensus target (already in fund["analyst"]["target_upside_pct"])
+      2. Self-computed from FCF yield + PEG (fallback when analyst target unavailable)
+    No extra HTTP calls — all data already fetched by fetch_fundamentals().
+    """
     from fundamental_data import fetch_fundamentals
 
     fund    = fetch_fundamentals(ticker)
     tech    = _technical_score(ticker)
-    val     = _analyst_target(ticker)
     imminent = bool(fund["earnings"]["imminent"])
     combined = _combined(fund["score"], tech["score"], imminent)
+
+    # Primary: yfinance consensus target (targetMedianPrice)
+    upside_pct     = fund["analyst"].get("target_upside_pct")
+    analyst_target = None
+    current_price  = fund["analyst"].get("current_price")
+    upside_source  = "analyst"
+
+    # Fallback: self-computed from FCF yield + PEG
+    if upside_pct is None:
+        upside_pct    = _self_computed_upside(fund)
+        upside_source = "computed" if upside_pct is not None else None
+
     return {
         "ticker":         ticker,
         "combined_score": combined,
-        "upside_pct":     val.get("upside_pct"),
-        "analyst_target": val.get("analyst_target"),
-        "current_price":  val.get("current_price"),
+        "upside_pct":     upside_pct,
+        "analyst_target": analyst_target,
+        "current_price":  current_price,
+        "upside_source":  upside_source,
         "entry_quality":  tech.get("entry_quality", "WAIT"),
         "entry_now":      tech.get("entry_now", False),
         "fundamental":    fund,

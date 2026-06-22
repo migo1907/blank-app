@@ -672,7 +672,7 @@ function SwingTab() {
           </div>
         </div>
         <div style={{textAlign:'right',fontSize:10,color:'var(--muted)'}}>
-          <div>Gate 1: analyst upside ≥ 20%</div>
+          <div>Gate 1: valuation upside ≥ 20%</div>
           <div style={{color:'var(--gold)'}}>Gate 2: entry STRONG or FAIR</div>
         </div>
       </div>
@@ -730,7 +730,9 @@ function SwingTab() {
                     <div className="mono" style={{fontSize:16,fontWeight:800,color:'var(--green)'}}>
                       {upside!=null?`+${upside.toFixed(0)}%`:'—'}
                     </div>
-                    <div style={{fontSize:9,color:'var(--muted)',fontWeight:600}}>UPSIDE</div>
+                    <div style={{fontSize:9,color:'var(--muted)',fontWeight:600}}>
+                      {c.upside_source==='computed'?'COMPUTED':'ANALYST'} UPSIDE
+                    </div>
                     {target&&<div style={{fontSize:10,color:'var(--muted)',marginTop:2}}>Target {money(target)}</div>}
                   </div>
                 </div>
