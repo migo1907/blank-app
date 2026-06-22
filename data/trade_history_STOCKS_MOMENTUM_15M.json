@@ -10141,13 +10141,13 @@
     "direction": "LONG",
     "trigger": "BOS",
     "entry_price": 541.5,
-    "exit_price": 541.71,
-    "outcome": "PARTIAL",
-    "ml_outcome": "WIN",
+    "exit_price": 551.4713,
+    "outcome": "WIN",
+    "ml_outcome": "TP1_HIT",
     "mfe": 21.0,
-    "tp_stage": "SL_TP2",
+    "tp_stage": "TP1",
     "timeframe": "15",
-    "pnl_pct": 0.0388,
+    "pnl_pct": 1.8414,
     "ml_bull_score": 0.25,
     "regime": "TRENDING_BULL",
     "session": "NYSE_OPEN",
@@ -10177,8 +10177,8 @@
     "f24_fvgq": 0.0,
     "f25_tod": -0.3827,
     "f26_stoch": -0.4054,
-    "id": "5c494e94",
+    "id": "b275c7bc",
     "pool": "STOCKS_MOMENTUM_15M",
-    "created_at": "2026-06-22T14:00:09.532656+00:00"
+    "created_at": "2026-06-22T14:00:05.512618+00:00"
   }
 ]
