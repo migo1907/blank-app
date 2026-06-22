@@ -1,39 +1,5 @@
 [
   {
-    "symbol": "XAUUSD",
-    "pool": "XAUUSD_2M",
-    "direction": "NEUTRAL",
-    "lean_direction": "SHORT",
-    "lean_pct": 25,
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.25,
-    "rf_score": 0.2809,
-    "gbm_score": 0.2414,
-    "ml_interval": [
-      0.0,
-      1.0
-    ],
-    "ml_interval_width": 1.0,
-    "ml_certainty": "LOW",
-    "news_score": -0.235,
-    "macro_bias": -0.1087,
-    "macro_label": "NEUTRAL",
-    "combined_score": -0.1531,
-    "session": "ASIAN",
-    "regime": "TRENDING_BEAR",
-    "regime_label": "TREND_FOLLOW",
-    "hmm_regime": "hmm:TRENDING_BEAR(1.00)",
-    "intermarket": "imkt:DXY-UP(0.03)",
-    "mtf_confluence": "mtf:3/3",
-    "post_event": "evt:na",
-    "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:TRENDING_BEAR(TREND_FOLLOW)\u00d71.15 | hmm:TRENDING_BEAR(1.00)\u00d71.05 | imkt:DXY-UP(0.03)\u00d71.00 | mtf:3/3\u00d71.08 | evt:na\u00d71.00 | sess:ASIAN\u00d70.85 | confluence\u00d70.98 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:bearish(-0.235) | macro:NEUTRAL(-0.109) | combined:-0.153 \u2192 conf:0.141 \u26a1 GEOPOLITICAL",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-22T06:26:17.163619+00:00",
-    "created_at": "2026-06-22T05:56:18.710598+00:00",
-    "id": 101
-  },
-  {
     "symbol": "QQQ",
     "pool": "STOCKS_QQQ_30M",
     "direction": "LONG",
@@ -2952,7 +2918,7 @@
     "mtf_confluence": "mtf:3/3",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:RANGING(RANGING)\u00d70.82 | hmm:TRENDING_BEAR(0.83)\u00d71.04 | imkt:DXY-UP(0.03)\u00d71.00 | mtf:3/3\u00d71.08 | evt:na\u00d71.00 | sess:LONDON\u00d71.15 | confluence\u00d71.07 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:neutral(-0.085) | macro:NEUTRAL(-0.109) | combined:-0.305 \u2192 conf:0.355 \u26a1 WAR/CONFLICT",
-    "status": "EXPIRED",
+    "status": "ACTIVE",
     "expires_at": "2026-06-22T12:27:21.023332+00:00",
     "created_at": "2026-06-22T11:57:22.490208+00:00",
     "id": 101
@@ -2986,7 +2952,7 @@
     "mtf_confluence": "mtf:3/3",
     "post_event": "evt:na",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:TRENDING_BULL(0.97)\u00d71.05 | imkt:na\u00d71.00 | mtf:3/3\u00d71.08 | evt:na\u00d71.00 | sess:PRE_MARKET\u00d70.90 | confluence\u00d71.21 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.19) | news:neutral(-0.085) | macro:BEARISH(-0.357) | combined:+0.119 \u2192 conf:0.300 \u26a1 WAR/CONFLICT",
-    "status": "EXPIRED",
+    "status": "ACTIVE",
     "expires_at": "2026-06-22T12:27:26.448927+00:00",
     "created_at": "2026-06-22T11:57:26.917561+00:00",
     "id": 101
@@ -3020,7 +2986,7 @@
     "mtf_confluence": "mtf:0/3\u26a0",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:RANGING(0.98)\u00d71.00 | imkt:na\u00d71.00 | mtf:0/3\u26a0\u00d70.85 | evt:na\u00d71.00 | sess:PRE_MARKET\u00d70.90 | confluence\u00d70.76 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+0.89) | news:neutral(-0.085) | macro:BEARISH(-0.357) | combined:-0.265 \u2192 conf:0.300 \u26a1 WAR/CONFLICT",
-    "status": "EXPIRED",
+    "status": "ACTIVE",
     "expires_at": "2026-06-22T12:27:30.748045+00:00",
     "created_at": "2026-06-22T11:57:31.054176+00:00",
     "id": 101
@@ -3054,7 +3020,7 @@
     "mtf_confluence": "mtf:0/3\u26a0",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:RANGING(0.98)\u00d71.00 | imkt:na\u00d71.00 | mtf:0/3\u26a0\u00d70.85 | evt:na\u00d71.00 | sess:PRE_MARKET\u00d70.90 | confluence\u00d70.70 | cluster\u00d70.88 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.53) | news:neutral(-0.085) | macro:BEARISH(-0.357) | combined:-0.073 \u2192 conf:0.300 \u26a1 WAR/CONFLICT",
-    "status": "EXPIRED",
+    "status": "ACTIVE",
     "expires_at": "2026-06-22T12:27:33.214570+00:00",
     "created_at": "2026-06-22T11:57:33.593886+00:00",
     "id": 101
@@ -3088,7 +3054,7 @@
     "mtf_confluence": "mtf:3/3",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:RANGING(RANGING)\u00d70.82 | hmm:TRENDING_BEAR(0.83)\u00d71.04 | imkt:DXY-UP(0.03)\u00d71.00 | mtf:3/3\u00d71.08 | evt:na\u00d71.00 | sess:LONDON\u00d71.15 | confluence\u00d71.05 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:bearish(-0.253) | macro:NEUTRAL(-0.109) | combined:-0.282 \u2192 conf:0.322 \u26a1 FOMC",
-    "status": "EXPIRED",
+    "status": "ACTIVE",
     "expires_at": "2026-06-22T12:42:11.698637+00:00",
     "created_at": "2026-06-22T12:12:13.444711+00:00",
     "id": 101
@@ -3397,6 +3363,40 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-22T13:12:10.254958+00:00",
     "created_at": "2026-06-22T12:42:11.832099+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "SPY",
+    "pool": "STOCKS_INDEX_30M",
+    "direction": "SHORT",
+    "lean_direction": "SHORT",
+    "lean_pct": 50,
+    "confidence": 0.3,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "ml_interval": [
+      0.3,
+      0.7
+    ],
+    "ml_interval_width": 0.4,
+    "ml_certainty": "MODERATE",
+    "news_score": -0.2923,
+    "macro_bias": -0.3566,
+    "macro_label": "BEARISH",
+    "combined_score": -0.1209,
+    "session": "PRE_MARKET",
+    "regime": "TRENDING_BULL",
+    "regime_label": "PULLBACK_SHORT",
+    "hmm_regime": "hmm:RANGING(0.98)",
+    "intermarket": "imkt:na",
+    "mtf_confluence": "mtf:0/3\u26a0",
+    "post_event": "evt:na",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(PULLBACK_SHORT)\u00d70.80 | hmm:RANGING(0.98)\u00d71.00 | imkt:na\u00d71.00 | mtf:0/3\u26a0\u00d70.85 | evt:na\u00d71.00 | sess:PRE_MARKET\u00d70.90 | confluence\u00d71.09 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.04) | news:bearish(-0.292) | macro:BEARISH(-0.357) | combined:-0.121 \u2192 conf:0.300 \u26a1 FOMC",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-22T13:12:15.140972+00:00",
+    "created_at": "2026-06-22T12:42:16.828570+00:00",
     "id": 101
   }
 ]
