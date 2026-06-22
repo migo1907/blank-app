@@ -3367,7 +3367,7 @@
   },
   {
     "symbol": "SPX500",
-    "pool": "STOCKS_SPX500_30M",
+    "pool": "STOCKS_SPX500_15M",
     "direction": "LONG",
     "lean_direction": "LONG",
     "lean_pct": 75,
@@ -3387,16 +3387,16 @@
     "macro_label": "NEUTRAL",
     "combined_score": 0.3305,
     "session": "CLOSED",
-    "regime": "RANGING",
-    "regime_label": "RANGING",
+    "regime": "NORMAL",
+    "regime_label": "NORMAL",
     "hmm_regime": "hmm:RANGING(1.00)",
     "intermarket": "imkt:na",
     "mtf_confluence": "mtf:2/3",
     "post_event": "evt:na",
-    "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:RANGING(RANGING)\u00d70.82 | hmm:RANGING(1.00)\u00d71.00 | imkt:na\u00d71.00 | mtf:2/3\u00d71.03 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.83 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.20) | news:bearish(-0.262) | macro:NEUTRAL(+0.042) | combined:+0.330 \u2192 conf:0.300 \u26a1 GEOPOLITICAL",
+    "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:RANGING(1.00)\u00d71.00 | imkt:na\u00d71.00 | mtf:2/3\u00d71.03 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.83 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.28) | news:bearish(-0.262) | macro:NEUTRAL(+0.042) | combined:+0.330 \u2192 conf:0.300 \u26a1 GEOPOLITICAL",
     "status": "ACTIVE",
-    "expires_at": "2026-06-22T22:29:09.452432+00:00",
-    "created_at": "2026-06-22T21:59:13.787206+00:00",
+    "expires_at": "2026-06-22T22:29:15.543606+00:00",
+    "created_at": "2026-06-22T21:59:15.872098+00:00",
     "id": 101
   }
 ]
