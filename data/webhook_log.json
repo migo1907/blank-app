@@ -1500,7 +1500,7 @@
     }
   },
   {
-    "received_at": "2026-06-22T17:30:25.076606+00:00",
+    "received_at": "2026-06-22T17:30:24.718638+00:00",
     "pool": "STOCKS_QUALITY_4H",
     "payload": {
       "secret": "gold2026",
@@ -1516,11 +1516,11 @@
       "ml_score": 0.5,
       "tier": null,
       "trade_id": "CRM_1782149413468",
-      "outcome": "WIN",
-      "ml_outcome": "TP1_HIT",
+      "outcome": "PARTIAL",
+      "ml_outcome": "WIN",
       "mfe": 0.0,
-      "tp_stage": "TP1",
-      "exit_price": 149.3341,
+      "tp_stage": "SL_TP1",
+      "exit_price": 153.83,
       "f1": -0.3459,
       "f2": -0.3275,
       "f3": -0.1331,
