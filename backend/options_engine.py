@@ -214,8 +214,9 @@ def _get_market_context(spot: float, chain, atm_iv: float | None,
                         expected_move: float | None) -> dict:
     """
     Compute slow-path features fetched once per recommendation:
-      spx_intraday_range_pct, hv5_vs_iv, regime_encoded, opex_week, skew_25d
-    Returns dict with float values (0.0 fallback on any failure).
+      spx_intraday_range_pct, hv5_vs_iv, regime_encoded, opex_week, skew_25d,
+      cboe_pc_ratio
+    Returns dict with float values (neutral fallback on any failure).
     """
     ctx: dict = {
         "spx_intraday_range_pct": 0.0,
@@ -223,7 +224,17 @@ def _get_market_context(spot: float, chain, atm_iv: float | None,
         "regime_encoded":         0.5,
         "opex_week":              0.0,
         "skew_25d":               0.0,
+        "cboe_pc_ratio":          1.0,
     }
+
+    # CBOE total put/call ratio — market-wide sentiment (cached, refreshed daily).
+    try:
+        from cboe_data import get_pc_ratio
+        pc = get_pc_ratio().get("total_pc")
+        if pc:
+            ctx["cboe_pc_ratio"] = float(pc)
+    except Exception:
+        pass
 
     # How much of the expected move has SPX already travelled today?
     try:
@@ -824,6 +835,7 @@ OPTION_FEATURE_KEYS = [
     "regime_encoded",            # 0=ranging, 0.5=trending_bull, 1.0=trending_bear
     "opex_week",                 # 1.0 if within 2 days of monthly options expiry
     "skew_25d",                  # (OTM put IV - OTM call IV) / ATM IV — put/call skew
+    "cboe_pc_ratio",             # CBOE total put/call ratio — market-wide sentiment (contrarian)
 ]
 
 _MIN_TRADES_ML = 50   # closed trades before ML is eligible
@@ -889,6 +901,7 @@ def enrich_features(rec: dict, pool_confluence: float = 0.5,
         "regime_encoded":           ctx.get("regime_encoded", 0.5),
         "opex_week":                ctx.get("opex_week", 0.0),
         "skew_25d":                 ctx.get("skew_25d", 0.0),
+        "cboe_pc_ratio":            ctx.get("cboe_pc_ratio", 1.0),
     }
     rec["pool_confluence"] = pool_confluence
     return rec
@@ -1216,7 +1229,7 @@ def weekly_autopsy() -> str:
         lines.append("📉 Loss vs Win avg feature comparison:")
         key_feats = ["confidence", "premium_vs_em_pct", "time_to_hard_exit_hours",
                      "vix", "iv_rank", "pool_confluence", "vix9d_ratio",
-                     "hv5_vs_iv", "spx_intraday_range_pct", "skew_25d"]
+                     "hv5_vs_iv", "spx_intraday_range_pct", "skew_25d", "cboe_pc_ratio"]
         for feat in key_feats:
             l_avg = avg_feat(losses, feat)
             w_avg = avg_feat(wins, feat)

@@ -203,6 +203,20 @@ async def lifespan(app: FastAPI):
     print("[startup] Loading signal feed from GitHub…")
     _load_signal_feed()
 
+    print("[startup] Loading Fear & Greed index from GitHub…")
+    try:
+        from fear_greed import load_fear_greed
+        load_fear_greed()
+    except Exception as _fg_e:
+        print(f"[startup] Fear & Greed load failed (non-fatal): {_fg_e}")
+
+    print("[startup] Loading CBOE put/call ratio from GitHub…")
+    try:
+        from cboe_data import load_pc_ratio
+        load_pc_ratio()
+    except Exception as _pc_e:
+        print(f"[startup] CBOE P/C load failed (non-fatal): {_pc_e}")
+
     if not WEBHOOK_SECRET:
         print("[startup] ⚠ WARNING: WEBHOOK_SECRET is not set — all webhook endpoints are open to unauthenticated requests.")
 
@@ -1579,6 +1593,12 @@ async def pulse():
     macro_gold   = get_macro_bias()   or {}
     macro_equity = get_equity_macro_bias() or {}
 
+    try:
+        from fear_greed import get_fear_greed
+        fg = get_fear_greed()
+    except Exception:
+        fg = {}
+
     return {
         "gold_bias":    gold_bias,
         "gold_score":   gold_score,
@@ -1591,6 +1611,8 @@ async def pulse():
         "macro_bias":   round(float(macro_gold.get("bias") or 0.0), 3),
         "macro_label":  macro_gold.get("label", ""),
         "vix":          macro_equity.get("vix"),
+        "fear_greed":       fg.get("score"),
+        "fear_greed_label": fg.get("label"),
         "news_velocity": get_latest_velocity(),
         "updated_at":   datetime.now(timezone.utc).isoformat(),
     }

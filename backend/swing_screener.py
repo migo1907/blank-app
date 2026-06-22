@@ -156,7 +156,7 @@ def _technical_score(ticker: str) -> dict:
     """
     out = {"score": 0.0, "rsi": None, "trend": "NEUTRAL", "rel_strength_pct": None,
            "entry": None, "atr": None, "stop": None, "t1": None, "t2": None, "t3": None,
-           "entry_quality": "WAIT", "entry_now": False}
+           "entry_quality": "WAIT", "entry_now": False, "rel_volume": None}
     try:
         from market_data import fetch_daily
 
@@ -210,6 +210,20 @@ def _technical_score(ticker: str) -> dict:
                 rel = stock_20 - etf_20
                 out["rel_strength_pct"] = round(rel * 100, 1)
                 score += float(np.clip(rel / 0.10, -0.2, 0.2))
+        except Exception:
+            pass
+
+        # Relative volume — current bar vs 20-day average. Breakouts on low
+        # relative volume fail >70% of the time; conviction volume confirms the
+        # move. Bounded tilt so it nudges ranking without dominating it.
+        try:
+            v = d["Volume"].to_numpy(dtype=float)
+            if len(v) >= 20:
+                avg20 = float(v[-20:].mean())
+                if avg20 > 0:
+                    rel_vol = v[-1] / avg20
+                    out["rel_volume"] = round(rel_vol, 2)
+                    score += float(np.clip((rel_vol - 1.0) * 0.20, -0.10, 0.15))
         except Exception:
             pass
 

@@ -404,6 +404,7 @@ function PulseTab({pulse,health}) {
           {pd?.macro_label&&<div className="metric"><div className="metric-val" style={{fontSize:12}}>{pd.macro_label}</div><div className="metric-lbl">Macro</div></div>}
           {pd?.macro_bias!=null&&<div className="metric"><div className="metric-val" style={{fontSize:13}}>{pd.macro_bias>=0?'+':''}{n(pd.macro_bias,2)}</div><div className="metric-lbl">Macro Score</div></div>}
           {imkt.dxy_break!=null&&<div className="metric"><div className="metric-val" style={{fontSize:14}}>{imkt.dxy_break?'✅':'❌'}</div><div className="metric-lbl">DXY Break</div></div>}
+          {pd?.fear_greed!=null&&<div className="metric"><div className="metric-val" style={{fontSize:13,color:pd.fear_greed<25?'var(--red)':pd.fear_greed>75?'var(--green)':'var(--gold)'}}>{pd.fear_greed}</div><div className="metric-lbl">{pd.fear_greed_label||'Fear/Greed'}</div></div>}
           {hd&&<div className="metric"><div className="metric-val" style={{fontSize:12}}>{hd.status?.toUpperCase()||'—'}</div><div className="metric-lbl">System</div></div>}
         </div>
       </div>
@@ -807,6 +808,7 @@ function SwingTab() {
                           <span>Rev +{n(fhm.revenueGrowthTTMYoy||fund.growth?.revenue_growth_pct,1)}%</span>
                         )}
                         {tech.rel_strength_pct!=null&&<span>Rel str {tech.rel_strength_pct>0?'+':''}{tech.rel_strength_pct}%</span>}
+                        {tech.rel_volume!=null&&<span style={{color:tech.rel_volume>=1.5?'var(--green)':tech.rel_volume<0.7?'var(--red)':'var(--muted)'}}>Rel vol {tech.rel_volume}×</span>}
                       </div>
                     </div>
                   )

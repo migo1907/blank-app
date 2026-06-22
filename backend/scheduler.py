@@ -1331,6 +1331,16 @@ async def _macro_refresh_cycle() -> None:
     except Exception as e:
         print(f"[scheduler] macro refresh failed: {e}")
     try:
+        from fear_greed import fetch_fear_greed
+        await asyncio.to_thread(fetch_fear_greed)
+    except Exception as e:
+        print(f"[scheduler] fear & greed refresh failed: {e}")
+    try:
+        from cboe_data import fetch_pc_ratio
+        await asyncio.to_thread(fetch_pc_ratio)
+    except Exception as e:
+        print(f"[scheduler] CBOE p/c refresh failed: {e}")
+    try:
         from regime_model import refresh_regimes
         await asyncio.to_thread(refresh_regimes)
     except Exception as e:

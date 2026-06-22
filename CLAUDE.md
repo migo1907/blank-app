@@ -87,11 +87,11 @@
 #### Priority Order (what to pick up next)
 | Priority | Item | Effort | Condition to start |
 |----------|------|--------|--------------------|
-| 1 | CBOE daily P/C ratio (options) | Low | Any time |
-| 2 | Analyst revision momentum (swing) | Low | Any time |
-| 3 | Relative volume (swing) | Low | Any time |
-| 4 | Fear & Greed Index (all sections) | Low | Any time |
-| 5 | Conformal prediction for intraday pools | Low | Any time — clone from options |
+| 1 | ✅ ~~CBOE daily P/C ratio (options)~~ | Low | **Done** — `cboe_data.py`, feature #26 `cboe_pc_ratio`, hourly refresh. External host must be in egress allowlist. |
+| 2 | ✅ ~~Analyst revision momentum (swing)~~ | Low | **Done** — `_finnhub_analyst_revision()` revision_score overlay. |
+| 3 | ✅ ~~Relative volume (swing)~~ | Low | **Done** — `rel_volume` (vol vs 20d avg) in `_technical_score`, bounded score tilt + app display. |
+| 4 | ✅ ~~Fear & Greed Index (all sections)~~ | Low | **Done** — `fear_greed.py` (CNN), hourly refresh, surfaced in `/pulse` + app. External host must be in egress allowlist. |
+| 5 | ✅ ~~Conformal prediction for intraday pools~~ | Low | **Done** — `predict_with_interval()` in `ml_ensemble.py`; `ml_interval`/`ml_interval_width`/`ml_certainty` in signal payload. |
 | 6 | Label noise correction (intraday) | Medium | When XAUUSD_2M OOS acc stabilises |
 | 7 | Scaling exits (options) | Low | After 50+ closed options trades |
 | 8 | Half-Kelly sizing | Medium | When live capital deployed |
@@ -109,7 +109,7 @@
 - **Hard rules:** IV Rank <50, no VIX backwardation, no entries 24h before FOMC/CPI/NFP, 0DTE cutoff 13:00 ET (→ rolls to 1DTE).
 - **Exits:** +100% premium (TP), -50% premium (SL), hard exit 15:30 ET (0DTE) / 14:00 ET next session (1DTE). Managed hourly by `_options_paper_manage_cycle`.
 - **IV history:** ATM IV recorded daily at 15:45 ET → `data/options_iv_history.json`. IV Rank unlocks after 20 sessions, meaningful at 60.
-- **Training features (25):** confidence, iv, iv_rank, vix, vix_ratio, vix_backwardation_margin, vix9d_ratio, delta, entry_premium, spot_vs_strike_pct, premium_vs_em_pct, iv_over_vix_ratio, dte, hour_et, day_of_week, entry_time_norm, time_to_hard_exit_hours, hour_dte_interaction, expected_move, pool_confluence, spx_intraday_range_pct, hv5_vs_iv, regime_encoded, opex_week, skew_25d.
+- **Training features (26):** confidence, iv, iv_rank, vix, vix_ratio, vix_backwardation_margin, vix9d_ratio, delta, entry_premium, spot_vs_strike_pct, premium_vs_em_pct, iv_over_vix_ratio, dte, hour_et, day_of_week, entry_time_norm, time_to_hard_exit_hours, hour_dte_interaction, expected_move, pool_confluence, spx_intraday_range_pct, hv5_vs_iv, regime_encoded, opex_week, skew_25d, cboe_pc_ratio.
 - **Loss categorization:** WRONG_DIRECTION / THETA_DECAY / IV_CRUSH / OVERPAID / LATE_ENTRY / WIN — tagged at close in `manage_paper_positions()`.
 - **ML gate:** RF(200)+GBM(150)+LGB(200) ensemble, Platt sigmoid per model → isotonic calibration on OOS ensemble. Focal-loss weights + SHAP explanations + conformal prediction interval. `_ML_SCORE_GATE = 0.52` activates at ≥50 closed trades. Auto-retrains after every close.
 - **Strategies (all paper):** long_option (both TFs agree, TP+100% SL-50%), debit_spread (one TF agrees, TP+80% net debit), straddle (conflicting signals, TP+60% either leg, 0DTE only).
