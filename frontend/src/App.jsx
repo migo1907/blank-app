@@ -286,7 +286,7 @@ function BriefTab() {
               <div className="metric-val" style={{fontSize:13}}>{mac.label||'—'}</div>
               <div className="metric-lbl">Macro Bias</div>
             </div>
-            {mac.vix!=null&&<div className="metric"><div className="metric-val" style={{fontSize:14}}>{n(mac.vix,1)}</div><div className="metric-lbl">VIX</div></div>}
+            {mac.vix!=null&&!isNaN(mac.vix)&&<div className="metric"><div className="metric-val" style={{fontSize:14}}>{n(mac.vix,1)}</div><div className="metric-lbl">VIX</div></div>}
             {mac.real_yield!=null&&<div className="metric"><div className="metric-val" style={{fontSize:13}}>{n(mac.real_yield,2)}%</div><div className="metric-lbl">Real Yield</div></div>}
           </div>
           {mac.components && Object.keys(mac.components).length>0 && (

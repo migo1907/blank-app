@@ -265,9 +265,11 @@ def _vix_context() -> dict:
         if not len(vix):
             return out
         v = float(vix["Close"].iloc[-1])
+        if v != v:  # NaN check — yfinance returns float NaN from cloud IPs
+            return out
         out["vix"] = round(v, 2)
         v3 = float(vix3m["Close"].iloc[-1]) if len(vix3m) else None
-        if v3:
+        if v3 and v3 == v3:  # NaN guard for vix3m too
             out["vix3m"] = round(v3, 2)
             out["ratio"] = round(v / v3, 3)
             out["backwardation"] = (v / v3) > 1.0

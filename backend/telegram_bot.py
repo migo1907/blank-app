@@ -537,6 +537,14 @@ async def send_swing_brief(screen: dict) -> bool:
             f"<i>{tech.get('trend','—')} daily trend</i>\n"
             f"{thesis}\n"
         )
+        # TradingAgents second-layer block (shown when debate has run)
+        try:
+            from trading_agents_layer import format_agent_block
+            agent_block = format_agent_block(c)
+            if agent_block:
+                line += agent_block
+        except Exception:
+            pass
         entry, stop = tech.get("entry"), tech.get("stop")
         t1, t2 = tech.get("t1"), tech.get("t2")
         if entry is not None and stop is not None:

@@ -1781,6 +1781,60 @@ async def _swing_manage_cycle() -> None:
         print(f"[swing] manage cycle failed: {e}")
 
 
+async def _swing_agents_cycle() -> None:
+    """
+    TradingAgents bull/bear debate on top swing candidates.
+    Runs Mon + Thu 17:30 ET (~every 3 days). Enriches swing_candidates.json
+    with agent conviction scores; updates Telegram brief to include summaries.
+    Requires ANTHROPIC_API_KEY (already on Railway). Gracefully no-ops when
+    tradingagents package is unavailable or no candidates exist.
+    """
+    from datetime import datetime, timezone
+    now_utc = datetime.now(timezone.utc)
+    try:
+        from market_calendar import is_nyse_open
+        probe = now_utc.replace(hour=15, minute=0, second=0, microsecond=0)
+        if not is_nyse_open(probe):
+            print("[ta_layer] NYSE closed today — skipping agent cycle")
+            return
+    except Exception:
+        if now_utc.weekday() >= 5:
+            return
+
+    try:
+        from swing_screener import _cached as _swing_cached
+        from trading_agents_layer import run_agents_on_candidates
+        from db import _get_file, _put_file
+        import json
+
+        # Load current candidates from cache or GitHub data branch
+        candidates = (_swing_cached or {}).get("candidates", [])
+        if not candidates:
+            raw, _ = _get_file("data/swing_candidates.json")
+            if raw:
+                data = json.loads(raw)
+                candidates = data.get("candidates", [])
+
+        if not candidates:
+            print("[ta_layer] no swing candidates to analyse — skipping")
+            return
+
+        print(f"[ta_layer] starting agent debate on top {min(len(candidates), 15)} candidates …")
+        enriched = await asyncio.to_thread(run_agents_on_candidates, candidates)
+
+        # Write enriched candidates back to data branch
+        raw, sha = _get_file("data/swing_candidates.json")
+        if raw:
+            data = json.loads(raw)
+            data["candidates"] = enriched
+            data["agents_updated"] = now_utc.isoformat()
+            _put_file("data/swing_candidates.json", json.dumps(data, indent=2), sha)
+            print(f"[ta_layer] enriched {len(enriched)} candidates → data branch")
+
+    except Exception as e:
+        print(f"[ta_layer] agent cycle failed: {e}")
+
+
 def start_scheduler() -> AsyncIOScheduler:
     global _scheduler
     _load_seen_headlines()
@@ -1827,6 +1881,10 @@ def start_scheduler() -> AsyncIOScheduler:
     # Resolve open swing paper trades 15 min after the screen (uses today's close).
     _scheduler.add_job(_swing_manage_cycle, trigger="cron", day_of_week="mon-fri", hour=16, minute=45,
                        timezone=_ny_tz, id="swing_manage", replace_existing=True, misfire_grace_time=3600)
+    # TradingAgents second-layer filter — Mon + Thu 17:30 ET (every ~3 days).
+    # Runs bull/bear debate on top swing candidates and enriches swing_candidates.json.
+    _scheduler.add_job(_swing_agents_cycle, trigger="cron", day_of_week="mon,thu", hour=17, minute=30,
+                       timezone=_ny_tz, id="swing_agents", replace_existing=True, misfire_grace_time=3600)
     # Weekly mistake autopsy — every Monday 09:00 UTC
     _scheduler.add_job(_weekly_mistake_autopsy, trigger="cron", day_of_week="mon", hour=9, minute=0, id="weekly_autopsy", replace_existing=True, misfire_grace_time=3600)
     # Weekly model comparison — every Sunday 20:00 UTC
