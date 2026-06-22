@@ -950,6 +950,37 @@
       "htf_context": "htf_direct",
       "session": "NYSE Afternoon",
       "fired_at": "2026-06-22T16:30:01.855982+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "60",
+      "trigger": "BOS",
+      "symbol": "CRM",
+      "entry_price": 147.84,
+      "tp1": 142.6,
+      "tp2": 138.41,
+      "tp3": 133.17,
+      "sl": 153.08,
+      "ml_score": 0.5,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.5666,
+      "quality_reason": "approved",
+      "news_score": -0.1027,
+      "velocity": "CONFLICTED",
+      "event": "FOMC",
+      "htf_bias": {
+        "direction": "SHORT",
+        "timeframe": "60",
+        "symbol": "CRM",
+        "trigger": "BOS",
+        "ml_score": 0.5,
+        "stored_at": "2026-06-22T16:30:14.099408+00:00",
+        "expires_at": "2026-06-22T20:30:14.099429+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "htf_direct",
+      "session": "NYSE Afternoon",
+      "fired_at": "2026-06-22T16:30:14.102029+00:00"
     }
   ]
 }
