@@ -407,7 +407,7 @@ def _memory_features(history: list[dict], direction: str, n: int = 10) -> list[f
     return [overall, same_dir, same_sess, same_trig, min(streak, 8) / 8.0]
 
 
-def score_entry_gate(pool: str, direction: str) -> dict:
+def score_entry_gate(pool: str, direction: str, trigger: str = "") -> dict:
     """
     Re-score a Pine-fired entry using the backend's trained models.
 
@@ -427,6 +427,12 @@ def score_entry_gate(pool: str, direction: str) -> dict:
     if features is None:
         # No heartbeat features cached yet — can't score, let it through.
         return {"pass": True, "score": 0.5, "reason": "no_features_cached", "components": {}}
+
+    # Choppy market gate — block when trend strength (ADX) AND volatility (ATR) are both low.
+    # Weekly autopsy: atr:LOW = 29/100 losses, f2_adx = #1 SHAP loss driver.
+    # Both must be low to avoid blocking valid low-ATR breakouts with strong ADX trend.
+    if abs(features.f2) < 0.25 and abs(features.f3) < 0.20:
+        return {"pass": False, "score": 0.0, "reason": "choppy_market_blocked", "components": {}}
 
     history = _cached_history(pool, 500)
     knn = get_model(pool)
@@ -505,8 +511,12 @@ def score_entry_gate(pool: str, direction: str) -> dict:
             components["session_guard"] = round(sess_wr, 3)
 
     threshold = _pool_thresholds.get(pool, ML_GATE_THRESHOLD)
+    # No-trigger penalty: entries without SMC structure need higher confidence.
+    # Weekly autopsy: trigger-less entries = 31/100 losses (largest single category).
+    if not trigger:
+        threshold = round(threshold * 1.15, 3)
     passed    = score >= threshold
-    reason    = "approved" if passed else "rejected_low_confidence"
+    reason    = "approved" if passed else ("rejected_no_trigger_weak" if not trigger else "rejected_low_confidence")
 
     # SHAP attribution — top-3 features driving the GBM signal (best explainer for tree models)
     shap_drivers: list[tuple[str, float]] = []

@@ -841,7 +841,7 @@ async def signal_entry(payload: SignalEntryPayload):
     from signal_engine import score_entry_gate
     from db import symbol_to_pool
     try:
-        _gate = score_entry_gate(symbol_to_pool(sym, tf), payload.direction)
+        _gate = score_entry_gate(symbol_to_pool(sym, tf), payload.direction, payload.trigger or "")
     except Exception as _ge:
         print(f"[signal-entry] gate error (non-fatal): {_ge}")
         _gate = {"pass": True, "score": 0.5, "reason": "gate_error", "components": {}}
@@ -941,7 +941,7 @@ async def unified_webhook(payload: UnifiedPayload):
         from signal_engine import score_entry_gate
         from db import symbol_to_pool
         try:
-            _gate = score_entry_gate(symbol_to_pool(sym, tf), payload.direction)
+            _gate = score_entry_gate(symbol_to_pool(sym, tf), payload.direction, payload.trigger or "")
         except Exception as _ge:
             print(f"[webhook] gate error (non-fatal): {_ge}")
             _gate = {"pass": True, "score": 0.5, "reason": "gate_error", "components": {}}
