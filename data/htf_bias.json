@@ -16,5 +16,23 @@
     "ml_score": 0.625,
     "stored_at": "2026-06-22T14:00:02.497827+00:00",
     "expires_at": "2026-06-22T16:00:02.497838+00:00"
+  },
+  "GOOGL_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "GOOGL",
+    "trigger": "BOS",
+    "ml_score": 0.25,
+    "stored_at": "2026-06-22T14:00:02.891068+00:00",
+    "expires_at": "2026-06-22T16:00:02.891077+00:00"
+  },
+  "NVDA_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "NVDA",
+    "trigger": "FVG",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-22T14:00:05.011787+00:00",
+    "expires_at": "2026-06-22T16:00:05.011803+00:00"
   }
 }
