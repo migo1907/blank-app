@@ -108,13 +108,13 @@
     "expires_at": "2026-06-22T17:30:13.003073+00:00"
   },
   "NOW_30": {
-    "direction": "LONG",
+    "direction": "SHORT",
     "timeframe": "30",
     "symbol": "NOW",
-    "trigger": "LIQ",
-    "ml_score": 0.625,
-    "stored_at": "2026-06-22T14:00:27.533493+00:00",
-    "expires_at": "2026-06-22T16:00:27.533502+00:00"
+    "trigger": "BOS",
+    "ml_score": 0.75,
+    "stored_at": "2026-06-22T16:30:01.347752+00:00",
+    "expires_at": "2026-06-22T18:30:01.347767+00:00"
   },
   "TNA_30": {
     "direction": "LONG",
@@ -214,5 +214,14 @@
     "ml_score": 0.5,
     "stored_at": "2026-06-22T16:02:02.841847+00:00",
     "expires_at": "2026-06-22T18:02:02.841873+00:00"
+  },
+  "NOW_60": {
+    "direction": "SHORT",
+    "timeframe": "60",
+    "symbol": "NOW",
+    "trigger": "BOS",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-22T16:30:01.375940+00:00",
+    "expires_at": "2026-06-22T20:30:01.375958+00:00"
   }
 }
