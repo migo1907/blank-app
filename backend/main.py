@@ -1775,7 +1775,7 @@ _OVERVIEW_SYMBOLS = {
 _overview_cache = {"ts": 0, "data": None}
 
 @app.get("/market/overview")
-async def market_overview(secret: str = ""):
+def market_overview(secret: str = ""):
     _validate_secret(secret)
     import time, yfinance as yf
     if time.time() - _overview_cache["ts"] < 60 and _overview_cache["data"]:
@@ -1834,7 +1834,7 @@ async def market_quotes(symbols: str = "", secret: str = ""):
 
 
 @app.get("/market/ticker/{symbol}")
-async def market_ticker(symbol: str, secret: str = ""):
+def market_ticker(symbol: str, secret: str = ""):
     _validate_secret(secret)
     import yfinance as yf, os
     sym = symbol.upper()
@@ -1890,7 +1890,7 @@ async def market_ticker(symbol: str, secret: str = ""):
 
 
 @app.get("/market/compare")
-async def market_compare(symbols: str = "", secret: str = ""):
+def market_compare(symbols: str = "", secret: str = ""):
     _validate_secret(secret)
     import yfinance as yf
     syms = [s.strip().upper() for s in symbols.split(",") if s.strip()][:6]
@@ -1930,7 +1930,7 @@ async def market_compare(symbols: str = "", secret: str = ""):
 _wrap_cache = {"date": None, "text": None, "sections": None}
 
 @app.get("/market/wrap")
-async def market_wrap(secret: str = ""):
+def market_wrap(secret: str = ""):
     _validate_secret(secret)
     import anthropic, os, datetime as _dtt
     today = str(_dtt.date.today())
@@ -2056,7 +2056,7 @@ def _commentary_lines(ctx: dict) -> list[str]:
 
 
 @app.get("/market/commentary")
-async def market_commentary(secret: str = ""):
+def market_commentary(secret: str = ""):
     _validate_secret(secret)
     import anthropic, os, datetime as _dtt
     today = str(_dtt.date.today())
@@ -2097,7 +2097,7 @@ async def market_commentary(secret: str = ""):
 _sparkline_cache = {"ts": 0, "data": None}
 
 @app.get("/market/sparklines")
-async def market_sparklines(secret: str = ""):
+def market_sparklines(secret: str = ""):
     """~1 month of daily closes per overview instrument, for inline sparklines."""
     _validate_secret(secret)
     import time, math, yfinance as yf
@@ -2126,7 +2126,7 @@ async def market_sparklines(secret: str = ""):
 
 
 @app.get("/calendar/economic")
-async def calendar_economic(secret: str = ""):
+def calendar_economic(secret: str = ""):
     """This-week high/medium-impact US economic events (Forex Factory feed), Dubai time."""
     _validate_secret(secret)
     import httpx
@@ -2190,7 +2190,7 @@ _EARNINGS_MAJORS = {
 
 
 @app.get("/calendar/earnings")
-async def calendar_earnings(secret: str = ""):
+def calendar_earnings(secret: str = ""):
     """Upcoming earnings (next 7 days) for major caps, via Finnhub earnings calendar."""
     _validate_secret(secret)
     import httpx

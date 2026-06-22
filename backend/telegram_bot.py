@@ -159,10 +159,12 @@ async def send_signal(signal: dict) -> bool:
     }
     sess_label = session_map.get(session, session)
 
-    # Live price from TradingView scanner
+    # Live price from TradingView scanner — offloaded to a thread so the blocking
+    # httpx call (up to 8s) never stalls the event loop / concurrent webhooks.
     try:
+        import asyncio as _asyncio
         from daily_analysis import _fetch_live_price_tv
-        live_price = _fetch_live_price_tv(symbol, decimals)
+        live_price = await _asyncio.to_thread(_fetch_live_price_tv, symbol, decimals)
         price_line = f"💰 Current Price: <b>${live_price:,.2f}</b>\n" if live_price else ""
     except Exception:
         price_line = ""
