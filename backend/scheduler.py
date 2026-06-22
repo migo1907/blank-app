@@ -718,15 +718,18 @@ async def _hourly_system_check() -> None:
         hist_2m, _ = await asyncio.to_thread(_get_file, "data/trade_history_XAUUSD_2M.json")
         if isinstance(hist_2m, list) and len(hist_2m) > 0:
             from db import _parse_ts as _pts
+            from market_calendar import open_hours_between as _open_hrs
+            _now = datetime.now(timezone.utc)
             last_trade_time = _pts(hist_2m[-1].get("created_at", "2000-01-01T00:00:00"))
-            hours_since = (datetime.now(timezone.utc) - last_trade_time).total_seconds() / 3600
-            dow = datetime.now(timezone.utc).weekday()
-            market_hour = 7 <= datetime.now(timezone.utc).hour < 20
-            if dow < 5 and market_hour and hours_since > 6:
-                critical_alerts.append(("Webhook Silence Detected", f"No XAUUSD_2M trade data received for {hours_since:.0f} hours during market hours.", "Check TradingView alerts — they may have expired or been disabled."))
-                issues.append(f"No XAUUSD_2M webhook activity for {hours_since:.0f}h during market hours ⚠️")
+            # Silence measured in MARKET-OPEN hours so a weekend gap never trips it.
+            open_hours = _open_hrs(last_trade_time, _now, "forex")
+            dow = _now.weekday()
+            market_hour = 7 <= _now.hour < 20
+            if dow < 5 and market_hour and open_hours > 6:
+                critical_alerts.append(("Webhook Silence Detected", f"No XAUUSD_2M trade data received for {open_hours:.0f} market-open hours.", "Check TradingView alerts — they may have expired or been disabled."))
+                issues.append(f"No XAUUSD_2M webhook activity for {open_hours:.0f}h of open market ⚠️")
             else:
-                ok.append(f"XAUUSD_2M last webhook: {hours_since:.1f}h ago ✅")
+                ok.append(f"XAUUSD_2M last webhook: {open_hours:.1f}h market-open ago ✅")
         else:
             issues.append("XAUUSD_2M pool empty — webhook silence check skipped ⚠️")
     except Exception as e:
@@ -741,13 +744,16 @@ async def _hourly_system_check() -> None:
         # Holiday-aware market status (market_calendar handles NYSE + forex holidays).
         # Falls back to the weekday/hour heuristic if the calendar import fails.
         try:
-            from market_calendar import is_nyse_open, is_forex_open
+            from market_calendar import is_nyse_open, is_forex_open, open_hours_between
             gold_active   = is_forex_open(now_utc)
             stocks_active = is_nyse_open(now_utc)
         except Exception as _mc_err:
             print(f"[system_check] market_calendar unavailable ({_mc_err}) — using weekday heuristic")
             gold_active   = (dow < 5)
             stocks_active = (dow < 5 and 13 <= hour_utc < 21)
+            # Fallback: raw wall-clock elapsed (no session awareness available).
+            def open_hours_between(start, end, market="forex"):
+                return max(0.0, (end - start).total_seconds() / 3600)
 
         # max_silent_hours is calibrated to each pool's REAL trade cadence (verified
         # against the live webhook log), not a flat value. Thin pools (INDEX/QQQ) and
@@ -799,9 +805,12 @@ async def _hourly_system_check() -> None:
                     last_ts = datetime.fromisoformat(hist[-1].get("created_at", "2000-01-01T00:00:00+00:00").replace("Z", "+00:00"))
                     if last_ts.tzinfo is None:
                         last_ts = last_ts.replace(tzinfo=timezone.utc)
-                    hours_since = (now_utc - last_ts).total_seconds() / 3600
-                    if hours_since > max_silent_hours:
-                        silent_pools.append(f"{pool_name}: {hours_since:.0f}h since last trade")
+                    # Measure silence in MARKET-OPEN hours, not wall-clock — a normal
+                    # weekend/holiday closure must not count as a webhook gap.
+                    market = "forex" if pool_name.startswith("XAUUSD") else "nyse"
+                    open_hours = open_hours_between(last_ts, now_utc, market)
+                    if open_hours > max_silent_hours:
+                        silent_pools.append(f"{pool_name}: {open_hours:.0f}h market-open since last trade")
             except Exception:
                 pass
 

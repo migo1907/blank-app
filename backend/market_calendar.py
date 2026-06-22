@@ -125,6 +125,36 @@ def is_nyse_open(dt: Optional[datetime] = None) -> bool:
     minutes = dt.hour * 60 + dt.minute
     return (oh * 60 + om) <= minutes < (ch * 60 + cm)
 
+def open_hours_between(start: datetime, end: datetime, market: str = "forex") -> float:
+    """
+    Count ONLY market-open hours between start and end (UTC) — weekends and
+    holidays are excluded. This lets the trade-flow-gap detector measure
+    silence in real trading time, not raw wall-clock, so a normal weekend
+    closure never looks like a broken webhook.
+
+    market: "forex" (gold, Mon 00:00–Fri 22:00 UTC) or "nyse" (stock RTH).
+    Sampled in 1-hour slices (slice counts if its midpoint is open) — precise
+    to ~1h, which is all a gap detector measured in hours needs. The walk is
+    capped at 2 weeks so a stale/empty history can't spin.
+    """
+    if end <= start:
+        return 0.0
+    is_open = is_forex_open if market == "forex" else is_nyse_open
+    step = timedelta(hours=1)
+    max_steps = 24 * 14   # safety cap (2 weeks)
+    open_h = 0.0
+    cur = start
+    for _ in range(max_steps):
+        nxt = min(cur + step, end)
+        mid = cur + (nxt - cur) / 2
+        if is_open(mid):
+            open_h += (nxt - cur).total_seconds() / 3600
+        cur = nxt
+        if cur >= end:
+            break
+    return round(open_h, 1)
+
+
 def active_sessions(dt: Optional[datetime] = None) -> list[str]:
     """Return list of currently active forex sessions."""
     dt = dt or datetime.now(timezone.utc)
