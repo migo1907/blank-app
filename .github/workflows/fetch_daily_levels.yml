@@ -98,7 +98,8 @@ jobs:
               return None, None
 
           def _yahoo_one(ticker):
-              """Previous COMPLETED daily H/L/C from one Yahoo ticker, or None."""
+              """Previous COMPLETED daily H/L/C from one Yahoo ticker, or None.
+              Also returns the bar date so callers can validate freshness."""
               try:
                   url = f"https://query1.finance.yahoo.com/v8/finance/chart/{quote(ticker)}?range=7d&interval=1d"
                   resp = requests.get(url, timeout=10, headers={"User-Agent": UA})
@@ -118,12 +119,18 @@ jobs:
                       d = datetime.fromtimestamp(t, timezone.utc).date()
                       if d >= today:   # skip today's partial bar
                           continue
-                      bars.append((h, l, c))
+                      bars.append((d, h, l, c))
                   if not bars:
                       print(f"[action] Yahoo {ticker}: no completed prior bar")
                       return None
-                  h, l, c = bars[-1]
-                  print(f"[action] Yahoo {ticker}: prev H/L/C {round(h,2)}/{round(l,2)}/{round(c,2)}")
+                  bar_date, h, l, c = bars[-1]
+                  # Staleness check: gold spot (XAUUSD=X) on Monday often misses Friday —
+                  # if bar is older than 4 calendar days, skip and let GC=F be tried next.
+                  age = (today - bar_date).days
+                  if age > 4:
+                      print(f"[action] Yahoo {ticker}: bar stale ({bar_date}, {age}d) — skipping to try next ticker")
+                      return None
+                  print(f"[action] Yahoo {ticker}: prev H/L/C {round(h,2)}/{round(l,2)}/{round(c,2)} ({bar_date})")
                   return float(h), float(l), float(c)
               except Exception as e:
                   print(f"[action] Yahoo {ticker}: {e}")
