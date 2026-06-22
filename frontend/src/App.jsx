@@ -365,7 +365,8 @@ function PulseTab({pulse,health}) {
 
   return (
     <div className="content">
-      {/* Bias rings */}
+      <div className="section-h">Pulse</div>
+      {/* Bias rings — glanceable hero */}
       <div className="card">
         <div className="card-title">Market Pulse</div>
         <div style={{display:'flex',flexDirection:'column',gap:12,marginBottom:16}}>
@@ -380,21 +381,6 @@ function PulseTab({pulse,health}) {
         </div>
       </div>
 
-      {/* Pool confidence chart */}
-      <div className="card">
-        <div className="card-title">Pool Confidence Chart</div>
-        <ResponsiveContainer width="100%" height={200}>
-          <BarChart data={poolChart} layout="vertical" margin={{left:0,right:16,top:0,bottom:0}}>
-            <XAxis type="number" domain={[0,100]} tick={{fill:'#64748b',fontSize:11}} tickFormatter={v=>`${v}%`}/>
-            <YAxis type="category" dataKey="name" tick={{fill:'#94a3b8',fontSize:10}} width={80}/>
-            <Tooltip content={<ChartTip fmt={v=>`${v}%`}/>}/>
-            <Bar dataKey="conf" radius={3} name="Confidence">
-              {poolChart.map((e,i)=><Cell key={i} fill={e.fill}/>)}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-
       {/* Metrics row */}
       <div className="card">
         <div className="card-title">Market Context</div>
@@ -407,6 +393,21 @@ function PulseTab({pulse,health}) {
           {pd?.fear_greed!=null&&<div className="metric"><div className="metric-val" style={{fontSize:14,color:pd.fear_greed<25?'var(--red)':pd.fear_greed>75?'var(--green)':'var(--gold)'}}>{pd.fear_greed}</div><div className="metric-lbl">{pd.fear_greed_label||'Fear/Greed'}</div></div>}
           {hd&&<div className="metric"><div className="metric-val" style={{fontSize:13}}>{hd.status?.toUpperCase()||'—'}</div><div className="metric-lbl">System</div></div>}
         </div>
+      </div>
+
+      {/* Pool confidence chart — detail */}
+      <div className="card">
+        <div className="card-title">Pool Confidence Chart</div>
+        <ResponsiveContainer width="100%" height={200}>
+          <BarChart data={poolChart} layout="vertical" margin={{left:0,right:16,top:0,bottom:0}}>
+            <XAxis type="number" domain={[0,100]} tick={{fill:'#64748b',fontSize:11}} tickFormatter={v=>`${v}%`}/>
+            <YAxis type="category" dataKey="name" tick={{fill:'#94a3b8',fontSize:10}} width={80}/>
+            <Tooltip content={<ChartTip fmt={v=>`${v}%`}/>}/>
+            <Bar dataKey="conf" radius={3} name="Confidence">
+              {poolChart.map((e,i)=><Cell key={i} fill={e.fill}/>)}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
       </div>
 
       {pd?.next_event?.detected&&(
@@ -540,9 +541,12 @@ function SignalsTab() {
           <div style={{fontSize:14,fontWeight:600,marginBottom:6}}>No signals yet</div>
           <div style={{fontSize:13}}>Signals appear here the moment TradingView fires an entry — same data as Telegram.</div>
         </div>
-      ) : (
-        <div style={{padding:'0 10px 16px',display:'flex',flexDirection:'column',gap:10}}>
-          {signals.map((s,i)=>{
+      ) : (()=>{
+        const hi  = signals.filter(s=>(s.quality_score||0)>=0.75)
+        const lo  = signals.filter(s=>(s.quality_score||0)<0.75)
+        const renderCards = list => (
+          <div style={{padding:'0 10px 16px',display:'flex',flexDirection:'column',gap:10}}>
+          {list.map((s,i)=>{
             const isLong = s.direction==='LONG'
             const clr    = isLong?'var(--green)':'var(--red)'
             const tf     = TF_LABELS[String(s.timeframe)] || `${s.timeframe}M`
@@ -635,8 +639,17 @@ function SignalsTab() {
               </div>
             )
           })}
-        </div>
-      )}
+          </div>
+        )
+        if(hi.length===0) return renderCards(signals)
+        return (
+          <>
+            <div className="section-h">⚡ High Conviction</div>
+            {renderCards(hi)}
+            {lo.length>0&&<><div className="section-h">All Signals</div>{renderCards(lo)}</>}
+          </>
+        )
+      })()}
     </div>
   )
 }
@@ -1193,6 +1206,8 @@ function MarketsGridTab() {
                     <td>
                       {pos==null?<span style={{color:'var(--muted)'}}>—</span>:(
                         <div style={{position:'relative',height:4,borderRadius:2,background:'rgba(255,255,255,.08)',minWidth:60}}>
+                          <div style={{position:'absolute',top:0,bottom:0,left:0,width:1,background:'var(--border-2)'}}/>
+                          <div style={{position:'absolute',top:0,bottom:0,right:0,width:1,background:'var(--border-2)'}}/>
                           <div style={{position:'absolute',top:-1,height:6,width:6,borderRadius:3,transform:'translateX(-50%)',left:`${pos*100}%`,background:clr}}/>
                         </div>
                       )}
@@ -1254,9 +1269,16 @@ function PortfolioTab() {
   holdings.forEach(h=>{const price=quotes[h.symbol]?.price||0;totalCost+=h.shares*h.avg_cost;totalValue+=h.shares*price})
   const totalPnL=totalValue-totalCost,totalPnLPct=totalCost>0?totalPnL/totalCost*100:0
 
+  // Allocation segments by market value
+  const allocColors=[C.gold,C.blue,C.green,C.purple,C.indigo,C.muted]
+  const allocSegs=holdings
+    .map((h,i)=>({sym:h.symbol,val:h.shares*(quotes[h.symbol]?.price||0),clr:allocColors[i%allocColors.length]}))
+    .filter(s=>s.val>0)
+  const allocTotal=allocSegs.reduce((s,a)=>s+a.val,0)
+
   return (
     <div className="content">
-      <div className="card">
+      <div className="card" style={{background:totalPnL>=0?'var(--green-dim)':'var(--red-dim)'}}>
         <div style={{display:'flex',gap:24,flexWrap:'wrap',alignItems:'center'}}>
           <div><div style={{color:'var(--muted)',fontSize:12}}>PORTFOLIO VALUE</div><div style={{fontSize:24,fontWeight:700,color:'var(--gold)'}}>${totalValue.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div></div>
           <div><div style={{color:'var(--muted)',fontSize:12}}>TOTAL P&L</div><div style={{fontSize:20,fontWeight:700,color:totalPnL>=0?'var(--green)':'var(--red)'}}>{totalPnL>=0?'+':''}{totalPnL.toFixed(2)} ({totalPnLPct>=0?'+':''}{totalPnLPct.toFixed(2)}%)</div></div>
@@ -1268,6 +1290,13 @@ function PortfolioTab() {
             <button className="btn-sm gold" onClick={()=>setAdding(!adding)}>{adding?'Cancel':'+ Add'}</button>
           </div>
         </div>
+        {allocTotal>0&&(
+          <div style={{display:'flex',height:6,borderRadius:3,overflow:'hidden',marginTop:14,background:'rgba(255,255,255,.06)'}}>
+            {allocSegs.map(s=>(
+              <div key={s.sym} title={`${s.sym} ${(s.val/allocTotal*100).toFixed(1)}%`} style={{width:`${s.val/allocTotal*100}%`,background:s.clr}}/>
+            ))}
+          </div>
+        )}
       </div>
       {adding&&(
         <div className="card">
@@ -1318,6 +1347,9 @@ function WatchlistTab() {
   const [loading,setLoading]=useState(false)
   const [lastRefresh,setLastRefresh]=useState(null)
 
+  const spark = useLoad(()=>getMarketSparklines())
+  const series = spark.data?.series || {}
+
   const refresh=useCallback(async()=>{
     if(!list.length) return
     setLoading(true)
@@ -1347,7 +1379,7 @@ function WatchlistTab() {
       ):(
         <div className="card" style={{overflowX:'auto'}}>
           <table className="tbl" style={{width:'100%'}}>
-            <thead><tr><th>Symbol</th><th>Name</th><th>Price</th><th>Change</th><th>Change %</th><th></th></tr></thead>
+            <thead><tr><th>Symbol</th><th>Name</th><th>Price</th><th>Change</th><th>Change %</th><th>30D</th><th></th></tr></thead>
             <tbody>
               {list.map(sym=>{
                 const q=quotes[sym]||{},up=(q.change_pct||0)>=0
@@ -1358,6 +1390,7 @@ function WatchlistTab() {
                     <td>{q.price!=null?`$${q.price.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}`:'—'}</td>
                     <td style={{color:up?'var(--green)':'var(--red)'}}>{q.change!=null?`${up?'+':''}${q.change.toFixed(2)}`:'—'}</td>
                     <td style={{color:up?'var(--green)':'var(--red)'}}>{q.change_pct!=null?`${up?'+':''}${q.change_pct.toFixed(2)}%`:'—'}</td>
+                    <td>{series[sym]?<Spark data={series[sym]}/>:<span style={{color:'var(--muted)'}}>—</span>}</td>
                     <td><button className="btn-sm" style={{color:'var(--red)'}} onClick={()=>remove(sym)}>✕</button></td>
                   </tr>
                 )
@@ -1410,6 +1443,22 @@ function ResearchTab() {
               <span>52W L: <b>${p.week52_low?.toFixed(2)||'—'}</b></span>
               <span>Mkt Cap: <b>{fmtB(p.market_cap)}</b></span>
             </div>
+            {p.week52_high!=null&&p.week52_low!=null&&p.price!=null&&p.week52_high>p.week52_low&&(()=>{
+              const pos=Math.min(1,Math.max(0,(p.price-p.week52_low)/(p.week52_high-p.week52_low)))
+              const clr=up?'var(--green)':'var(--red)'
+              return (
+                <div style={{marginTop:14}}>
+                  <div style={{position:'relative',height:4,borderRadius:2,background:'rgba(255,255,255,.08)'}}>
+                    <div style={{position:'absolute',top:-2,height:8,width:8,borderRadius:4,transform:'translateX(-50%)',left:`${pos*100}%`,background:clr}}/>
+                  </div>
+                  <div style={{display:'flex',justifyContent:'space-between',marginTop:4,fontSize:11,color:'var(--muted)'}}>
+                    <span>${p.week52_low.toFixed(2)}</span>
+                    <span style={{color:'var(--text-mut)'}}>52-Week Range</span>
+                    <span>${p.week52_high.toFixed(2)}</span>
+                  </div>
+                </div>
+              )
+            })()}
           </div>
           <div className="card">
             <h3 style={{color:'var(--gold)',marginBottom:12,fontSize:14}}>Fundamentals</h3>
@@ -1518,9 +1567,12 @@ function WrapTab() {
   const s=data?.sections||{}
   return (
     <div className="content">
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 12px 4px'}}>
-        <h2 style={{margin:0,fontSize:16,color:'var(--gold)'}}>🗞️ Daily Market Wrap-Up</h2>
-        <span style={{color:'var(--muted)',fontSize:13}}>{data?.date}{data?.cached?' (cached)':''}</span>
+      <div className="commentary-card" style={{margin:'10px 10px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+        <div>
+          <h2 style={{margin:0,fontSize:16,color:'var(--gold)'}}>🗞️ Daily Market Wrap-Up</h2>
+          <span style={{color:'var(--muted)',fontSize:13}}>{data?.date}{data?.cached?' (cached)':''}</span>
+        </div>
+        <span style={{fontSize:10,fontWeight:700,letterSpacing:'.08em',textTransform:'uppercase',color:'var(--text-mut)'}}>AI · Haiku</span>
       </div>
       {s.overview&&<div className="card"><h3 style={{color:'var(--gold)',marginBottom:8,fontSize:14}}>Market Overview</h3><p style={{margin:0,color:'var(--text)',lineHeight:1.7,fontSize:14}}>{s.overview}</p></div>}
       {s.themes?.length>0&&<div className="card"><h3 style={{color:'var(--gold)',marginBottom:10,fontSize:14}}>Key Themes</h3><ul style={{margin:0,padding:'0 0 0 18px',color:'var(--text)',lineHeight:2,fontSize:14}}>{s.themes.map((t,i)=><li key={i}>{t}</li>)}</ul></div>}
