@@ -75,13 +75,23 @@ def _github_retry_wait(resp) -> None:
 
 
 def _get_file(path: str) -> tuple[dict | list | None, str | None]:
-    """Returns (content, sha). sha is needed for updates."""
-    with httpx.Client(timeout=10) as client:
-        resp = client.get(
-            f"{BASE_URL}/repos/{GITHUB_REPO}/contents/{path}",
-            headers=HEADERS,
-            params={"ref": GITHUB_BRANCH},
-        )
+    """Returns (content, sha). sha is needed for updates.
+    Retries up to 3 times on timeout; handles GitHub >1MB files via download_url."""
+    import time as _time
+    for attempt in range(3):
+        try:
+            with httpx.Client(timeout=12) as client:
+                resp = client.get(
+                    f"{BASE_URL}/repos/{GITHUB_REPO}/contents/{path}",
+                    headers=HEADERS,
+                    params={"ref": GITHUB_BRANCH},
+                )
+            break
+        except httpx.TimeoutException:
+            if attempt < 2:
+                _time.sleep(2 ** attempt)
+                continue
+            raise
     if resp.status_code == 404:
         return None, None
     if resp.status_code in (403, 429):
@@ -89,11 +99,25 @@ def _get_file(path: str) -> tuple[dict | list | None, str | None]:
         resp.raise_for_status()
     resp.raise_for_status()
     data = resp.json()
-    decoded = base64.b64decode(data["content"]).decode().strip()
+    sha = data.get("sha")
+    if "content" in data:
+        raw = data["content"]
+    elif "download_url" in data:
+        # File >1MB — GitHub omits inline content; fetch via download_url
+        with httpx.Client(timeout=20) as dl_client:
+            dl = dl_client.get(data["download_url"])
+        dl.raise_for_status()
+        decoded = dl.text.strip()
+        if not decoded:
+            return None, sha
+        return json.loads(decoded), sha
+    else:
+        return None, sha
+    decoded = base64.b64decode(raw).decode().strip()
     if not decoded:
-        return None, data["sha"]
+        return None, sha
     content = json.loads(decoded)
-    return content, data["sha"]
+    return content, sha
 
 
 def _put_file(path: str, content: dict | list, sha: str | None, message: str) -> None:

@@ -303,7 +303,8 @@ async def _news_signal_cycle() -> None:
         from market_macro import get_macro_bias, get_equity_macro_bias
         _gold_macro   = get_macro_bias()
         _equity_macro = get_equity_macro_bias()
-        signal = generate_signal(
+        signal = await asyncio.to_thread(
+            generate_signal,
             current_features=get_latest_features("XAUUSD_2M"),
             news_agg=_latest_news_agg,
             news_velocity=_latest_velocity,
@@ -344,7 +345,8 @@ async def _news_signal_cycle() -> None:
         spy_signal = dict(_neutral_sig)
         qqq_signal = dict(_neutral_sig)
         try:
-            spy_signal = generate_signal(
+            spy_signal = await asyncio.to_thread(
+                generate_signal,
                 current_features=get_latest_features("STOCKS_INDEX_30M"),
                 news_agg=_latest_news_agg,
                 news_velocity=_latest_velocity,
@@ -375,7 +377,8 @@ async def _news_signal_cycle() -> None:
             print(f"[scheduler] SPY signal error: {e}")
 
         try:
-            qqq_signal = generate_signal(
+            qqq_signal = await asyncio.to_thread(
+                generate_signal,
                 current_features=get_latest_features("STOCKS_QQQ_30M"),
                 news_agg=_latest_news_agg,
                 news_velocity=_latest_velocity,
@@ -1168,7 +1171,7 @@ async def _daily_trade_count_report() -> None:
             f"⏰ {now_utc.strftime('%H:%M UTC')}"
         )
         await send_text(msg)
-        _report_sent_date = today
+        _report_sent_date = datetime.now(timezone.utc).date()
         print(f"[daily_report] Performance report sent — {tot} trades today, TP={tp} SL={sl} P={par}.")
     except Exception as e:
         print(f"[daily_report] Error: {e}")

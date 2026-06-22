@@ -346,7 +346,12 @@ def run_screen(top_n: int = 15) -> dict:
     skipped_upside    = 0
     skipped_technical = 0
 
-    for t in WATCHLIST:
+    import time as _time
+    for _idx, t in enumerate(WATCHLIST):
+        # Finnhub free tier: 60 req/min; screen_one makes ~4 calls per ticker.
+        # Throttle every 12 tickers (~48 calls) to stay under the limit.
+        if _idx > 0 and _idx % 12 == 0:
+            _time.sleep(5)
         try:
             r = screen_one(t)
 

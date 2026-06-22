@@ -33,6 +33,8 @@ _NY = ZoneInfo("America/New_York")
 
 # ── In-memory ML model cache ──────────────────────────────────────────────────
 _options_model: dict[str, Any] = {}   # keys: "rf", "gbm", "cal", "trained_at", "n"
+import threading as _threading
+_options_model_lock = _threading.Lock()
 
 _IV_HISTORY_PATH = "data/options_iv_history.json"
 _PAPER_PATH      = "data/options_paper_SPX.json"
@@ -732,6 +734,15 @@ def build_spx_straddle(confidence: float, pool_confluence: float = 0.5,
     }
 
     enrich_features(rec, pool_confluence=pool_confluence, market_ctx=mkt_ctx)
+
+    # ML scoring (same as long_option and spread paths)
+    ml_result = options_predict(rec.get("features", {}))
+    if isinstance(ml_result, dict):
+        rec["ml_score"]    = ml_result.get("score")
+        rec["ml_interval"] = ml_result.get("interval")
+        rec["ml_certainty"] = not ml_result.get("wide_uncertainty", True)
+        rec["ml_shap_top"] = ml_result.get("shap_top", [])
+
     return rec
 
 
@@ -779,46 +790,56 @@ def append_paper_trade(rec: dict) -> None:
 def manage_paper_positions() -> list[str]:
     """Hourly job: enforce TP/SL/time exits on open paper positions using
     delayed mid quotes. Returns list of close summaries."""
+    import time as _time, random as _random
     closed: list[str] = []
     try:
         from db import _get_file, _put_file
-        ledger, sha = _get_file(_PAPER_PATH)
-        if not isinstance(ledger, list) or not ledger:
-            return closed
         now_et = datetime.now(_NY)
-        dirty = False
-        for rec in ledger:
-            if rec.get("status") != "OPEN":
-                continue
-            mid = _current_mid(rec)
-            entry = rec.get("entry_premium") or 0
-            reason = None
-            exp_date = datetime.strptime(rec["expiry"], "%Y-%m-%d").date()
-            if mid is not None and entry:
-                if mid >= rec["tp_premium"]:
-                    reason = "TP +100%"
-                elif mid <= rec["sl_premium"]:
-                    reason = "SL -50%"
-            if reason is None:
-                if rec["dte"] == 0 and now_et.date() >= exp_date and (now_et.hour, now_et.minute) >= (15, 30):
-                    reason = "hard exit 15:30 ET"
-                elif rec["dte"] >= 1 and now_et.date() >= exp_date and now_et.hour >= 14:
-                    reason = "1DTE time stop"
-                elif now_et.date() > exp_date:
-                    reason = "expired"
-            if reason:
-                rec["status"]       = "CLOSED"
-                rec["exit_premium"] = mid
-                rec["exit_reason"]  = reason
-                rec["closed_at"]    = datetime.now(timezone.utc).isoformat()
+        for attempt in range(4):
+            ledger, sha = _get_file(_PAPER_PATH)
+            if not isinstance(ledger, list) or not ledger:
+                return closed
+            dirty = False
+            for rec in ledger:
+                if rec.get("status") != "OPEN":
+                    continue
+                mid = _current_mid(rec)
+                entry = rec.get("entry_premium") or 0
+                reason = None
+                exp_date = datetime.strptime(rec["expiry"], "%Y-%m-%d").date()
                 if mid is not None and entry:
-                    rec["pnl_pct"] = round((mid - entry) / entry * 100, 1)
-                rec["loss_reason"] = categorize_outcome(rec)
-                dirty = True
-                closed.append(f"{rec['tv_symbol']} → {reason} ({rec.get('pnl_pct','?')}%) [{rec['loss_reason']}]")
-        if dirty:
-            _put_file(_PAPER_PATH, ledger, sha, "options: paper position management")
-            _auto_retrain_if_ready()
+                    if mid >= rec["tp_premium"]:
+                        reason = "TP +100%"
+                    elif mid <= rec["sl_premium"]:
+                        reason = "SL -50%"
+                if reason is None:
+                    if rec["dte"] == 0 and now_et.date() >= exp_date and (now_et.hour, now_et.minute) >= (15, 30):
+                        reason = "hard exit 15:30 ET"
+                    elif rec["dte"] >= 1 and now_et.date() >= exp_date and now_et.hour >= 14:
+                        reason = "1DTE time stop"
+                    elif now_et.date() > exp_date:
+                        reason = "expired"
+                if reason:
+                    rec["status"]       = "CLOSED"
+                    rec["exit_premium"] = mid
+                    rec["exit_reason"]  = reason
+                    rec["closed_at"]    = datetime.now(timezone.utc).isoformat()
+                    if mid is not None and entry:
+                        rec["pnl_pct"] = round((mid - entry) / entry * 100, 1)
+                    rec["loss_reason"] = categorize_outcome(rec)
+                    dirty = True
+                    closed.append(f"{rec['tv_symbol']} → {reason} ({rec.get('pnl_pct','?')}%) [{rec['loss_reason']}]")
+            if not dirty:
+                return closed
+            try:
+                _put_file(_PAPER_PATH, ledger, sha, "options: paper position management")
+                _auto_retrain_if_ready()
+                return closed
+            except Exception as put_err:
+                if attempt < 3 and "409" in str(put_err):
+                    _time.sleep(0.3 * (attempt + 1) + _random.uniform(0, 0.3))
+                    continue
+                raise
     except Exception as e:
         print(f"[options] paper management failed: {e}")
     return closed
@@ -1090,10 +1111,12 @@ def options_ml_train(pool: str = "ALL") -> dict:
         gbm_platt = CalibratedClassifierCV(gbm,      cv="prefit", method="sigmoid")
         lgb_platt = CalibratedClassifierCV(lgb_model, cv="prefit", method="sigmoid")
 
-        # Fit Platt layers on training set
-        rf_platt.fit(X_tr, y_tr)
-        gbm_platt.fit(X_tr, y_tr)
-        lgb_platt.fit(X_tr, y_tr)
+        # Fit Platt layers on held-out validation set (avoids overfit calibration)
+        platt_X = X_val if len(X_val) >= 5 else X_tr
+        platt_y = y_val if len(X_val) >= 5 else y_tr
+        rf_platt.fit(platt_X, platt_y)
+        gbm_platt.fit(platt_X, platt_y)
+        lgb_platt.fit(platt_X, platt_y)
 
         # Ensemble average of Platt-calibrated probas → then isotonic on OOS
         if len(X_val) >= 5:
@@ -1127,13 +1150,15 @@ def options_ml_train(pool: str = "ALL") -> dict:
         importances  = dict(zip(OPTION_FEATURE_KEYS, [round(float(v), 4) for v in avg_imp]))
         top_features = sorted(importances.items(), key=lambda x: -x[1])[:5]
 
-        _options_model.update({
+        new_model = {
             "rf": rf_platt, "gbm": gbm_platt, "lgb": lgb_platt,
             "cal": iso, "conformal_scores": conformal_scores,
             "pool": pool, "n": n, "wins": int(sum(y_arr)),
             "oos_acc": oos_acc, "top_features": top_features,
             "trained_at": datetime.now(timezone.utc).isoformat(),
-        })
+        }
+        with _options_model_lock:
+            _options_model.update(new_model)
         print(f"[options-ml] trained RF+GBM+LGB on {n} trades | OOS acc={oos_acc} | "
               f"top={top_features[0][0]}({top_features[0][1]:.3f})")
         return {"status": "ok", "n": n, "oos_acc": oos_acc, "top_features": top_features}
@@ -1154,19 +1179,21 @@ def options_predict(features: dict) -> dict | None:
       "shap_top": [(feat, val), ...],  # top 3 SHAP drivers
     }
     """
-    if not _options_model.get("rf"):
-        return None
+    with _options_model_lock:
+        if not _options_model.get("rf"):
+            return None
+        _m = dict(_options_model)   # snapshot under lock; predict outside
     try:
         import numpy as np
         row   = np.array([[float(features.get(k, 0.0)) for k in OPTION_FEATURE_KEYS]])
-        rf_p  = _options_model["rf"].predict_proba(row)[0, 1]
-        gbm_p = _options_model["gbm"].predict_proba(row)[0, 1]
-        lgb_p = _options_model["lgb"].predict_proba(row)[0, 1] if _options_model.get("lgb") else rf_p
+        rf_p  = _m["rf"].predict_proba(row)[0, 1]
+        gbm_p = _m["gbm"].predict_proba(row)[0, 1]
+        lgb_p = _m["lgb"].predict_proba(row)[0, 1] if _m.get("lgb") else rf_p
         raw   = (rf_p + gbm_p + lgb_p) / 3
-        cal_p = float(_options_model["cal"].predict([raw])[0])
+        cal_p = float(_m["cal"].predict([raw])[0])
 
         # Conformal prediction interval at 80% coverage
-        conf_scores = _options_model.get("conformal_scores", np.array([]))
+        conf_scores = _m.get("conformal_scores", np.array([]))
         if len(conf_scores) >= 5:
             # 80th percentile nonconformity margin
             margin = float(np.quantile(conf_scores, 0.80))
@@ -1180,7 +1207,7 @@ def options_predict(features: dict) -> dict | None:
         try:
             import shap
             # CalibratedClassifierCV wraps the base estimator
-            base_rf = _options_model["rf"].calibrated_classifiers_[0].estimator
+            base_rf = _m["rf"].calibrated_classifiers_[0].estimator
             explainer = shap.TreeExplainer(base_rf)
             shap_vals = explainer.shap_values(row)
             # shap_values for binary: take class-1 shap

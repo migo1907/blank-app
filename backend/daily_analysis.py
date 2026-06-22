@@ -271,8 +271,8 @@ def _technical_context(name: str, decimals: int) -> dict | None:
 
 _TV_LIVE_SYMBOLS = {
     "XAUUSD": [("TVC:GOLD", "close"), ("OANDA:XAUUSD", "close"), ("FX_IDC:XAUUSD", "close")],
-    "SPY":    [("AMEX:SPY", "premarket_close"), ("AMEX:SPY", "close")],
-    "QQQ":    [("NASDAQ:QQQ", "premarket_close"), ("NASDAQ:QQQ", "close")],
+    "SPY":    [("AMEX:SPY", "premarket_price"), ("AMEX:SPY", "close")],
+    "QQQ":    [("NASDAQ:QQQ", "premarket_price"), ("NASDAQ:QQQ", "close")],
 }
 
 def _fetch_live_price_tv(name: str, decimals: int) -> float | None:

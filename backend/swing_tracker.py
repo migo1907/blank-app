@@ -100,11 +100,23 @@ def _load() -> dict:
     return {"open": [], "closed": []}
 
 
+def _sanitize(obj):
+    """Replace NaN/Inf floats with None so JSON serialisation never breaks."""
+    import math
+    if isinstance(obj, float):
+        return None if (math.isnan(obj) or math.isinf(obj)) else obj
+    if isinstance(obj, dict):
+        return {k: _sanitize(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_sanitize(v) for v in obj]
+    return obj
+
+
 def _save(store: dict, msg: str) -> None:
     try:
         from db import _get_file, _put_file
         _, sha = _get_file(_TRADES_PATH)
-        _put_file(_TRADES_PATH, store, sha, msg)
+        _put_file(_TRADES_PATH, _sanitize(store), sha, msg)
     except Exception as e:
         print(f"[swing_trk] persist failed: {e}")
 

@@ -212,7 +212,7 @@ async def send_breaking_news(items: list[dict], seen_headlines: set) -> set:
         return seen_headlines  # same object → caller knows nothing changed
 
     now = datetime.now(timezone.utc).strftime("%H:%M UTC")
-    lines = "\n".join(f"🔴 {item['title']}" for item in new_items[:5])
+    lines = "\n".join(f"🔴 {html.escape(item['title'])}" for item in new_items[:5])
 
     msg = (
         f"🚨 <b>BREAKING NEWS</b> — {now}\n"
@@ -370,8 +370,8 @@ async def send_market_intelligence(
     else:
         header = "📡 <b>MARKET INTELLIGENCE</b>"
 
-    reason_block = "\n".join(f"• {r}" for r in reasons)
-    flow = f"{vlabel}" + (f" · {vdir}" if vdir else "") + f" · alignment {consist*100:.0f}%"
+    reason_block = "\n".join(f"• {html.escape(str(r))}" for r in reasons)
+    flow = html.escape(f"{vlabel}" + (f" · {vdir}" if vdir else "") + f" · alignment {consist*100:.0f}%")
 
     msg = (
         f"{header}\n"
@@ -448,11 +448,11 @@ async def send_critical_alert(title: str, detail: str, action: str = "") -> bool
     msg = (
         f"🚨 <b>SYSTEM ALERT</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
-        f"⚠️ <b>{title}</b>\n"
-        f"{detail}\n"
+        f"⚠️ <b>{html.escape(str(title))}</b>\n"
+        f"{html.escape(str(detail))}\n"
     )
     if action:
-        msg += f"\n🔧 <i>{action}</i>\n"
+        msg += f"\n🔧 <i>{html.escape(str(action))}</i>\n"
     msg += f"\n⏰ {now}"
     import asyncio as _asyncio
     url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
@@ -550,7 +550,7 @@ async def send_swing_brief(screen: dict) -> bool:
         entry, stop = tech.get("entry"), tech.get("stop")
         t1, t2 = tech.get("t1"), tech.get("t2")
         if entry is not None and stop is not None:
-            line += f"\n📍 Entry ~{entry}  🛑 Stop {stop}  🎯 T1 {t1}  🎯 T2 {t2}\n"
+            line += f"\n📍 Entry ~{entry:.2f}  🛑 Stop {stop:.2f}  🎯 T1 {t1:.2f}  🎯 T2 {t2:.2f}\n"
         blocks.append(line)
 
     blocks.append(

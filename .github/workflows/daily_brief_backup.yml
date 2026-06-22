@@ -2,11 +2,11 @@ name: Daily Brief Backup Trigger
 
 on:
   schedule:
-    # 12:01 UTC Mon–Fri — fires 1 minute after Railway's cron (12:00)
+    # 09:01 UTC Mon–Fri — fires 1 minute after Railway's scheduled brief (09:00).
     # If Railway is up the endpoint returns quickly; if Railway was down
     # and just restarted, this call triggers the brief that APScheduler
     # would have misfired.
-    - cron: "1 12 * * 1-5"
+    - cron: "1 9 * * 1-5"
   workflow_dispatch:
     inputs:
       secret:
