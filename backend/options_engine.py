@@ -663,7 +663,10 @@ def build_spx_straddle(confidence: float, pool_confluence: float = 0.5,
     vix = get_vix_context()
     if vix.get("backwardation"):
         return None
-    ivr_check = iv_rank(vix.get("vix") or 20.0)
+    # iv_rank history stores SPX ATM IV as a decimal fraction (~0.15), so VIX
+    # (a percentage-point number ~17) must be scaled to the same units — passing
+    # raw VIX made this gate always return 100 and silently blocked every straddle.
+    ivr_check = iv_rank((vix.get("vix") or 20.0) / 100.0)
     if ivr_check is not None and ivr_check > 60:
         # IV too expensive to buy both legs
         print("[options-straddle] IV Rank > 60 — straddle too expensive, skip")
@@ -717,7 +720,7 @@ def build_spx_straddle(confidence: float, pool_confluence: float = 0.5,
         "sl_premium":    round(total_premium * 0.60, 2),   # -40%
         "hard_exit":     "15:30 ET today",
         "iv":            round((atm_call["iv"] + atm_put["iv"]) / 2, 4),
-        "iv_rank":       None,
+        "iv_rank":       iv_rank((atm_call["iv"] + atm_put["iv"]) / 2),
         "vix":           vix.get("vix"),
         "vix9d_ratio":   vix.get("vix9d_ratio"),
         "vix_ratio":     vix.get("ratio"),
@@ -734,16 +737,41 @@ def build_spx_straddle(confidence: float, pool_confluence: float = 0.5,
 
 # ── Paper ledger ───────────────────────────────────────────────────────────────
 
+_PAPER_LEDGER_MAX = 600   # keep all OPEN + most recent CLOSED up to this cap
+
 def append_paper_trade(rec: dict) -> None:
+    """Append a paper trade with a dedup guard and a 409-safe re-read loop.
+
+    Two confluent pools can fire in the same second and generate identical ids;
+    a concurrent manage cycle can also bump the SHA. We re-read the full ledger
+    on each attempt, skip if the id already exists, and cap total size so the
+    GitHub-hosted JSON never approaches the 1 MB content-API limit.
+    """
     try:
         from db import _get_file, _put_file
-        ledger, sha = _get_file(_PAPER_PATH)
-        if not isinstance(ledger, list):
-            ledger = []
-        ledger.append(rec)
-        _put_file(_PAPER_PATH, ledger, sha,
-                  f"options: paper {rec['type']} {int(rec['strike'])} {rec['expiry']}")
-        print(f"[options] paper trade logged: {rec['tv_symbol']}")
+        for attempt in range(4):
+            ledger, sha = _get_file(_PAPER_PATH)
+            if not isinstance(ledger, list):
+                ledger = []
+            if any(isinstance(r, dict) and r.get("id") == rec.get("id") for r in ledger):
+                print(f"[options] duplicate paper trade {rec.get('id')} — skipped")
+                return
+            ledger.append(rec)
+            # Cap: keep every OPEN trade, trim oldest CLOSED beyond the budget
+            if len(ledger) > _PAPER_LEDGER_MAX:
+                open_t   = [r for r in ledger if r.get("status") == "OPEN"]
+                closed_t = [r for r in ledger if r.get("status") != "OPEN"]
+                keep = max(0, _PAPER_LEDGER_MAX - len(open_t))
+                ledger = closed_t[-keep:] + open_t
+            try:
+                _put_file(_PAPER_PATH, ledger, sha,
+                          f"options: paper {rec['type']} {int(rec['strike'])} {rec['expiry']}")
+                print(f"[options] paper trade logged: {rec['tv_symbol']}")
+                return
+            except Exception as put_err:
+                if attempt < 3 and "409" in str(put_err):
+                    continue   # SHA stale — re-read and retry
+                raise
     except Exception as e:
         print(f"[options] ledger write failed: {e}")
 
@@ -872,7 +900,8 @@ def enrich_features(rec: dict, pool_confluence: float = 0.5,
         spot_vs_strike = -spot_vs_strike
 
     premium_vs_em = (entry_premium / expected_move * 100) if expected_move else 0.0
-    iv_over_vix   = (iv / (vix / 100)) if vix else 1.0
+    # Guard against a near-zero VIX (bad yfinance tick) producing a huge outlier
+    iv_over_vix   = min(iv / (vix / 100), 20.0) if (vix and vix > 0.01) else 1.0
 
     session_minutes = max(0, (now_et.hour * 60 + now_et.minute) - 570)
     entry_time_norm = min(session_minutes / 390, 1.0)
