@@ -465,11 +465,7 @@ def build_spx_recommendation(direction: str, confidence: float,
     rec_candidate["ml_shap_top"]    = ml_result.get("shap_top") if isinstance(ml_result, dict) else None
     rec_candidate["wide_uncertainty"] = ml_result.get("wide_uncertainty", False) if isinstance(ml_result, dict) else False
 
-    if ml_score is not None and ml_score < _ML_SCORE_GATE:
-        print(f"[options-ml] skip — ML score {ml_score:.3f} < {_ML_SCORE_GATE} "
-              f"(matches historical loss pattern)")
-        return None
-
+    # ML gate removed — collecting data first; re-enable after ≥50 closed trades
     # Wide uncertainty warning (don't block, but flag for half-size)
     if rec_candidate.get("wide_uncertainty"):
         print(f"[options-ml] wide uncertainty interval {ml_result.get('interval')} — flagging")
@@ -624,8 +620,7 @@ def build_spx_spread(direction: str, confidence: float,
     rec["ml_shap_top"]      = ml_result.get("shap_top") if isinstance(ml_result, dict) else None
     rec["wide_uncertainty"] = ml_result.get("wide_uncertainty", False) if isinstance(ml_result, dict) else False
 
-    if ml_score is not None and ml_score < _ML_SCORE_GATE:
-        return None
+    # ML gate removed — collecting data first
     return rec
 
 

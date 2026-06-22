@@ -431,7 +431,7 @@ async def _news_signal_cycle() -> None:
                 _now_et = __import__("datetime").datetime.now(_ZI("America/New_York"))
                 _is_0dte_window = _now_et.weekday() < 5 and _now_et.hour < 13
                 _opt_pool      = "STOCKS_SPX500_15M" if _is_0dte_window else "STOCKS_SPX500_30M"
-                _opt_min_conf  = 0.60 if _is_0dte_window else 0.55
+                _opt_min_conf  = 0.0  # gate removed — collect all data first, apply ML gates later
                 from options_engine import build_spx_recommendation, format_telegram, append_paper_trade, should_send_telegram
                 from signal_engine import generate_signal as _gen, get_latest_features as _glf
                 _opt_sig  = _gen(
