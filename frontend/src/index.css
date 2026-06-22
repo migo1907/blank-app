@@ -23,8 +23,8 @@
   --r-sm:6px; --r-md:10px; --r-lg:14px; --r-xl:18px; --r-pill:999px;
 
   /* ── TYPE SCALE ── */
-  --fs-9:10px; --fs-10:11px; --fs-11:12px; --fs-12:13px; --fs-13:14px;
-  --fs-14:15px; --fs-16:17px; --fs-18:19px; --fs-20:21px; --fs-24:25px; --fs-28:29px;
+  --fs-9:10px; --fs-10:11px; --fs-11:12px; --fs-12:14px; --fs-13:15px;
+  --fs-14:16px; --fs-16:18px; --fs-18:20px; --fs-20:22px; --fs-24:26px; --fs-28:30px;
   --lh-tight:1.15; --lh-snug:1.4; --lh-normal:1.6;
   --ls-label:.08em; --ls-cap:.1em;
 
@@ -432,4 +432,22 @@ select.pro:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-d
     transition-duration: .001ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ── TABLET / DESKTOP TWO-PANE — left nav rail (≥760px; overrides the centered bar) ── */
+@media (min-width: 760px) {
+  .bottom-nav {
+    flex-direction: column; justify-content: flex-start; gap: 4px;
+    top: 0; bottom: 0; left: 0; right: auto; transform: none;
+    width: 92px; height: 100dvh; max-width: none;
+    padding: 18px 0 calc(18px + env(safe-area-inset-bottom));
+    border-top: none; border-right: 1px solid var(--border);
+    border-radius: 0;
+  }
+  .bottom-nav button { flex: 0 0 auto; min-height: 60px; gap: 5px; }
+  .bottom-nav button .b-ico { font-size: 22px; }
+  .bottom-nav button.active { border-top-color: transparent; box-shadow: inset 3px 0 0 var(--gold); }
+  .app-main { padding-left: 92px; }
+  .content { max-width: 760px; margin-inline: auto; }
+  .menu-fab { right: 18px !important; bottom: 18px !important; }
 }
