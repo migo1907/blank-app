@@ -29,7 +29,7 @@ export const getHealth   = ()       => _get('/health')
 export const getDashboard = (pool)  => _get('/dashboard', { pool })
 
 export async function subscribePush(sub) {
-  const r = await fetch(`${BASE}/push/subscribe?secret=${S}`, {
+  const r = await fetch(`${BASE}/push/subscribe?secret=${getSecret()}`, {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
     body:    JSON.stringify({ subscription: sub }),

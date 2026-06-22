@@ -1803,9 +1803,8 @@ async def _swing_agents_cycle() -> None:
         # Load current candidates from cache or GitHub data branch
         candidates = (_swing_cached or {}).get("candidates", [])
         if not candidates:
-            raw, _ = _get_file("data/swing_candidates.json")
-            if raw:
-                data = json.loads(raw)
+            data, _ = _get_file("data/swing_candidates.json")
+            if isinstance(data, dict):
                 candidates = data.get("candidates", [])
 
         if not candidates:
@@ -1816,12 +1815,12 @@ async def _swing_agents_cycle() -> None:
         enriched = await asyncio.to_thread(run_agents_on_candidates, candidates)
 
         # Write enriched candidates back to data branch
-        raw, sha = _get_file("data/swing_candidates.json")
-        if raw:
-            data = json.loads(raw)
+        data, sha = _get_file("data/swing_candidates.json")
+        if isinstance(data, dict):
             data["candidates"] = enriched
             data["agents_updated"] = now_utc.isoformat()
-            _put_file("data/swing_candidates.json", json.dumps(data, indent=2), sha)
+            _put_file("data/swing_candidates.json", data, sha,
+                      "data: swing agents enrichment")
             print(f"[ta_layer] enriched {len(enriched)} candidates → data branch")
 
     except Exception as e:
