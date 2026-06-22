@@ -130,18 +130,25 @@ class RandomForestEnsemble:
         X = np.array(X_rows, dtype=np.float64)
         y = np.array(y_rows, dtype=np.int32)
 
-        # Feature selection: top-8 by |correlation| when n>=80 (validated: +3.5–20pp lift)
+        # Walk-forward split computed up front so feature selection never sees OOS labels.
+        oos_size = max(int(len(X_rows) * 0.20), 1)
+        train_size = len(X_rows) - oos_size
+
+        # Feature selection: top-8 by |correlation| when n>=80 (validated: +3.5–20pp lift).
+        # Correlation is computed on the TRAINING slice only — selecting on the full set
+        # leaked OOS labels into which features were kept, inflating the OOS metric.
         if len(X_rows) >= 80:
             try:
-                corr_matrix = np.corrcoef(X.T, y)
+                _Xsel, _ysel = X[:train_size], y[:train_size]
+                corr_matrix = np.corrcoef(_Xsel.T, _ysel)
                 corr = np.abs(corr_matrix[:-1, -1])
                 corr = np.where(np.isnan(corr), 0.0, corr)
             except Exception:
                 corr = np.zeros(X.shape[1])
-            self._feature_indices = np.argsort(corr)[::-1][:8].tolist()
+            new_feature_indices = np.argsort(corr)[::-1][:8].tolist()
         else:
-            self._feature_indices = list(range(len(FEATURE_NAMES)))
-        X = X[:, self._feature_indices]
+            new_feature_indices = list(range(len(FEATURE_NAMES)))
+        X = X[:, new_feature_indices]
 
         # Shallow RF: depth=4, min_leaf=8 — walk-forward validated (+3.5pp vs -7.7pp for deep)
         base_clf = RandomForestClassifier(
@@ -159,10 +166,8 @@ class RandomForestEnsemble:
             dtype=np.float64
         )
 
-        # Walk-forward OOS split (last 20%) — honest accuracy metric + isotonic calibration data
+        # Walk-forward OOS eval (split already computed above) — honest accuracy + isotonic data
         new_iso = None
-        oos_size = max(int(len(X_rows) * 0.20), 1)
-        train_size = len(X_rows) - oos_size
         if train_size >= MIN_TRADES and oos_size >= 5 and len(set(y[:train_size].tolist())) >= 2:
             try:
                 _n_splits_oos = 2 if train_size < 45 else 3
@@ -217,11 +222,12 @@ class RandomForestEnsemble:
             self._prev_model = self._model  # save champion for rollback
             self._model = clf
             self._trained = True
+            self._feature_indices = new_feature_indices  # swap atomically with the model
             self._feature_importances = raw_imps.tolist()
             self._iso_calibrator = new_iso
 
-        top_feat = FEATURE_NAMES[self._feature_indices[int(np.argmax(raw_imps))]]
-        n_feats = len(self._feature_indices)
+        top_feat = FEATURE_NAMES[new_feature_indices[int(np.argmax(raw_imps))]]
+        n_feats = len(new_feature_indices)
         iso_tag = "+iso" if new_iso else ""
         print(f"[rf] Retrained on {len(X_rows)} trades (shallow+Platt{iso_tag}, {n_feats}f). Top feature: {top_feat}")
         return True
@@ -358,23 +364,26 @@ class GradientBoostEnsemble:
         y = np.array(y_rows, dtype=np.int32)
         w = np.array(w_rows, dtype=np.float64)
 
-        # Feature selection: top-8 by |correlation| when n>=80
+        # Walk-forward split up front so feature selection never sees OOS labels.
+        oos_size_gbm = max(int(len(X_rows) * 0.20), 1)
+        train_size_gbm = len(X_rows) - oos_size_gbm
+
+        # Feature selection: top-8 by |correlation| when n>=80 — TRAINING slice only.
         if len(X_rows) >= 80:
             try:
-                corr_matrix = np.corrcoef(X.T, y)
+                _Xsel, _ysel = X[:train_size_gbm], y[:train_size_gbm]
+                corr_matrix = np.corrcoef(_Xsel.T, _ysel)
                 corr = np.abs(corr_matrix[:-1, -1])
                 corr = np.where(np.isnan(corr), 0.0, corr)
             except Exception:
                 corr = np.zeros(X.shape[1])
-            self._feature_indices = np.argsort(corr)[::-1][:8].tolist()
+            new_feature_indices = np.argsort(corr)[::-1][:8].tolist()
         else:
-            self._feature_indices = list(range(len(FEATURE_NAMES)))
-        X = X[:, self._feature_indices]
+            new_feature_indices = list(range(len(FEATURE_NAMES)))
+        X = X[:, new_feature_indices]
 
-        # Walk-forward OOS split (last 20%) — honest accuracy metric + isotonic calibration data
+        # Walk-forward OOS eval (split already computed above) — honest accuracy + isotonic data
         new_iso_gbm = None
-        oos_size_gbm = max(int(len(X_rows) * 0.20), 1)
-        train_size_gbm = len(X_rows) - oos_size_gbm
         if train_size_gbm >= MIN_TRADES and oos_size_gbm >= 5 and len(set(y[:train_size_gbm].tolist())) >= 2:
             try:
                 _n_splits_oos = 2 if train_size_gbm < 45 else 3
@@ -433,11 +442,12 @@ class GradientBoostEnsemble:
             self._prev_model = self._model
             self._model = clf
             self._trained = True
+            self._feature_indices = new_feature_indices  # swap atomically with the model
             self._feature_importances = raw_imps.tolist()
             self._iso_calibrator = new_iso_gbm
 
-        top_idx = self._feature_indices[int(np.argmax(raw_imps))]
-        n_feats = len(self._feature_indices)
+        top_idx = new_feature_indices[int(np.argmax(raw_imps))]
+        n_feats = len(new_feature_indices)
         iso_tag = "+iso" if new_iso_gbm else ""
         print(f"[gbm] Trained on {len(X_rows)} trades (shallow+Platt{iso_tag}, {n_feats}f). Top feature: {FEATURE_NAMES[top_idx]}")
         return True
