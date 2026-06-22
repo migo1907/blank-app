@@ -124,32 +124,5 @@
     "ml_score": 0.625,
     "stored_at": "2026-06-22T14:00:27.533493+00:00",
     "expires_at": "2026-06-22T16:00:27.533502+00:00"
-  },
-  "TNA_30": {
-    "direction": "LONG",
-    "timeframe": "30",
-    "symbol": "TNA",
-    "trigger": "BOS",
-    "ml_score": 0.5,
-    "stored_at": "2026-06-22T14:00:27.609332+00:00",
-    "expires_at": "2026-06-22T16:00:27.609340+00:00"
-  },
-  "MU_30": {
-    "direction": "LONG",
-    "timeframe": "30",
-    "symbol": "MU",
-    "trigger": "BOS",
-    "ml_score": 0.75,
-    "stored_at": "2026-06-22T14:00:27.688004+00:00",
-    "expires_at": "2026-06-22T16:00:27.688011+00:00"
-  },
-  "US500_30": {
-    "direction": "LONG",
-    "timeframe": "30",
-    "symbol": "US500",
-    "trigger": "BOS",
-    "ml_score": 0.375,
-    "stored_at": "2026-06-22T14:00:27.833047+00:00",
-    "expires_at": "2026-06-22T16:00:27.833054+00:00"
   }
 }
