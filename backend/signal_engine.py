@@ -28,30 +28,49 @@ from db import recent_outcomes, recent_news, insert_signal, expire_old_signals
 # Persisted to GitHub data branch so it survives Railway restarts.
 # Keyed by pool name — scheduler passes real market state to generate_signal().
 import threading as _threading
+import time as _time
 _latest_features: dict[str, Features] = {}
 _FEATURE_CACHE_PATH = "data/feature_cache.json"
 _feature_cache_lock = _threading.Lock()
+_last_github_flush: float = 0.0          # epoch seconds of last successful GitHub write
+_FLUSH_INTERVAL: float = 30.0            # at most one GitHub write per 30s (debounce)
 
 
 def update_latest_features(pool: str, features: Features) -> None:
-    """Cache latest features in memory and persist to GitHub data branch."""
-    # Acquire lock before updating in-memory dict to prevent race on concurrent heartbeats
-    if not _feature_cache_lock.acquire(blocking=False):
-        # Another thread is writing — still update in-memory under a quick swap
-        _latest_features[pool] = features
-        return
+    """Update in-memory feature cache immediately; flush to GitHub at most once per 30s.
+
+    At bar close all TradingView charts fire simultaneously (~20 heartbeats).
+    Writing GitHub on every heartbeat saturates the thread pool and causes
+    TradingView webhook timeouts. Debouncing means the first arriving heartbeat
+    triggers the write; the rest return instantly after updating memory.
+    """
+    global _last_github_flush
+    # Always update in-memory cache — this is what the scheduler reads
     _latest_features[pool] = features
+
+    # Debounce: skip GitHub write if one happened recently
+    now = _time.monotonic()
+    if now - _last_github_flush < _FLUSH_INTERVAL:
+        return
+
+    # Try to win the write lock — if another thread is already flushing, skip
+    if not _feature_cache_lock.acquire(blocking=False):
+        return
+
     try:
+        # Re-check after acquiring — another thread may have just flushed
+        if _time.monotonic() - _last_github_flush < _FLUSH_INTERVAL:
+            return
+
         from db import _get_file, _put_file
         from datetime import datetime, timezone as _tz
         for attempt in range(3):
             try:
                 existing, sha = _get_file(_FEATURE_CACHE_PATH)
-                # Merge valid in-memory pools — exclude empty-string pool (XAUUSD_4H etc.)
                 payload = {k: v for k, v in (existing if isinstance(existing, dict) else {}).items() if k}
                 for _pool, _feat in _latest_features.items():
                     if not _pool:
-                        continue  # skip unmapped pools
+                        continue
                     payload[_pool] = {
                         "f1":  _feat.f1,  "f2":  _feat.f2,  "f3":  _feat.f3,
                         "f4":  _feat.f4,  "f5":  _feat.f5,  "f6":  _feat.f6,
@@ -66,10 +85,11 @@ def update_latest_features(pool: str, features: Features) -> None:
                     }
                 _put_file(_FEATURE_CACHE_PATH, payload, sha,
                           f"chore: update feature cache ({len(payload)} pools)")
+                _last_github_flush = _time.monotonic()
                 break
             except Exception as put_err:
                 if attempt < 2 and "409" in str(put_err):
-                    continue  # SHA stale — re-fetch on next iteration
+                    continue
                 print(f"[features] Cache persist failed: {put_err}")
                 break
     finally:
