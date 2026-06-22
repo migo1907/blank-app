@@ -20,19 +20,19 @@
   },
   "gld": {
     "date": "2026-06-22",
-    "price": 384.48,
+    "price": 385.33,
     "price_prev": 387.12,
-    "price_change": -2.64,
+    "price_change": -1.7851,
     "tonnes": null,
-    "tonnes_change": -2.64,
+    "tonnes_change": -1.7851,
     "source": "yfinance_proxy"
   },
   "dxy_break": {
-    "direction": "UP",
-    "strength": 0.062,
-    "level": 100.971
+    "direction": "NONE",
+    "strength": 0.0,
+    "level": 100.843
   },
-  "updated_at": "2026-06-22T14:36:40.808918+00:00",
+  "updated_at": "2026-06-22T15:02:25.992002+00:00",
   "sources_live": {
     "fred": true,
     "cot": true,
