@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 _scheduler:          AsyncIOScheduler | None = None
+_news_cycle_lock:    asyncio.Lock = asyncio.Lock()  # serialize the signal cycle
 _latest_news_agg:    float = 0.0
 _latest_velocity:    dict  = {"multiplier": 1.0, "label": "NORMAL"}
 _latest_event:       dict  = {"detected": False, "event_type": "", "urgency": 0.0}
@@ -262,6 +263,12 @@ async def _breaking_news_cycle() -> None:
 
 async def _news_signal_cycle() -> None:
     global _latest_news_agg, _latest_velocity, _latest_event, _fj_seen_headlines, _last_sent_direction, _last_sent_direction_spy, _last_sent_direction_qqq, _last_sent_direction_spx_options, _startup_cycle
+    # Re-entrancy guard: cron, startup bootstrap and /signal/now all invoke this.
+    # Overlapping runs race on the _last_sent_direction* globals and can double-send.
+    if _news_cycle_lock.locked():
+        print("[scheduler] news cycle already running — skipping overlapping run")
+        return
+    await _news_cycle_lock.acquire()
     print("[scheduler] Starting news + velocity + signal cycle…")
 
     try:
@@ -477,6 +484,8 @@ async def _news_signal_cycle() -> None:
 
     except Exception as e:
         print(f"[scheduler] Cycle error: {e}")
+    finally:
+        _news_cycle_lock.release()
 
 
 async def _write_health_status(signal: dict, news_agg: float, velocity: dict, breaking_count: int, equity_macro: dict | None = None) -> None:

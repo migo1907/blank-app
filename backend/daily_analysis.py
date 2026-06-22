@@ -678,7 +678,12 @@ def generate_daily_brief() -> str | None:
                 "content": ANALYSIS_PROMPT.format(asset_data=asset_data),
             }],
         )
-        analysis = response.content[0].text.strip()
+        analysis = next(
+            (b.text for b in response.content if getattr(b, "type", "") == "text"), ""
+        ).strip()
+        if not analysis:
+            print("[daily] Claude returned empty content — brief skipped")
+            return None
     except Exception as e:
         print(f"[daily] Claude generation failed: {e}")
         return None
