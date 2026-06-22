@@ -1267,6 +1267,29 @@
       "htf_context": "scalp",
       "session": "NYSE Afternoon",
       "fired_at": "2026-06-22T20:00:27.215157+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "15",
+      "trigger": "RSI",
+      "symbol": "QQQ",
+      "entry_price": 738.1,
+      "tp1": 741.66,
+      "tp2": 744.32,
+      "tp3": 747.88,
+      "sl": 734.54,
+      "ml_score": 0.375,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.559,
+      "quality_reason": "approved",
+      "news_score": -0.1177,
+      "velocity": "CONFLICTED",
+      "event": "GEOPOLITICAL",
+      "htf_bias": null,
+      "contra_bias": null,
+      "htf_context": "scalp",
+      "session": "NYSE Afternoon",
+      "fired_at": "2026-06-22T20:00:29.093624+00:00"
     }
   ]
 }
