@@ -250,26 +250,88 @@ def _compute_equity_macro_bias(
 
 # ── Phase 2E: VIX regime + DXY level break (intermarket) ──────────────────────
 
+def _fetch_vix_level() -> float | None:
+    """
+    Fetch latest VIX close. Three-source waterfall:
+      1. yfinance ^VIX  (often NaN from Railway cloud IPs)
+      2. Stooq ^vix     (works most of the time from cloud)
+      3. CBOE CDN CSV   (authoritative, no auth, CDN-served → always accessible)
+    Returns float or None.
+    """
+    import pandas as pd
+
+    # 1 — yfinance
+    try:
+        from market_data import fetch_daily
+        df = fetch_daily("^VIX", period="5d")
+        if len(df):
+            v = float(df["Close"].iloc[-1])
+            if v == v and v > 0:  # not NaN, not zero
+                return v
+    except Exception:
+        pass
+
+    # 2 — Stooq direct (fetch_daily already tries this but only when df is empty)
+    try:
+        from market_data import _stooq_daily
+        df = _stooq_daily("^vix")
+        if len(df):
+            v = float(df["Close"].iloc[-1])
+            if v == v and v > 0:
+                print("[macro] VIX served via Stooq direct")
+                return v
+    except Exception:
+        pass
+
+    # 3 — CBOE CDN (authoritative, no auth, CDN-served)
+    try:
+        import io as _io
+        _cboe_url = "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv"
+        _cboe_r = httpx.get(
+            _cboe_url,
+            headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                     "Accept": "text/csv,*/*"},
+            timeout=15,
+            follow_redirects=True,
+        )
+        _cboe_r.raise_for_status()
+        df = pd.read_csv(_io.StringIO(_cboe_r.text))
+        if not df.empty and "CLOSE" in df.columns:
+            v = float(df["CLOSE"].iloc[-1])
+            if v == v and v > 0:
+                print("[macro] VIX served via CBOE CDN")
+                return v
+    except Exception as e:
+        print(f"[macro] CBOE VIX fallback failed: {e}")
+
+    return None
+
+
 def _vix_context() -> dict:
     """
     VIX level + term structure → a stock-signal size factor.
-    Spiking / backwardated vol = de-risk equity signals. yfinance, free.
+    Spiking / backwardated vol = de-risk equity signals.
     size_factor ∈ [0.80, 1.0]: 1.0 = calm, <1 = shrink stock signal confidence.
     """
     out = {"vix": None, "vix3m": None, "ratio": None,
            "regime": "UNKNOWN", "size_factor": 1.0, "backwardation": False}
     try:
-        from market_data import fetch_daily
-        vix   = fetch_daily("^VIX", period="5d")     # yfinance → Stooq fallback
-        vix3m = fetch_daily("^VIX3M", period="5d")
-        if not len(vix):
-            return out
-        v = float(vix["Close"].iloc[-1])
-        if v != v:  # NaN check — yfinance returns float NaN from cloud IPs
+        v = _fetch_vix_level()
+        if v is None:
             return out
         out["vix"] = round(v, 2)
-        v3 = float(vix3m["Close"].iloc[-1]) if len(vix3m) else None
-        if v3 and v3 == v3:  # NaN guard for vix3m too
+        # VIX3M for term structure — yfinance only (Stooq/CBOE don't carry it)
+        v3 = None
+        try:
+            from market_data import fetch_daily
+            vix3m = fetch_daily("^VIX3M", period="5d")
+            if len(vix3m):
+                _v3 = float(vix3m["Close"].iloc[-1])
+                if _v3 == _v3 and _v3 > 0:
+                    v3 = _v3
+        except Exception:
+            pass
+        if v3:
             out["vix3m"] = round(v3, 2)
             out["ratio"] = round(v / v3, 3)
             out["backwardation"] = (v / v3) > 1.0
