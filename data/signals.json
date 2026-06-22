@@ -2354,7 +2354,7 @@
     "mtf_confluence": "mtf:3/3",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BEAR(TREND_FOLLOW)\u00d71.15 | hmm:VOLATILE(1.00)\u21c4\u00d70.90 | imkt:na\u00d71.00 | mtf:3/3\u00d71.08 | evt:na\u00d71.00 | sess:ASIAN\u00d70.85 | confluence\u00d71.35 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+0.96) | news:bearish(-0.389) | macro:NEUTRAL(-0.109) | combined:-0.403 \u2192 conf:0.527 \u26a1 GEOPOLITICAL",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-22T02:52:47.036006+00:00",
     "created_at": "2026-06-22T02:22:48.667997+00:00",
     "id": 101
@@ -2388,7 +2388,7 @@
     "mtf_confluence": "mtf:0/3\u26a0",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(PULLBACK_SHORT)\u00d70.80 | hmm:RANGING(0.98)\u00d71.00 | imkt:na\u00d71.00 | mtf:0/3\u26a0\u00d70.85 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d71.09 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.04) | news:bearish(-0.389) | macro:BEARISH(-0.357) | combined:-0.165 \u2192 conf:0.300 \u26a1 GEOPOLITICAL",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-22T02:52:52.935598+00:00",
     "created_at": "2026-06-22T02:22:54.044261+00:00",
     "id": 101
@@ -2422,7 +2422,7 @@
     "mtf_confluence": "mtf:3/3",
     "post_event": "evt:na",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:TRENDING_BULL(0.97)\u00d71.05 | imkt:na\u00d71.00 | mtf:3/3\u00d71.08 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d71.21 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.19) | news:bearish(-0.389) | macro:BEARISH(-0.357) | combined:+0.014 \u2192 conf:0.300 \u26a1 GEOPOLITICAL",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-22T02:53:00.273048+00:00",
     "created_at": "2026-06-22T02:23:01.541866+00:00",
     "id": 101
@@ -2456,7 +2456,7 @@
     "mtf_confluence": "mtf:3/3",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BEAR(TREND_FOLLOW)\u00d71.15 | hmm:VOLATILE(0.74)\u21c4\u00d70.92 | imkt:na\u00d71.00 | mtf:3/3\u00d71.08 | evt:na\u00d71.00 | sess:ASIAN\u00d70.85 | confluence\u00d71.20 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:bearish(-0.332) | macro:NEUTRAL(-0.109) | combined:-0.317 \u2192 conf:0.375 \u26a1 GEOPOLITICAL",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-22T02:56:22.559684+00:00",
     "created_at": "2026-06-22T02:26:24.038119+00:00",
     "id": 101
