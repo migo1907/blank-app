@@ -2009,13 +2009,13 @@
   },
   {
     "symbol": "SPX500",
-    "pool": "STOCKS_SPX500_30M",
+    "pool": "STOCKS_SPX500_15M",
     "direction": "LONG",
     "lean_direction": "LONG",
-    "lean_pct": 62,
+    "lean_pct": 75,
     "confidence": 0.3,
     "tier": "LOW",
-    "ml_score": 0.625,
+    "ml_score": 0.75,
     "rf_score": 0.5,
     "gbm_score": 0.5,
     "ml_interval": [
@@ -2027,7 +2027,7 @@
     "news_score": -0.0067,
     "macro_bias": -0.3566,
     "macro_label": "BEARISH",
-    "combined_score": 0.1373,
+    "combined_score": 0.3296,
     "session": "CLOSED",
     "regime": "NORMAL",
     "regime_label": "NORMAL",
@@ -2035,10 +2035,10 @@
     "intermarket": "imkt:na",
     "mtf_confluence": "mtf:3/3",
     "post_event": "evt:na",
-    "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:RANGING(0.98)\u00d71.00 | imkt:na\u00d71.00 | mtf:3/3\u00d71.08 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.70 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.46) | news:neutral(-0.007) | macro:BEARISH(-0.357) | combined:+0.137 \u2192 conf:0.300 \u26a1 GEOPOLITICAL",
+    "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:RANGING(0.98)\u00d71.00 | imkt:na\u00d71.00 | mtf:3/3\u00d71.08 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.55 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.56) | news:neutral(-0.007) | macro:BEARISH(-0.357) | combined:+0.330 \u2192 conf:0.300 \u26a1 GEOPOLITICAL",
     "status": "ACTIVE",
-    "expires_at": "2026-06-22T00:32:41.715364+00:00",
-    "created_at": "2026-06-22T00:02:42.062257+00:00",
+    "expires_at": "2026-06-22T00:32:43.649554+00:00",
+    "created_at": "2026-06-22T00:02:44.002323+00:00",
     "id": 101
   }
 ]
