@@ -2,7 +2,7 @@ name: Fetch Daily TradingView Levels
 
 on:
   schedule:
-    - cron: '50 11 * * 1-5'   # 11:50 UTC Mon-Fri — 10 min before the 12:00 UTC brief,
+    - cron: '50 7 * * 1-5'    # 07:50 UTC Mon-Fri — 70 min before the 09:00 UTC brief,
                               # inside US premarket (08:00–13:30 UTC) so SPY/QQQ premarket is live
   workflow_dispatch:           # allow manual trigger
 
