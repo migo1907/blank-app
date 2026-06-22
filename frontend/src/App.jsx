@@ -1851,7 +1851,7 @@ function OptionsTab() {
             </tr>
           ))}</tbody></table>
         )}
-        <div style={{fontSize:10,color:'var(--muted)',marginTop:8}}>ML gate activates at ≥50 closed trades per pool.</div>
+        <div style={{fontSize:10,color:'var(--muted)',marginTop:8}}>Collecting data — ML filter enables at ≥50 closed trades per pool.</div>
       </div>
 
       {od.open_positions?.length>0&&(
