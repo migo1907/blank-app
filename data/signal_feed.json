@@ -1035,6 +1035,37 @@
       "htf_context": "counter_trend",
       "session": "London/NY Overlap",
       "fired_at": "2026-06-22T16:32:03.606198+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "240",
+      "trigger": "BOS",
+      "symbol": "MSFT",
+      "entry_price": 369.01,
+      "tp1": 345.13,
+      "tp2": 325.22,
+      "tp3": 297.36,
+      "sl": 392.89,
+      "ml_score": 0.5,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.5718,
+      "quality_reason": "approved",
+      "news_score": -0.0941,
+      "velocity": "CONFLICTED",
+      "event": "FOMC",
+      "htf_bias": {
+        "direction": "SHORT",
+        "timeframe": "240",
+        "symbol": "MSFT",
+        "trigger": "BOS",
+        "ml_score": 0.5,
+        "stored_at": "2026-06-22T17:30:14.358657+00:00",
+        "expires_at": "2026-06-23T01:30:14.358681+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "htf_direct",
+      "session": "NYSE Afternoon",
+      "fired_at": "2026-06-22T17:30:14.696534+00:00"
     }
   ]
 }
