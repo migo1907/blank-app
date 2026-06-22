@@ -16,5 +16,14 @@
     "ml_score": 0.375,
     "stored_at": "2026-06-22T00:32:00.510957+00:00",
     "expires_at": "2026-06-22T02:32:00.510972+00:00"
+  },
+  "XAUUSD_60": {
+    "direction": "LONG",
+    "timeframe": "60",
+    "symbol": "XAUUSD",
+    "trigger": "RSI",
+    "ml_score": 0.75,
+    "stored_at": "2026-06-22T01:02:02.169802+00:00",
+    "expires_at": "2026-06-22T05:02:02.169812+00:00"
   }
 }
