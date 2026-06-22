@@ -756,6 +756,45 @@
       "htf_context": "counter_trend",
       "session": "NYSE Open",
       "fired_at": "2026-06-22T14:45:12.235219+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "30",
+      "trigger": "FVG",
+      "symbol": "US500",
+      "entry_price": 7474.5,
+      "tp1": 7443.13,
+      "tp2": 7420.32,
+      "tp3": 7388.96,
+      "sl": 7505.87,
+      "ml_score": 0.25,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.5485,
+      "quality_reason": "approved",
+      "news_score": -0.1954,
+      "velocity": "CONFLICTED",
+      "event": "GEOPOLITICAL",
+      "htf_bias": {
+        "direction": "SHORT",
+        "timeframe": "30",
+        "symbol": "US500",
+        "trigger": "FVG",
+        "ml_score": 0.25,
+        "stored_at": "2026-06-22T15:00:06.883269+00:00",
+        "expires_at": "2026-06-22T17:00:06.883292+00:00"
+      },
+      "contra_bias": {
+        "direction": "LONG",
+        "timeframe": "240",
+        "symbol": "US500",
+        "trigger": "FVG",
+        "ml_score": 0.5,
+        "stored_at": "2026-06-22T14:00:12.781316+00:00",
+        "expires_at": "2026-06-22T22:00:12.781326+00:00"
+      },
+      "htf_context": "htf_direct",
+      "session": "NYSE Open",
+      "fired_at": "2026-06-22T15:00:07.237800+00:00"
     }
   ]
 }
