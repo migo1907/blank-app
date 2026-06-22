@@ -671,6 +671,37 @@
       "htf_context": "scalp",
       "session": "NYSE Open",
       "fired_at": "2026-06-22T14:00:04.378966+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "5",
+      "trigger": "FVG",
+      "symbol": "XAUUSD",
+      "entry_price": 4203.97,
+      "tp1": 4213.35,
+      "tp2": 4219.6,
+      "tp3": 4228.98,
+      "sl": 4194.59,
+      "ml_score": 0.5,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.4154,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.3213,
+      "velocity": "CONFLICTED",
+      "event": "GEOPOLITICAL",
+      "htf_bias": null,
+      "contra_bias": {
+        "direction": "SHORT",
+        "timeframe": "30",
+        "symbol": "XAUUSD",
+        "trigger": "FVG",
+        "ml_score": 0.375,
+        "stored_at": "2026-06-22T13:32:02.614570+00:00",
+        "expires_at": "2026-06-22T15:32:02.614591+00:00"
+      },
+      "htf_context": "counter_trend",
+      "session": "London/NY Overlap",
+      "fired_at": "2026-06-22T14:17:02.330801+00:00"
     }
   ]
 }
