@@ -981,6 +981,29 @@
       "htf_context": "htf_direct",
       "session": "NYSE Afternoon",
       "fired_at": "2026-06-22T16:30:14.102029+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "15",
+      "trigger": "BOS",
+      "symbol": "ADBE",
+      "entry_price": 191.56,
+      "tp1": 189.06,
+      "tp2": 187.18,
+      "tp3": 184.68,
+      "sl": 194.06,
+      "ml_score": 0.5,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.4081,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.1027,
+      "velocity": "CONFLICTED",
+      "event": "FOMC",
+      "htf_bias": null,
+      "contra_bias": null,
+      "htf_context": "scalp",
+      "session": "NYSE Afternoon",
+      "fired_at": "2026-06-22T16:30:21.044207+00:00"
     }
   ]
 }
