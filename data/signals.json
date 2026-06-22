@@ -3054,7 +3054,7 @@
     "mtf_confluence": "mtf:2/3",
     "post_event": "evt:na",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:RANGING(1.00)\u00d71.00 | imkt:na\u00d71.00 | mtf:2/3\u00d71.03 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.83 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.28) | news:bearish(-0.262) | macro:NEUTRAL(+0.042) | combined:+0.330 \u2192 conf:0.300 \u26a1 GEOPOLITICAL",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-22T22:29:15.543606+00:00",
     "created_at": "2026-06-22T21:59:15.872098+00:00",
     "id": 101
@@ -3088,7 +3088,7 @@
     "mtf_confluence": "mtf:3/3",
     "post_event": "evt:na",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:VOLATILE(0.85)\u21c4\u00d70.91 | imkt:DXY-UP(0.08)\u00d71.01 | mtf:3/3\u00d71.08 | evt:na\u00d71.00 | sess:OFF\u00d70.65 | confluence\u00d70.76 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.01) | news:neutral(-0.005) | macro:NEUTRAL(-0.145) | combined:-0.042 \u2192 conf:0.018 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-22T22:43:57.345421+00:00",
     "created_at": "2026-06-22T22:13:58.856301+00:00",
     "id": 101
@@ -3122,7 +3122,7 @@
     "mtf_confluence": "mtf:2/3",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:RANGING(1.00)\u00d71.00 | imkt:na\u00d71.00 | mtf:2/3\u00d71.03 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.76 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.24) | news:neutral(-0.005) | macro:NEUTRAL(+0.042) | combined:+0.005 \u2192 conf:0.300 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-22T22:44:00.569457+00:00",
     "created_at": "2026-06-22T22:14:00.939733+00:00",
     "id": 101
@@ -3156,7 +3156,7 @@
     "mtf_confluence": "mtf:3/3",
     "post_event": "evt:na",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:RANGING(RANGING)\u00d70.82 | hmm:TRENDING_BULL(0.97)\u00d71.05 | imkt:na\u00d71.00 | mtf:3/3\u00d71.08 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d71.15 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.05) | news:neutral(-0.005) | macro:NEUTRAL(+0.042) | combined:+0.197 \u2192 conf:0.300 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-22T22:44:02.677390+00:00",
     "created_at": "2026-06-22T22:14:06.154347+00:00",
     "id": 101
