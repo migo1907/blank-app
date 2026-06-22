@@ -563,6 +563,29 @@
       "htf_context": "scalp",
       "session": "London Open",
       "fired_at": "2026-06-22T07:57:01.433620+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "15",
+      "trigger": "FVG",
+      "symbol": "XAUUSD",
+      "entry_price": 4205.22,
+      "tp1": 4221.24,
+      "tp2": 4233.26,
+      "tp3": 4249.29,
+      "sl": 4189.2,
+      "ml_score": 0.25,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.4536,
+      "quality_reason": "approved",
+      "news_score": -0.2872,
+      "velocity": "CONFLICTED",
+      "event": "GEOPOLITICAL",
+      "htf_bias": null,
+      "contra_bias": null,
+      "htf_context": "scalp",
+      "session": "London",
+      "fired_at": "2026-06-22T09:17:02.555699+00:00"
     }
   ]
 }
