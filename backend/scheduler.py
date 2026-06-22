@@ -432,7 +432,7 @@ async def _news_signal_cycle() -> None:
                 _is_0dte_window = _now_et.weekday() < 5 and _now_et.hour < 13
                 _opt_pool      = "STOCKS_SPX500_15M" if _is_0dte_window else "STOCKS_SPX500_30M"
                 _opt_min_conf  = 0.0  # gate removed — collect all data first, apply ML gates later
-                from options_engine import build_spx_recommendation, format_telegram, append_paper_trade, should_send_telegram
+                from options_engine import build_spx_recommendation, append_paper_trade
                 from signal_engine import generate_signal as _gen, get_latest_features as _glf
                 _opt_sig  = _gen(
                     current_features=_glf(_opt_pool),
@@ -468,11 +468,7 @@ async def _news_signal_cycle() -> None:
                     if _rec:
                         await asyncio.to_thread(append_paper_trade, _rec)
                         _last_sent_direction_spx_options = _opt_dir
-                        if should_send_telegram(_rec.get("dte", 0)):
-                            from telegram_bot import send_text
-                            await send_text(format_telegram(_rec))
-                        else:
-                            print(f"[options] paper trade logged (silent — accumulating training data)")
+                        print(f"[options] paper trade logged (app-only — Telegram silent)")
             except Exception as _opt_err:
                 print(f"[options] recommendation failed: {_opt_err}")
 
@@ -1648,14 +1644,11 @@ async def _options_paper_manage_cycle() -> None:
     """Hourly during RTH: enforce TP/SL/time exits on open paper option trades.
     Silent until 50 closed trades per pool; auto-unlocks Telegram at that point."""
     try:
-        from options_engine import manage_paper_positions, should_send_telegram
+        from options_engine import manage_paper_positions
         closed = await asyncio.to_thread(manage_paper_positions)
         for line in closed:
             print(f"[options] paper closed: {line}")
-            # Auto-unlock: send to Telegram once pool has ≥50 closed trades
-            if should_send_telegram(0) or should_send_telegram(1):
-                from telegram_bot import send_text
-                await send_text(f"📄 <b>SPX PAPER CLOSED</b>\n{line}")
+            # Telegram silent — positions visible on app only
     except Exception as e:
         print(f"[options] paper manage cycle failed: {e}")
 
