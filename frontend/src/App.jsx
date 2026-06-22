@@ -553,7 +553,8 @@ function SignalsTab() {
             const qs     = s.quality_score
             const qClr   = qs==null?'var(--muted)':qs>=0.55?'var(--green)':qs>=0.40?'var(--gold)':'var(--red)'
             const qLbl   = qs==null?'—':qs>=0.55?'STRONG':qs>=0.40?'FAIR':'WEAK'
-            const rr     = (s.entry_price&&s.sl&&s.tp1) ? Math.abs(s.tp1-s.entry_price)/Math.max(1e-9,Math.abs(s.entry_price-s.sl)) : null
+            const rrTgt  = s.tp2 || s.tp3 || s.tp1   // R:R to TP2 — TP1 sits at ~1× the stop (always 1:1)
+            const rr     = (s.entry_price&&s.sl&&rrTgt) ? Math.abs(rrTgt-s.entry_price)/Math.max(1e-9,Math.abs(s.entry_price-s.sl)) : null
             const rrClr  = rr==null?'var(--muted)':rr>=2?'var(--green)':rr>=1?'var(--gold)':'var(--red)'
             // Price ladder normalization
             const ladder = [['SL',s.sl,'var(--red)'],['Entry',s.entry_price,'var(--gold)'],['TP1',s.tp1,'var(--green)'],['TP2',s.tp2,'var(--green)'],['TP3',s.tp3,'var(--green)']]
