@@ -1,39 +1,5 @@
 [
   {
-    "symbol": "SPY",
-    "pool": "STOCKS_INDEX_30M",
-    "direction": "SHORT",
-    "lean_direction": "SHORT",
-    "lean_pct": 50,
-    "confidence": 0.3,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "ml_interval": [
-      0.3,
-      0.7
-    ],
-    "ml_interval_width": 0.4,
-    "ml_certainty": "MODERATE",
-    "news_score": -0.3319,
-    "macro_bias": -0.3566,
-    "macro_label": "BEARISH",
-    "combined_score": -0.1301,
-    "session": "CLOSED",
-    "regime": "TRENDING_BULL",
-    "regime_label": "PULLBACK_SHORT",
-    "hmm_regime": "hmm:RANGING(0.98)",
-    "intermarket": "imkt:na",
-    "mtf_confluence": "mtf:0/3\u26a0",
-    "post_event": "evt:na",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(PULLBACK_SHORT)\u00d70.80 | hmm:RANGING(0.98)\u00d71.00 | imkt:na\u00d71.00 | mtf:0/3\u26a0\u00d70.85 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d71.09 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.04) | news:bearish(-0.332) | macro:BEARISH(-0.357) | combined:-0.130 \u2192 conf:0.300 \u26a1 GEOPOLITICAL",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-22T01:17:21.768293+00:00",
-    "created_at": "2026-06-22T00:47:22.149724+00:00",
-    "id": 101
-  },
-  {
     "symbol": "QQQ",
     "pool": "STOCKS_QQQ_30M",
     "direction": "LONG",
@@ -2972,7 +2938,7 @@
     "mtf_confluence": "mtf:3/3",
     "post_event": "evt:na",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:TRENDING_BULL(0.97)\u00d71.05 | imkt:na\u00d71.00 | mtf:3/3\u00d71.08 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d71.21 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.19) | news:bearish(-0.234) | macro:BEARISH(-0.357) | combined:+0.085 \u2192 conf:0.300 \u26a1 GEOPOLITICAL",
-    "status": "EXPIRED",
+    "status": "ACTIVE",
     "expires_at": "2026-06-22T06:56:32.669656+00:00",
     "created_at": "2026-06-22T06:26:35.223437+00:00",
     "id": 101
@@ -3006,7 +2972,7 @@
     "mtf_confluence": "mtf:0/3\u26a0",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:RANGING(0.98)\u00d71.00 | imkt:na\u00d71.00 | mtf:0/3\u26a0\u00d70.85 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.83 | cluster\u00d70.88 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.27) | news:bearish(-0.234) | macro:BEARISH(-0.357) | combined:-0.108 \u2192 conf:0.300 \u26a1 GEOPOLITICAL",
-    "status": "EXPIRED",
+    "status": "ACTIVE",
     "expires_at": "2026-06-22T06:56:40.175553+00:00",
     "created_at": "2026-06-22T06:26:40.492796+00:00",
     "id": 101
@@ -3040,7 +3006,7 @@
     "mtf_confluence": "mtf:3/3",
     "post_event": "evt:na",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:TRENDING_BULL(0.97)\u00d71.05 | imkt:na\u00d71.00 | mtf:3/3\u00d71.08 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d71.21 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.19) | news:bearish(-0.338) | macro:BEARISH(-0.357) | combined:+0.000 \u2192 conf:0.300 \u26a1 GEOPOLITICAL",
-    "status": "EXPIRED",
+    "status": "ACTIVE",
     "expires_at": "2026-06-22T07:11:25.041521+00:00",
     "created_at": "2026-06-22T06:41:25.413342+00:00",
     "id": 101
@@ -3074,7 +3040,7 @@
     "mtf_confluence": "mtf:3/3",
     "post_event": "evt:na",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:RANGING(0.98)\u00d71.00 | imkt:na\u00d71.00 | mtf:3/3\u00d71.08 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d71.40 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:bearish(-0.338) | macro:BEARISH(-0.357) | combined:+0.000 \u2192 conf:0.300 \u26a1 GEOPOLITICAL",
-    "status": "EXPIRED",
+    "status": "ACTIVE",
     "expires_at": "2026-06-22T07:11:29.080186+00:00",
     "created_at": "2026-06-22T06:41:29.351544+00:00",
     "id": 101
@@ -3108,7 +3074,7 @@
     "mtf_confluence": "mtf:0/3\u26a0",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:RANGING(0.98)\u00d71.00 | imkt:na\u00d71.00 | mtf:0/3\u26a0\u00d70.85 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.70 | cluster\u00d70.88 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+0.65) | news:bearish(-0.338) | macro:BEARISH(-0.357) | combined:-0.333 \u2192 conf:0.300 \u26a1 GEOPOLITICAL",
-    "status": "EXPIRED",
+    "status": "ACTIVE",
     "expires_at": "2026-06-22T07:11:31.248303+00:00",
     "created_at": "2026-06-22T06:41:31.564895+00:00",
     "id": 101
@@ -3383,6 +3349,40 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-22T07:41:45.423756+00:00",
     "created_at": "2026-06-22T07:11:46.902123+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "XAUUSD",
+    "pool": "XAUUSD_2M",
+    "direction": "NEUTRAL",
+    "lean_direction": "SHORT",
+    "lean_pct": 12,
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.125,
+    "rf_score": 0.2927,
+    "gbm_score": 0.2778,
+    "ml_interval": [
+      0.0,
+      1.0
+    ],
+    "ml_interval_width": 1.0,
+    "ml_certainty": "LOW",
+    "news_score": -0.2419,
+    "macro_bias": -0.1087,
+    "macro_label": "NEUTRAL",
+    "combined_score": -0.0536,
+    "session": "LONDON_OPEN",
+    "regime": "NORMAL",
+    "regime_label": "NORMAL",
+    "hmm_regime": "hmm:TRENDING_BEAR(0.88)",
+    "intermarket": "imkt:DXY-UP(0.02)",
+    "mtf_confluence": "mtf:3/3",
+    "post_event": "evt:na",
+    "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:TRENDING_BEAR(0.88)\u00d71.04 | imkt:DXY-UP(0.02)\u00d71.00 | mtf:3/3\u00d71.08 | evt:na\u00d71.00 | sess:LONDON_OPEN\u00d70.90 | confluence\u00d71.35 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:bearish(-0.242) | macro:NEUTRAL(-0.109) | combined:-0.054 \u2192 conf:0.062 \u26a1 GEOPOLITICAL",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-22T07:56:15.996194+00:00",
+    "created_at": "2026-06-22T07:26:17.662244+00:00",
     "id": 101
   }
 ]
