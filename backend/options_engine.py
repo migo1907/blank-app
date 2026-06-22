@@ -40,6 +40,17 @@ _IV_HISTORY_PATH = "data/options_iv_history.json"
 _PAPER_PATH      = "data/options_paper_SPX.json"
 _IV_HISTORY_MAX  = 120   # trailing sessions kept (need 60 for IV Rank)
 
+# Diagnostic — why the SPX options layer did/didn't open a trade on the last cycle.
+_LAST_OPT_CHECK = {"reason": "warming up — waiting for first SPX signal cycle", "at": None}
+def set_options_check(reason: str) -> None:
+    import datetime as _dt
+    _LAST_OPT_CHECK.update({"reason": reason, "at": _dt.datetime.now(_dt.timezone.utc).isoformat()})
+def last_options_check() -> dict:
+    return dict(_LAST_OPT_CHECK)
+def _opt_skip(reason: str):
+    set_options_check(reason)
+    return None
+
 MAX_RISK_PCT       = 1.0   # premium risk per trade, % of account (informational)
 TP_PREMIUM_MULT    = 2.0   # +100%
 SL_PREMIUM_MULT    = 0.5   # -50%
@@ -345,11 +356,11 @@ def build_spx_recommendation(direction: str, confidence: float,
     with the skip reason printed. Pure read — caller persists/sends.
     """
     if direction not in ("LONG", "SHORT") or confidence < MIN_CONFIDENCE:
-        return None
+        return _opt_skip("Signal not actionable (neutral / below min confidence)")
     now_et = datetime.now(_NY)
     if now_et.weekday() >= 5 or not (9 <= now_et.hour < 15) or (now_et.hour == 9 and now_et.minute < 45):
         print("[options] outside entry window (09:45–15:00 ET) — skip")
-        return None
+        return _opt_skip("Outside entry window (09:45–15:00 ET)")
 
     # Event filter — no entries within 24h before a high-impact print
     try:
@@ -359,26 +370,26 @@ def build_spx_recommendation(direction: str, confidence: float,
             nxt = sched["scheduled"][0]
             if nxt.get("urgency", 0) >= 0.85 and 0 <= (nxt.get("minutes_until") or 9999) <= 24 * 60:
                 print(f"[options] {nxt.get('event_type')} in {nxt.get('minutes_until')}min — no new premium, skip")
-                return None
+                return _opt_skip(f"High-impact event ({nxt.get('event_type')}) within 24h — no new premium")
     except Exception:
         pass
 
     vix = get_vix_context()
     if vix.get("backwardation"):
         print(f"[options] VIX backwardation ({vix.get('ratio')}) — skip")
-        return None
+        return _opt_skip("VIX backwardation (risk-off) — skip")
 
     picked = _pick_expiry(now_et)
     if not picked:
         print("[options] no usable expiry — skip")
-        return None
+        return _opt_skip("No usable 0/1-DTE expiry")
     expiry, dte = picked
 
     try:
         spot, chain = _spx_chain(expiry)
     except Exception as e:
         print(f"[options] chain fetch failed: {e}")
-        return None
+        return _opt_skip(f"SPX option chain fetch failed: {e}")
 
     # Fetch ATM snapshot early so _get_market_context can use expected_move
     try:
@@ -407,7 +418,7 @@ def build_spx_recommendation(direction: str, confidence: float,
             best = {"strike": strike, "iv": iv, "mid": round(mid, 2), "delta": round(delta, 3)}
     if not best:
         print("[options] no liquid strike near Δ0.40 — skip")
-        return None
+        return _opt_skip("No liquid strike near Δ0.40 (stale/zero quotes from data source)")
 
     # IV Rank gate
     ivr = iv_rank(best["iv"])
@@ -472,6 +483,7 @@ def build_spx_recommendation(direction: str, confidence: float,
     if rec_candidate.get("wide_uncertainty"):
         print(f"[options-ml] wide uncertainty interval {ml_result.get('interval')} — flagging")
 
+    set_options_check(f"Trade opened — {direction} SPX {best['strike']} {expiry}")
     return rec_candidate
 
 

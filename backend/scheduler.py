@@ -442,7 +442,7 @@ async def _news_signal_cycle() -> None:
                 _is_0dte_window = _now_et.weekday() < 5 and _now_et.hour < 13
                 _opt_pool      = "STOCKS_SPX500_15M" if _is_0dte_window else "STOCKS_SPX500_30M"
                 _opt_min_conf  = 0.0  # gate removed — collect all data first, apply ML gates later
-                from options_engine import build_spx_recommendation, append_paper_trade
+                from options_engine import build_spx_recommendation, append_paper_trade, set_options_check
                 from signal_engine import generate_signal as _gen, get_latest_features as _glf
                 _opt_sig  = _gen(
                     current_features=_glf(_opt_pool),
@@ -469,9 +469,11 @@ async def _news_signal_cycle() -> None:
                 )
                 _confluence = 1.0 if _other_sig.get("direction") == _opt_dir else 0.5
 
-                if (_opt_dir not in ("NEUTRAL", "") and
-                        _opt_conf >= _opt_min_conf and
-                        _opt_dir != _last_sent_direction_spx_options):
+                if _opt_dir in ("NEUTRAL", ""):
+                    set_options_check("SPX500 signal neutral — no directional entry this cycle")
+                elif _opt_dir == _last_sent_direction_spx_options:
+                    set_options_check(f"SPX500 {_opt_dir} unchanged — waiting for a direction flip")
+                else:
                     _rec = await asyncio.to_thread(
                         build_spx_recommendation, _opt_dir, _opt_conf,
                         pool_confluence=_confluence)

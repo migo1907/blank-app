@@ -1748,7 +1748,8 @@ function OptionsTab() {
             ['ATM IV',        data?.atm_iv != null ? `${data.atm_iv}%` : '—', null, null],
             ['IV RANK',       data?.iv_rank != null ? `${data.iv_rank}%` : '—',
               data?.iv_rank != null ? (data.iv_rank < 50 ? 'var(--green)' : 'var(--red)') : null,
-              data?.iv_rank != null ? (data.iv_rank < 50 ? '✓ buy prem ok' : '✗ IV too high') : null],
+              data?.iv_rank != null ? (data.iv_rank < 50 ? '✓ buy prem ok' : '✗ IV too high')
+                : (data?.iv_sessions != null ? `${data.iv_sessions}/20 sessions` : 'collecting')],
             ['VIX',           vix.vix ?? '—', vix.backwardation ? 'var(--red)' : vix.half_size ? 'var(--gold)' : null,
               vix.backwardation ? '⚠ backwardation' : null],
             ['EXP MOVE',      data?.expected_move != null ? `±${data.expected_move}` : '—', null, null],
@@ -1905,6 +1906,12 @@ function OptionsTab() {
           ))}</tbody></table>
         )}
         <div style={{fontSize:11,color:'var(--muted)',marginTop:8}}>Collecting data — ML filter enables at ≥50 closed trades per pool.</div>
+        {data?.last_check?.reason && (
+          <div style={{marginTop:10,paddingTop:10,borderTop:'1px solid var(--border)',fontSize:11}}>
+            <span style={{color:'var(--text-mut)',fontWeight:700,textTransform:'uppercase',letterSpacing:'.06em'}}>Last check</span>
+            <div style={{color:'var(--text)',marginTop:3}}>{data.last_check.reason}{data.last_check.at && <span style={{color:'var(--text-mut)'}}> · {age(data.last_check.at)}</span>}</div>
+          </div>
+        )}
       </div>
 
       {od.open_positions?.length>0&&(

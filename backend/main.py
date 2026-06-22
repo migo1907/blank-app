@@ -2245,6 +2245,14 @@ async def options_flow(secret: str = ""):
         trades = {}
     open_trades   = trades.get("open",   [])
     closed_trades = trades.get("closed", [])[-10:]
+    from options_engine import last_options_check
+    iv_sessions = 0
+    try:
+        from db import _get_file
+        _ivh, _ = _get_file("data/options_iv_history.json")
+        iv_sessions = len(_ivh) if isinstance(_ivh, list) else 0
+    except Exception:
+        pass
     return {
         "polygon_available": polygon_data.available(),
         "flow":              flow,
@@ -2252,11 +2260,13 @@ async def options_flow(secret: str = ""):
         "vix":               vix_ctx,
         "atm_iv":            round(atm_iv * 100, 1) if atm_iv else None,
         "iv_rank":           ivr,
+        "iv_sessions":       iv_sessions,       # IV Rank unlocks at 20
         "expected_move":     round(em, 1) if em else None,
         "spot":              round(spot, 1) if spot else None,
         "open_positions":    len(open_trades),
         "open_trades":       open_trades,
         "closed_recent":     closed_trades,
+        "last_check":        last_options_check(),
     }
 
 
