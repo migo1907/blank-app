@@ -1650,7 +1650,7 @@
     }
   },
   {
-    "received_at": "2026-06-22T18:00:13.235737+00:00",
+    "received_at": "2026-06-22T18:00:13.904200+00:00",
     "pool": "STOCKS_MOMENTUM_15M",
     "payload": {
       "secret": "gold2026",
@@ -1666,11 +1666,11 @@
       "ml_score": 0.375,
       "tier": null,
       "trade_id": "SMCI_1782151202043",
-      "outcome": "WIN",
-      "ml_outcome": "TP1_HIT",
+      "outcome": "PARTIAL",
+      "ml_outcome": "WIN",
       "mfe": 1.42,
-      "tp_stage": "TP1",
-      "exit_price": 36.4554,
+      "tp_stage": "SL_TP1",
+      "exit_price": 35.63,
       "f1": 0.5356,
       "f2": 0.9291,
       "f3": 0.9253,
