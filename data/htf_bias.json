@@ -81,13 +81,13 @@
     "expires_at": "2026-06-22T16:00:12.031407+00:00"
   },
   "MSFT_30": {
-    "direction": "LONG",
+    "direction": "SHORT",
     "timeframe": "30",
     "symbol": "MSFT",
-    "trigger": "LIQ",
-    "ml_score": 0.5,
-    "stored_at": "2026-06-22T14:00:12.717465+00:00",
-    "expires_at": "2026-06-22T16:00:12.717480+00:00"
+    "trigger": "BOS",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-22T15:00:06.962018+00:00",
+    "expires_at": "2026-06-22T17:00:06.962040+00:00"
   },
   "US500_240": {
     "direction": "LONG",
@@ -144,13 +144,13 @@
     "expires_at": "2026-06-22T16:00:27.688011+00:00"
   },
   "US500_30": {
-    "direction": "LONG",
+    "direction": "SHORT",
     "timeframe": "30",
     "symbol": "US500",
-    "trigger": "BOS",
-    "ml_score": 0.375,
-    "stored_at": "2026-06-22T14:00:27.833047+00:00",
-    "expires_at": "2026-06-22T16:00:27.833054+00:00"
+    "trigger": "FVG",
+    "ml_score": 0.25,
+    "stored_at": "2026-06-22T15:00:06.883269+00:00",
+    "expires_at": "2026-06-22T17:00:06.883292+00:00"
   },
   "BLNK_30": {
     "direction": "LONG",
