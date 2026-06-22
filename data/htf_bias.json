@@ -214,5 +214,23 @@
     "ml_score": 0.5,
     "stored_at": "2026-06-22T16:02:02.841847+00:00",
     "expires_at": "2026-06-22T18:02:02.841873+00:00"
+  },
+  "NOW_60": {
+    "direction": "SHORT",
+    "timeframe": "60",
+    "symbol": "NOW",
+    "trigger": "BOS",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-22T16:30:01.375940+00:00",
+    "expires_at": "2026-06-22T20:30:01.375958+00:00"
+  },
+  "CRM_60": {
+    "direction": "SHORT",
+    "timeframe": "60",
+    "symbol": "CRM",
+    "trigger": "BOS",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-22T16:30:14.099408+00:00",
+    "expires_at": "2026-06-22T20:30:14.099429+00:00"
   }
 }
