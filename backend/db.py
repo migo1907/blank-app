@@ -89,7 +89,10 @@ def _get_file(path: str) -> tuple[dict | list | None, str | None]:
         resp.raise_for_status()
     resp.raise_for_status()
     data = resp.json()
-    content = json.loads(base64.b64decode(data["content"]).decode())
+    decoded = base64.b64decode(data["content"]).decode().strip()
+    if not decoded:
+        return None, data["sha"]
+    content = json.loads(decoded)
     return content, data["sha"]
 
 

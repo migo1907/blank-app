@@ -58,9 +58,15 @@ def get_vix_context() -> dict:
         vix   = yf.Ticker("^VIX").history(period="1d")
         vix3m = yf.Ticker("^VIX3M").history(period="1d")
         vix9d = yf.Ticker("^VIX9D").history(period="1d")
-        if len(vix) and len(vix3m):
-            v, v3 = float(vix["Close"].iloc[-1]), float(vix3m["Close"].iloc[-1])
-            v9 = float(vix9d["Close"].iloc[-1]) if len(vix9d) else None
+        _v_raw  = float(vix["Close"].iloc[-1])  if len(vix)  else None
+        _v3_raw = float(vix3m["Close"].iloc[-1]) if len(vix3m) else None
+        _v9_raw = float(vix9d["Close"].iloc[-1]) if len(vix9d) else None
+        # NaN guard (yfinance returns NaN rows from cloud IPs)
+        _nan = lambda x: x is None or x != x
+        v  = None if _nan(_v_raw)  else _v_raw
+        v3 = None if _nan(_v3_raw) else _v3_raw
+        v9 = None if _nan(_v9_raw) else _v9_raw
+        if v and v3:
             out.update({
                 "vix":          round(v, 2),
                 "vix3m":        round(v3, 2),
@@ -137,7 +143,11 @@ def _spx_chain(expiry: str):
                 import yfinance as yf, pandas as pd
                 spot = polygon_data.get_spot("I:SPX")
                 if not spot:
-                    spot = float(yf.Ticker("^SPX").history(period="1d")["Close"].iloc[-1])
+                    _spx_h = yf.Ticker("^SPX").history(period="1d")
+                    if len(_spx_h):
+                        spot = float(_spx_h["Close"].iloc[-1])
+                    if not spot or spot != spot:
+                        spot = None
                 calls_df = pd.DataFrame(chain_data["calls"])
                 puts_df  = pd.DataFrame(chain_data["puts"])
                 for df in (calls_df, puts_df):
@@ -155,7 +165,12 @@ def _spx_chain(expiry: str):
 
     import yfinance as yf
     tk   = yf.Ticker("^SPX")
-    spot = float(tk.history(period="1d")["Close"].iloc[-1])
+    _h   = tk.history(period="1d")
+    if not len(_h):
+        raise ValueError("^SPX history empty — yfinance cloud IP block")
+    spot = float(_h["Close"].iloc[-1])
+    if spot != spot:
+        raise ValueError("^SPX returned NaN")
     chain = tk.option_chain(expiry)
     return spot, chain
 
