@@ -74,6 +74,7 @@ html, body {
   -webkit-font-smoothing: antialiased;
   min-height: 100dvh;
   overflow-x: hidden;
+  overscroll-behavior-y: contain;
 }
 #root { display: flex; flex-direction: column; min-height: 100dvh; }
 
@@ -401,3 +402,34 @@ select.pro:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-d
 .menu-item.danger .m-ico{ color:var(--red); }
 @keyframes menuFade{ from{opacity:0} to{opacity:1} }
 @keyframes menuSlide{ from{transform:translateX(100%)} to{transform:translateX(0)} }
+
+/* ── VIEW TRANSITION (subtle, opacity-only → no sticky/containing-block issues) ── */
+.content { animation: viewIn .2s ease both; }
+@keyframes viewIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* ── TABLET / DESKTOP — centered column so content doesn't stretch ── */
+@media (min-width: 600px) {
+  .content { max-width: 720px; margin-inline: auto; }
+  .commentary-card, .vel, .event-card { max-width: 700px; margin-inline: auto; }
+  .bottom-nav {
+    max-width: 720px; left: 50%; transform: translateX(-50%);
+    border-left: 1px solid var(--border); border-right: 1px solid var(--border);
+    border-top-left-radius: var(--r-lg); border-top-right-radius: var(--r-lg);
+  }
+  .menu-fab { right: calc(50% - 360px + 14px) !important; }
+}
+@media (min-width: 900px) {
+  .content { max-width: 760px; }
+  .bottom-nav { max-width: 760px; }
+  .menu-fab { right: calc(50% - 380px + 14px) !important; }
+}
+
+/* ── REDUCED MOTION (accessibility) ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1923,7 +1923,7 @@ function MainApp({onLock}) {
       </div>
 
       {/* Menu button */}
-      <button onClick={()=>setMenu(true)} title="Menu" aria-label="Menu"
+      <button onClick={()=>setMenu(true)} title="Menu" aria-label="Menu" className="menu-fab"
         style={{position:'fixed', right:14, bottom:'calc(64px + env(safe-area-inset-bottom) + 12px)', zIndex:120,
           width:44, height:44, borderRadius:'50%', border:'1px solid var(--border-2)',
           background:'var(--surface)', color:'var(--text-hi)',
