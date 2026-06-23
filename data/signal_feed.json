@@ -1870,6 +1870,29 @@
       "htf_context": "with_bias",
       "session": "Pre-Market",
       "fired_at": "2026-06-23T12:45:07.492992+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "5",
+      "trigger": "BOS",
+      "symbol": "XAUUSD",
+      "entry_price": 4109.23,
+      "tp1": 4100.48,
+      "tp2": 4094.64,
+      "tp3": 4085.88,
+      "sl": 4117.98,
+      "ml_score": 0.625,
+      "tier": "\u2705 MED",
+      "quality_score": 0.4079,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": 0.0376,
+      "velocity": "CONFLICTED",
+      "event": "GEOPOLITICAL",
+      "htf_bias": null,
+      "contra_bias": null,
+      "htf_context": "scalp",
+      "session": "London/NY Overlap",
+      "fired_at": "2026-06-23T13:02:01.111017+00:00"
     }
   ]
 }
