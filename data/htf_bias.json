@@ -143,15 +143,6 @@
     "stored_at": "2026-06-23T05:02:01.862351+00:00",
     "expires_at": "2026-06-23T09:02:01.862359+00:00"
   },
-  "US500_30": {
-    "direction": "SHORT",
-    "timeframe": "30",
-    "symbol": "US500",
-    "trigger": "BOS",
-    "ml_score": 0.375,
-    "stored_at": "2026-06-23T08:00:18.421954+00:00",
-    "expires_at": "2026-06-23T10:00:18.421969+00:00"
-  },
   "US500_60": {
     "direction": "SHORT",
     "timeframe": "60",
