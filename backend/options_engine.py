@@ -57,7 +57,11 @@ SL_PREMIUM_MULT    = 0.5   # -50%
 IV_RANK_MAX        = 50.0
 VIX_HALF_SIZE      = 25.0
 TARGET_DELTA       = 0.25  # OTM strike target
-MIN_CONFIDENCE     = 0.62  # mirror system MIN_CONFIDENCE
+MIN_CONFIDENCE     = 0.0   # data-collection phase: collect every directional flip;
+                           # the ML gate (≥50 closed trades/pool) is the real quality
+                           # filter. Was 0.62 — that blocked every SPX signal, so the
+                           # paper layer never opened a trade. Restore ~0.55–0.62 after
+                           # enough data accumulates to train the options ML.
 
 
 # ── VIX regime ────────────────────────────────────────────────────────────────
