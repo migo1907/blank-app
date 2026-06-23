@@ -2380,6 +2380,37 @@
       "htf_context": "scalp",
       "session": "NYSE Afternoon",
       "fired_at": "2026-06-23T16:15:09.020735+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "15",
+      "trigger": "RSI",
+      "symbol": "HOOD",
+      "entry_price": 105.7,
+      "tp1": 108.07,
+      "tp2": 109.84,
+      "tp3": 112.2,
+      "sl": 103.33,
+      "ml_score": 0.625,
+      "tier": "\u2705 MED",
+      "quality_score": 0.4374,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.1073,
+      "velocity": "CONFLICTED",
+      "event": "WAR/CONFLICT",
+      "htf_bias": null,
+      "contra_bias": {
+        "direction": "SHORT",
+        "timeframe": "60",
+        "symbol": "HOOD",
+        "trigger": "RSI",
+        "ml_score": 0.75,
+        "stored_at": "2026-06-23T14:30:15.851836+00:00",
+        "expires_at": "2026-06-23T18:30:15.851848+00:00"
+      },
+      "htf_context": "counter_trend",
+      "session": "NYSE Afternoon",
+      "fired_at": "2026-06-23T16:15:12.021052+00:00"
     }
   ]
 }
