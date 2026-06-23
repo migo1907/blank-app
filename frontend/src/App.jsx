@@ -1897,7 +1897,7 @@ function OptionsTab() {
 
       {/* SPX 0-1DTE paper-trade pools */}
       <div className="card" style={{marginBottom:12}}>
-        <div className="card-title">SPX 0-1DTE Options Paper Trades</div>
+        <div className="card-title">SPX 0-1DTE Options <span style={{fontSize:11,color:'var(--gold)',fontWeight:600,background:'rgba(255,180,0,0.12)',borderRadius:4,padding:'2px 6px',marginLeft:6}}>PAPER TRADING</span></div>
         {opts.load&&!od.pools?<div style={{color:'var(--muted)',fontSize:13}}>Loading…</div>:
         Object.keys(optPools).length===0?<div style={{color:'var(--muted)',fontSize:13}}>No options data yet.</div>:(
           <table className="tbl"><thead><tr><th>Pool</th><th>Open</th><th>Closed</th><th>Win%</th><th>Gate</th></tr></thead>
