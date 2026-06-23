@@ -232,5 +232,41 @@
     "ml_score": 0.75,
     "stored_at": "2026-06-23T14:30:05.605947+00:00",
     "expires_at": "2026-06-23T18:30:05.605960+00:00"
+  },
+  "AAPL_60": {
+    "direction": "LONG",
+    "timeframe": "60",
+    "symbol": "AAPL",
+    "trigger": "LIQ",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-23T14:30:07.789435+00:00",
+    "expires_at": "2026-06-23T18:30:07.789448+00:00"
+  },
+  "MSTR_60": {
+    "direction": "SHORT",
+    "timeframe": "60",
+    "symbol": "MSTR",
+    "trigger": "BOS",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-23T14:30:10.576206+00:00",
+    "expires_at": "2026-06-23T18:30:10.576224+00:00"
+  },
+  "ADBE_60": {
+    "direction": "SHORT",
+    "timeframe": "60",
+    "symbol": "ADBE",
+    "trigger": "LIQ",
+    "ml_score": 0.25,
+    "stored_at": "2026-06-23T14:30:11.303069+00:00",
+    "expires_at": "2026-06-23T18:30:11.303084+00:00"
+  },
+  "QQQ_60": {
+    "direction": "SHORT",
+    "timeframe": "60",
+    "symbol": "QQQ",
+    "trigger": "RSI",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-23T14:30:12.545195+00:00",
+    "expires_at": "2026-06-23T18:30:12.545204+00:00"
   }
 }
