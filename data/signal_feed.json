@@ -1893,6 +1893,29 @@
       "htf_context": "scalp",
       "session": "London/NY Overlap",
       "fired_at": "2026-06-23T13:02:01.111017+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "5",
+      "trigger": "FVG",
+      "symbol": "XAUUSD",
+      "entry_price": 4117.52,
+      "tp1": 4127.59,
+      "tp2": 4134.3,
+      "tp3": 4144.36,
+      "sl": 4107.45,
+      "ml_score": 0.625,
+      "tier": "\u2705 MED",
+      "quality_score": 0.4551,
+      "quality_reason": "approved",
+      "news_score": -0.0525,
+      "velocity": "CONFLICTED",
+      "event": "GEOPOLITICAL",
+      "htf_bias": null,
+      "contra_bias": null,
+      "htf_context": "scalp",
+      "session": "London/NY Overlap",
+      "fired_at": "2026-06-23T13:32:04.484915+00:00"
     }
   ]
 }
