@@ -2790,6 +2790,37 @@
       "htf_context": "htf_direct",
       "session": "Off-Hours",
       "fired_at": "2026-06-23T23:02:00.758120+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "5",
+      "trigger": "FVG",
+      "symbol": "XAUUSD",
+      "entry_price": 4097.56,
+      "tp1": 4090.6,
+      "tp2": 4085.96,
+      "tp3": 4079.01,
+      "sl": 4104.52,
+      "ml_score": 0.625,
+      "tier": "\u2705 MED",
+      "quality_score": 0.4077,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.105,
+      "velocity": "CONFLICTED",
+      "event": "WAR/CONFLICT",
+      "htf_bias": {
+        "direction": "SHORT",
+        "timeframe": "30",
+        "symbol": "XAUUSD",
+        "trigger": "BOS",
+        "ml_score": 1.0,
+        "stored_at": "2026-06-23T23:02:00.504049+00:00",
+        "expires_at": "2026-06-24T01:02:00.504063+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "with_bias",
+      "session": "Off-Hours",
+      "fired_at": "2026-06-23T23:07:00.958446+00:00"
     }
   ]
 }
