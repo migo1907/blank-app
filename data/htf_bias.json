@@ -102,10 +102,10 @@
     "direction": "SHORT",
     "timeframe": "30",
     "symbol": "NVDA",
-    "trigger": "BOS",
-    "ml_score": 0.75,
-    "stored_at": "2026-06-23T14:00:05.742030+00:00",
-    "expires_at": "2026-06-23T16:00:05.742042+00:00"
+    "trigger": "FVG",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-23T14:30:02.252557+00:00",
+    "expires_at": "2026-06-23T16:30:02.252569+00:00"
   },
   "AMD_30": {
     "direction": "SHORT",
@@ -205,5 +205,23 @@
     "ml_score": 0.75,
     "stored_at": "2026-06-23T14:30:01.257778+00:00",
     "expires_at": "2026-06-23T18:30:01.257794+00:00"
+  },
+  "TSLA_60": {
+    "direction": "SHORT",
+    "timeframe": "60",
+    "symbol": "TSLA",
+    "trigger": "FVG",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-23T14:30:01.955267+00:00",
+    "expires_at": "2026-06-23T18:30:01.955280+00:00"
+  },
+  "SMCI_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "SMCI",
+    "trigger": "FVG",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-23T14:30:04.762672+00:00",
+    "expires_at": "2026-06-23T16:30:04.762689+00:00"
   }
 }
