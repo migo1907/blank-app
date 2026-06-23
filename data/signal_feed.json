@@ -2628,6 +2628,37 @@
       "htf_context": "htf_direct",
       "session": "NYSE Afternoon",
       "fired_at": "2026-06-23T19:00:11.359335+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "30",
+      "trigger": "FVG",
+      "symbol": "IBKR",
+      "entry_price": 94.93,
+      "tp1": 93.35,
+      "tp2": 92.2,
+      "tp3": 90.62,
+      "sl": 96.51,
+      "ml_score": 0.5,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.4013,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.21,
+      "velocity": "NORMAL",
+      "event": "GEOPOLITICAL",
+      "htf_bias": {
+        "direction": "SHORT",
+        "timeframe": "60",
+        "symbol": "IBKR",
+        "trigger": "RSI",
+        "ml_score": 0.625,
+        "stored_at": "2026-06-23T17:30:36.605831+00:00",
+        "expires_at": "2026-06-23T21:30:36.605856+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "htf_direct",
+      "session": "NYSE Afternoon",
+      "fired_at": "2026-06-23T19:00:29.072995+00:00"
     }
   ]
 }
