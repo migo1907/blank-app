@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-06-23T22:20:26.878065+00:00",
+  "checked_at": "2026-06-23T23:32:30.705370+00:00",
   "health": {
     "status_code": 200,
     "data": {
@@ -242,11 +242,11 @@
           "shifting": false,
           "probs": {
             "RANGING": 0.96,
-            "TRENDING_BEAR": 0.039,
-            "VOLATILE": 0.001
+            "TRENDING_BEAR": 0.036,
+            "VOLATILE": 0.004
           },
           "method": "hmm",
-          "updated_at": "2026-06-23T21:45:09.811438+00:00"
+          "updated_at": "2026-06-23T22:45:07.107016+00:00"
         },
         "SPY": {
           "asset": "SPY",
@@ -261,7 +261,7 @@
             "VOLATILE": 0.995
           },
           "method": "hmm",
-          "updated_at": "2026-06-23T21:45:10.785009+00:00"
+          "updated_at": "2026-06-23T22:45:08.163814+00:00"
         },
         "QQQ": {
           "asset": "QQQ",
@@ -276,7 +276,7 @@
             "VOLATILE": 1.0
           },
           "method": "hmm",
-          "updated_at": "2026-06-23T21:45:12.248217+00:00"
+          "updated_at": "2026-06-23T22:45:09.165463+00:00"
         }
       },
       "mtf": {
@@ -289,7 +289,7 @@
           },
           "weighted": -1.0,
           "bias": "BEAR",
-          "updated_at": "2026-06-23T21:45:14.720619+00:00",
+          "updated_at": "2026-06-23T22:45:11.623817+00:00",
           "method": "yfinance"
         },
         "SPY": {
@@ -301,7 +301,7 @@
           },
           "weighted": 0.0,
           "bias": "NEUTRAL",
-          "updated_at": "2026-06-23T21:45:15.486293+00:00",
+          "updated_at": "2026-06-23T22:45:12.371095+00:00",
           "method": "yfinance"
         },
         "QQQ": {
@@ -313,7 +313,7 @@
           },
           "weighted": 0.167,
           "bias": "BULL",
-          "updated_at": "2026-06-23T21:45:16.196181+00:00",
+          "updated_at": "2026-06-23T22:45:13.138189+00:00",
           "method": "yfinance"
         }
       },
@@ -329,8 +329,8 @@
         },
         "dxy_break": {
           "direction": "UP",
-          "strength": 0.161,
-          "level": 101.359
+          "strength": 0.175,
+          "level": 101.39
         }
       }
     }
