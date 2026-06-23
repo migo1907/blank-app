@@ -1839,6 +1839,37 @@
       "htf_context": "counter_trend",
       "session": "Pre-Market",
       "fired_at": "2026-06-23T11:45:05.320313+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "15",
+      "trigger": "FVG",
+      "symbol": "US500",
+      "entry_price": 7366.1,
+      "tp1": 7345.13,
+      "tp2": 7329.41,
+      "tp3": 7308.44,
+      "sl": 7387.07,
+      "ml_score": 0.25,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.4322,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.0854,
+      "velocity": "CONFLICTED",
+      "event": "WAR/CONFLICT",
+      "htf_bias": {
+        "direction": "SHORT",
+        "timeframe": "240",
+        "symbol": "US500",
+        "trigger": "FVG",
+        "ml_score": 0.5,
+        "stored_at": "2026-06-23T06:00:14.925969+00:00",
+        "expires_at": "2026-06-23T14:00:14.925984+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "with_bias",
+      "session": "Pre-Market",
+      "fired_at": "2026-06-23T12:45:07.492992+00:00"
     }
   ]
 }
