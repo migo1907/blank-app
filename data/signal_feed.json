@@ -2093,6 +2093,37 @@
       "htf_context": "htf_direct",
       "session": "NYSE Open",
       "fired_at": "2026-06-23T14:30:08.088307+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "60",
+      "trigger": "LIQ",
+      "symbol": "ADBE",
+      "entry_price": 196.63,
+      "tp1": 189.45,
+      "tp2": 183.71,
+      "tp3": 176.53,
+      "sl": 203.81,
+      "ml_score": 0.25,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.6644,
+      "quality_reason": "approved",
+      "news_score": -0.004,
+      "velocity": "CONFLICTED",
+      "event": "GEOPOLITICAL",
+      "htf_bias": {
+        "direction": "SHORT",
+        "timeframe": "60",
+        "symbol": "ADBE",
+        "trigger": "LIQ",
+        "ml_score": 0.25,
+        "stored_at": "2026-06-23T14:30:11.303069+00:00",
+        "expires_at": "2026-06-23T18:30:11.303084+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "htf_direct",
+      "session": "NYSE Open",
+      "fired_at": "2026-06-23T14:30:11.305258+00:00"
     }
   ]
 }
