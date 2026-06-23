@@ -111,10 +111,10 @@
     "direction": "SHORT",
     "timeframe": "30",
     "symbol": "AMD",
-    "trigger": "RSI",
+    "trigger": "FVG",
     "ml_score": 0.375,
-    "stored_at": "2026-06-23T14:00:07.597830+00:00",
-    "expires_at": "2026-06-23T16:00:07.597845+00:00"
+    "stored_at": "2026-06-23T14:30:15.563469+00:00",
+    "expires_at": "2026-06-23T16:30:15.563481+00:00"
   },
   "TSLL_30": {
     "direction": "SHORT",
@@ -277,5 +277,23 @@
     "ml_score": 0.5,
     "stored_at": "2026-06-23T14:30:14.054084+00:00",
     "expires_at": "2026-06-23T16:30:14.054100+00:00"
+  },
+  "HOOD_60": {
+    "direction": "SHORT",
+    "timeframe": "60",
+    "symbol": "HOOD",
+    "trigger": "RSI",
+    "ml_score": 0.75,
+    "stored_at": "2026-06-23T14:30:15.851836+00:00",
+    "expires_at": "2026-06-23T18:30:15.851848+00:00"
+  },
+  "MSFT_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "MSFT",
+    "trigger": "FVG",
+    "ml_score": 0.125,
+    "stored_at": "2026-06-23T14:30:15.909990+00:00",
+    "expires_at": "2026-06-23T16:30:15.910000+00:00"
   }
 }
