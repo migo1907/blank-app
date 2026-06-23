@@ -1648,6 +1648,8 @@ function CalendarTab() {
 
       {view==='economic' && (
         eco.load&&!eco.data ? <Spinner/> :
+        eco.err ? <div className="empty"><span className="emoji">⚠️</span><div className="title">Calendar unavailable</div><div className="sub">{eco.err.message||String(eco.err)}</div></div> :
+        days.length===0 && eco.data?.error ? <div className="empty"><span className="emoji">⚠️</span><div className="title">Calendar feed blocked</div><div className="sub">{eco.data.error}</div></div> :
         days.length===0 ? <div className="empty"><span className="emoji">📆</span><div className="title">No high-impact US events this week</div><div className="sub">Check back as the week's calendar fills in.</div></div> :
         days.map(d=>{
           const dd = byDay[d]

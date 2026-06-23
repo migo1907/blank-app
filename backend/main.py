@@ -2127,22 +2127,13 @@ def market_sparklines(secret: str = ""):
 
 @app.get("/calendar/economic")
 def calendar_economic(secret: str = ""):
-    """This-week high/medium-impact US economic events (Forex Factory feed), Dubai time."""
+    """This-week high/medium-impact US economic events. Forex Factory primary, Finnhub fallback."""
     _validate_secret(secret)
     import httpx
     from datetime import datetime as _dt, timezone as _tz, timedelta as _td
-    url = "https://nfs.faireconomy.media/ff_calendar_thisweek.json"
-    out = []
-    try:
-        with httpx.Client(timeout=12, follow_redirects=True) as client:
-            resp = client.get(url, headers={
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-                "Accept": "application/json, text/plain, */*",
-                "Accept-Language": "en-US,en;q=0.9",
-                "Referer": "https://www.forexfactory.com/",
-            })
-            resp.raise_for_status()
-            data = resp.json() or []
+
+    def _parse_ff(data: list) -> list:
+        out = []
         for ev in data:
             impact = (ev.get("impact") or "").lower()
             if impact not in ("high", "medium"):
@@ -2155,20 +2146,93 @@ def calendar_economic(secret: str = ""):
                 continue
             dubai = ts + _td(hours=4)
             out.append({
-                "date":        dubai.strftime("%Y-%m-%d"),
-                "weekday":     dubai.strftime("%a"),
-                "time_dubai":  dubai.strftime("%H:%M"),
-                "ts":          ts.isoformat(),
-                "name":        ev.get("title") or ev.get("event") or "Event",
-                "impact":      impact,
-                "forecast":    ev.get("forecast") or "",
-                "previous":    ev.get("previous") or "",
-                "actual":      ev.get("actual") or "",
+                "date":       dubai.strftime("%Y-%m-%d"),
+                "weekday":    dubai.strftime("%a"),
+                "time_dubai": dubai.strftime("%H:%M"),
+                "ts":         ts.isoformat(),
+                "name":       ev.get("title") or ev.get("event") or "Event",
+                "impact":     impact,
+                "forecast":   ev.get("forecast") or "",
+                "previous":   ev.get("previous") or "",
+                "actual":     ev.get("actual") or "",
             })
-        out.sort(key=lambda x: x["ts"])
+        return out
+
+    def _parse_finnhub(data: list) -> list:
+        out = []
+        _impact_map = {"high": "high", "medium": "medium", "low": None}
+        for ev in data:
+            if (ev.get("country") or "").upper() not in ("US", "USD", "USA"):
+                continue
+            impact = _impact_map.get((ev.get("impact") or "").lower())
+            if not impact:
+                continue
+            raw_time = ev.get("time") or ""
+            try:
+                ts = _dt.fromisoformat(f"{ev['date']}T{raw_time or '00:00'}:00+00:00")
+            except Exception:
+                try:
+                    ts = _dt.strptime(ev.get("date",""), "%Y-%m-%d").replace(tzinfo=_tz.utc)
+                except Exception:
+                    continue
+            dubai = ts + _td(hours=4)
+            out.append({
+                "date":       dubai.strftime("%Y-%m-%d"),
+                "weekday":    dubai.strftime("%a"),
+                "time_dubai": dubai.strftime("%H:%M") if raw_time else "All day",
+                "ts":         ts.isoformat(),
+                "name":       ev.get("event") or "Event",
+                "impact":     impact,
+                "forecast":   str(ev.get("estimate") or ""),
+                "previous":   str(ev.get("prev") or ""),
+                "actual":     str(ev.get("actual") or ""),
+            })
+        return out
+
+    ff_err = None
+    out = []
+
+    # Primary: Forex Factory
+    try:
+        with httpx.Client(timeout=10, follow_redirects=True) as client:
+            resp = client.get(
+                "https://nfs.faireconomy.media/ff_calendar_thisweek.json",
+                headers={
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                    "Accept": "application/json, text/plain, */*",
+                    "Referer": "https://www.forexfactory.com/",
+                },
+            )
+            resp.raise_for_status()
+            out = _parse_ff(resp.json() or [])
     except Exception as e:
-        return {"events": [], "tz": "Dubai (UTC+4)", "error": str(e)}
-    return {"events": out, "tz": "Dubai (UTC+4)"}
+        ff_err = str(e)
+
+    # Fallback: Finnhub economic calendar
+    if not out:
+        try:
+            from news_fetcher import FINNHUB_KEY
+            if FINNHUB_KEY:
+                today = _dt.now(_tz.utc).date()
+                frm   = today.isoformat()
+                to    = (today + _td(days=7)).isoformat()
+                with httpx.Client(timeout=10) as client:
+                    resp = client.get(
+                        "https://finnhub.io/api/v1/calendar/economic",
+                        params={"from": frm, "to": to, "token": FINNHUB_KEY},
+                    )
+                    resp.raise_for_status()
+                    out = _parse_finnhub(resp.json().get("economicCalendar", []) or [])
+        except Exception:
+            pass
+
+    out.sort(key=lambda x: x["ts"])
+    result = {"events": out, "tz": "Dubai (UTC+4)"}
+    if ff_err and not out:
+        result["error"] = f"Forex Factory blocked ({ff_err}); Finnhub fallback also empty"
+    elif ff_err:
+        result["source"] = "finnhub"
+    return result
 
 
 # Curated large/mega-cap universe for the earnings calendar (symbol → display name)
