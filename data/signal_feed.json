@@ -1808,6 +1808,37 @@
       "htf_context": "scalp",
       "session": "London",
       "fired_at": "2026-06-23T11:02:01.879146+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "15",
+      "trigger": "RSI",
+      "symbol": "US500",
+      "entry_price": 7381.8,
+      "tp1": 7402.22,
+      "tp2": 7417.53,
+      "tp3": 7437.94,
+      "sl": 7361.38,
+      "ml_score": 0.625,
+      "tier": "\u2705 MED",
+      "quality_score": 0.4005,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.1197,
+      "velocity": "CONFLICTED",
+      "event": "WAR/CONFLICT",
+      "htf_bias": null,
+      "contra_bias": {
+        "direction": "SHORT",
+        "timeframe": "240",
+        "symbol": "US500",
+        "trigger": "FVG",
+        "ml_score": 0.5,
+        "stored_at": "2026-06-23T06:00:14.925969+00:00",
+        "expires_at": "2026-06-23T14:00:14.925984+00:00"
+      },
+      "htf_context": "counter_trend",
+      "session": "Pre-Market",
+      "fired_at": "2026-06-23T11:45:05.320313+00:00"
     }
   ]
 }
