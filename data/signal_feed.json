@@ -2194,6 +2194,37 @@
       "htf_context": "with_bias",
       "session": "NYSE Open",
       "fired_at": "2026-06-23T15:00:05.229251+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "15",
+      "trigger": "FVG",
+      "symbol": "TSLL",
+      "entry_price": 12.07,
+      "tp1": 11.63,
+      "tp2": 11.31,
+      "tp3": 10.88,
+      "sl": 12.5,
+      "ml_score": 0.75,
+      "tier": "\u2b50 HIGH",
+      "quality_score": 0.4307,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.0754,
+      "velocity": "CONFLICTED",
+      "event": "GEOPOLITICAL",
+      "htf_bias": {
+        "direction": "SHORT",
+        "timeframe": "60",
+        "symbol": "TSLL",
+        "trigger": "FVG",
+        "ml_score": 0.75,
+        "stored_at": "2026-06-23T14:30:05.605947+00:00",
+        "expires_at": "2026-06-23T18:30:05.605960+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "with_bias",
+      "session": "NYSE Open",
+      "fired_at": "2026-06-23T15:15:12.773291+00:00"
     }
   ]
 }
