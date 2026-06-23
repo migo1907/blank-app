@@ -2682,6 +2682,29 @@
       "htf_context": "scalp",
       "session": "New York",
       "fired_at": "2026-06-23T19:07:03.129183+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "5",
+      "trigger": "FVG",
+      "symbol": "XAUUSD",
+      "entry_price": 4119.46,
+      "tp1": 4113.78,
+      "tp2": 4109.99,
+      "tp3": 4104.3,
+      "sl": 4125.14,
+      "ml_score": 0.875,
+      "tier": "\u2b50 HIGH",
+      "quality_score": 0.4618,
+      "quality_reason": "approved",
+      "news_score": -0.3393,
+      "velocity": "NORMAL",
+      "event": "GEOPOLITICAL",
+      "htf_bias": null,
+      "contra_bias": null,
+      "htf_context": "scalp",
+      "session": "New York",
+      "fired_at": "2026-06-23T19:22:01.989855+00:00"
     }
   ]
 }
