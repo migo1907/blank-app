@@ -151,5 +151,14 @@
     "ml_score": 0.25,
     "stored_at": "2026-06-23T05:00:11.998657+00:00",
     "expires_at": "2026-06-23T07:00:11.998669+00:00"
+  },
+  "XAUUSD_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "XAUUSD",
+    "trigger": "BOS",
+    "ml_score": 0.875,
+    "stored_at": "2026-06-23T05:02:01.884085+00:00",
+    "expires_at": "2026-06-23T07:02:01.884092+00:00"
   }
 }
