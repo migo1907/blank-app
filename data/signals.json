@@ -2990,7 +2990,7 @@
     "mtf_confluence": "mtf:0/3\u26a0",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BEAR(TREND_FOLLOW)\u00d71.15 | hmm:RANGING(1.00)\u00d71.00 | imkt:VIX-NORMAL(19.87)\u00d70.89 | mtf:0/3\u26a0\u00d70.85 | evt:na\u00d71.00 | sess:PRE_MARKET\u00d70.90 | confluence\u00d71.14 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-0.97) | news:neutral(-0.152) | macro:NEUTRAL(+0.042) | combined:-0.029 \u2192 conf:0.300 \u26a1 GEOPOLITICAL",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-23T12:29:03.330249+00:00",
     "created_at": "2026-06-23T11:59:04.924381+00:00",
     "id": 101
@@ -3024,7 +3024,7 @@
     "mtf_confluence": "mtf:2/3",
     "post_event": "evt:na",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:TRENDING_BEAR(PULLBACK_LONG)\u00d70.80 | hmm:RANGING(1.00)\u00d71.00 | imkt:VIX-NORMAL(19.87)\u00d70.89 | mtf:2/3\u00d71.03 | evt:na\u00d71.00 | sess:PRE_MARKET\u00d70.90 | confluence\u00d70.80 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-0.95) | news:neutral(-0.152) | macro:NEUTRAL(+0.042) | combined:+0.164 \u2192 conf:0.300 \u26a1 GEOPOLITICAL",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-23T12:29:06.625435+00:00",
     "created_at": "2026-06-23T11:59:06.975482+00:00",
     "id": 101
