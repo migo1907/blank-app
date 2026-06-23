@@ -2127,22 +2127,13 @@ def market_sparklines(secret: str = ""):
 
 @app.get("/calendar/economic")
 def calendar_economic(secret: str = ""):
-    """This-week high/medium-impact US economic events (Forex Factory feed), Dubai time."""
+    """This-week high/medium-impact US economic events. Forex Factory primary, Finnhub fallback."""
     _validate_secret(secret)
     import httpx
     from datetime import datetime as _dt, timezone as _tz, timedelta as _td
-    url = "https://nfs.faireconomy.media/ff_calendar_thisweek.json"
-    out = []
-    try:
-        with httpx.Client(timeout=12, follow_redirects=True) as client:
-            resp = client.get(url, headers={
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-                "Accept": "application/json, text/plain, */*",
-                "Accept-Language": "en-US,en;q=0.9",
-                "Referer": "https://www.forexfactory.com/",
-            })
-            resp.raise_for_status()
-            data = resp.json() or []
+
+    def _parse_ff(data: list) -> list:
+        out = []
         for ev in data:
             impact = (ev.get("impact") or "").lower()
             if impact not in ("high", "medium"):
@@ -2155,20 +2146,93 @@ def calendar_economic(secret: str = ""):
                 continue
             dubai = ts + _td(hours=4)
             out.append({
-                "date":        dubai.strftime("%Y-%m-%d"),
-                "weekday":     dubai.strftime("%a"),
-                "time_dubai":  dubai.strftime("%H:%M"),
-                "ts":          ts.isoformat(),
-                "name":        ev.get("title") or ev.get("event") or "Event",
-                "impact":      impact,
-                "forecast":    ev.get("forecast") or "",
-                "previous":    ev.get("previous") or "",
-                "actual":      ev.get("actual") or "",
+                "date":       dubai.strftime("%Y-%m-%d"),
+                "weekday":    dubai.strftime("%a"),
+                "time_dubai": dubai.strftime("%H:%M"),
+                "ts":         ts.isoformat(),
+                "name":       ev.get("title") or ev.get("event") or "Event",
+                "impact":     impact,
+                "forecast":   ev.get("forecast") or "",
+                "previous":   ev.get("previous") or "",
+                "actual":     ev.get("actual") or "",
             })
-        out.sort(key=lambda x: x["ts"])
+        return out
+
+    def _parse_finnhub(data: list) -> list:
+        out = []
+        _impact_map = {"high": "high", "medium": "medium", "low": None}
+        for ev in data:
+            if (ev.get("country") or "").upper() not in ("US", "USD", "USA"):
+                continue
+            impact = _impact_map.get((ev.get("impact") or "").lower())
+            if not impact:
+                continue
+            raw_time = ev.get("time") or ""
+            try:
+                ts = _dt.fromisoformat(f"{ev['date']}T{raw_time or '00:00'}:00+00:00")
+            except Exception:
+                try:
+                    ts = _dt.strptime(ev.get("date",""), "%Y-%m-%d").replace(tzinfo=_tz.utc)
+                except Exception:
+                    continue
+            dubai = ts + _td(hours=4)
+            out.append({
+                "date":       dubai.strftime("%Y-%m-%d"),
+                "weekday":    dubai.strftime("%a"),
+                "time_dubai": dubai.strftime("%H:%M") if raw_time else "All day",
+                "ts":         ts.isoformat(),
+                "name":       ev.get("event") or "Event",
+                "impact":     impact,
+                "forecast":   str(ev.get("estimate") or ""),
+                "previous":   str(ev.get("prev") or ""),
+                "actual":     str(ev.get("actual") or ""),
+            })
+        return out
+
+    ff_err = None
+    out = []
+
+    # Primary: Forex Factory
+    try:
+        with httpx.Client(timeout=10, follow_redirects=True) as client:
+            resp = client.get(
+                "https://nfs.faireconomy.media/ff_calendar_thisweek.json",
+                headers={
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                    "Accept": "application/json, text/plain, */*",
+                    "Referer": "https://www.forexfactory.com/",
+                },
+            )
+            resp.raise_for_status()
+            out = _parse_ff(resp.json() or [])
     except Exception as e:
-        return {"events": [], "tz": "Dubai (UTC+4)", "error": str(e)}
-    return {"events": out, "tz": "Dubai (UTC+4)"}
+        ff_err = str(e)
+
+    # Fallback: Finnhub economic calendar
+    if not out:
+        try:
+            from news_fetcher import FINNHUB_KEY
+            if FINNHUB_KEY:
+                today = _dt.now(_tz.utc).date()
+                frm   = today.isoformat()
+                to    = (today + _td(days=7)).isoformat()
+                with httpx.Client(timeout=10) as client:
+                    resp = client.get(
+                        "https://finnhub.io/api/v1/calendar/economic",
+                        params={"from": frm, "to": to, "token": FINNHUB_KEY},
+                    )
+                    resp.raise_for_status()
+                    out = _parse_finnhub(resp.json().get("economicCalendar", []) or [])
+        except Exception:
+            pass
+
+    out.sort(key=lambda x: x["ts"])
+    result = {"events": out, "tz": "Dubai (UTC+4)"}
+    if ff_err and not out:
+        result["error"] = f"Forex Factory blocked ({ff_err}); Finnhub fallback also empty"
+    elif ff_err:
+        result["source"] = "finnhub"
+    return result
 
 
 # Curated large/mega-cap universe for the earnings calendar (symbol → display name)
@@ -2189,32 +2253,83 @@ _EARNINGS_MAJORS = {
 }
 
 
+def _yf_eps_surprise(sym: str):
+    """Return last-quarter EPS surprise % and beat/miss for a symbol via yfinance."""
+    try:
+        import yfinance as yf
+        tk = yf.Ticker(sym)
+        hist = tk.earnings_history
+        if hist is None or hist.empty:
+            return None, None
+        # earnings_history cols: epsActual, epsEstimate, epsDifference, surprisePercent
+        row = hist.iloc[-1]
+        surprise_pct = float(row.get("surprisePercent", 0) or 0) * 100
+        eps_actual   = float(row.get("epsActual", 0) or 0)
+        eps_estimate = float(row.get("epsEstimate", 0) or 0)
+        beat = "BEAT" if surprise_pct > 1 else ("MISS" if surprise_pct < -1 else "IN-LINE")
+        return round(surprise_pct, 1), beat
+    except Exception:
+        return None, None
+
+
 @app.get("/calendar/earnings")
 def calendar_earnings(secret: str = ""):
-    """Upcoming earnings (next 7 days) for major caps, via Finnhub earnings calendar."""
+    """Upcoming earnings (next 7 days) for major caps. Finnhub for dates/estimates + yfinance for last-quarter surprise."""
     _validate_secret(secret)
     import httpx
     from datetime import datetime as _dt, timezone as _tz, timedelta as _td
     from news_fetcher import FINNHUB_KEY
-    if not FINNHUB_KEY:
-        return {"earnings": [], "error": "FINNHUB_KEY not set"}
     today = _dt.now(_tz.utc).date()
     frm, to = today.isoformat(), (today + _td(days=7)).isoformat()
-    try:
-        with httpx.Client(timeout=12) as client:
-            resp = client.get("https://finnhub.io/api/v1/calendar/earnings", params={
-                "from": frm, "to": to, "token": FINNHUB_KEY,
-            })
-            resp.raise_for_status()
-            data = resp.json().get("earningsCalendar", []) or []
-    except Exception as e:
-        return {"earnings": [], "from": frm, "to": to, "error": str(e)}
+
+    # Primary: Finnhub earnings calendar
+    data = []
+    source_err = None
+    if FINNHUB_KEY:
+        try:
+            with httpx.Client(timeout=12) as client:
+                resp = client.get("https://finnhub.io/api/v1/calendar/earnings", params={
+                    "from": frm, "to": to, "token": FINNHUB_KEY,
+                })
+                resp.raise_for_status()
+                data = resp.json().get("earningsCalendar", []) or []
+        except Exception as e:
+            source_err = str(e)
+
+    # Fallback: yfinance upcoming earnings dates for curated list
+    if not data:
+        import yfinance as yf
+        for sym in _EARNINGS_MAJORS:
+            try:
+                tk = yf.Ticker(sym)
+                dates = tk.get_earnings_dates(limit=4)
+                if dates is None or dates.empty:
+                    continue
+                for idx_dt, row in dates.iterrows():
+                    # Only future dates within our window
+                    try:
+                        ev_date = idx_dt.date() if hasattr(idx_dt, "date") else None
+                    except Exception:
+                        continue
+                    if ev_date and today <= ev_date <= today + _td(days=7):
+                        data.append({
+                            "symbol": sym,
+                            "date": ev_date.isoformat(),
+                            "hour": "",
+                            "epsEstimate": row.get("EPS Estimate"),
+                            "epsActual": row.get("Reported EPS"),
+                            "revenueEstimate": None,
+                        })
+            except Exception:
+                continue
+
     _HR = {"bmo": "Pre-mkt", "amc": "After-close", "dmh": "Mid-day"}
     out = []
     for ev in data:
         sym = (ev.get("symbol") or "").upper()
         if sym not in _EARNINGS_MAJORS:
             continue
+        surprise_pct, beat_miss = _yf_eps_surprise(sym)
         out.append({
             "symbol":       sym,
             "name":         _EARNINGS_MAJORS[sym],
@@ -2223,9 +2338,16 @@ def calendar_earnings(secret: str = ""):
             "eps_estimate": ev.get("epsEstimate"),
             "eps_actual":   ev.get("epsActual"),
             "rev_estimate": ev.get("revenueEstimate"),
+            "last_surprise_pct": surprise_pct,
+            "last_beat_miss":    beat_miss,
         })
     out.sort(key=lambda x: (x["date"] or "", x["symbol"]))
-    return {"earnings": out, "from": frm, "to": to}
+    result = {"earnings": out, "from": frm, "to": to}
+    if source_err and not out:
+        result["error"] = f"Finnhub failed ({source_err}); yfinance fallback also empty"
+    elif source_err:
+        result["source"] = "yfinance_fallback"
+    return result
 
 
 @app.get("/options/flow")
