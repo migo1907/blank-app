@@ -1735,7 +1735,13 @@ function OptionsTab() {
   const open   = data?.open_trades || []
   const closed = data?.closed_recent || []
   const pc     = data?.put_call_ratio
-  const od     = opts.data||{}, optPools = od.pools||{}
+  // stats() returns {SPX_0DTE, SPX_1DTE, ALL, ...} — build pools map from that
+  const od     = opts.data || {}
+  const optPools = od.SPX_0DTE || od.SPX_1DTE
+    ? { 'SPX_0DTE': od.SPX_0DTE||{}, 'SPX_1DTE': od.SPX_1DTE||{} }
+    : {}
+  // open_positions come from options/flow data
+  const openPositions = data?.open_positions || []
 
   return (
     <div className="content">
@@ -1898,10 +1904,10 @@ function OptionsTab() {
           <tbody>{Object.entries(optPools).map(([pool,ps])=>(
             <tr key={pool}>
               <td style={{fontSize:11,fontWeight:700}}>{pool}</td>
-              <td>{ps.open||0}</td>
-              <td>{ps.closed||0}</td>
-              <td style={{color:(ps.win_rate||0)>0.5?'var(--green)':'var(--red)',fontWeight:700}}>{((ps.win_rate||0)*100).toFixed(1)}%</td>
-              <td>{ps.ml_gate_active?<span className="bdg bdg-bull">Active</span>:<span style={{color:'var(--muted)',fontSize:11}}>⏳{50-(ps.closed||0)}</span>}</td>
+              <td>{ps.n_open||0}</td>
+              <td>{ps.n_closed||0}</td>
+              <td style={{color:(ps.win_rate||0)>0.5?'var(--green)':'var(--red)',fontWeight:700}}>{ps.win_rate!=null?((ps.win_rate)*100).toFixed(1)+'%':'—'}</td>
+              <td>{ps.ready?<span className="bdg bdg-bull">Active</span>:<span style={{color:'var(--muted)',fontSize:11}}>⏳{50-(ps.n_closed||0)} left</span>}</td>
             </tr>
           ))}</tbody></table>
         )}
@@ -1914,11 +1920,11 @@ function OptionsTab() {
         )}
       </div>
 
-      {od.open_positions?.length>0&&(
-        <div className="card">
-          <div className="card-title">Open Options Positions ({od.open_positions.length})</div>
+      {openPositions.length>0&&(
+        <div className="card" style={{marginBottom:12}}>
+          <div className="card-title">Open Options Positions ({openPositions.length})</div>
           <table className="tbl"><thead><tr><th>Pool</th><th>Dir</th><th>Strike</th><th>DTE</th><th>Entry</th><th>Age</th></tr></thead>
-          <tbody>{od.open_positions.map((p,i)=>(
+          <tbody>{openPositions.map((p,i)=>(
             <tr key={i}>
               <td style={{fontSize:11}}>{p.pool||''}</td>
               <td style={{color:p.direction==='CALL'?'var(--green)':'var(--red)',fontWeight:700}}>{p.direction}</td>
@@ -1928,6 +1934,30 @@ function OptionsTab() {
               <td style={{color:'var(--muted)',fontSize:11}}>{age(p.entry_time)}</td>
             </tr>
           ))}</tbody></table>
+        </div>
+      )}
+
+      {/* Recent closed paper trades from ledger */}
+      {(od.ALL?.n_closed||0)>0&&(
+        <div className="card">
+          <div className="card-title">Recent Paper Trades — All ({od.ALL.n_closed} closed · {od.ALL.win_rate!=null?((od.ALL.win_rate)*100).toFixed(1)+'% win':''})</div>
+          <table className="tbl"><thead><tr><th>Type</th><th>Dir</th><th>Strike</th><th>DTE</th><th>Entry</th><th>Exit</th><th>P&L</th><th>Result</th></tr></thead>
+          <tbody>{(data?.closed_recent||[]).map((p,i)=>{
+            const pnl=p.pnl_pct
+            return (
+            <tr key={i}>
+              <td style={{fontSize:11}}>{p.type||'—'}</td>
+              <td style={{color:p.direction==='LONG'?'var(--green)':'var(--red)',fontWeight:700}}>{p.direction}</td>
+              <td style={{color:'var(--gold)'}}>{p.strike||'—'}</td>
+              <td>{p.dte??'—'}</td>
+              <td>${n(p.entry_premium,2)}</td>
+              <td>${n(p.exit_premium,2)}</td>
+              <td style={{color:pnl>0?'var(--green)':'var(--red)',fontWeight:700}}>{pnl!=null?(pnl>0?'+':'')+pnl.toFixed(1)+'%':'—'}</td>
+              <td style={{fontSize:11,color:p.loss_reason==='WIN'?'var(--green)':'var(--muted)'}}>{p.exit_reason||p.loss_reason||'—'}</td>
+            </tr>
+          )})}
+          </tbody></table>
+          {(!data?.closed_recent||data.closed_recent.length===0)&&<div style={{color:'var(--muted)',fontSize:12,marginTop:8}}>Closed trade details load from /options/flow endpoint.</div>}
         </div>
       )}
     </div>
