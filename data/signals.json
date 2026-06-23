@@ -3142,7 +3142,7 @@
     "mtf_confluence": "mtf:3/3",
     "post_event": "evt:na",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:RANGING(RANGING)\u00d70.82 | hmm:TRENDING_BULL(0.97)\u00d71.05 | imkt:na\u00d71.00 | mtf:3/3\u00d71.08 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d71.15 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.05) | news:neutral(-0.045) | macro:NEUTRAL(+0.042) | combined:+0.188 \u2192 conf:0.300 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-23T04:59:11.646859+00:00",
     "created_at": "2026-06-23T04:29:15.199016+00:00",
     "id": 101
@@ -3176,7 +3176,7 @@
     "mtf_confluence": "mtf:2/3",
     "post_event": "evt:na",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:TRENDING_BEAR(PULLBACK_LONG)\u00d70.80 | hmm:RANGING(1.00)\u00d71.00 | imkt:na\u00d71.00 | mtf:2/3\u00d71.03 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.55 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-0.83) | news:neutral(-0.045) | macro:NEUTRAL(+0.042) | combined:+0.188 \u2192 conf:0.300 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-23T04:59:16.772573+00:00",
     "created_at": "2026-06-23T04:29:17.092730+00:00",
     "id": 101
@@ -3210,7 +3210,7 @@
     "mtf_confluence": "mtf:2/3",
     "post_event": "evt:na",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:RANGING(1.00)\u00d71.00 | imkt:na\u00d71.00 | mtf:2/3\u00d71.03 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.70 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.42) | news:neutral(-0.045) | macro:NEUTRAL(+0.042) | combined:+0.381 \u2192 conf:0.300 \u26a1 CPI",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-23T04:59:18.866214+00:00",
     "created_at": "2026-06-23T04:29:19.191875+00:00",
     "id": 101
