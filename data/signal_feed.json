@@ -1444,6 +1444,37 @@
       "htf_context": "with_bias",
       "session": "Asian",
       "fired_at": "2026-06-23T03:22:01.555089+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "5",
+      "trigger": "OB",
+      "symbol": "XAUUSD",
+      "entry_price": 4137.51,
+      "tp1": 4130.7,
+      "tp2": 4126.16,
+      "tp3": 4119.35,
+      "sl": 4144.32,
+      "ml_score": 0.625,
+      "tier": "\u2705 MED",
+      "quality_score": 0.4733,
+      "quality_reason": "approved",
+      "news_score": -0.0447,
+      "velocity": "CONFLICTED",
+      "event": "CPI",
+      "htf_bias": {
+        "direction": "SHORT",
+        "timeframe": "60",
+        "symbol": "XAUUSD",
+        "trigger": "BOS",
+        "ml_score": 0.625,
+        "stored_at": "2026-06-23T02:02:01.392067+00:00",
+        "expires_at": "2026-06-23T06:02:01.392077+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "with_bias",
+      "session": "Asian",
+      "fired_at": "2026-06-23T04:32:02.139584+00:00"
     }
   ]
 }
