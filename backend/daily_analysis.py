@@ -1,15 +1,17 @@
 """
 Daily technical analysis commentary for SPY, QQQ, XAUUSD.
-Runs at 08:00 UTC every weekday. Sends a clean price-level brief to Telegram.
+Runs at 09:00 UTC (1 PM Dubai / UTC+4) every weekday.
 
-Price source priority:
+Price source priority for pivot levels:
   1. GitHub raw daily_levels.json — pre-fetched by GitHub Actions at 07:50 UTC via TradingView
   2. TradingView live (tvdatafeed) — direct fetch if GitHub JSON missing/stale
-  3. yfinance XAUUSD=X / SPY / QQQ — last resort fallback
+
+Live price at send time (gap-aware):
+  yfinance fast_info — includes pre-market for SPY/QQQ, live spot for XAUUSD
 """
 import os
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import anthropic
 import httpx
 
@@ -31,57 +33,79 @@ _LEVELS_URL = (
     "data/data/daily_levels.json"
 )
 
+# yfinance tickers for live price lookup
+# Live PRICE lookup (absolute price + gap). Gold uses SPOT only (XAUUSD=X / XAU=X) —
+# never futures, whose basis premium ($5–30 over spot) would create a false gap vs
+# prev close. If spot is down on Yahoo (frequent "possibly delisted" from Railway IPs),
+# _fetch_live_price returns None and the caller falls back to TradingView spot
+# (levels["current"]) — still spot, never futures.
+_YF_LIVE = {
+    "XAUUSD": ["XAUUSD=X", "XAU=X"],
+    "SPY":    ["SPY"],
+    "QQQ":    ["QQQ"],
+}
+
+
 SYMBOLS_TV = {
     "XAUUSD": ("XAUUSD", "ICMARKETS", 2, "XAUUSD 🥇"),
     "SPY":    ("SPY",    "AMEX",      2, "SPY 📊"),
     "QQQ":    ("QQQ",    "NASDAQ",    2, "QQQ 📊"),
 }
 
-SYMBOLS_YF_FALLBACK = {
-    "XAUUSD": ["XAUUSD=X"],
-    "SPY":    ["SPY"],
-    "QQQ":    ["QQQ"],
-}
+ANALYSIS_PROMPT = """You are a senior institutional trader writing a concise morning market brief for professional traders.
 
-ANALYSIS_PROMPT = """You are a professional institutional trader writing a daily pre-market technical brief.
-
-For each asset below, write a concise technical outlook for TODAY only.
-Rules:
-- Use ONLY the price levels provided — do not invent or round numbers
-- Never mention indicator names (no RSI, MACD, ATR, Fibonacci, EMA, etc.)
-- State key price levels naturally: "above X holds bullish", "break of X targets Y"
-- Give one BULL scenario and one BEAR scenario with specific price targets
-- Write in plain conversational English, no jargon
-- Keep it tight — traders read this fast
-
-Asset data:
+Asset data (live prices, prev-session OHLC, pivot levels, plus a proprietary directional read and trend/momentum/range stats):
 {asset_data}
 
-Format your response EXACTLY like this for each asset (no deviations):
+Rules:
+- Open with ONE sentence covering the cross-asset risk tone (all three together).
+- For each asset: state the live price and gap, the directional bias %, trend, where price sits vs pivot, 2–3 actionable levels, one bull and one bear scenario with real numbers.
+- Use the provided "Signal bias", "Trend", "Momentum", and "Range position" numbers directly. Present them as the desk's own read.
+- CRITICAL: NEVER reveal, name, or hint at how any number is produced. No mention of models, machine learning, KNN, RF, GBM, ensembles, algorithms, RSI, MACD, EMA, ATR, moving averages, or any indicator/method name. Just state the numbers as conclusions.
+- Be direct. No filler. Prices with $ and comma formatting.
+- Arrow ↑ for positive gap, ↓ for negative gap.
+- Mean reversion targets: use the provided "Mean reversion targets" MAs as reversion zones. State them as key magnetic levels price gravitates toward. Do NOT name the indicator — just "key reversion zone at $X,XXX".
 
-🥇 XAUUSD
-Price: $X,XXX.XX
-Expected today range : $X,XXX – $X,XXX
-Key levels: X,XXX / X,XXX / X,XXX
-📈 Bull: [1 sentence with specific price target]
-📉 Bear: [1 sentence with specific price target]
+Output EXACTLY this format — no extra lines, no deviations, use HTML bold tags as shown:
 
-📊 SPY
-Price: $XXX.XX
-Expected today range : $XXX – $XXX
-Key levels: XXX / XXX / XXX
-📈 Bull: [1 sentence with specific price target]
-📉 Bear: [1 sentence with specific price target]
+📊 <b>Market Tone:</b> [1 sentence]
 
-📊 QQQ
-Price: $XXX.XX
-Expected today range : $XXX – $XXX
-Key levels: XXX / XXX / XXX
-📈 Bull: [1 sentence with specific price target]
-📉 Bear: [1 sentence with specific price target]"""
+──────────────────────
+🥇 <b>XAUUSD</b>
+<b>$X,XXX.XX</b>  [↑/↓] [+/-X.XX] ([+/-X.XX]%) · Prev close $X,XXX.XX
+🎯 Bias: <b>[Bullish/Bearish] NN%</b> · [Uptrend/Downtrend/Mixed] · Momentum [+/-X.X]%
+📍 Pivot <b>$X,XXX.XX</b> · [Above → Bullish / Below → Bearish]
+🔴 R1 $X,XXX · R2 $X,XXX · R3 $X,XXX
+🟢 S1 $X,XXX · S2 $X,XXX · S3 $X,XXX
+🔁 Reversion: [key reversion zone(s)] — [1 sentence on mean-reversion risk or support]
+📈 <b>Bull:</b> [trigger] → $X,XXX then $X,XXX
+📉 <b>Bear:</b> [trigger] → $X,XXX then $X,XXX
+
+──────────────────────
+📈 <b>SPY</b>
+<b>$XXX.XX</b>  [↑/↓] [+/-X.XX] ([+/-X.XX]%) · Prev close $XXX.XX
+🎯 Bias: <b>[Bullish/Bearish] NN%</b> · [Uptrend/Downtrend/Mixed] · Momentum [+/-X.X]%
+📍 Pivot <b>$XXX.XX</b> · [Above → Bullish / Below → Bearish]
+🔴 R1 $XXX · R2 $XXX · R3 $XXX
+🟢 S1 $XXX · S2 $XXX · S3 $XXX
+🔁 Reversion: [key reversion zone(s)] — [1 sentence on mean-reversion risk or support]
+📈 <b>Bull:</b> [trigger] → $XXX then $XXX
+📉 <b>Bear:</b> [trigger] → $XXX then $XXX
+
+──────────────────────
+📊 <b>QQQ</b>
+<b>$XXX.XX</b>  [↑/↓] [+/-X.XX] ([+/-X.XX]%) · Prev close $XXX.XX
+🎯 Bias: <b>[Bullish/Bearish] NN%</b> · [Uptrend/Downtrend/Mixed] · Momentum [+/-X.X]%
+📍 Pivot <b>$XXX.XX</b> · [Above → Bullish / Below → Bearish]
+🔴 R1 $XXX · R2 $XXX · R3 $XXX
+🟢 S1 $XXX · S2 $XXX · S3 $XXX
+🔁 Reversion: [key reversion zone(s)] — [1 sentence on mean-reversion risk or support]
+📈 <b>Bull:</b> [trigger] → $XXX then $XXX
+📉 <b>Bear:</b> [trigger] → $XXX then $XXX"""
 
 
-def _calc_pivots(ph, pl, pc, current, decimals):
+def _calc_pivots(ph, pl, pc, decimals):
+    """Calculate classic floor-trader daily pivots from previous session H/L/C."""
     pivot = (ph + pl + pc) / 3
     r1    = 2 * pivot - pl
     r2    = pivot + (ph - pl)
@@ -90,31 +114,261 @@ def _calc_pivots(ph, pl, pc, current, decimals):
     s2    = pivot - (ph - pl)
     s3    = pl - 2 * (ph - pivot)
     return {
-        "current":             round(current, decimals),
-        "prev_high":           round(ph, decimals),
-        "prev_low":            round(pl, decimals),
-        "prev_close":          round(pc, decimals),
-        "pivot":               round(pivot, decimals),
-        "r1":                  round(r1, decimals),
-        "r2":                  round(r2, decimals),
-        "r3":                  round(r3, decimals),
-        "s1":                  round(s1, decimals),
-        "s2":                  round(s2, decimals),
-        "s3":                  round(s3, decimals),
-        "expected_range_low":  round(min(s2, current - (r1 - pivot)), decimals),
-        "expected_range_high": round(max(r2, current + (r1 - pivot)), decimals),
+        "prev_high":  round(ph, decimals),
+        "prev_low":   round(pl, decimals),
+        "prev_close": round(pc, decimals),
+        "pivot":      round(pivot, decimals),
+        "r1":         round(r1, decimals),
+        "r2":         round(r2, decimals),
+        "r3":         round(r3, decimals),
+        "s1":         round(s1, decimals),
+        "s2":         round(s2, decimals),
+        "s3":         round(s3, decimals),
     }
 
 
+def _rsi(closes: list[float], period: int = 14) -> float | None:
+    """Wilder's RSI from a list of closes. Returns None if not enough data."""
+    if len(closes) < period + 1:
+        return None
+    gains, losses = [], []
+    for i in range(1, len(closes)):
+        chg = closes[i] - closes[i - 1]
+        gains.append(max(chg, 0.0))
+        losses.append(max(-chg, 0.0))
+    avg_gain = sum(gains[:period]) / period
+    avg_loss = sum(losses[:period]) / period
+    for i in range(period, len(gains)):
+        avg_gain = (avg_gain * (period - 1) + gains[i]) / period
+        avg_loss = (avg_loss * (period - 1) + losses[i]) / period
+    if avg_loss == 0:
+        return 100.0
+    rs = avg_gain / avg_loss
+    return 100.0 - (100.0 / (1.0 + rs))
+
+
+def _technical_context(name: str, decimals: int) -> dict | None:
+    """
+    Derive daily-bar technical context for the brief: moving-average trend,
+    momentum, RSI band, range position, ATR-based expected range, and a single
+    composite directional bias (0–100% bullish). Self-contained — no DB writes,
+    no dependency on intraday heartbeat features. Returns None if data unavailable.
+
+    Uses market_data.fetch_daily() which already chains yfinance → Stooq fallback,
+    so we get reliable data even when Yahoo is blocking Railway's cloud IP.
+    Ticker mapping: XAUUSD→GC=F (yfinance) / xauusd (Stooq), SPY/QQQ direct.
+    """
+    import math as _math
+    from market_data import fetch_daily, STOOQ_SYMBOLS
+
+    # Map our asset names to the ticker fetch_daily() understands
+    _HIST_TICKER = {"XAUUSD": "GC=F", "SPY": "SPY", "QQQ": "QQQ"}
+    ticker = _HIST_TICKER.get(name)
+    if not ticker:
+        return None
+
+    try:
+        df = fetch_daily(ticker, period="1y")
+    except Exception as e:
+        print(f"[daily] technical context {name} fetch failed: {e}")
+        return None
+
+    if df is None or len(df) < 60:
+        print(f"[daily] technical context {name}: insufficient data ({len(df) if df is not None else 0} bars)")
+        return None
+
+    try:
+        # Drop rows with any NaN in H/L/C
+        rows = [(float(h), float(l), float(c))
+                for h, l, c in zip(df["High"], df["Low"], df["Close"])
+                if not (_math.isnan(float(h)) or _math.isnan(float(l)) or _math.isnan(float(c)))]
+        if len(rows) < 60:
+            print(f"[daily] technical context {name}: too many NaN rows ({len(rows)} clean bars)")
+            return None
+        highs, lows, closes = zip(*rows)
+        highs, lows, closes = list(highs), list(lows), list(closes)
+        last = closes[-1]
+
+        def _ma(n: int) -> float | None:
+            return sum(closes[-n:]) / n if len(closes) >= n else None
+
+        ma20, ma50, ma200 = _ma(20), _ma(50), _ma(200)
+
+        mom20 = ((last / closes[-21]) - 1.0) * 100 if len(closes) >= 21 else 0.0
+        rsi = _rsi(closes) or 50.0
+
+        win_hi = max(highs[-60:])
+        win_lo = min(lows[-60:])
+        rng_pos = ((last - win_lo) / (win_hi - win_lo) * 100) if win_hi > win_lo else 50.0
+
+        trs = []
+        for i in range(1, len(closes)):
+            tr = max(highs[i] - lows[i],
+                     abs(highs[i] - closes[i - 1]),
+                     abs(lows[i] - closes[i - 1]))
+            trs.append(tr)
+        atr = sum(trs[-14:]) / 14 if len(trs) >= 14 else (sum(trs) / len(trs) if trs else 0.0)
+
+        checks, hits = 0, 0
+        for m in (ma20, ma50, ma200):
+            if m is not None:
+                checks += 1
+                hits += 1 if last > m else 0
+        if ma20 and ma50:
+            checks += 1; hits += 1 if ma20 > ma50 else 0
+        if ma50 and ma200:
+            checks += 1; hits += 1 if ma50 > ma200 else 0
+        trend_score = (hits / checks) if checks else 0.5
+
+        def _clamp(v, lo=-1.0, hi=1.0):
+            return max(lo, min(hi, v))
+
+        bias = (
+            0.50
+            + 0.25 * (trend_score * 2 - 1)
+            + 0.15 * _clamp(mom20 / 10.0)
+            + 0.10 * _clamp((rsi - 50) / 30.0)
+        )
+        bias = max(0.02, min(0.98, bias))
+
+        fmt = f"{{:.{decimals}f}}"
+        trend_words = (
+            "Uptrend" if trend_score >= 0.7 else
+            "Downtrend" if trend_score <= 0.3 else
+            "Mixed"
+        )
+        rsi_band = (
+            "overbought" if rsi >= 70 else
+            "oversold" if rsi <= 30 else
+            "neutral"
+        )
+
+        # Mean reversion levels: distance from key MAs as pull-back / expansion targets
+        rev_levels = {}
+        for ma_label, ma_val in (("20MA", ma20), ("50MA", ma50), ("200MA", ma200)):
+            if ma_val:
+                dist_pct = ((last / ma_val) - 1.0) * 100
+                rev_levels[ma_label] = {"price": fmt.format(ma_val), "dist_pct": round(dist_pct, 1)}
+
+        return {
+            "bias_pct":   round(bias * 100),
+            "direction":  "Bullish" if bias >= 0.5 else "Bearish",
+            "trend":      trend_words,
+            "ma20":       fmt.format(ma20) if ma20 else "n/a",
+            "ma50":       fmt.format(ma50) if ma50 else "n/a",
+            "ma200":      fmt.format(ma200) if ma200 else "n/a",
+            "mom20":      f"{mom20:+.1f}",
+            "rsi":        round(rsi),
+            "rsi_band":   rsi_band,
+            "range_pos":  round(rng_pos),
+            "atr":        fmt.format(atr),
+            "rev_levels": rev_levels,
+        }
+    except Exception as e:
+        print(f"[daily] technical context {name} failed: {e}")
+    return None
+
+
+_TV_LIVE_SYMBOLS = {
+    "XAUUSD": [("TVC:GOLD", "close"), ("OANDA:XAUUSD", "close"), ("FX_IDC:XAUUSD", "close")],
+    "SPY":    [("AMEX:SPY", "premarket_price"), ("AMEX:SPY", "close")],
+    "QQQ":    [("NASDAQ:QQQ", "premarket_price"), ("NASDAQ:QQQ", "close")],
+}
+
+def _fetch_live_price_tv(name: str, decimals: int) -> float | None:
+    """TradingView scanner fallback — same source as GitHub Actions."""
+    for sym, field in _TV_LIVE_SYMBOLS.get(name, []):
+        try:
+            from urllib.parse import quote as _quote
+            url = (f"https://scanner.tradingview.com/symbol"
+                   f"?symbol={_quote(sym)}&fields={field}&no_404=1")
+            resp = httpx.get(url, timeout=8, headers={
+                "User-Agent": "Mozilla/5.0",
+                "Origin": "https://www.tradingview.com",
+            })
+            if resp.status_code == 200:
+                v = resp.json().get(field)
+                if v is not None and float(v) > 0:
+                    print(f"[daily] live price TV fallback {sym}/{field}={round(float(v), decimals)}")
+                    return round(float(v), decimals)
+        except Exception as e:
+            print(f"[daily] TV live price {sym} failed: {e}")
+    return None
+
+
+def _fetch_live_price(name: str, decimals: int) -> float | None:
+    """
+    Fetch current live/pre-market price. Priority:
+    1. TradingView scanner API (most reliable from cloud IPs, same source as GitHub Actions)
+    2. yfinance fast_info (pre/post-market aware, fallback)
+    """
+    tv = _fetch_live_price_tv(name, decimals)
+    if tv:
+        return tv
+    if _YF_AVAILABLE:
+        for sym in _YF_LIVE.get(name, []):
+            try:
+                tk = yf.Ticker(sym)
+                price = getattr(tk.fast_info, "last_price", None)
+                if price and float(price) > 0:
+                    print(f"[daily] live price yfinance fallback {sym}={round(float(price), decimals)}")
+                    return round(float(price), decimals)
+            except Exception as e:
+                print(f"[daily] live price {sym} failed: {e}")
+    return None
+
+
+def _refresh_prev_close(assets: dict) -> dict:
+    """
+    When daily_levels.json is stale (GH Actions missed this morning), pull the
+    previous completed session's H/L/C from yfinance and recalculate pivots.
+    Falls back to the stored values if yfinance is unavailable.
+    """
+    from market_data import fetch_daily
+    _TICKER_MAP = {"XAUUSD": "GC=F", "SPY": "SPY", "QQQ": "QQQ"}
+    _DECIMALS   = {"XAUUSD": 2,       "SPY": 2,      "QQQ": 2}
+    out = dict(assets)
+    for name, ticker in _TICKER_MAP.items():
+        if name not in out:
+            continue
+        try:
+            df = fetch_daily(ticker, period="5d")
+            if df is None or len(df) < 2:
+                continue
+            # Use the last fully-closed bar (iloc[-1] is today's incomplete bar
+            # only when markets are open; iloc[-2] is always the previous session)
+            prev = df.iloc[-2]
+            ph = float(prev["High"])
+            pl = float(prev["Low"])
+            pc = float(prev["Close"])
+            dec = _DECIMALS[name]
+            new_levels = _calc_pivots(ph, pl, pc, dec)
+            if "current" in out[name]:
+                new_levels["current"] = out[name]["current"]
+            old_pc = out[name].get("prev_close")
+            out[name] = new_levels
+            print(f"[daily] {name}: corrected prev_close {old_pc} → {pc:.2f} from yfinance")
+        except Exception as e:
+            print(f"[daily] {name}: could not refresh prev_close: {e}")
+    return out
+
+
 def _load_from_json() -> dict:
-    """Fetch pre-fetched levels from GitHub (written by GitHub Actions at 07:50 UTC)."""
+    """Fetch pre-fetched pivot levels from GitHub (written by GitHub Actions at 07:50 UTC)."""
     try:
         resp = httpx.get(_LEVELS_URL, timeout=10)
         resp.raise_for_status()
         data = resp.json()
         fetched_at = data.get("fetched_at", "unknown")
         assets = data.get("assets", {})
-        if assets:
+        if not assets:
+            return {}
+        today_str = datetime.now(timezone.utc).date().isoformat()
+        fetched_date = (fetched_at or "")[:10]
+        if fetched_date != today_str:
+            print(f"[daily] WARNING: daily_levels.json stale (fetched {fetched_date}, today {today_str}) — refreshing prev_close from yfinance")
+            assets = _refresh_prev_close(assets)
+        else:
             print(f"[daily] Fetched pre-built levels from GitHub (fetched_at={fetched_at}): {list(assets.keys())}")
         return assets
     except Exception as e:
@@ -129,11 +383,9 @@ def _fetch_levels_tv(symbol: str, exchange: str, decimals: int) -> dict | None:
         tv = TvDatafeed()
         df = tv.get_hist(symbol, exchange, interval=Interval.in_daily, n_bars=5)
         if df is not None and len(df) >= 2:
-            prev  = df.iloc[-2]
-            today = df.iloc[-1]
+            prev = df.iloc[-2]
             return _calc_pivots(
-                float(prev["high"]), float(prev["low"]), float(prev["close"]),
-                float(today["close"]), decimals,
+                float(prev["high"]), float(prev["low"]), float(prev["close"]), decimals,
             )
         print(f"[daily] tvdatafeed: insufficient data for {symbol}/{exchange}.")
     except Exception as e:
@@ -141,69 +393,274 @@ def _fetch_levels_tv(symbol: str, exchange: str, decimals: int) -> dict | None:
     return None
 
 
-def _fetch_levels_yf(ticker_sym: str, decimals: int) -> dict | None:
-    if not _YF_AVAILABLE:
-        return None
-    try:
-        tk   = yf.Ticker(ticker_sym)
-        hist = tk.history(period="5d", interval="1d", auto_adjust=True)
-        if hist.empty or len(hist) < 2:
-            return None
-        prev  = hist.iloc[-2]
-        today = hist.iloc[-1]
-        return _calc_pivots(
-            float(prev["High"]), float(prev["Low"]), float(prev["Close"]),
-            float(today["Close"]), decimals,
-        )
-    except Exception as e:
-        print(f"[daily] yfinance failed for {ticker_sym}: {e}")
-    return None
-
-
 def _fetch_asset(name: str, prefetched: dict) -> tuple[dict | None, int, str]:
     sym, exchange, decimals, label = SYMBOLS_TV[name]
 
-    # Source 1: pre-fetched JSON from GitHub Actions
+    # Source 1: pre-fetched JSON from GitHub Actions (pivot levels only, no live price)
     if name in prefetched:
-        print(f"[daily] {name}: using pre-fetched TradingView data.")
-        return prefetched[name], decimals, label
+        print(f"[daily] {name}: using pre-fetched TradingView pivot data.")
+        levels = prefetched[name]
+        # Strip old "current" field — we'll replace with live price below
+        levels = {k: v for k, v in levels.items() if k != "current"}
+        # Recalculate clean pivots in case the stored format differs
+        if all(k in levels for k in ("prev_high", "prev_low", "prev_close")):
+            levels = _calc_pivots(levels["prev_high"], levels["prev_low"], levels["prev_close"], decimals)
+        return levels, decimals, label
 
-    # Source 2: TradingView live (tvdatafeed) — same ICMARKETS/AMEX/NASDAQ feed.
-    # No Yahoo fallback: all brief prices must come from TradingView only.
+    # Source 2: TradingView live
     levels = _fetch_levels_tv(sym, exchange, decimals)
     if levels:
         print(f"[daily] {name}: TradingView live ({exchange}) OK.")
         return levels, decimals, label
 
-    print(f"[daily] {name}: TradingView sources failed — skipping (no non-TV fallback).")
+    print(f"[daily] {name}: all pivot sources failed — skipping.")
     return None, decimals, label
 
 
-def _format_levels_for_prompt(levels: dict, label: str, decimals: int) -> str:
+def _format_levels_for_prompt(name: str, levels: dict, live_price: float | None, label: str,
+                              decimals: int, tech: dict | None = None) -> str:
     fmt = f"{{:.{decimals}f}}"
+    pc  = levels["prev_close"]
+
+    # Gap analysis vs previous close
+    if live_price and pc:
+        gap_abs = live_price - pc
+        gap_pct = (gap_abs / pc) * 100
+        gap_str = f"{'+' if gap_abs >= 0 else ''}{fmt.format(gap_abs)} ({'+' if gap_pct >= 0 else ''}{gap_pct:.2f}%)"
+        is_significant = abs(gap_pct) >= 0.20
+    else:
+        live_price = pc  # fallback to prev close if live unavailable
+        gap_str = "n/a"
+        is_significant = False
+
+    pivot = levels["pivot"]
+    bias  = "above pivot → bullish intraday bias" if live_price > pivot else "below pivot → bearish intraday bias"
+
+    # Macro context for gold
+    macro_line = ""
+    if name == "XAUUSD":
+        try:
+            from market_macro import get_macro_bias
+            m = get_macro_bias()
+            macro_line = f"  Macro bias: {m.get('label', 'n/a')} ({m.get('bias', 0):+.2f})\n"
+        except Exception:
+            pass
+
+    gap_note = " ← significant gap" if is_significant else ""
+
+    # Derived daily technical read (source not disclosed in the brief output)
+    tech_line = ""
+    if tech:
+        rev_line = ""
+        rev_levels = tech.get("rev_levels", {})
+        if rev_levels:
+            rev_parts = []
+            for ma_name, info in rev_levels.items():
+                sign = "+" if info["dist_pct"] >= 0 else ""
+                rev_parts.append(f"{ma_name} {info['price']} ({sign}{info['dist_pct']}%)")
+            rev_line = f"  Mean reversion targets: {' · '.join(rev_parts)}\n"
+        tech_line = (
+            f"  Signal bias: {tech['direction']} {tech['bias_pct']}%\n"
+            f"  Trend: {tech['trend']} (20D MA {tech['ma20']}, 50D MA {tech['ma50']}, 200D MA {tech['ma200']})\n"
+            f"  Momentum: 20-day {tech['mom20']}% · RSI {tech['rsi']} ({tech['rsi_band']})\n"
+            f"  Range position: {tech['range_pos']}% of 60-day range · typical daily move {tech['atr']}\n"
+            f"{rev_line}"
+        )
+
     return (
         f"{label}\n"
-        f"  Current price: {fmt.format(levels['current'])}\n"
-        f"  Previous day H/L/C: {fmt.format(levels['prev_high'])} / {fmt.format(levels['prev_low'])} / {fmt.format(levels['prev_close'])}\n"
-        f"  Pivot: {fmt.format(levels['pivot'])}\n"
+        f"  Live price: {fmt.format(live_price)}\n"
+        f"  Prev close: {fmt.format(pc)}\n"
+        f"  Gap: {gap_str}{gap_note}\n"
+        f"  Pivot: {fmt.format(pivot)} — price is {bias}\n"
         f"  Resistance: R1={fmt.format(levels['r1'])}  R2={fmt.format(levels['r2'])}  R3={fmt.format(levels['r3'])}\n"
         f"  Support:    S1={fmt.format(levels['s1'])}  S2={fmt.format(levels['s2'])}  S3={fmt.format(levels['s3'])}\n"
-        f"  Expected day range: {fmt.format(levels['expected_range_low'])} – {fmt.format(levels['expected_range_high'])}\n"
+        f"{tech_line}"
+        f"{macro_line}"
     )
+
+
+_ff_cache: dict = {"data": None, "fetched_date": None}
+
+
+def _ff_calendar_events(now: datetime) -> list[tuple]:
+    """
+    Today's high-impact USD events from the free Forex Factory weekly JSON feed.
+    Returns list of (ts_utc, name, detail) tuples. Empty on any failure.
+    Cached for the calendar day — FF returns a weekly JSON that never changes
+    mid-day, and repeated fetches from cloud IPs trigger 429 rate-limits.
+    """
+    today_str = now.strftime("%Y-%m-%d")
+    if _ff_cache["fetched_date"] == today_str and _ff_cache["data"] is not None:
+        return _ff_cache["data"]   # serve from cache — avoids 429 on repeated calls
+
+    url = "https://nfs.faireconomy.media/ff_calendar_thisweek.json"
+    raw = []
+    try:
+        with httpx.Client(timeout=12, follow_redirects=True) as client:
+            resp = client.get(url, headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+                "Accept": "application/json, text/plain, */*",
+                "Accept-Language": "en-US,en;q=0.9",
+                "Referer": "https://www.forexfactory.com/",
+            })
+            resp.raise_for_status()
+            raw = resp.json() or []
+    except Exception as e:
+        print(f"[daily_brief] Forex Factory calendar fetch failed: {e}")
+        return _ff_cache["data"] or []  # return stale cache rather than empty on failure
+
+    out = []
+    for ev in raw:
+        if (ev.get("impact") or "").lower() != "high":
+            continue
+        if (ev.get("country") or "").upper() not in ("USD", "US", "USA"):
+            continue
+        try:
+            ts_utc = datetime.fromisoformat(ev.get("date", "")).astimezone(timezone.utc)
+        except Exception:
+            continue
+        if ts_utc.date() != now.date():
+            continue
+        # FF JSON uses "title" for event name; fall back to "event" key
+        name     = ev.get("title") or ev.get("event") or "Event"
+        forecast = ev.get("forecast") or ""
+        actual   = ev.get("actual") or ""
+        detail   = f" · Actual: {actual}" if actual else (f" · Est: {forecast}" if forecast else "")
+        out.append((ts_utc, name, detail))
+
+    _ff_cache["data"] = out
+    _ff_cache["fetched_date"] = today_str
+    print(f"[daily_brief] Forex Factory: {len(out)} high-impact USD event(s) today (cached)")
+    return out
+
+
+# FOMC rate decision dates for 2026 (second day of each meeting, 14:00 ET = 18:00 UTC / 19:00 UTC during winter)
+_FOMC_DATES_2026 = {
+    "2026-01-29": (18, 0),
+    "2026-03-19": (18, 0),
+    "2026-04-30": (18, 0),
+    "2026-06-17": (18, 0),
+    "2026-07-30": (18, 0),
+    "2026-09-17": (18, 0),
+    "2026-10-29": (18, 0),
+    "2026-12-10": (19, 0),  # winter time (UTC-5 ET → 19:00 UTC)
+}
+
+
+def _fomc_fallback(now: datetime) -> list[tuple]:
+    """
+    Hardcoded FOMC 2026 schedule as last-resort fallback when both Finnhub and
+    Forex Factory APIs return empty. Keeps the calendar section alive on Fed day.
+    """
+    today = now.date().isoformat()
+    if today not in _FOMC_DATES_2026:
+        return []
+    h, m = _FOMC_DATES_2026[today]
+    ts_utc = datetime(now.year, now.month, now.day, h, m, tzinfo=timezone.utc)
+    print(f"[daily_brief] FOMC fallback triggered for {today}")
+    return [
+        (ts_utc, "FOMC Rate Decision", ""),
+        (ts_utc + timedelta(minutes=30), "Fed Chair Press Conference", ""),
+    ]
+
+
+def _finnhub_calendar_events(now: datetime) -> list[tuple]:
+    """Today's high-impact US events from Finnhub. Returns (ts_utc, name, detail) tuples."""
+    from news_fetcher import FINNHUB_KEY, _FINNHUB_CALENDAR_URL
+    if not FINNHUB_KEY:
+        return []
+    try:
+        today = now.date().isoformat()
+        until = (now + timedelta(days=1)).date().isoformat()
+        with httpx.Client(timeout=10) as client:
+            resp = client.get(_FINNHUB_CALENDAR_URL, params={
+                "from": today, "to": until, "token": FINNHUB_KEY,
+            })
+            resp.raise_for_status()
+            events = resp.json().get("economicCalendar", []) or []
+    except Exception as e:
+        if "403" not in str(e):
+            print(f"[daily_brief] Finnhub calendar fetch failed: {e}")
+        return []
+
+    out = []
+    for ev in events:
+        if (ev.get("impact") or "").lower() != "high":
+            continue
+        if (ev.get("country") or "").upper() not in ("US", "USA", ""):
+            continue
+        try:
+            ts_utc = datetime.fromisoformat(ev.get("time", "").replace(" ", "T"))
+            if ts_utc.tzinfo is None:
+                ts_utc = ts_utc.replace(tzinfo=timezone.utc)
+        except Exception:
+            continue
+        if ts_utc.date() != now.date():
+            continue
+        name     = ev.get("event", "Event")
+        estimate = ev.get("estimate")
+        actual   = ev.get("actual")
+        detail   = f" · Actual: {actual}" if actual is not None else (f" · Est: {estimate}" if estimate is not None else "")
+        out.append((ts_utc, name, detail))
+    return out
+
+
+def _fetch_todays_high_impact_events() -> str:
+    """
+    Merge today's high-impact US economic events from Finnhub + Forex Factory.
+    De-duplicated, sorted by time, shown in Dubai time. Returns "" if none.
+    """
+    now = datetime.now(timezone.utc)
+    events = _finnhub_calendar_events(now) + _ff_calendar_events(now)
+    if not events:
+        events = _fomc_fallback(now)
+    if not events:
+        return ""
+
+    dubai_tz_offset = timedelta(hours=4)
+    seen  = set()
+    rows  = []  # (ts_utc, line) for stable time sort
+    for ts_utc, name, detail in sorted(events, key=lambda e: e[0]):
+        # Dedup across sources by minute + normalized name prefix
+        key = (ts_utc.strftime("%H:%M"), name.strip().lower()[:18])
+        if key in seen:
+            continue
+        seen.add(key)
+        time_str = (ts_utc + dubai_tz_offset).strftime("%I:%M %p")
+        rows.append(f"  • {time_str} — {name}{detail}")
+
+    if not rows:
+        return ""
+    return "📆 <b>Key Events Today (Dubai time):</b>\n" + "\n".join(rows)
 
 
 def generate_daily_brief() -> str | None:
     """
-    Fetch price levels (JSON → TradingView live → yfinance) and generate daily brief via Claude.
+    Fetch pivot levels + live prices and generate institutional daily brief via Claude.
     Returns formatted Telegram message string, or None on failure.
     """
-    prefetched  = _load_from_json()
+    prefetched = _load_from_json()
     asset_blocks = []
 
     for name in ("XAUUSD", "SPY", "QQQ"):
         levels, decimals, label = _fetch_asset(name, prefetched)
-        if levels:
-            asset_blocks.append(_format_levels_for_prompt(levels, label, decimals))
+        if not levels:
+            continue
+        live_price = _fetch_live_price(name, decimals)
+        if live_price:
+            print(f"[daily] {name}: live price = {live_price}")
+        elif levels.get("current"):
+            # Yahoo spot down (common for gold from cloud IPs) — fall back to the
+            # TradingView spot captured in daily_levels. Still spot, never futures.
+            live_price = round(float(levels["current"]), decimals)
+            print(f"[daily] {name}: live price from TradingView spot = {live_price}")
+        else:
+            print(f"[daily] {name}: live price unavailable — using prev close")
+        tech = _technical_context(name, decimals)
+        if tech:
+            print(f"[daily] {name}: signal bias {tech['direction']} {tech['bias_pct']}% · {tech['trend']}")
+        asset_blocks.append(_format_levels_for_prompt(name, levels, live_price, label, decimals, tech))
 
     if not asset_blocks:
         print("[daily] No asset data fetched — aborting brief.")
@@ -215,13 +672,18 @@ def generate_daily_brief() -> str | None:
         client   = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
         response = client.messages.create(
             model="claude-haiku-4-5-20251001",
-            max_tokens=800,
+            max_tokens=1400,
             messages=[{
                 "role": "user",
                 "content": ANALYSIS_PROMPT.format(asset_data=asset_data),
             }],
         )
-        analysis = response.content[0].text.strip()
+        analysis = next(
+            (b.text for b in response.content if getattr(b, "type", "") == "text"), ""
+        ).strip()
+        if not analysis:
+            print("[daily] Claude returned empty content — brief skipped")
+            return None
     except Exception as e:
         print(f"[daily] Claude generation failed: {e}")
         return None
@@ -229,19 +691,21 @@ def generate_daily_brief() -> str | None:
     now      = datetime.now(timezone.utc)
     weekday  = now.strftime("%A")
     date_str = now.strftime("%d %b %Y")
-    # US regular session opens 13:30 UTC; NY close 20:00 UTC
     if now.hour < 13 or (now.hour == 13 and now.minute < 30):
-        session_label = "Pre-market analysis"
+        session_label = "Pre-market"
     elif now.hour < 20:
         session_label = "Regular session"
     else:
         session_label = "After-hours"
 
+    calendar_block   = _fetch_todays_high_impact_events()
+    calendar_section = f"\n\n{calendar_block}" if calendar_block else ""
+
     msg = (
-        f"📅 <b>DAILY MARKET Technical BRIEF — {weekday}, {date_str}</b>\n"
+        f"📅 <b>MORNING BRIEF — {weekday}, {date_str}</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━\n\n"
-        f"{analysis}\n\n"
+        f"{analysis}{calendar_section}\n\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
-        f"⏰ {now.strftime('%H:%M UTC')} | {session_label}"
+        f"⏰ {now.strftime('%H:%M')} UTC  ·  1:00 PM Dubai  ·  {session_label}"
     )
     return msg

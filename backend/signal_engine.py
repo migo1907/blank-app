@@ -2,7 +2,7 @@
 XAU/USD Signal Engine — Market-Aware Intelligence Layer
 
 Scoring pipeline:
-  1. KNN similarity (adaptive weights on 25 features F1–F25)
+  1. KNN similarity (adaptive weights on 26 features F1–F26)
   2. Random Forest ensemble (pattern recognition)
   3. Gradient Boosting ensemble — XGBoost equivalent (item 2)
   4. News sentiment + velocity
@@ -28,28 +28,49 @@ from db import recent_outcomes, recent_news, insert_signal, expire_old_signals
 # Persisted to GitHub data branch so it survives Railway restarts.
 # Keyed by pool name — scheduler passes real market state to generate_signal().
 import threading as _threading
+import time as _time
 _latest_features: dict[str, Features] = {}
 _FEATURE_CACHE_PATH = "data/feature_cache.json"
 _feature_cache_lock = _threading.Lock()
+_last_github_flush: float = 0.0          # epoch seconds of last successful GitHub write
+_FLUSH_INTERVAL: float = 30.0            # at most one GitHub write per 30s (debounce)
 
 
 def update_latest_features(pool: str, features: Features) -> None:
-    """Cache latest features in memory and persist to GitHub data branch."""
+    """Update in-memory feature cache immediately; flush to GitHub at most once per 30s.
+
+    At bar close all TradingView charts fire simultaneously (~20 heartbeats).
+    Writing GitHub on every heartbeat saturates the thread pool and causes
+    TradingView webhook timeouts. Debouncing means the first arriving heartbeat
+    triggers the write; the rest return instantly after updating memory.
+    """
+    global _last_github_flush
+    # Always update in-memory cache — this is what the scheduler reads
     _latest_features[pool] = features
-    # Serialize GitHub writes — concurrent heartbeats race on the same SHA
+
+    # Debounce: skip GitHub write if one happened recently
+    now = _time.monotonic()
+    if now - _last_github_flush < _FLUSH_INTERVAL:
+        return
+
+    # Try to win the write lock — if another thread is already flushing, skip
     if not _feature_cache_lock.acquire(blocking=False):
-        return  # another thread is already writing; in-memory is updated, skip duplicate write
+        return
+
     try:
+        # Re-check after acquiring — another thread may have just flushed
+        if _time.monotonic() - _last_github_flush < _FLUSH_INTERVAL:
+            return
+
         from db import _get_file, _put_file
         from datetime import datetime, timezone as _tz
         for attempt in range(3):
             try:
                 existing, sha = _get_file(_FEATURE_CACHE_PATH)
-                # Merge valid in-memory pools — exclude empty-string pool (XAUUSD_4H etc.)
                 payload = {k: v for k, v in (existing if isinstance(existing, dict) else {}).items() if k}
                 for _pool, _feat in _latest_features.items():
                     if not _pool:
-                        continue  # skip unmapped pools
+                        continue
                     payload[_pool] = {
                         "f1":  _feat.f1,  "f2":  _feat.f2,  "f3":  _feat.f3,
                         "f4":  _feat.f4,  "f5":  _feat.f5,  "f6":  _feat.f6,
@@ -64,10 +85,11 @@ def update_latest_features(pool: str, features: Features) -> None:
                     }
                 _put_file(_FEATURE_CACHE_PATH, payload, sha,
                           f"chore: update feature cache ({len(payload)} pools)")
+                _last_github_flush = _time.monotonic()
                 break
             except Exception as put_err:
                 if attempt < 2 and "409" in str(put_err):
-                    continue  # SHA stale — re-fetch on next iteration
+                    continue
                 print(f"[features] Cache persist failed: {put_err}")
                 break
     finally:
@@ -84,8 +106,9 @@ def load_feature_cache() -> None:
         for pool, fv in data.items():
             if not isinstance(fv, dict) or "f1" not in fv:
                 continue
-            if "f25" not in fv:
-                print(f"[features] WARNING: pool {pool} cache missing f25 — will use 0.0 until next heartbeat")
+            missing = [f for f in ("f25", "f26") if f not in fv]
+            if missing:
+                print(f"[features] WARNING: pool {pool} cache missing {missing} — will use 0.0 until next heartbeat")
             _latest_features[pool] = Features(
                 f1=fv.get("f1",0.0),  f2=fv.get("f2",0.0),  f3=fv.get("f3",0.0),
                 f4=fv.get("f4",0.0),  f5=fv.get("f5",0.0),  f6=fv.get("f6",0.0),
@@ -95,7 +118,7 @@ def load_feature_cache() -> None:
                 f16=fv.get("f16",0.0),f17=fv.get("f17",0.0),f18=fv.get("f18",0.0),
                 f19=fv.get("f19",0.0),f20=fv.get("f20",0.0),f21=fv.get("f21",0.0),
                 f22=fv.get("f22",0.0),f23=fv.get("f23",0.0),f24=fv.get("f24",0.0),
-                f25=fv.get("f25",0.0),
+                f25=fv.get("f25",0.0),f26=fv.get("f26",0.0),
             )
         print(f"[features] Loaded feature cache for {len(_latest_features)} pools from GitHub.")
     except Exception as e:
@@ -404,7 +427,7 @@ def _memory_features(history: list[dict], direction: str, n: int = 10) -> list[f
     return [overall, same_dir, same_sess, same_trig, min(streak, 8) / 8.0]
 
 
-def score_entry_gate(pool: str, direction: str) -> dict:
+def score_entry_gate(pool: str, direction: str, trigger: str = "") -> dict:
     """
     Re-score a Pine-fired entry using the backend's trained models.
 
@@ -424,6 +447,12 @@ def score_entry_gate(pool: str, direction: str) -> dict:
     if features is None:
         # No heartbeat features cached yet — can't score, let it through.
         return {"pass": True, "score": 0.5, "reason": "no_features_cached", "components": {}}
+
+    # Choppy market gate — block when trend strength (ADX) AND volatility (ATR) are both low.
+    # Weekly autopsy: atr:LOW = 29/100 losses, f2_adx = #1 SHAP loss driver.
+    # Both must be low to avoid blocking valid low-ATR breakouts with strong ADX trend.
+    if abs(features.f2) < 0.25 and abs(features.f3) < 0.20:
+        return {"pass": False, "score": 0.0, "reason": "choppy_market_blocked", "components": {}}
 
     history = _cached_history(pool, 500)
     knn = get_model(pool)
@@ -466,7 +495,10 @@ def score_entry_gate(pool: str, direction: str) -> dict:
     # Works at n≥10 with no fine-tuning. Re-fit only when history length changes.
     tabpfn = get_tabpfn(pool)
     if len(history) >= 10:
-        tabpfn.fit_if_stale(history)
+        try:
+            tabpfn.fit_if_stale(history)
+        except Exception as _tpfn_err:
+            print(f"[gate] TabPFN fit failed for {pool}: {_tpfn_err}")
         if tabpfn.is_trained:
             components["tabpfn"] = tabpfn.predict(feat_list)
 
@@ -499,8 +531,12 @@ def score_entry_gate(pool: str, direction: str) -> dict:
             components["session_guard"] = round(sess_wr, 3)
 
     threshold = _pool_thresholds.get(pool, ML_GATE_THRESHOLD)
+    # No-trigger penalty: entries without SMC structure need higher confidence.
+    # Weekly autopsy: trigger-less entries = 31/100 losses (largest single category).
+    if not trigger:
+        threshold = round(threshold * 1.15, 3)
     passed    = score >= threshold
-    reason    = "approved" if passed else "rejected_low_confidence"
+    reason    = "approved" if passed else ("rejected_no_trigger_weak" if not trigger else "rejected_low_confidence")
 
     # SHAP attribution — top-3 features driving the GBM signal (best explainer for tree models)
     shap_drivers: list[tuple[str, float]] = []
@@ -584,6 +620,140 @@ def _regime_context(regime: str, direction: str, pool: str = "") -> tuple[float,
     return 1.00, "NORMAL"
 
 
+# ── Phase 2A: HMM macro-regime modulator ──────────────────────────────────────
+def _hmm_regime_multiplier(pool: str, direction: str) -> tuple[float, str]:
+    """
+    Bounded confidence modulator from the probabilistic HMM regime (regime_model).
+    Confirms signals aligned with the prevailing asset regime, dampens counter-
+    regime signals and signals fired while the regime is shifting. Always returns
+    1.0 if the regime cache is empty/unknown — purely additive, never blocks.
+    """
+    try:
+        from regime_model import get_regime_for_pool
+        state = get_regime_for_pool(pool)
+    except Exception:
+        return 1.0, "hmm:na"
+    regime = state.get("regime", "UNKNOWN")
+    if regime in ("UNKNOWN", ""):
+        return 1.0, "hmm:na"
+
+    conf = float(state.get("confidence", 0.0) or 0.0)
+    mult = 1.0
+    if regime == "TRENDING_BULL":
+        mult = 1.05 if direction == "LONG" else 0.92
+    elif regime == "TRENDING_BEAR":
+        mult = 1.05 if direction == "SHORT" else 0.92
+    elif regime == "VOLATILE":
+        mult = 0.95
+    # RANGING leaves trend-following neutral (range trades handled elsewhere)
+
+    # Scale the deviation from 1.0 by regime confidence — a 55%-confident regime
+    # moves the needle less than a 90%-confident one.
+    mult = 1.0 + (mult - 1.0) * max(0.0, min(1.0, conf))
+
+    # Extra caution while the regime is actively shifting (transition in progress)
+    if state.get("shifting"):
+        mult *= 0.95
+
+    return round(mult, 3), f"hmm:{regime}({conf:.2f}){'⇄' if state.get('shifting') else ''}"
+
+
+# ── Phase 2E: intermarket modulator (VIX for stocks, DXY break for gold) ──────
+def _intermarket_multiplier(macro_bias: dict | None, direction: str,
+                            is_stock: bool) -> tuple[float, str]:
+    """
+    Bounded confidence modulator from intermarket context:
+      • Stocks — VIX regime size factor: spiking/backwardated vol shrinks
+        equity-signal confidence (de-risk into turbulence).
+      • Gold — DXY range break: a dollar breakdown boosts gold-LONG (and gold-SHORT
+        on a dollar breakout), with the opposite case dampened.
+    Returns 1.0 when the relevant data is absent — additive, never blocks.
+    """
+    if not isinstance(macro_bias, dict):
+        return 1.0, "imkt:na"
+
+    if is_stock:
+        vix = macro_bias.get("vix") or {}
+        sf = float(vix.get("size_factor", 1.0) or 1.0)
+        if sf == 1.0:
+            return 1.0, "imkt:na"
+        return round(sf, 3), f"imkt:VIX-{vix.get('regime','?')}({vix.get('vix','?')})"
+
+    # Gold — DXY break
+    dxy = macro_bias.get("dxy_break") or {}
+    d = dxy.get("direction", "NONE")
+    strength = float(dxy.get("strength", 0.0) or 0.0)
+    if d == "NONE" or strength <= 0:
+        return 1.0, "imkt:na"
+    # Dollar DOWN ⇒ gold tailwind (helps LONG); dollar UP ⇒ gold headwind (helps SHORT)
+    gold_dir_helped = "LONG" if d == "DOWN" else "SHORT"
+    delta = 0.08 * min(1.0, strength)
+    mult = (1.0 + delta) if direction == gold_dir_helped else (1.0 - delta)
+    return round(mult, 3), f"imkt:DXY-{d}({strength:.2f})"
+
+
+# ── Phase 2B: multi-timeframe confluence modulator ────────────────────────────
+def _mtf_confluence_multiplier(pool: str, direction: str) -> tuple[float, str]:
+    """
+    Bounded confidence modulator from the 1H+4H+Daily trend stack (mtf_confluence).
+      3/3 aligned → ×1.08, 2/3 → ×1.03, 1/3 → ×0.93, 0/3 (full opposition) → ×0.85.
+    Honours "fire only when 2 of 3 agree" as a strong dampener below confluence,
+    rather than a hard block, so young pools still accumulate data. Neutral (1.0)
+    when the stack is unavailable.
+    """
+    try:
+        from mtf_confluence import agreement
+        a = agreement(pool, direction)
+    except Exception:
+        return 1.0, "mtf:na"
+    aligned = a.get("aligned", 0)
+    against = a.get("against", 0)
+    if aligned == 0 and against == 0:
+        return 1.0, "mtf:na"
+    if aligned >= 3:
+        mult = 1.08
+    elif aligned == 2:
+        mult = 1.03
+    elif aligned == 1:
+        mult = 0.93
+    else:  # 0 aligned — stack opposes the signal
+        mult = 0.85
+    return round(mult, 3), f"mtf:{aligned}/3{'⚠' if aligned < 2 else ''}"
+
+
+# ── Phase 2D: post-event volatility modulator ─────────────────────────────────
+def _post_event_multiplier(pool: str, direction: str) -> tuple[float, str]:
+    """
+    Bounded modulator for the window after a high-impact print (post_event):
+      • SETTLING — de-risk hard regardless of direction (initial whipsaw).
+      • BREAKOUT — follow the established move (boost with-move, dampen against).
+      • FADE     — spike reverting: reward fading it, dampen chasing it.
+    Neutral (1.0) when no event is live. Never blocks.
+    """
+    try:
+        from post_event import get_post_event_for_pool
+        st = get_post_event_for_pool(pool)
+    except Exception:
+        return 1.0, "evt:na"
+    if not st.get("active"):
+        return 1.0, "evt:na"
+
+    phase = st.get("phase", "SETTLING")
+    move_dir = st.get("move_dir", 0)
+    sig_dir = 1 if direction == "LONG" else -1
+
+    if phase == "SETTLING":
+        return round(float(st.get("size_factor", 0.70)), 3), f"evt:{st.get('event_type','')}-SETTLING"
+    if phase == "BREAKOUT":
+        mult = 1.05 if sig_dir == move_dir else 0.88
+        return round(mult, 3), f"evt:{st.get('event_type','')}-BREAKOUT{'↑' if move_dir>0 else '↓'}"
+    if phase == "FADE":
+        # Fading = trading against the (reverting) move.
+        mult = 1.03 if sig_dir != move_dir else 0.93
+        return round(mult, 3), f"evt:{st.get('event_type','')}-FADE"
+    return 1.0, "evt:na"
+
+
 # ── Trigger quality scoring ───────────────────────────────────────────────────
 def _trigger_quality_multiplier(history: list[dict], trigger: str) -> float:
     if not history or not trigger:
@@ -611,11 +781,8 @@ def _rapid_fire_penalty(history: list[dict], direction: str, trigger: str, now: 
         return 1.0
     last = history[0]
     try:
-        last_time = datetime.fromisoformat(
-            last.get("created_at", "2000-01-01T00:00:00").replace("Z", "+00:00")
-        )
-        if last_time.tzinfo is None:
-            last_time = last_time.replace(tzinfo=timezone.utc)
+        from db import _parse_ts
+        last_time = _parse_ts(last.get("created_at", "2000-01-01T00:00:00"))
         gap_seconds = (now - last_time).total_seconds()
         last_dir     = last.get("direction", "")
         last_trigger = last.get("trigger", "")
@@ -749,12 +916,21 @@ def generate_signal(
     from db import symbol_to_pool
     pool     = pool or symbol_to_pool(symbol)
     is_stock = not pool.startswith("XAUUSD")
-    min_conf = MIN_CONFIDENCE_STOCKS if is_stock else MIN_CONFIDENCE
 
     model   = get_model(pool)
     rf      = get_rf(pool)
     gbm     = get_gbm(pool)
     history = recent_outcomes(pool, limit=300)
+
+    # Adaptive confidence floor: thin pools need lower threshold so they can
+    # accumulate trades; tighten automatically as the pool matures.
+    _n = len(history)
+    if _n < 20:
+        min_conf = 0.50
+    elif _n < 50:
+        min_conf = 0.55
+    else:
+        min_conf = MIN_CONFIDENCE_STOCKS if is_stock else MIN_CONFIDENCE
     now     = datetime.now(timezone.utc)
 
     # ── Weekend guard ──────────────────────────────────────────────────────────
@@ -770,9 +946,17 @@ def generate_signal(
         bear_score = 0.5
 
     # ── RF + GBM scores ─────────────────────────────────────────────────────────────
-    feat_list      = current_features.as_list() if current_features else [0.0] * 25
+    feat_list      = current_features.as_list() if current_features else [0.0] * 26
     rf_win_prob    = rf.predict(feat_list)
     gbm_win_prob   = gbm.predict(feat_list)
+
+    # Conformal prediction intervals — average RF + GBM uncertainty
+    _, _rf_lo,  _rf_hi,  _rf_w  = rf.predict_with_interval(feat_list)
+    _, _gbm_lo, _gbm_hi, _gbm_w = gbm.predict_with_interval(feat_list)
+    _ci_lo    = round((_rf_lo  + _gbm_lo)  / 2, 3)
+    _ci_hi    = round((_rf_hi  + _gbm_hi)  / 2, 3)
+    _ci_width = round((_rf_w   + _gbm_w)   / 2, 3)
+    _ci_label = "HIGH" if _ci_width <= 0.25 else ("MODERATE" if _ci_width <= 0.40 else "LOW")
 
     knn_directional = bull_score - bear_score
     rf_directional  = (rf_win_prob  - 0.5) * 2.0
@@ -796,8 +980,14 @@ def generate_signal(
         ml_conf_proxy  = 0.5 + ml_strength * 0.5
         high_conviction = ml_conf_proxy >= 0.65
         all_agree       = (knn_dir == rf_dir == gbm_dir)
-        if not high_conviction and not all_agree:
-            return _neutral_signal(symbol, now, model, rf, "News CONFLICTED — low conviction", news_agg, pool, current_features, is_stock=is_stock)
+        if not high_conviction and not all_agree and _n >= 50:
+            # Thin-pool bypass: pools with <50 trades must accumulate data; skip CONFLICTED
+            # gate so entries can come through and the pool can grow its training set.
+            sig = _neutral_signal(symbol, now, model, rf, "News CONFLICTED — low conviction", news_agg, pool, current_features, is_stock=is_stock)
+            _lean_dir = "LONG" if bull_score > bear_score else "SHORT"
+            sig["lean_direction"] = _lean_dir
+            sig["lean_pct"] = round((bull_score if _lean_dir == "LONG" else bear_score) * 100)
+            return sig
 
     if event.get("detected") and event.get("urgency", 0) >= 0.9:
         v_mult = min(v_mult * 1.5, 3.0)
@@ -838,6 +1028,10 @@ def generate_signal(
     trigger_mult = _trigger_quality_multiplier(history, trigger)
     rapid_mult   = _rapid_fire_penalty(history, direction_raw, trigger, now)
     cluster_mult = _clustering_multiplier(history, direction_raw)
+    hmm_mult, hmm_label = _hmm_regime_multiplier(pool, direction_raw)
+    imkt_mult, imkt_label = _intermarket_multiplier(macro_bias, direction_raw, is_stock)
+    mtf_mult, mtf_label = _mtf_confluence_multiplier(pool, direction_raw)
+    evt_mult, evt_label = _post_event_multiplier(pool, direction_raw)
 
     confidence = (
         abs(combined_score)
@@ -849,13 +1043,24 @@ def generate_signal(
         * cluster_mult
         * trigger_mult
         * rapid_mult
+        * hmm_mult
+        * imkt_mult
+        * mtf_mult
+        * evt_mult
     )
 
     confidence = min(1.0, confidence)  # multipliers can compound above 1.0 — clamp to valid range
     raw_confidence = confidence
-    direction = direction_raw if confidence >= min_conf else "NEUTRAL"
-    if direction == "NEUTRAL":
-        confidence = 0.0
+    # Thin-pool bypass: fewer than 50 trades → skip confidence gate so the pool can
+    # accumulate training data. ML direction still drives the signal; only the
+    # confidence floor is removed. Block only when combined_score is truly zero.
+    if _n < 50 and combined_score != 0.0:
+        direction = direction_raw
+        confidence = max(confidence, 0.30)  # floor at 0.30 so tier logic fires
+    else:
+        direction = direction_raw if confidence >= min_conf else "NEUTRAL"
+        if direction == "NEUTRAL":
+            confidence = 0.0
 
     tier = "HIGH" if confidence >= 0.75 else "MED" if confidence >= 0.60 else "LOW"
 
@@ -867,6 +1072,10 @@ def generate_signal(
     reasoning = (
         f"{model_votes} | agree×{agreement_mult:.2f} | "
         f"regime:{regime}({regime_label})×{regime_mult:.2f} | "
+        f"{hmm_label}×{hmm_mult:.2f} | "
+        f"{imkt_label}×{imkt_mult:.2f} | "
+        f"{mtf_label}×{mtf_mult:.2f} | "
+        f"{evt_label}×{evt_mult:.2f} | "
         f"sess:{session_name}×{sess_mult:.2f} | "
         f"confluence×{confluence_mult:.2f} | "
         f"cluster×{cluster_mult:.2f} | "
@@ -881,22 +1090,33 @@ def generate_signal(
         reasoning += f" ⚡ {event['event_type']}"
 
     expire_old_signals(symbol)
+    lean_pct = round((bull_score if direction_raw == "LONG" else bear_score) * 100)
+
     row = {
         "symbol":         symbol,
         "pool":           pool,
         "direction":      direction,
+        "lean_direction": direction_raw,
+        "lean_pct":       lean_pct,
         "confidence":     round(confidence, 4),
         "tier":           tier,
         "ml_score":       round(ml_score_out, 4),
-        "rf_score":       round(rf_win_prob, 4),
-        "gbm_score":      round(gbm_win_prob, 4),
-        "news_score":     round(news_agg, 4),
+        "rf_score":           round(rf_win_prob, 4),
+        "gbm_score":          round(gbm_win_prob, 4),
+        "ml_interval":        [_ci_lo, _ci_hi],
+        "ml_interval_width":  _ci_width,
+        "ml_certainty":       _ci_label,
+        "news_score":         round(news_agg, 4),
         "macro_bias":     round(macro_val, 4),
         "macro_label":    macro_label,
         "combined_score": round(combined_score, 4),
         "session":        session_name,
         "regime":         regime,
         "regime_label":   regime_label,
+        "hmm_regime":     hmm_label,
+        "intermarket":    imkt_label,
+        "mtf_confluence": mtf_label,
+        "post_event":     evt_label,
         "reasoning":      reasoning,
         "status":         "ACTIVE",
         "expires_at":     (now + timedelta(minutes=30)).isoformat(),

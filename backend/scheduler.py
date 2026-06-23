@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 _scheduler:          AsyncIOScheduler | None = None
+_news_cycle_lock:    asyncio.Lock = asyncio.Lock()  # serialize the signal cycle
 _latest_news_agg:    float = 0.0
 _latest_velocity:    dict  = {"multiplier": 1.0, "label": "NORMAL"}
 _latest_event:       dict  = {"detected": False, "event_type": "", "urgency": 0.0}
@@ -13,10 +14,15 @@ _fj_seen_headlines:  set   = set()
 _last_sent_direction: str     = "NEUTRAL"
 _last_sent_direction_spy: str = "NEUTRAL"
 _last_sent_direction_qqq: str = "NEUTRAL"
+_last_sent_direction_spx_options: str = "NEUTRAL"  # options layer flip tracker
 _startup_cycle: bool = True  # suppress alert on first cycle after restart
 _webhook_errors:  int = 0   # count of failed trade webhooks since last hourly check
 _webhook_ok:      int = 0   # count of successful trade webhooks since last hourly check
 _intel_active:    bool = False  # True while market is in an elevated-activity regime (alert already sent)
+_shock_sent:      dict = {}     # headline_hash → monotonic time; suppresses duplicate shock alerts for 4h
+_fj_expiry_alert_at: float = 0.0  # monotonic time of last FJ-session-expired alert; throttles to 1/12h
+_brief_sent_date:  object = None  # date the daily market brief was last sent (guards against double-fire)
+_report_sent_date: object = None  # date the daily performance report was last sent (guards against double-fire)
 
 _SEEN_HEADLINES_PATH = "data/seen_headlines.json"
 _SEEN_HEADLINES_MAX  = 500
@@ -67,12 +73,15 @@ def _evaluate_intel_triggers(velocity: dict, event: dict, gold_signal: dict, gol
     if vlabel in _INTEL_HOT_VELOCITY:
         reasons.append(f"{vlabel} news flow{(' · ' + vdir) if vdir else ''}")
 
-    # 2. Imminent high-impact event (NFP/CPI/FOMC within ~90 min)
-    if event.get("detected") and event.get("urgency", 0.0) >= 0.85:
-        mins  = event.get("minutes_until")
+    # 2. Imminent high-impact event (NFP/CPI/FOMC within ~90 min).
+    # Only fire on SCHEDULED calendar events (minutes_until present) — reactive
+    # keyword matches keep flagging "CPI" from analysis headlines for hours
+    # AFTER the release, which is noise, not a de-risk warning.
+    mins = event.get("minutes_until")
+    if (event.get("detected") and event.get("urgency", 0.0) >= 0.85
+            and isinstance(mins, (int, float)) and 0 <= mins <= 90):
         etype = event.get("event_type") or "High-impact event"
-        when  = f" in {mins} min" if isinstance(mins, (int, float)) else ""
-        reasons.append(f"{etype}{when} — volatility expected, de-risk")
+        reasons.append(f"{etype} in {int(mins)} min — volatility expected, de-risk")
 
     # 3. ML direction flip while news flow is hot — the move is news-backed
     if gold_flipped and vlabel in _INTEL_HOT_VELOCITY:
@@ -81,6 +90,29 @@ def _evaluate_intel_triggers(velocity: dict, event: dict, gold_signal: dict, gol
     # 4. Regime shift — sentiment accelerating fast on real volume
     if accel >= 0.20 and vol >= 3:
         reasons.append(f"Sentiment accelerating fast (Δ{accel:.2f}) — regime shifting")
+
+    # 5. Geopolitical / market shock — single-headline reactive events that are
+    # time-critical by nature (no calendar). Unlike CPI-style releases, these
+    # warrant an immediate heads-up even when overall news flow is calm.
+    # Deduplication: same headline is suppressed for 4 hours to prevent repeat
+    # alerts on every 15-min cycle when the headline stays in the feed.
+    import time as _time
+    _SHOCK_EVENTS = {"WAR/CONFLICT", "GEOPOLITICAL", "FLASH_CRASH"}
+    _SHOCK_TTL = 4 * 3600
+    if (event.get("detected") and event.get("event_type") in _SHOCK_EVENTS
+            and event.get("urgency", 0.0) >= 0.9):
+        heads = event.get("headlines") or []
+        lead_text = heads[0][:90] if heads else ""
+        shock_key = f"{event['event_type']}|{lead_text}"
+        now_mono = _time.monotonic()
+        # evict stale entries
+        stale = [k for k, t in _shock_sent.items() if now_mono - t > _SHOCK_TTL]
+        for k in stale:
+            del _shock_sent[k]
+        if shock_key not in _shock_sent:
+            _shock_sent[shock_key] = now_mono
+            lead = f' — “{lead_text}”' if lead_text else ""
+            reasons.append(f"{event['event_type']} shock headline{lead}")
 
     return reasons
 
@@ -104,7 +136,7 @@ def record_webhook_error() -> None:
 
 
 def _load_seen_headlines() -> set:
-    global _fj_seen_headlines, _last_sent_direction, _last_sent_direction_spy, _last_sent_direction_qqq
+    global _fj_seen_headlines, _last_sent_direction, _last_sent_direction_spy, _last_sent_direction_qqq, _last_sent_direction_spx_options
     try:
         from db import _get_file
         data, _ = _get_file(_SEEN_HEADLINES_PATH)
@@ -166,11 +198,20 @@ async def _breaking_news_cycle() -> None:
         breaking, is_401 = await asyncio.to_thread(fetch_fj_breaking_direct)
 
         if is_401:
-            await send_critical_alert(
-                "FinancialJuice Session Expired",
-                "Breaking news alerts have stopped — FJ cookie is no longer valid.",
-                "Log in to financialjuice.com in your browser, then copy the new .ASPXAUTH cookie value to Railway → Variables → FJ_SESSION_COOKIE and redeploy.",
-            )
+            # Throttle: the breaking cycle runs every ~2 min, so alert at most once
+            # per 12h to flag the expiry without spamming the personal chat.
+            global _fj_expiry_alert_at
+            import time as _time
+            _now_mono = _time.monotonic()
+            if _now_mono - _fj_expiry_alert_at >= 12 * 3600:
+                _fj_expiry_alert_at = _now_mono
+                await send_critical_alert(
+                    "FinancialJuice Session Expired",
+                    "FJ breaking-banner login has stopped working (cookie expired or auto-login failing). "
+                    "Your RSS-based news + ML intelligence is unaffected — only the live breaking banner is down.",
+                    "Optional fix: log in to financialjuice.com in your browser, copy the new .ASPXAUTH cookie "
+                    "value into Railway → Variables → FJ_SESSION_COOKIE, and redeploy.",
+                )
             return
 
         alerts: list[str] = []
@@ -187,7 +228,7 @@ async def _breaking_news_cycle() -> None:
         if not alerts:
             return
 
-        # Breaking news Telegram alerts paused — set BREAKING_NEWS_TELEGRAM=true to re-enable
+        # Breaking news Telegram — paused by default, set BREAKING_NEWS_TELEGRAM=true to enable
         telegram_enabled = os.environ.get("BREAKING_NEWS_TELEGRAM", "false").lower() == "true"
 
         now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
@@ -221,7 +262,13 @@ async def _breaking_news_cycle() -> None:
 
 
 async def _news_signal_cycle() -> None:
-    global _latest_news_agg, _latest_velocity, _latest_event, _fj_seen_headlines, _last_sent_direction, _last_sent_direction_spy, _last_sent_direction_qqq, _startup_cycle
+    global _latest_news_agg, _latest_velocity, _latest_event, _fj_seen_headlines, _last_sent_direction, _last_sent_direction_spy, _last_sent_direction_qqq, _last_sent_direction_spx_options, _startup_cycle
+    # Re-entrancy guard: cron, startup bootstrap and /signal/now all invoke this.
+    # Overlapping runs race on the _last_sent_direction* globals and can double-send.
+    if _news_cycle_lock.locked():
+        print("[scheduler] news cycle already running — skipping overlapping run")
+        return
+    await _news_cycle_lock.acquire()
     print("[scheduler] Starting news + velocity + signal cycle…")
 
     try:
@@ -245,10 +292,19 @@ async def _news_signal_cycle() -> None:
             _latest_velocity = velocity
             _latest_event    = event
 
+        # Phase 2D — refresh post-event volatility state (cheap calendar check
+        # first; only fetches price reactions when a high-impact event just fired)
+        try:
+            from post_event import refresh_post_event
+            await asyncio.to_thread(refresh_post_event)
+        except Exception as _pe:
+            print(f"[scheduler] post-event refresh failed: {_pe}")
+
         from market_macro import get_macro_bias, get_equity_macro_bias
         _gold_macro   = get_macro_bias()
         _equity_macro = get_equity_macro_bias()
-        signal = generate_signal(
+        signal = await asyncio.to_thread(
+            generate_signal,
             current_features=get_latest_features("XAUUSD_2M"),
             news_agg=_latest_news_agg,
             news_velocity=_latest_velocity,
@@ -263,12 +319,14 @@ async def _news_signal_cycle() -> None:
             f"velocity={signal['news_velocity']} ×{signal['velocity_mult']}"
         )
 
-        # ── Send direction alert — only on explicit LONG/SHORT flip with confidence > 0 ──
+        # ── Send direction alert — only on explicit LONG/SHORT flip with real confidence ──
+        # Thin-pool bypass signals floor at 0.30 — suppress those from individual alerts;
+        # they appear in market intelligence only. Require >= 0.50 for a standalone alert.
         new_dir  = signal["direction"]
         new_conf = signal.get("confidence", 0.0)
         direction_changed = (
             new_dir not in ("NEUTRAL", "") and
-            new_conf > 0 and
+            new_conf >= 0.50 and
             new_dir != _last_sent_direction and
             not _startup_cycle
         )
@@ -287,7 +345,8 @@ async def _news_signal_cycle() -> None:
         spy_signal = dict(_neutral_sig)
         qqq_signal = dict(_neutral_sig)
         try:
-            spy_signal = generate_signal(
+            spy_signal = await asyncio.to_thread(
+                generate_signal,
                 current_features=get_latest_features("STOCKS_INDEX_30M"),
                 news_agg=_latest_news_agg,
                 news_velocity=_latest_velocity,
@@ -302,7 +361,7 @@ async def _news_signal_cycle() -> None:
 
             spy_changed = (
                 spy_dir not in ("NEUTRAL", "") and
-                spy_conf > 0 and
+                spy_conf >= 0.50 and
                 spy_dir != _last_sent_direction_spy and
                 not _startup_cycle
             )
@@ -318,7 +377,8 @@ async def _news_signal_cycle() -> None:
             print(f"[scheduler] SPY signal error: {e}")
 
         try:
-            qqq_signal = generate_signal(
+            qqq_signal = await asyncio.to_thread(
+                generate_signal,
                 current_features=get_latest_features("STOCKS_QQQ_30M"),
                 news_agg=_latest_news_agg,
                 news_velocity=_latest_velocity,
@@ -333,7 +393,7 @@ async def _news_signal_cycle() -> None:
 
             qqq_changed = (
                 qqq_dir not in ("NEUTRAL", "") and
-                qqq_conf > 0 and
+                qqq_conf >= 0.50 and
                 qqq_dir != _last_sent_direction_qqq and
                 not _startup_cycle
             )
@@ -371,11 +431,66 @@ async def _news_signal_cycle() -> None:
         except Exception as e:
             print(f"[scheduler] Market Intelligence alert error: {e}")
 
+        # Phase 2C — SPX 0-1DTE options layer (paper, OTM Δ0.25)
+        # 0DTE window (before 13:00 ET): use STOCKS_SPX500_15M (faster, intraday resolution)
+        # 1DTE window (after  13:00 ET): use STOCKS_SPX500_30M (slower, more reliable)
+        # Fires every cycle independently — not gated on SPY flip.
+        if not _startup_cycle:
+            try:
+                from zoneinfo import ZoneInfo as _ZI
+                _now_et = __import__("datetime").datetime.now(_ZI("America/New_York"))
+                _is_0dte_window = _now_et.weekday() < 5 and _now_et.hour < 13
+                _opt_pool      = "STOCKS_SPX500_15M" if _is_0dte_window else "STOCKS_SPX500_30M"
+                _opt_min_conf  = 0.0  # gate removed — collect all data first, apply ML gates later
+                from options_engine import build_spx_recommendation, append_paper_trade, set_options_check
+                from signal_engine import generate_signal as _gen, get_latest_features as _glf
+                _opt_sig  = _gen(
+                    current_features=_glf(_opt_pool),
+                    news_agg=_latest_news_agg,
+                    news_velocity=_latest_velocity,
+                    high_impact_event=_latest_event,
+                    symbol="SPX500",
+                    pool=_opt_pool,
+                    macro_bias=_equity_macro,
+                )
+                _opt_dir  = _opt_sig.get("direction", "NEUTRAL")
+                _opt_conf = _opt_sig.get("confidence", 0.0) or 0.0
+                print(f"[options] {_opt_pool}: {_opt_dir} conf={_opt_conf:.2f} (min={_opt_min_conf})")
+                # Confluence: check the other pool to see if it agrees
+                _other_pool = "STOCKS_SPX500_30M" if _is_0dte_window else "STOCKS_SPX500_15M"
+                _other_sig  = _gen(
+                    current_features=_glf(_other_pool),
+                    news_agg=_latest_news_agg,
+                    news_velocity=_latest_velocity,
+                    high_impact_event=_latest_event,
+                    symbol="SPX500",
+                    pool=_other_pool,
+                    macro_bias=_equity_macro,
+                )
+                _confluence = 1.0 if _other_sig.get("direction") == _opt_dir else 0.5
+
+                if _opt_dir in ("NEUTRAL", ""):
+                    set_options_check("SPX500 signal neutral — no directional entry this cycle")
+                elif _opt_dir == _last_sent_direction_spx_options:
+                    set_options_check(f"SPX500 {_opt_dir} unchanged — waiting for a direction flip")
+                else:
+                    _rec = await asyncio.to_thread(
+                        build_spx_recommendation, _opt_dir, _opt_conf,
+                        pool_confluence=_confluence)
+                    if _rec:
+                        await asyncio.to_thread(append_paper_trade, _rec)
+                        _last_sent_direction_spx_options = _opt_dir
+                        print(f"[options] paper trade logged (app-only — Telegram silent)")
+            except Exception as _opt_err:
+                print(f"[options] recommendation failed: {_opt_err}")
+
         _startup_cycle = False  # first cycle complete — normal firing from here on
         asyncio.create_task(_write_health_status(signal, _latest_news_agg, _latest_velocity, len(fj_breaking), _equity_macro))
 
     except Exception as e:
         print(f"[scheduler] Cycle error: {e}")
+    finally:
+        _news_cycle_lock.release()
 
 
 async def _write_health_status(signal: dict, news_agg: float, velocity: dict, breaking_count: int, equity_macro: dict | None = None) -> None:
@@ -612,17 +727,19 @@ async def _hourly_system_check() -> None:
         from datetime import timedelta
         hist_2m, _ = await asyncio.to_thread(_get_file, "data/trade_history_XAUUSD_2M.json")
         if isinstance(hist_2m, list) and len(hist_2m) > 0:
-            last_trade_time = datetime.fromisoformat(hist_2m[-1].get("created_at", "2000-01-01T00:00:00").replace("Z", "+00:00"))
-            if last_trade_time.tzinfo is None:
-                last_trade_time = last_trade_time.replace(tzinfo=timezone.utc)
-            hours_since = (datetime.now(timezone.utc) - last_trade_time).total_seconds() / 3600
-            dow = datetime.now(timezone.utc).weekday()
-            market_hour = 7 <= datetime.now(timezone.utc).hour < 20
-            if dow < 5 and market_hour and hours_since > 6:
-                critical_alerts.append(("Webhook Silence Detected", f"No XAUUSD_2M trade data received for {hours_since:.0f} hours during market hours.", "Check TradingView alerts — they may have expired or been disabled."))
-                issues.append(f"No XAUUSD_2M webhook activity for {hours_since:.0f}h during market hours ⚠️")
+            from db import _parse_ts as _pts
+            from market_calendar import open_hours_between as _open_hrs
+            _now = datetime.now(timezone.utc)
+            last_trade_time = _pts(hist_2m[-1].get("created_at", "2000-01-01T00:00:00"))
+            # Silence measured in MARKET-OPEN hours so a weekend gap never trips it.
+            open_hours = _open_hrs(last_trade_time, _now, "forex")
+            dow = _now.weekday()
+            market_hour = 7 <= _now.hour < 20
+            if dow < 5 and market_hour and open_hours > 6:
+                critical_alerts.append(("Webhook Silence Detected", f"No XAUUSD_2M trade data received for {open_hours:.0f} market-open hours.", "Check TradingView alerts — they may have expired or been disabled."))
+                issues.append(f"No XAUUSD_2M webhook activity for {open_hours:.0f}h of open market ⚠️")
             else:
-                ok.append(f"XAUUSD_2M last webhook: {hours_since:.1f}h ago ✅")
+                ok.append(f"XAUUSD_2M last webhook: {open_hours:.1f}h market-open ago ✅")
         else:
             issues.append("XAUUSD_2M pool empty — webhook silence check skipped ⚠️")
     except Exception as e:
@@ -634,8 +751,19 @@ async def _hourly_system_check() -> None:
         now_utc  = datetime.now(timezone.utc)
         dow      = now_utc.weekday()           # 0=Mon … 4=Fri
         hour_utc = now_utc.hour
-        gold_active   = (dow < 5)              # gold trades Mon-Fri; skip weekend silence alerts
-        stocks_active = (dow < 5 and 13 <= hour_utc < 21)  # stocks 09:30–17:00 ET ≈ 13:30–21:00 UTC
+        # Holiday-aware market status (market_calendar handles NYSE + forex holidays).
+        # Falls back to the weekday/hour heuristic if the calendar import fails.
+        try:
+            from market_calendar import is_nyse_open, is_forex_open, open_hours_between
+            gold_active   = is_forex_open(now_utc)
+            stocks_active = is_nyse_open(now_utc)
+        except Exception as _mc_err:
+            print(f"[system_check] market_calendar unavailable ({_mc_err}) — using weekday heuristic")
+            gold_active   = (dow < 5)
+            stocks_active = (dow < 5 and 13 <= hour_utc < 21)
+            # Fallback: raw wall-clock elapsed (no session awareness available).
+            def open_hours_between(start, end, market="forex"):
+                return max(0.0, (end - start).total_seconds() / 3600)
 
         # max_silent_hours is calibrated to each pool's REAL trade cadence (verified
         # against the live webhook log), not a flat value. Thin pools (INDEX/QQQ) and
@@ -647,24 +775,34 @@ async def _hourly_system_check() -> None:
         active_pools = [
             ("data/trade_history_XAUUSD_2M.json",            "XAUUSD_2M",            gold_active,     6),
             ("data/trade_history_XAUUSD_5M.json",            "XAUUSD_5M",            gold_active,    12),
+            ("data/trade_history_XAUUSD_15M.json",           "XAUUSD_15M",           gold_active,    24),
             ("data/trade_history_XAUUSD_30M.json",           "XAUUSD_30M",           gold_active,    48),
             ("data/trade_history_XAUUSD_1H.json",            "XAUUSD_1H",            gold_active,    168),
             ("data/trade_history_STOCKS_MOMENTUM_15M.json",  "STOCKS_MOMENTUM_15M",  stocks_active,    6),
             ("data/trade_history_STOCKS_MOMENTUM_30M.json",  "STOCKS_MOMENTUM_30M",  stocks_active,    8),
             ("data/trade_history_STOCKS_QUALITY_15M.json",   "STOCKS_QUALITY_15M",   stocks_active,   12),
             ("data/trade_history_STOCKS_QUALITY_30M.json",   "STOCKS_QUALITY_30M",   stocks_active,   24),
-            ("data/trade_history_STOCKS_INDEX_15M.json",     "STOCKS_INDEX_15M",     stocks_active,   48),
-            ("data/trade_history_STOCKS_INDEX_30M.json",     "STOCKS_INDEX_30M",     stocks_active,   48),
-            ("data/trade_history_STOCKS_QQQ_15M.json",       "STOCKS_QQQ_15M",       stocks_active,   48),
-            ("data/trade_history_STOCKS_QQQ_30M.json",       "STOCKS_QQQ_30M",       stocks_active,   48),
+            # INDEX/QQQ pools are single-ticker (SPY/QQQ only) — setups are rare vs
+            # multi-symbol MOMENTUM/QUALITY pools; verified <1 setup/day historically.
+            # Alert only after a full trading week of silence (168h) to avoid false alarms.
+            ("data/trade_history_STOCKS_INDEX_15M.json",     "STOCKS_INDEX_15M",     stocks_active,  168),
+            ("data/trade_history_STOCKS_INDEX_30M.json",     "STOCKS_INDEX_30M",     stocks_active,  168),
+            ("data/trade_history_STOCKS_QQQ_15M.json",       "STOCKS_QQQ_15M",       stocks_active,  168),
+            ("data/trade_history_STOCKS_QQQ_30M.json",       "STOCKS_QQQ_30M",       stocks_active,  168),
             ("data/trade_history_STOCKS_SPX500_15M.json",    "STOCKS_SPX500_15M",    stocks_active,   24),
-            ("data/trade_history_STOCKS_SPX500_30M.json",    "STOCKS_SPX500_30M",    stocks_active,   24),
-            # 4H pools resolve trades over many hours — only alert after ~2 sessions of silence
-            ("data/trade_history_STOCKS_MOMENTUM_4H.json",   "STOCKS_MOMENTUM_4H",   stocks_active,   72),
-            ("data/trade_history_STOCKS_QUALITY_4H.json",    "STOCKS_QUALITY_4H",    stocks_active,   72),
-            ("data/trade_history_STOCKS_INDEX_4H.json",      "STOCKS_INDEX_4H",      stocks_active,   72),
-            ("data/trade_history_STOCKS_QQQ_4H.json",        "STOCKS_QQQ_4H",        stocks_active,   72),
-            ("data/trade_history_STOCKS_SPX500_4H.json",     "STOCKS_SPX500_4H",     stocks_active,   72),
+            ("data/trade_history_STOCKS_SPX500_30M.json",    "STOCKS_SPX500_30M",    stocks_active,   48),
+            # 1H pools — single-bar closes every hour; alert after 72h (3 trading days)
+            ("data/trade_history_STOCKS_MOMENTUM_1H.json",   "STOCKS_MOMENTUM_1H",   stocks_active,   72),
+            ("data/trade_history_STOCKS_QUALITY_1H.json",    "STOCKS_QUALITY_1H",    stocks_active,   72),
+            ("data/trade_history_STOCKS_INDEX_1H.json",      "STOCKS_INDEX_1H",      stocks_active,  168),
+            ("data/trade_history_STOCKS_QQQ_1H.json",        "STOCKS_QQQ_1H",        stocks_active,  168),
+            ("data/trade_history_STOCKS_SPX500_1H.json",     "STOCKS_SPX500_1H",     stocks_active,   72),
+            # 4H pools — alert after a full trading week (168h)
+            ("data/trade_history_STOCKS_MOMENTUM_4H.json",   "STOCKS_MOMENTUM_4H",   stocks_active,  168),
+            ("data/trade_history_STOCKS_QUALITY_4H.json",    "STOCKS_QUALITY_4H",    stocks_active,  168),
+            ("data/trade_history_STOCKS_INDEX_4H.json",      "STOCKS_INDEX_4H",      stocks_active,  168),
+            ("data/trade_history_STOCKS_QQQ_4H.json",        "STOCKS_QQQ_4H",        stocks_active,  168),
+            ("data/trade_history_STOCKS_SPX500_4H.json",     "STOCKS_SPX500_4H",     stocks_active,  168),
         ]
 
         silent_pools = []
@@ -677,9 +815,12 @@ async def _hourly_system_check() -> None:
                     last_ts = datetime.fromisoformat(hist[-1].get("created_at", "2000-01-01T00:00:00+00:00").replace("Z", "+00:00"))
                     if last_ts.tzinfo is None:
                         last_ts = last_ts.replace(tzinfo=timezone.utc)
-                    hours_since = (now_utc - last_ts).total_seconds() / 3600
-                    if hours_since > max_silent_hours:
-                        silent_pools.append(f"{pool_name}: {hours_since:.0f}h since last trade")
+                    # Measure silence in MARKET-OPEN hours, not wall-clock — a normal
+                    # weekend/holiday closure must not count as a webhook gap.
+                    market = "forex" if pool_name.startswith("XAUUSD") else "nyse"
+                    open_hours = open_hours_between(last_ts, now_utc, market)
+                    if open_hours > max_silent_hours:
+                        silent_pools.append(f"{pool_name}: {open_hours:.0f}h market-open since last trade")
             except Exception:
                 pass
 
@@ -733,12 +874,12 @@ async def _hourly_system_check() -> None:
 
     try:
         from db import _get_file, _put_file
-        for _dedup_pool in ["XAUUSD_2M", "XAUUSD_5M", "XAUUSD_30M", "XAUUSD_1H",
-                             "STOCKS_MOMENTUM_15M", "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_4H",
-                             "STOCKS_QUALITY_15M",  "STOCKS_QUALITY_30M",  "STOCKS_QUALITY_4H",
-                             "STOCKS_INDEX_15M",    "STOCKS_INDEX_30M",    "STOCKS_INDEX_4H",
-                             "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",      "STOCKS_QQQ_4H",
-                             "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",   "STOCKS_SPX500_4H"]:
+        for _dedup_pool in ["XAUUSD_2M", "XAUUSD_5M", "XAUUSD_15M", "XAUUSD_30M", "XAUUSD_1H",
+                             "STOCKS_MOMENTUM_15M", "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_1H", "STOCKS_MOMENTUM_4H",
+                             "STOCKS_QUALITY_15M",  "STOCKS_QUALITY_30M",  "STOCKS_QUALITY_1H",  "STOCKS_QUALITY_4H",
+                             "STOCKS_INDEX_15M",    "STOCKS_INDEX_30M",    "STOCKS_INDEX_1H",    "STOCKS_INDEX_4H",
+                             "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",      "STOCKS_QQQ_1H",      "STOCKS_QQQ_4H",
+                             "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",   "STOCKS_SPX500_1H",   "STOCKS_SPX500_4H"]:
             _path = f"data/trade_history_{_dedup_pool}.json"
             _hist, _sha = await asyncio.to_thread(_get_file, _path)
             if not isinstance(_hist, list) or len(_hist) == 0:
@@ -760,12 +901,12 @@ async def _hourly_system_check() -> None:
     try:
         from ml_ensemble import get_rf, get_gbm
         from db import recent_outcomes
-        retrain_pools = ["XAUUSD_2M", "XAUUSD_5M", "XAUUSD_30M", "XAUUSD_1H",
-                         "STOCKS_MOMENTUM_15M", "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_4H",
-                         "STOCKS_QUALITY_15M",  "STOCKS_QUALITY_30M",  "STOCKS_QUALITY_4H",
-                         "STOCKS_INDEX_15M",    "STOCKS_INDEX_30M",    "STOCKS_INDEX_4H",
-                         "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",      "STOCKS_QQQ_4H",
-                         "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",   "STOCKS_SPX500_4H"]
+        retrain_pools = ["XAUUSD_2M", "XAUUSD_5M", "XAUUSD_15M", "XAUUSD_30M", "XAUUSD_1H",
+                         "STOCKS_MOMENTUM_15M", "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_1H", "STOCKS_MOMENTUM_4H",
+                         "STOCKS_QUALITY_15M",  "STOCKS_QUALITY_30M",  "STOCKS_QUALITY_1H",  "STOCKS_QUALITY_4H",
+                         "STOCKS_INDEX_15M",    "STOCKS_INDEX_30M",    "STOCKS_INDEX_1H",    "STOCKS_INDEX_4H",
+                         "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",      "STOCKS_QQQ_1H",      "STOCKS_QQQ_4H",
+                         "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",   "STOCKS_SPX500_1H",   "STOCKS_SPX500_4H"]
         for _pool in retrain_pools:
             _trades = await asyncio.to_thread(recent_outcomes, _pool, 500)
             if len(_trades) >= 50:
@@ -777,12 +918,12 @@ async def _hourly_system_check() -> None:
 
     try:
         from db import resync_pool_counters
-        sync_pools = ["XAUUSD_2M", "XAUUSD_5M", "XAUUSD_30M", "XAUUSD_1H",
-                      "STOCKS_MOMENTUM_15M", "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_4H",
-                      "STOCKS_QUALITY_15M",  "STOCKS_QUALITY_30M",  "STOCKS_QUALITY_4H",
-                      "STOCKS_INDEX_15M",    "STOCKS_INDEX_30M",    "STOCKS_INDEX_4H",
-                      "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",      "STOCKS_QQQ_4H",
-                      "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",   "STOCKS_SPX500_4H"]
+        sync_pools = ["XAUUSD_2M", "XAUUSD_5M", "XAUUSD_15M", "XAUUSD_30M", "XAUUSD_1H",
+                      "STOCKS_MOMENTUM_15M", "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_1H", "STOCKS_MOMENTUM_4H",
+                      "STOCKS_QUALITY_15M",  "STOCKS_QUALITY_30M",  "STOCKS_QUALITY_1H",  "STOCKS_QUALITY_4H",
+                      "STOCKS_INDEX_15M",    "STOCKS_INDEX_30M",    "STOCKS_INDEX_1H",    "STOCKS_INDEX_4H",
+                      "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",      "STOCKS_QQQ_1H",      "STOCKS_QQQ_4H",
+                      "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",   "STOCKS_SPX500_1H",   "STOCKS_SPX500_4H"]
         for _pool in sync_pools:
             await asyncio.to_thread(resync_pool_counters, _pool)
     except Exception as e:
@@ -839,8 +980,10 @@ async def _hourly_system_check() -> None:
             if lvl_ts.tzinfo is None:
                 lvl_ts = lvl_ts.replace(tzinfo=timezone.utc)
             lvl_age_h = (now_utc - lvl_ts).total_seconds() / 3600
-            # Refreshed every weekday; >30h means the GitHub Action failed (signals use stale pivots)
-            if now_utc.weekday() < 5 and lvl_age_h > 30:
+            # Refreshed every weekday at ~11:50 UTC; on Monday before noon the weekend gap
+            # is expected (~65h from Fri afternoon), so use a 90h threshold that day.
+            stale_threshold = 90 if now_utc.weekday() == 0 and now_utc.hour < 12 else 30
+            if now_utc.weekday() < 5 and lvl_age_h > stale_threshold:
                 critical_alerts.append((
                     "Daily Levels Stale",
                     f"daily_levels.json is {lvl_age_h:.0f}h old — the pivot-fetch GitHub Action may have failed.",
@@ -861,13 +1004,42 @@ async def _hourly_system_check() -> None:
         await send_critical_alert(title, detail, action)
 
 
+async def _daily_market_brief() -> None:
+    """Send daily technical market brief to Telegram at 09:00 UTC (1 PM Dubai) Mon-Fri."""
+    global _brief_sent_date
+    from datetime import datetime, timezone
+    today = datetime.now(timezone.utc).date()
+    if today == _brief_sent_date:
+        print("[daily_brief] Already sent today — skipping.")
+        return
+    if datetime.now(timezone.utc).weekday() >= 5:
+        return
+    try:
+        from daily_analysis import generate_daily_brief
+        from telegram_bot import send_text
+        msg = await asyncio.to_thread(generate_daily_brief)
+        if msg:
+            await send_text(msg)
+            _brief_sent_date = today
+            print("[daily_brief] Sent to Telegram.")
+        else:
+            print("[daily_brief] generate_daily_brief returned None — nothing sent.")
+    except Exception as e:
+        print(f"[daily_brief] Failed: {e}")
+
+
 async def _daily_trade_count_report() -> None:
     """
     RULE: One daily performance report, fired once after NY session closes (16:15 ET).
     Consolidated across all pools — XAUUSD + all stocks.
     No other daily brief fires; this is the only end-of-day message.
     """
+    global _report_sent_date
     from datetime import datetime, timezone, date
+    today = datetime.now(timezone.utc).date()
+    if today == _report_sent_date:
+        print("[daily_report] Already sent today — skipping.")
+        return
     if datetime.now(timezone.utc).weekday() >= 5:
         return
     try:
@@ -1001,6 +1173,7 @@ async def _daily_trade_count_report() -> None:
             f"⏰ {now_utc.strftime('%H:%M UTC')}"
         )
         await send_text(msg)
+        _report_sent_date = datetime.now(timezone.utc).date()
         print(f"[daily_report] Performance report sent — {tot} trades today, TP={tp} SL={sl} P={par}.")
     except Exception as e:
         print(f"[daily_report] Error: {e}")
@@ -1047,9 +1220,27 @@ async def _weekly_mistake_autopsy() -> None:
         except Exception as _se:
             print(f"[autopsy] SHAP section failed: {_se}")
 
-        from telegram_bot import send_text
-        await send_text("\n".join(lines))
-        print("[autopsy] Weekly autopsy sent.")
+        # Swing addon — accumulation + win-rate sanity (no tuning before ≥50 closed).
+        try:
+            from swing_tracker import stats as _swing_stats, sanity_flag as _swing_flag
+            sm = await asyncio.to_thread(_swing_stats)
+            wr = f"{sm['win_rate']:.0%}" if sm.get("win_rate") is not None else "—"
+            lines.append(
+                f"\n📈 *Swing data:* {sm['n_closed']} closed ({sm['n_wins']}W/{sm['n_losses']}L, "
+                f"win-rate {wr}), {sm['n_open']} open · "
+                + ("ML ready ✅" if sm.get("ready") else f"accumulating ({sm['n_closed']}/50)")
+            )
+            flag = _swing_flag(sm)
+            if flag:
+                lines.append(f"  ⚠️ {flag}")
+            else:
+                lines.append("  ✅ within normal range — do NOT tune exit rule / watchlist on noise")
+        except Exception as _swe:
+            print(f"[autopsy] swing section failed: {_swe}")
+
+        from telegram_bot import send_personal_text
+        await send_personal_text("\n".join(lines))
+        print("[autopsy] Weekly autopsy sent to personal chat.")
     except Exception as e:
         print(f"[autopsy] Error: {e}")
 
@@ -1089,18 +1280,20 @@ async def _weekly_model_comparison() -> None:
             for tr, val in tscv.split(X):
                 if len(tr) < 15 or len(set(y[tr].tolist())) < 2:
                     continue
+                from signal_engine import _pool_thresholds, ML_GATE_THRESHOLD
+                _thresh = _pool_thresholds.get(pool, ML_GATE_THRESHOLD)
                 for name, m in [("rf", get_rf(pool)), ("gbm", get_gbm(pool))]:
                     if not m.is_trained:
                         continue
                     try:
-                        preds = [(m.predict(X[i].tolist()) >= 0.45) for i in val]
+                        preds = [(m.predict(X[i].tolist()) >= _thresh) for i in val]
                         model_scores[name].append(_f1(y[val], preds, zero_division=0))
                     except Exception:
                         pass
                 jm = get_joint_gold() if pool in GOLD_TF_IDS else get_joint_stocks()
                 if jm.is_trained:
                     try:
-                        preds = [(jm.predict(X[i].tolist(), pool) >= 0.45) for i in val]
+                        preds = [(jm.predict(X[i].tolist(), pool) >= _thresh) for i in val]
                         model_scores["joint"].append(_f1(y[val], preds, zero_division=0))
                     except Exception:
                         pass
@@ -1111,10 +1304,21 @@ async def _weekly_model_comparison() -> None:
                 results.append(f"  `{pool}`: winner=*{winner}* "
                                 + " ".join(f"{k}={v:.2f}" for k, v in sorted(avgs.items())))
 
+        # Swing addon — shadow comparison: ML candidate vs rules baseline (does NOT
+        # drive live scoring; promote only after it beats the baseline on live data).
+        try:
+            from swing_tracker import shadow_eval
+            se = await asyncio.to_thread(shadow_eval)
+            results.append(f"\n📈 *Swing shadow:* {se.get('verdict','—')}")
+            if se.get("baseline_f1") is not None:
+                results.append(f"  rules_f1={se['baseline_f1']:.2f} ml_f1={se['ml_f1']:.2f}")
+        except Exception as _swe:
+            print(f"[model_compare] swing shadow failed: {_swe}")
+
         if len(results) > 1:
-            from telegram_bot import send_text
-            await send_text("\n".join(results))
-            print("[model_compare] Weekly comparison sent.")
+            from telegram_bot import send_personal_text
+            await send_personal_text("\n".join(results))
+            print("[model_compare] Weekly comparison sent to personal chat.")
     except Exception as e:
         print(f"[model_compare] Error: {e}")
 
@@ -1129,12 +1333,33 @@ async def _test_personal_alert() -> None:
 
 
 async def _macro_refresh_cycle() -> None:
-    """Refresh gold macro drivers (FRED real yields/dollar, CFTC COT, GLD flows) hourly."""
+    """Refresh gold macro drivers (FRED real yields/dollar, CFTC COT, GLD flows) hourly,
+    plus the probabilistic HMM regime state for XAUUSD/SPY/QQQ (Phase 2A)."""
     try:
         from market_macro import refresh_macro_bias
         await asyncio.to_thread(refresh_macro_bias)
     except Exception as e:
         print(f"[scheduler] macro refresh failed: {e}")
+    try:
+        from fear_greed import fetch_fear_greed
+        await asyncio.to_thread(fetch_fear_greed)
+    except Exception as e:
+        print(f"[scheduler] fear & greed refresh failed: {e}")
+    try:
+        from cboe_data import fetch_pc_ratio
+        await asyncio.to_thread(fetch_pc_ratio)
+    except Exception as e:
+        print(f"[scheduler] CBOE p/c refresh failed: {e}")
+    try:
+        from regime_model import refresh_regimes
+        await asyncio.to_thread(refresh_regimes)
+    except Exception as e:
+        print(f"[scheduler] regime refresh failed: {e}")
+    try:
+        from mtf_confluence import refresh_mtf
+        await asyncio.to_thread(refresh_mtf)
+    except Exception as e:
+        print(f"[scheduler] MTF refresh failed: {e}")
 
 
 async def _fj_session_refresh_cycle() -> None:
@@ -1403,16 +1628,217 @@ async def _full_system_inspection():
 
     # Send Telegram alert only if there are errors or fixes were applied
     if n_err > 0 or n_fix > 0:
+        from telegram_bot import send_critical_alert as _send_crit
         lines = []
         if report["fixes_applied"]: lines += report["fixes_applied"][:5]
         if report["errors"]:        lines += report["errors"][:5]
         if report["warnings"][:3]:  lines += report["warnings"][:3]
         body  = "\n".join(lines)
-        await send_critical_alert(
+        await _send_crit(
             f"System Inspection: {n_fix} fix(es), {n_err} error(s)",
             body,
             f"Full report: {n_ok} ok / {n_warn} warn / {n_err} err / {n_fix} fixed in {elapsed:.0f}s",
         )
+
+    report["elapsed_seconds"] = round(elapsed, 1)
+    report["summary"] = f"{n_ok} ok / {n_warn} warn / {n_err} err / {n_fix} fixed"
+    return report
+
+
+async def _options_iv_record_cycle() -> None:
+    """Daily SPX ATM IV snapshot — builds the 60-session IV Rank history."""
+    try:
+        from options_engine import record_daily_iv
+        await asyncio.to_thread(record_daily_iv)
+    except Exception as e:
+        print(f"[options] IV record cycle failed: {e}")
+
+
+async def _options_paper_manage_cycle() -> None:
+    """Hourly during RTH: enforce TP/SL/time exits on open paper option trades.
+    Silent until 50 closed trades per pool; auto-unlocks Telegram at that point."""
+    try:
+        from options_engine import manage_paper_positions
+        closed = await asyncio.to_thread(manage_paper_positions)
+        for line in closed:
+            print(f"[options] paper closed: {line}")
+            # Telegram silent — positions visible on app only
+    except Exception as e:
+        print(f"[options] paper manage cycle failed: {e}")
+
+
+async def _options_weekly_autopsy() -> None:
+    """Monday 17:00 ET: surface dominant loss patterns — always to personal chat."""
+    try:
+        from options_engine import weekly_autopsy
+        report = await asyncio.to_thread(weekly_autopsy)
+        print(f"[options-autopsy] {report[:200]}")
+        from telegram_bot import send_critical_alert
+        await send_critical_alert("SPX Options Weekly Autopsy", report)
+    except Exception as e:
+        print(f"[options] weekly autopsy failed: {e}")
+
+
+async def _market_open_data_check() -> None:
+    """
+    Shortly after the US market opens (holiday-aware), force a fresh fetch of the
+    Phase 2 context layers during LIVE hours and verify all three assets actually
+    got real data. Weekend/holiday data can mask a yfinance drop; this validates
+    the layers when the market is genuinely open. Alerts the personal chat only
+    when something looks wrong (healthy = console only, no noise).
+    """
+    try:
+        from market_calendar import is_nyse_open
+        if not is_nyse_open():
+            print("[data_check] NYSE closed (holiday) — skipping market-open data check")
+            return
+
+        # Force a fresh fetch now that markets are live.
+        try:
+            from regime_model import refresh_regimes, REGIME_ASSETS, get_regime
+            from mtf_confluence import refresh_mtf, get_mtf
+            await asyncio.to_thread(refresh_regimes)
+            await asyncio.to_thread(refresh_mtf)
+        except Exception as _re:
+            print(f"[data_check] refresh failed: {_re}")
+            return
+
+        problems: list[str] = []
+        lines: list[str] = []
+        for a in REGIME_ASSETS:
+            reg = get_regime(a)
+            mtf = get_mtf(a)
+            votes = mtf.get("votes", {})
+            reg_ok = reg.get("method") in ("hmm", "heuristic")
+            mtf_ok = any(votes.get(k, 0) != 0 for k in ("h1", "h4", "d1")) or mtf.get("bias") not in (None, "NEUTRAL")
+            tag = "✅" if (reg_ok and mtf_ok) else "⚠️"
+            if not reg_ok:
+                problems.append(f"{a} regime={reg.get('method','?')}")
+            if not mtf_ok:
+                problems.append(f"{a} MTF empty/flat")
+            lines.append(f"{tag} {a}: regime {reg.get('regime','?')}({reg.get('method','?')}) · "
+                         f"MTF {mtf.get('bias','?')} {votes}")
+
+        status = "healthy ✅" if not problems else "issues ⚠️ — " + ", ".join(problems)
+        print(f"[data_check] market-open data layers: {status}\n  " + "\n  ".join(lines))
+
+        if problems:
+            from telegram_bot import send_critical_alert
+            await send_critical_alert(
+                "Data Layer Check (market open)",
+                "\n".join(lines),
+                "yfinance likely dropped during the open burst — Stooq/Alpha Vantage "
+                "fallback should cover. Investigate if this persists across days.",
+            )
+    except Exception as e:
+        print(f"[data_check] market-open data check failed: {e}")
+
+
+async def _swing_screen_cycle() -> None:
+    """
+    Swing-trade screen — scans the top-50 S&P 500 watchlist, applies fundamental
+    quality + ≥20% analyst upside gates, locks the best 10 with entry quality.
+    Runs twice daily: 09:45 ET (morning pre-open check) + 16:30 ET (after close).
+    Holiday-aware: skips when NYSE was closed today.
+    """
+    from datetime import datetime, timezone
+    now_utc = datetime.now(timezone.utc)
+    try:
+        from market_calendar import is_nyse_open
+        probe = now_utc.replace(hour=15, minute=0, second=0, microsecond=0)
+        if not is_nyse_open(probe):
+            print("[swing] NYSE closed today — skipping screen.")
+            return
+    except Exception:
+        if now_utc.weekday() >= 5:
+            return
+
+    try:
+        from swing_screener import run_screen
+        from swing_tracker import open_paper_trades
+        screen = await asyncio.to_thread(run_screen, 15)
+        # Log top candidates as paper trades — this is what accumulates the ML
+        # training data (features → WIN/LOSS) the ensemble will later learn from.
+        # SILENT during training phase — Telegram send disabled until ≥50 closed
+        # swing trades are accumulated. Re-enable by uncommenting the two lines below
+        # and importing send_swing_brief.
+        await asyncio.to_thread(open_paper_trades, screen)
+        # from telegram_bot import send_swing_brief
+        # await send_swing_brief(screen)
+    except Exception as e:
+        print(f"[swing] nightly screen cycle failed: {e}")
+
+
+async def _swing_manage_cycle() -> None:
+    """Resolve open swing paper trades against fresh daily bars (TP/SL/max-hold)."""
+    from datetime import datetime, timezone
+    now_utc = datetime.now(timezone.utc)
+    try:
+        from market_calendar import is_nyse_open
+        probe = now_utc.replace(hour=15, minute=0, second=0, microsecond=0)
+        if not is_nyse_open(probe):
+            return
+    except Exception:
+        if now_utc.weekday() >= 5:
+            return
+    try:
+        from swing_tracker import manage_paper_trades
+        await asyncio.to_thread(manage_paper_trades)
+    except Exception as e:
+        print(f"[swing] manage cycle failed: {e}")
+
+
+async def _swing_agents_cycle() -> None:
+    """
+    TradingAgents bull/bear debate on top swing candidates.
+    Runs Mon + Thu 17:30 ET (~every 3 days). Enriches swing_candidates.json
+    with agent conviction scores; updates Telegram brief to include summaries.
+    Requires ANTHROPIC_API_KEY (already on Railway). Gracefully no-ops when
+    tradingagents package is unavailable or no candidates exist.
+    """
+    from datetime import datetime, timezone
+    now_utc = datetime.now(timezone.utc)
+    try:
+        from market_calendar import is_nyse_open
+        probe = now_utc.replace(hour=15, minute=0, second=0, microsecond=0)
+        if not is_nyse_open(probe):
+            print("[ta_layer] NYSE closed today — skipping agent cycle")
+            return
+    except Exception:
+        if now_utc.weekday() >= 5:
+            return
+
+    try:
+        from swing_screener import _cached as _swing_cached
+        from trading_agents_layer import run_agents_on_candidates
+        from db import _get_file, _put_file
+        import json
+
+        # Load current candidates from cache or GitHub data branch
+        candidates = (_swing_cached or {}).get("candidates", [])
+        if not candidates:
+            data, _ = _get_file("data/swing_candidates.json")
+            if isinstance(data, dict):
+                candidates = data.get("candidates", [])
+
+        if not candidates:
+            print("[ta_layer] no swing candidates to analyse — skipping")
+            return
+
+        print(f"[ta_layer] starting agent debate on top {min(len(candidates), 15)} candidates …")
+        enriched = await asyncio.to_thread(run_agents_on_candidates, candidates)
+
+        # Write enriched candidates back to data branch
+        data, sha = _get_file("data/swing_candidates.json")
+        if isinstance(data, dict):
+            data["candidates"] = enriched
+            data["agents_updated"] = now_utc.isoformat()
+            _put_file("data/swing_candidates.json", data, sha,
+                      "data: swing agents enrichment")
+            print(f"[ta_layer] enriched {len(enriched)} candidates → data branch")
+
+    except Exception as e:
+        print(f"[ta_layer] agent cycle failed: {e}")
 
 
 def start_scheduler() -> AsyncIOScheduler:
@@ -1428,11 +1854,15 @@ def start_scheduler() -> AsyncIOScheduler:
     )
     _scheduler.add_job(_news_signal_cycle, trigger="interval", minutes=interval, id="news_signal_cycle", replace_existing=True)
     from datetime import datetime as _dt, timezone as _tz, timedelta as _td
+    # 90s delay prevents startup thundering: news cycle starts after signal + macro jobs have initialised
     _scheduler.add_job(_breaking_news_cycle, trigger="interval", minutes=2, id="breaking_news_cycle", replace_existing=True,
                        start_date=_dt.now(_tz.utc) + _td(seconds=90))
     _scheduler.add_job(_hourly_system_check, trigger="interval", hours=1, id="hourly_system_check", replace_existing=True)
     _scheduler.add_job(_macro_refresh_cycle, trigger="interval", hours=1, id="macro_refresh_cycle", replace_existing=True,
                        start_date=_dt.now(_tz.utc) + _td(seconds=20))
+    # Daily technical market brief — fires at 09:00 UTC (1 PM Dubai / UTC+4) Mon-Fri.
+    _scheduler.add_job(_daily_market_brief, trigger="cron", day_of_week="mon-fri", hour=9, minute=0,
+                       id="daily_market_brief", replace_existing=True, misfire_grace_time=3600)
     # ONE daily performance report — fires at 16:15 ET (after NY session close).
     # DST-safe via America/New_York so it always fires 15 min after market close.
     from zoneinfo import ZoneInfo
@@ -1442,10 +1872,37 @@ def start_scheduler() -> AsyncIOScheduler:
     _scheduler.add_job(_fj_session_refresh_cycle, trigger="cron", hour="5,17", minute=30, id="fj_session_refresh", replace_existing=True, misfire_grace_time=3600)
     # Market pulse — direction summary at London open (10:00), NY open (14:00), NY close (20:00) UTC.
     _scheduler.add_job(_market_pulse_cycle, trigger="cron", hour="10,14,20", minute=0, id="market_pulse", replace_existing=True, misfire_grace_time=600)
+    # Phase 2 data-layer health check — 30 min after NYSE open (10:00 ET, DST-safe),
+    # verifies the context layers fetched live data; holiday-aware (skips when closed).
+    _scheduler.add_job(_market_open_data_check, trigger="cron", day_of_week="mon-fri", hour=10, minute=0,
+                       timezone=_ny_tz, id="market_open_data_check", replace_existing=True, misfire_grace_time=1800)
+    # Swing addon — screen twice daily:
+    #   09:45 ET morning (catches overnight setups, pre-market movers)
+    #   16:30 ET after close (full scan on completed daily bars)
+    # Both runs apply: fundamental quality gate + ≥20% analyst upside gate → top 10.
+    _scheduler.add_job(_swing_screen_cycle, trigger="cron", day_of_week="mon-fri", hour=9, minute=45,
+                       timezone=_ny_tz, id="swing_screen_am", replace_existing=True, misfire_grace_time=3600)
+    _scheduler.add_job(_swing_screen_cycle, trigger="cron", day_of_week="mon-fri", hour=16, minute=30,
+                       timezone=_ny_tz, id="swing_screen", replace_existing=True, misfire_grace_time=3600)
+    # Resolve open swing paper trades 15 min after the screen (uses today's close).
+    _scheduler.add_job(_swing_manage_cycle, trigger="cron", day_of_week="mon-fri", hour=16, minute=45,
+                       timezone=_ny_tz, id="swing_manage", replace_existing=True, misfire_grace_time=3600)
+    # TradingAgents second-layer filter — Mon + Thu 17:30 ET (every ~3 days).
+    # Runs bull/bear debate on top swing candidates and enriches swing_candidates.json.
+    _scheduler.add_job(_swing_agents_cycle, trigger="cron", day_of_week="mon,thu", hour=17, minute=30,
+                       timezone=_ny_tz, id="swing_agents", replace_existing=True, misfire_grace_time=3600)
     # Weekly mistake autopsy — every Monday 09:00 UTC
     _scheduler.add_job(_weekly_mistake_autopsy, trigger="cron", day_of_week="mon", hour=9, minute=0, id="weekly_autopsy", replace_existing=True, misfire_grace_time=3600)
     # Weekly model comparison — every Sunday 20:00 UTC
     _scheduler.add_job(_weekly_model_comparison, trigger="cron", day_of_week="sun", hour=20, minute=0, id="weekly_model_compare", replace_existing=True, misfire_grace_time=3600)
+    # Phase 2C — SPX options: record ATM IV once per session (15:45 ET, after the
+    # bulk of the day's IV is realized) + manage open paper positions hourly.
+    _scheduler.add_job(_options_iv_record_cycle, trigger="cron", day_of_week="mon-fri", hour=15, minute=45,
+                       timezone=_ny_tz, id="options_iv_record", replace_existing=True, misfire_grace_time=3600)
+    _scheduler.add_job(_options_paper_manage_cycle, trigger="cron", day_of_week="mon-fri", hour="10-16", minute=5,
+                       timezone=_ny_tz, id="options_paper_manage", replace_existing=True, misfire_grace_time=600)
+    _scheduler.add_job(_options_weekly_autopsy, trigger="cron", day_of_week="mon", hour=17, minute=0,
+                       timezone=_ny_tz, id="options_weekly_autopsy", replace_existing=True, misfire_grace_time=3600)
     # Full system inspection — every 6 hours (system_directive.FULL_INSPECTION_HOURS)
     from system_directive import FULL_INSPECTION_HOURS
     _scheduler.add_job(_full_system_inspection, trigger="interval", hours=FULL_INSPECTION_HOURS,
@@ -1460,13 +1917,128 @@ def start_scheduler() -> AsyncIOScheduler:
     _scheduler.add_job(_fj_session_refresh_cycle, trigger="date", run_date=_now + _td(seconds=60),
                        id="fj_session_refresh_boot", replace_existing=True)
 
-    # Startup catch-up: fire daily performance report if we missed the 16:15 ET cron
-    # (e.g. redeployed after NY close). Uses NY time so it tracks DST automatically.
+    # Startup catch-up: re-fire any once-per-day job whose scheduled window passed
+    # while the app was down (deploy restart). APScheduler has no persistent state,
+    # so misfire_grace_time is useless across restarts — we handle it here instead.
+    # Window: job fired today AND startup is within 4 hours AFTER the schedule.
+    # Worst case: two deploys in the same window → harmless double-send.
     _now_ny = _now.astimezone(_ny_tz)
-    if _now_ny.weekday() < 5 and (_now_ny.hour, _now_ny.minute) >= (16, 15):
-        print("[scheduler] Startup catch-up: firing daily performance report on boot.")
+    _is_weekday = _now_ny.weekday() < 5
+    _is_monday  = _now_ny.weekday() == 0
+
+    def _missed(sched_h: int, sched_m: int, tz_now, window_min: int = 240) -> bool:
+        """True if scheduled time passed today and startup is within window_min after."""
+        sched_min = sched_h * 60 + sched_m
+        now_min   = tz_now.hour * 60 + tz_now.minute
+        return sched_min <= now_min < sched_min + window_min
+
+    # Daily market brief — fires at 09:00 UTC (1 PM Dubai) via cron.
+    # Catch-up window: 4 hours (09:00–13:00 UTC only). Outside that window a restart
+    # is a routine redeploy — don't re-send. _brief_sent_date guards against double-fire
+    # within the same process, but resets on restart so this window is the only cross-
+    # deploy protection.
+    if _is_weekday and _missed(9, 0, _now, window_min=240):  # 09:00–13:00 UTC only
+        print("[scheduler] Startup catch-up: daily market brief (past 09:00 UTC, not yet sent today).")
+        _scheduler.add_job(_daily_market_brief, trigger="date", run_date=_now + _td(seconds=30),
+                           id="daily_brief_catchup", replace_existing=True)
+
+    # Daily performance report — fires at end of NY session: 16:15 ET (≈20:15 UTC).
+    # Catch-up window: 30 min (16:15–16:45 ET only). _report_sent_date guards against
+    # double-fire within the same process; this window is the cross-deploy protection.
+    if _is_weekday and _missed(16, 15, _now_ny, window_min=30):
+        print("[scheduler] Startup catch-up: daily performance report (within 60min of 16:15 ET).")
         _scheduler.add_job(_daily_trade_count_report, trigger="date", run_date=_now + _td(seconds=45),
                            id="daily_report_catchup", replace_existing=True)
+
+    # Swing screen — 16:30 ET
+    if _is_weekday and _missed(16, 30, _now_ny):
+        print("[scheduler] Startup catch-up: swing screen.")
+        _scheduler.add_job(_swing_screen_cycle, trigger="date", run_date=_now + _td(seconds=60),
+                           id="swing_screen_catchup", replace_existing=True)
+
+    # Swing manage — 16:45 ET
+    if _is_weekday and _missed(16, 45, _now_ny):
+        print("[scheduler] Startup catch-up: swing manage.")
+        _scheduler.add_job(_swing_manage_cycle, trigger="date", run_date=_now + _td(seconds=75),
+                           id="swing_manage_catchup", replace_existing=True)
+
+    # Weekly autopsy — Monday 09:00 UTC
+    if _is_monday and _missed(9, 0, _now):
+        print("[scheduler] Startup catch-up: weekly autopsy.")
+        _scheduler.add_job(_weekly_mistake_autopsy, trigger="date", run_date=_now + _td(seconds=90),
+                           id="autopsy_catchup", replace_existing=True)
+
+    # ── Interval-job catch-up after Railway sleep / cold restart ─────────────
+    # APScheduler has no persistent state — interval jobs (signal, macro, news)
+    # are simply skipped while the process is down. On restart we check staleness
+    # against GitHub-persisted timestamps and fire immediately if overdue.
+    # This makes every restart fully self-healing with zero manual intervention.
+
+    # Signal + news cycle — runs every `interval` minutes (default 15).
+    # Guard: check feature_cache.json timestamps on data branch. If the most
+    # recent pool timestamp is older than 2× the interval AND it is a weekday
+    # trading hour (to avoid false alarms on weekends/holidays), fire once now.
+    try:
+        from db import _get_file as _db_get
+        _fc, _ = _db_get("data/feature_cache.json")
+        if isinstance(_fc, dict) and _fc:
+            _ts_vals = []
+            for _pool_data in _fc.values():
+                _ts = _pool_data.get("timestamp") if isinstance(_pool_data, dict) else None
+                if _ts:
+                    try:
+                        from datetime import datetime as _dtp
+                        _ts_vals.append(_dtp.fromisoformat(_ts.replace("Z", "+00:00")))
+                    except Exception:
+                        pass
+            if _ts_vals:
+                _most_recent = max(_ts_vals)
+                _age_min = (_now - _most_recent).total_seconds() / 60
+                # Only catch-up during weekday market hours (00:00–22:00 UTC covers all sessions)
+                _is_market_hour = _is_weekday and 0 <= _now.hour < 22
+                if _age_min > interval * 2 and _is_market_hour:
+                    print(f"[scheduler] Startup catch-up: signal+news cycle (feature cache {_age_min:.0f} min stale).")
+                    _scheduler.add_job(_news_signal_cycle, trigger="date",
+                                       run_date=_now + _td(seconds=15),
+                                       id="signal_catchup", replace_existing=True)
+    except Exception as _e:
+        print(f"[scheduler] Startup catch-up: signal check skipped ({_e}).")
+
+    # Macro refresh — runs every 60 min. Guard: check market_macro.json updated_at.
+    # If stale >90 min on a weekday, refresh immediately so gold bias is current.
+    try:
+        _mm, _ = _db_get("data/market_macro.json")
+        if isinstance(_mm, dict):
+            _mm_ts = _mm.get("updated_at")
+            if _mm_ts:
+                from datetime import datetime as _dtp2
+                _mm_age_min = (_now - _dtp2.fromisoformat(_mm_ts.replace("Z", "+00:00"))).total_seconds() / 60
+                if _mm_age_min > 90 and _is_weekday:
+                    print(f"[scheduler] Startup catch-up: macro refresh (macro data {_mm_age_min:.0f} min stale).")
+                    _scheduler.add_job(_macro_refresh_cycle, trigger="date",
+                                       run_date=_now + _td(seconds=25),
+                                       id="macro_catchup", replace_existing=True)
+    except Exception as _e:
+        print(f"[scheduler] Startup catch-up: macro check skipped ({_e}).")
+
+    # Options paper management — hourly during RTH (10:00–16:00 ET).
+    # If Railway was down during RTH, fire one management cycle now so open
+    # positions get TP/SL checked without waiting for the next cron tick.
+    try:
+        _now_ny_h = _now_ny.hour
+        _now_ny_m = _now_ny.minute
+        _in_rth = _is_weekday and 10 <= _now_ny_h < 16
+        if _in_rth:
+            # Check options paper trades for any open positions
+            from db import _get_file as _db_get2
+            _opt, _ = _db_get2("data/options_paper_SPX.json")
+            if isinstance(_opt, dict) and _opt.get("open"):
+                print(f"[scheduler] Startup catch-up: options paper management ({len(_opt['open'])} open positions).")
+                _scheduler.add_job(_options_paper_manage_cycle, trigger="date",
+                                   run_date=_now + _td(seconds=35),
+                                   id="options_manage_catchup", replace_existing=True)
+    except Exception as _e:
+        print(f"[scheduler] Startup catch-up: options check skipped ({_e}).")
 
     print(f"[scheduler] Started — signal every {interval} min, breaking news every 2 min, system check every 60 min, daily performance report at 16:15 ET.")
     return _scheduler

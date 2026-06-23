@@ -1,53 +1,87 @@
-# Checkpoint v1 — Stable Baseline
-**Commit:** `903adc2b3e2f6983376ebdd3ed74994859623d1c`
-**Date:** 2026-06-04
+# Checkpoint v3 — Stable Rollback Point
+**Tag:** `checkpoint-v3`
+**Commit:** `ad5b7c2293b559f6a87a76b87e72a4bc615b311d`
+**Branch:** `claude/hopeful-pasteur-VVHCl`
+**Date:** 2026-06-14
+**CI:** Backend CI run #116 — `conclusion: success` ✅
 
-## System State at This Checkpoint
+> This is the current rollback point. If anything breaks, restore to this tag (see bottom).
 
-### ML Architecture
-- AdaptiveKNN (25 features, Lorentzian distance) — pool-aware, one model per pool
-- RandomForest + GradientBoosting — pool-aware, each pool trains its own ensemble
-- 4-model vote: KNN + RF + GBM + News sentiment
-- Transfer learning: new pools start from XAUUSD baseline weights
+---
 
-### Pools
-| Pool | Trades | W/L | WR |
-|------|--------|-----|----|
-| XAUUSD (legacy) | 125 | 52/73 | 41.6% |
-| XAUUSD_2M | 43 | 17/26 | 39.5% |
-| XAUUSD_5M | 16 | 4/12 | 25.0% |
-| STOCKS_MOMENTUM_30M | 5 | 1/4 | 20% |
-| STOCKS_MOMENTUM_4H | 5 | 0/5 | 0% |
-| STOCKS_QUALITY_30M | 1 | 0/1 | 0% |
-| STOCKS_QUALITY_4H | 2 | 0/2 | 0% |
-| STOCKS_INDEX_30M/4H | 0 | — | — |
+## What's New Since checkpoint-v2 (`42312b0`, 2026-06-04)
 
-### Signal Engine
-- Session multipliers (London/NY/Asian/NYSE hours)
-- Regime detection (TRENDING/RANGING/VOLATILE)
-- Feature confluence scoring (25 features)
-- Trade clustering prevention
-- News velocity gate (CONFLICTED = no signal)
-- Day-of-week penalty (Mon/Fri)
+### Intraday brain (core ML signal engine)
+- **F26 redefined** — was normalised Stochastic %K, which was mathematically
+  identical to `−F6` (Williams %R), r = −1.0, zero added information. Now the
+  **Stochastic %K−%D momentum delta** — orthogonal to F6. Pine + backend at 26 features.
+  Clean Pine source: `pine_script_backup/migo_sniper_f26.pine`.
+- **Phase 2 layers built (ahead of schedule):**
+  - 2A Gaussian HMM regime model (`regime_model.py`) — probabilistic TRENDING/RANGING/VOLATILE
+  - 2B Multi-timeframe confluence (`mtf_confluence.py`) — 1H+4H+1D, backend-side, no Pine change
+  - 2D News intelligence — Finnhub economic calendar + post-event volatility scoring (`post_event.py`)
+- **Market macro intelligence** (`market_macro.py`) — FRED real yield/dollar/breakeven +
+  CFTC COT + GLD flows, folded into gold signals at weight 0.20.
+- LightGBM live in production since 2026-06-11.
 
-### Scheduler
-- XAUUSD signal every 15 min
-- SPY signal every 15 min (NYSE hours only)
-- FJ breaking news every 2 min with auto-login on session expiry
-- Scheduler watchdog in /health (auto-restart if died)
-- 90s timeout on news cycle (prevents APScheduler job lock)
+### Swing brain (separate stock system)
+- Archetype-aware fundamental scoring — 13 business-model buckets (`fundamental_data.py`)
+- Advanced composites — Piotroski F, Altman Z, Rule-of-40, PEG, FCF yield, ROE/ROA, P/B
+- Earnings-call monitor (`earnings_call.py`) — Finnhub calendar + SEC EDGAR 8-K guidance
+- EDGAR Form-4 insider counts (CIK-based)
+- Haiku institutional thesis (`swing_narrative.py`)
+- Paper-trade engine (`swing_tracker.py`) — the ML training-data source
+- **Telegram SILENT during training phase** — nightly scan paper-trades quietly; re-enable
+  at ≥50 closed swing trades (uncomment 2 lines in `scheduler.py` ~L1647)
 
-### Infrastructure
-- Railway deployment
+---
+
+## ML Architecture
+- AdaptiveKNN (26 features, Lorentzian distance) — pool-aware, one model per pool
+- RandomForest + GradientBoosting + LightGBM — pool-aware ensembles
+- Joint models (joint_gold, joint_stocks) cover pools awaiting 50+ trades
+- TimeSeriesSplit calibration CV (no look-ahead bias), MIN_TRADES 30
+
+## Pools (as of 2026-06-11 live counts, data branch)
+| Pool | Trades | Status |
+|------|--------|--------|
+| XAUUSD_2M | 386 | ✅ target hit, 52% WR last 50 |
+| XAUUSD (legacy) | 109 | 🟢 near target |
+| XAUUSD_5M | 105 | 🟢 on track |
+| XAUUSD_30M | 11 | 🔵 thin — needs replay |
+| XAUUSD_1H | 2 | 🔵 thin — needs replay |
+| STOCKS_MOMENTUM_15M/30M | 84 / 53 | ✅ target hit |
+| STOCKS_QUALITY_15M/30M | 40 / 25 | 🟢/🔵 building |
+| STOCKS_*_4H, SPX500, QQQ pools | 1–8 each | 🔵 building |
+
+## Scheduler (5 jobs)
+- Signal every 15 min, breaking news every 2 min, system check every 60 min,
+  macro refresh every 60 min, daily brief at 08:00 UTC
+- Swing: nightly screen 16:30 ET + manage 16:45 ET (paper-trade, silent)
+
+## Infrastructure
+- Railway (Railpack builder, `bash start.sh` custom start command for libgomp/LightGBM)
 - GitHub `data` branch as persistence layer
-- UptimeRobot + GitHub Actions keepalive
-- FJ auto-login with FJ_EMAIL + FJ_PASSWORD
+- Env keys live: GITHUB_TOKEN, TELEGRAM_*, WEBHOOK_SECRET, FRED_API_KEY, FINNHUB_KEY,
+  ANTHROPIC_API_KEY. Added today: Alpha Vantage (not yet wired — for Phase 2C options layer).
+
+---
 
 ## How to Restore This Checkpoint
 ```bash
-git checkout 903adc2b3e2f6983376ebdd3ed74994859623d1c
+# Inspect / restore the exact tree
+git checkout checkpoint-v3
+# or by commit
+git checkout ad5b7c2293b559f6a87a76b87e72a4bc615b311d
 ```
-Or on Railway: redeploy from this specific commit via the Railway dashboard.
+On Railway: redeploy from commit `ad5b7c229` via the Railway dashboard.
+
+## Checkpoint Lineage
+- `checkpoint-v1` — `903adc2b` (2026-06-04) — 25-feature stable baseline
+- `checkpoint-v2` — `42312b0`  (2026-06-04) — 25-feature pipeline complete, TVC:GOLD
+- `checkpoint-v3` — `ad5b7c22` (2026-06-14) — 26 features (F26 fixed), Phase 2 layers,
+  macro intelligence, swing brain, LightGBM live ← **current rollback point**
 
 ## Next Checkpoint Trigger
-User will call for update when next clear milestone is reached.
+User will call for v4 when the next clear milestone is reached (e.g. thin pools at target,
+swing ML ensemble wired, or Phase 2C options layer Stage A complete).

@@ -3,6 +3,7 @@ Ensemble models for XAU/USD trade outcome prediction.
   - RandomForestEnsemble   : existing RF model
   - GradientBoostEnsemble  : XGBoost-equivalent via sklearn GradientBoosting (item 2)
 Both support session-weighted training (item 5): London/NY trades weighted 1.3×.
+Both support quality-weighted training: full TP3 run > TP2 stopped > TP1 stopped.
 Requires scikit-learn >= 1.4.
 """
 from __future__ import annotations
@@ -13,14 +14,30 @@ from typing import Optional
 
 MIN_TRADES = 30  # minimum history before models will train
 
+
+def _win_label(row: dict) -> int:
+    """Binary training label. PARTIAL is only a win when pnl_pct > 0.
+    43% of PARTIAL trades across all pools have negative PnL (SL hit after
+    TP1 breakeven move) — labeling them WIN corrupts RF/GBM training."""
+    outcome = row.get("ml_outcome") or row.get("outcome", "LOSS")
+    if outcome == "WIN":
+        return 1
+    if outcome == "PARTIAL":
+        return 1 if float(row.get("pnl_pct") or 0.0) > 0 else 0
+    return 0
+
 try:
     from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
     from sklearn.calibration import CalibratedClassifierCV
+    from sklearn.isotonic import IsotonicRegression
     from sklearn.model_selection import TimeSeriesSplit
     import numpy as np
     _SKLEARN_AVAILABLE = True
 except Exception:
     _SKLEARN_AVAILABLE = False
+
+# Minimum trades before isotonic calibration is fitted (needs enough OOS data)
+_ISO_MIN_TRADES = 150
 
 from ml_model import FEATURE_NAMES, row_to_vector
 
@@ -37,6 +54,21 @@ def _session_weight(created_at: str) -> float:
         return 1.00
     except Exception:
         return 1.00
+
+
+# tp_stage values sent by Pine: "TP3" | "SL_TP2" | "SL_TP1" | "SL" | ""
+_QUALITY_WEIGHT: dict[str, float] = {
+    "TP3":    1.00,   # full run — strongest learning signal
+    "SL_TP2": 0.70,   # hit TP2, stopped at tightened trail — good signal
+    "SL_TP1": 0.35,   # hit TP1 only, stopped at trail — weak positive
+    "SL":     1.00,   # clean loss before TP1 — penalise fully
+    "":       0.60,   # unknown / legacy trade — moderate weight
+}
+
+def _quality_weight(row: dict) -> float:
+    """Return sample weight based on how far the trade ran (tp_stage)."""
+    stage = row.get("tp_stage", "") or ""
+    return _QUALITY_WEIGHT.get(stage, 0.60)
 
 
 class RandomForestEnsemble:
@@ -60,6 +92,8 @@ class RandomForestEnsemble:
         self._lock = threading.Lock()
         self._feature_importances: list[float] = [1.0 / len(FEATURE_NAMES)] * len(FEATURE_NAMES)
         self._feature_indices: list[int] = list(range(len(FEATURE_NAMES)))  # selected feature subset
+        self._iso_calibrator: Optional[object] = None  # isotonic post-hoc calibrator (≥150 trades)
+        self._conformal_q: float = 0.20  # 90th-pctile OOS error — conformal interval half-width
 
     # ── Training ─────────────────────────────────────────────────────────────
 
@@ -90,23 +124,31 @@ class RandomForestEnsemble:
         y_rows = []
         for row in history:
             feat_vec = row_to_vector(row)
-            # PARTIAL is a profitable close (hit TP1+) — treat as win, not loss
-            outcome_val = row.get("ml_outcome") or row.get("outcome", "LOSS")
-            label = 1 if outcome_val in ("WIN", "PARTIAL") else 0
             X_rows.append(feat_vec)
-            y_rows.append(label)
+            y_rows.append(_win_label(row))
 
         X = np.array(X_rows, dtype=np.float64)
         y = np.array(y_rows, dtype=np.int32)
 
-        # Feature selection: top-8 by |correlation| when n>=80 (validated: +3.5–20pp lift)
+        # Walk-forward split computed up front so feature selection never sees OOS labels.
+        oos_size = max(int(len(X_rows) * 0.20), 1)
+        train_size = len(X_rows) - oos_size
+
+        # Feature selection: top-8 by |correlation| when n>=80 (validated: +3.5–20pp lift).
+        # Correlation is computed on the TRAINING slice only — selecting on the full set
+        # leaked OOS labels into which features were kept, inflating the OOS metric.
         if len(X_rows) >= 80:
-            corr = np.array([abs(np.corrcoef(X[:, j], y)[0, 1]) if not np.isnan(np.corrcoef(X[:, j], y)[0, 1]) else 0.0
-                             for j in range(X.shape[1])])
-            self._feature_indices = np.argsort(corr)[::-1][:8].tolist()
+            try:
+                _Xsel, _ysel = X[:train_size], y[:train_size]
+                corr_matrix = np.corrcoef(_Xsel.T, _ysel)
+                corr = np.abs(corr_matrix[:-1, -1])
+                corr = np.where(np.isnan(corr), 0.0, corr)
+            except Exception:
+                corr = np.zeros(X.shape[1])
+            new_feature_indices = np.argsort(corr)[::-1][:8].tolist()
         else:
-            self._feature_indices = list(range(len(FEATURE_NAMES)))
-        X = X[:, self._feature_indices]
+            new_feature_indices = list(range(len(FEATURE_NAMES)))
+        X = X[:, new_feature_indices]
 
         # Shallow RF: depth=4, min_leaf=8 — walk-forward validated (+3.5pp vs -7.7pp for deep)
         base_clf = RandomForestClassifier(
@@ -118,11 +160,44 @@ class RandomForestEnsemble:
             n_jobs=-1,
         )
 
-        # Session-weighted training: London/NY trades count more
+        # Combined weight: session quality × signal quality (tp_stage)
         sample_weights = np.array(
-            [_session_weight(row.get("created_at", "")) for row in history],
+            [_session_weight(row.get("created_at", "")) * _quality_weight(row) for row in history],
             dtype=np.float64
         )
+
+        # Walk-forward OOS eval (split already computed above) — honest accuracy + isotonic data
+        new_iso = None
+        if train_size >= MIN_TRADES and oos_size >= 5 and len(set(y[:train_size].tolist())) >= 2:
+            try:
+                _n_splits_oos = 2 if train_size < 45 else 3
+                _oos_tscv = TimeSeriesSplit(n_splits=_n_splits_oos)
+                _oos_clf = CalibratedClassifierCV(
+                    RandomForestClassifier(
+                        n_estimators=self._n_estimators, max_depth=self._max_depth,
+                        min_samples_leaf=self._min_samples_leaf, class_weight="balanced",
+                        random_state=self._random_state, n_jobs=-1,
+                    ), method="sigmoid", cv=_oos_tscv,
+                )
+                _oos_clf.fit(X[:train_size], y[:train_size], sample_weight=sample_weights[:train_size])
+                _oos_proba = _oos_clf.predict_proba(X[train_size:])
+                _oos_classes = list(_oos_clf.classes_)
+                _win_idx = _oos_classes.index(1) if 1 in _oos_classes else -1
+                if _win_idx >= 0:
+                    _oos_proba_win = _oos_proba[:, _win_idx]
+                    _oos_preds = (_oos_proba_win >= 0.5).astype(int)
+                    _oos_acc = float(np.mean(_oos_preds == y[train_size:]))
+                    print(f"[rf] Walk-forward OOS accuracy ({oos_size} trades): {_oos_acc:.3f}")
+                    _oos_errors = np.abs(_oos_proba_win - y[train_size:].astype(float))
+                    self._conformal_q = float(np.percentile(_oos_errors, 90))
+                    print(f"[rf] Conformal q={self._conformal_q:.3f} (90th-pctile OOS error, {oos_size} trades)")
+                    if len(X_rows) >= _ISO_MIN_TRADES:
+                        _iso = IsotonicRegression(y_min=0.0, y_max=1.0, out_of_bounds="clip")
+                        _iso.fit(_oos_proba_win, y[train_size:])
+                        new_iso = _iso
+                        print(f"[rf] Isotonic calibrator fitted on {oos_size} OOS trades")
+            except Exception as _oos_exc:
+                print(f"[rf] OOS eval failed: {_oos_exc}")
 
         # Platt calibration: TimeSeriesSplit prevents future-data leakage into calibration folds
         n_splits = 3 if len(X_rows) >= 45 else 2
@@ -147,18 +222,21 @@ class RandomForestEnsemble:
             self._prev_model = self._model  # save champion for rollback
             self._model = clf
             self._trained = True
+            self._feature_indices = new_feature_indices  # swap atomically with the model
             self._feature_importances = raw_imps.tolist()
+            self._iso_calibrator = new_iso
 
-        top_feat = FEATURE_NAMES[self._feature_indices[int(np.argmax(raw_imps))]]
-        n_feats = len(self._feature_indices)
-        print(f"[rf] Retrained on {len(X_rows)} trades (shallow+Platt, {n_feats}f). Top feature: {top_feat}")
+        top_feat = FEATURE_NAMES[new_feature_indices[int(np.argmax(raw_imps))]]
+        n_feats = len(new_feature_indices)
+        iso_tag = "+iso" if new_iso else ""
+        print(f"[rf] Retrained on {len(X_rows)} trades (shallow+Platt{iso_tag}, {n_feats}f). Top feature: {top_feat}")
         return True
 
     # ── Inference ─────────────────────────────────────────────────────────────
 
     def predict(self, features: list[float]) -> float:
         """
-        Predict WIN probability for a given 25-feature vector.
+        Predict WIN probability for a given 26-feature vector.
 
         Returns:
             float in [0.0, 1.0]. Returns 0.5 if model not yet trained.
@@ -174,12 +252,24 @@ class RandomForestEnsemble:
         try:
             with self._lock:
                 proba = self._model.predict_proba(X)[0]
+                iso = self._iso_calibrator
             classes = list(self._model.classes_)
             win_idx = classes.index(1) if 1 in classes else -1
-            return float(proba[win_idx]) if win_idx >= 0 else 0.5
+            p = float(proba[win_idx]) if win_idx >= 0 else 0.5
+            if iso is not None:
+                p = float(iso.predict([p])[0])
+            return p
         except Exception as exc:
             print(f"[rf] predict error: {exc}")
             return 0.5
+
+    def predict_with_interval(self, features: list[float]) -> tuple[float, float, float, float]:
+        """Return (score, lo, hi, width) using conformal prediction interval.
+        Width reflects calibration uncertainty — narrow = reliable, wide = uncertain."""
+        score = self.predict(features)
+        q = self._conformal_q
+        lo, hi = max(0.0, score - q), min(1.0, score + q)
+        return score, lo, hi, hi - lo
 
     # ── Feature importance ────────────────────────────────────────────────────
 
@@ -247,6 +337,8 @@ class GradientBoostEnsemble:
         self._lock = threading.Lock()
         self._feature_importances: list[float] = [1.0 / len(FEATURE_NAMES)] * len(FEATURE_NAMES)
         self._feature_indices: list[int] = list(range(len(FEATURE_NAMES)))
+        self._iso_calibrator: Optional[object] = None  # isotonic post-hoc calibrator (≥150 trades)
+        self._conformal_q: float = 0.20  # 90th-pctile OOS error — conformal interval half-width
 
     def train(self, history: list[dict]) -> bool:
         if not _SKLEARN_AVAILABLE:
@@ -261,10 +353,8 @@ class GradientBoostEnsemble:
         X_rows, y_rows, w_rows = [], [], []
         for row in history:
             X_rows.append(row_to_vector(row))
-            # PARTIAL is a profitable close (hit TP1+) — treat as win, not loss
-            outcome_val = row.get("ml_outcome") or row.get("outcome", "LOSS")
-            y_rows.append(1 if outcome_val in ("WIN", "PARTIAL") else 0)
-            w_rows.append(_session_weight(row.get("created_at", "")))
+            y_rows.append(_win_label(row))
+            w_rows.append(_session_weight(row.get("created_at", "")) * _quality_weight(row))
 
         if len(set(y_rows)) < 2:
             print(f"[gbm] Only one class in training data ({set(y_rows)}) — skipping train until wins accumulate.")
@@ -274,14 +364,54 @@ class GradientBoostEnsemble:
         y = np.array(y_rows, dtype=np.int32)
         w = np.array(w_rows, dtype=np.float64)
 
-        # Feature selection: top-8 by |correlation| when n>=80
+        # Walk-forward split up front so feature selection never sees OOS labels.
+        oos_size_gbm = max(int(len(X_rows) * 0.20), 1)
+        train_size_gbm = len(X_rows) - oos_size_gbm
+
+        # Feature selection: top-8 by |correlation| when n>=80 — TRAINING slice only.
         if len(X_rows) >= 80:
-            corr = np.array([abs(np.corrcoef(X[:, j], y)[0, 1]) if not np.isnan(np.corrcoef(X[:, j], y)[0, 1]) else 0.0
-                             for j in range(X.shape[1])])
-            self._feature_indices = np.argsort(corr)[::-1][:8].tolist()
+            try:
+                _Xsel, _ysel = X[:train_size_gbm], y[:train_size_gbm]
+                corr_matrix = np.corrcoef(_Xsel.T, _ysel)
+                corr = np.abs(corr_matrix[:-1, -1])
+                corr = np.where(np.isnan(corr), 0.0, corr)
+            except Exception:
+                corr = np.zeros(X.shape[1])
+            new_feature_indices = np.argsort(corr)[::-1][:8].tolist()
         else:
-            self._feature_indices = list(range(len(FEATURE_NAMES)))
-        X = X[:, self._feature_indices]
+            new_feature_indices = list(range(len(FEATURE_NAMES)))
+        X = X[:, new_feature_indices]
+
+        # Walk-forward OOS eval (split already computed above) — honest accuracy + isotonic data
+        new_iso_gbm = None
+        if train_size_gbm >= MIN_TRADES and oos_size_gbm >= 5 and len(set(y[:train_size_gbm].tolist())) >= 2:
+            try:
+                _n_splits_oos = 2 if train_size_gbm < 45 else 3
+                _oos_tscv = TimeSeriesSplit(n_splits=_n_splits_oos)
+                _oos_base = GradientBoostingClassifier(
+                    n_estimators=self._n_estimators, max_depth=self._max_depth,
+                    learning_rate=self._learning_rate, subsample=0.8, random_state=42,
+                )
+                _oos_clf = CalibratedClassifierCV(_oos_base, method="sigmoid", cv=_oos_tscv)
+                _oos_clf.fit(X[:train_size_gbm], y[:train_size_gbm], sample_weight=w[:train_size_gbm])
+                _oos_proba = _oos_clf.predict_proba(X[train_size_gbm:])
+                _oos_classes = list(_oos_clf.classes_)
+                _win_idx = _oos_classes.index(1) if 1 in _oos_classes else -1
+                if _win_idx >= 0:
+                    _oos_proba_win = _oos_proba[:, _win_idx]
+                    _oos_preds = (_oos_proba_win >= 0.5).astype(int)
+                    _oos_acc = float(np.mean(_oos_preds == y[train_size_gbm:]))
+                    print(f"[gbm] Walk-forward OOS accuracy ({oos_size_gbm} trades): {_oos_acc:.3f}")
+                    _oos_errors = np.abs(_oos_proba_win - y[train_size_gbm:].astype(float))
+                    self._conformal_q = float(np.percentile(_oos_errors, 90))
+                    print(f"[gbm] Conformal q={self._conformal_q:.3f} (90th-pctile OOS error, {oos_size_gbm} trades)")
+                    if len(X_rows) >= _ISO_MIN_TRADES:
+                        _iso = IsotonicRegression(y_min=0.0, y_max=1.0, out_of_bounds="clip")
+                        _iso.fit(_oos_proba_win, y[train_size_gbm:])
+                        new_iso_gbm = _iso
+                        print(f"[gbm] Isotonic calibrator fitted on {oos_size_gbm} OOS trades")
+            except Exception as _oos_exc:
+                print(f"[gbm] OOS eval failed: {_oos_exc}")
 
         # Shallow GBM: depth=2, 60 trees — walk-forward validated (-1.2pp vs -5.9pp for deep)
         base_clf = GradientBoostingClassifier(
@@ -312,11 +442,14 @@ class GradientBoostEnsemble:
             self._prev_model = self._model
             self._model = clf
             self._trained = True
+            self._feature_indices = new_feature_indices  # swap atomically with the model
             self._feature_importances = raw_imps.tolist()
+            self._iso_calibrator = new_iso_gbm
 
-        top_idx = self._feature_indices[int(np.argmax(raw_imps))]
-        n_feats = len(self._feature_indices)
-        print(f"[gbm] Trained on {len(X_rows)} trades (shallow+Platt, {n_feats}f). Top feature: {FEATURE_NAMES[top_idx]}")
+        top_idx = new_feature_indices[int(np.argmax(raw_imps))]
+        n_feats = len(new_feature_indices)
+        iso_tag = "+iso" if new_iso_gbm else ""
+        print(f"[gbm] Trained on {len(X_rows)} trades (shallow+Platt{iso_tag}, {n_feats}f). Top feature: {FEATURE_NAMES[top_idx]}")
         return True
 
     def predict(self, features: list[float]) -> float:
@@ -329,12 +462,23 @@ class GradientBoostEnsemble:
         try:
             with self._lock:
                 proba = self._model.predict_proba(X)[0]
+                iso = self._iso_calibrator
             classes = list(self._model.classes_)
             win_idx = classes.index(1) if 1 in classes else -1
-            return float(proba[win_idx]) if win_idx >= 0 else 0.5
+            p = float(proba[win_idx]) if win_idx >= 0 else 0.5
+            if iso is not None:
+                p = float(iso.predict([p])[0])
+            return p
         except Exception as exc:
             print(f"[gbm] predict error: {exc}")
             return 0.5
+
+    def predict_with_interval(self, features: list[float]) -> tuple[float, float, float, float]:
+        """Return (score, lo, hi, width) using conformal prediction interval."""
+        score = self.predict(features)
+        q = self._conformal_q
+        lo, hi = max(0.0, score - q), min(1.0, score + q)
+        return score, lo, hi, hi - lo
 
     def rollback(self) -> bool:
         """Restore previous champion model."""
@@ -380,26 +524,53 @@ def get_gbm(pool: str = "XAUUSD") -> GradientBoostEnsemble:
 
 # Gold pool → timeframe ID mapping
 GOLD_TF_IDS: dict[str, int] = {
-    "XAUUSD_2M": 0, "XAUUSD_5M": 1, "XAUUSD_30M": 2, "XAUUSD_1H": 3,
+    "XAUUSD_2M": 0, "XAUUSD_5M": 1, "XAUUSD_15M": 2, "XAUUSD_30M": 3, "XAUUSD_1H": 4,
 }
 
 # Stock pool → (cluster_id, timeframe_id) mapping
 # cluster: 0=MOMENTUM 1=QUALITY 2=INDEX 3=QQQ 4=SPX500
-# tf:      0=15M 1=30M 2=4H
+# tf:      0=15M 1=30M 2=1H 3=4H
 STOCK_POOL_IDS: dict[str, tuple[int, int]] = {
-    "STOCKS_MOMENTUM_15M": (0, 0), "STOCKS_MOMENTUM_30M": (0, 1),
-    "STOCKS_QUALITY_15M":  (1, 0), "STOCKS_QUALITY_30M":  (1, 1), "STOCKS_QUALITY_4H":  (1, 2),
-    "STOCKS_INDEX_15M":    (2, 0), "STOCKS_INDEX_30M":    (2, 1), "STOCKS_INDEX_4H":    (2, 2),
-    "STOCKS_QQQ_15M":      (3, 0), "STOCKS_QQQ_30M":      (3, 1), "STOCKS_QQQ_4H":      (3, 2),
-    "STOCKS_SPX500_15M":   (4, 0), "STOCKS_SPX500_30M":   (4, 1), "STOCKS_SPX500_4H":   (4, 2),
+    "STOCKS_MOMENTUM_15M": (0, 0), "STOCKS_MOMENTUM_30M": (0, 1), "STOCKS_MOMENTUM_1H": (0, 2), "STOCKS_MOMENTUM_4H": (0, 3),
+    "STOCKS_QUALITY_15M":  (1, 0), "STOCKS_QUALITY_30M":  (1, 1), "STOCKS_QUALITY_1H":  (1, 2), "STOCKS_QUALITY_4H":  (1, 3),
+    "STOCKS_INDEX_15M":    (2, 0), "STOCKS_INDEX_30M":    (2, 1), "STOCKS_INDEX_1H":    (2, 2), "STOCKS_INDEX_4H":    (2, 3),
+    "STOCKS_QQQ_15M":      (3, 0), "STOCKS_QQQ_30M":      (3, 1), "STOCKS_QQQ_1H":      (3, 2), "STOCKS_QQQ_4H":      (3, 3),
+    "STOCKS_SPX500_15M":   (4, 0), "STOCKS_SPX500_30M":   (4, 1), "STOCKS_SPX500_1H":   (4, 2), "STOCKS_SPX500_4H":   (4, 3),
 }
+
+def _preload_libgomp() -> None:
+    """lib_lightgbm.so needs libgomp.so.1, absent from Railway's Railpack runtime
+    image. scikit-learn vendors its own copy in scikit_learn.libs/ — load it
+    RTLD_GLOBAL so the dynamic linker resolves lightgbm's dependency from it."""
+    import ctypes, glob, sysconfig
+    site = sysconfig.get_paths()["purelib"]
+    patterns = [
+        f"{site}/scikit_learn.libs/libgomp*.so*",
+        f"{site}/../**/scikit_learn.libs/libgomp*.so*",
+        "/app/.venv/lib/python*/site-packages/scikit_learn.libs/libgomp*.so*",
+    ]
+    for pattern in patterns:
+        for path in glob.glob(pattern, recursive=True):
+            try:
+                ctypes.CDLL(path, mode=ctypes.RTLD_GLOBAL)
+                print(f"[lgbm] preloaded bundled libgomp: {path}")
+                return
+            except OSError:
+                continue
+
 
 try:
     import lightgbm as _lgb
     _LGBM_AVAILABLE = True
-except Exception as _lgb_err:
-    _LGBM_AVAILABLE = False
-    print(f"[lgbm] lightgbm import failed: {_lgb_err}")
+except Exception:
+    try:
+        _preload_libgomp()
+        import lightgbm as _lgb
+        _LGBM_AVAILABLE = True
+        print("[lgbm] lightgbm loaded after libgomp preload")
+    except Exception as _lgb_err:
+        _LGBM_AVAILABLE = False
+        print(f"[lgbm] lightgbm import failed: {_lgb_err}")
 
 
 class JointGoldGBM:
@@ -427,11 +598,10 @@ class JointGoldGBM:
                 continue
             for row in history:
                 feat = row_to_vector(row) + [float(tf_id)]
-                outcome_val = row.get("ml_outcome") or row.get("outcome", "LOSS")
-                label = 1 if outcome_val in ("WIN", "PARTIAL") else 0
+                label = _win_label(row)
                 X_rows.append(feat)
                 y_rows.append(label)
-                w_rows.append(_session_weight(row.get("created_at", "")))
+                w_rows.append(_session_weight(row.get("created_at", "")) * _quality_weight(row))
 
         if len(X_rows) < MIN_TRADES or len(set(y_rows)) < 2:
             print(f"[joint_gold] Not enough data ({len(X_rows)} rows, classes={set(y_rows)}) — skipping")
@@ -509,11 +679,10 @@ class JointStocksGBM:
             cluster_id, tf_id = ids
             for row in history:
                 feat = row_to_vector(row) + [float(cluster_id), float(tf_id)]
-                outcome_val = row.get("ml_outcome") or row.get("outcome", "LOSS")
-                label = 1 if outcome_val in ("WIN", "PARTIAL") else 0
+                label = _win_label(row)
                 X_rows.append(feat)
                 y_rows.append(label)
-                w_rows.append(_session_weight(row.get("created_at", "")))
+                w_rows.append(_session_weight(row.get("created_at", "")) * _quality_weight(row))
 
         if len(X_rows) < MIN_TRADES or len(set(y_rows)) < 2:
             print(f"[joint_stocks] Not enough data ({len(X_rows)} rows) — skipping")
@@ -614,8 +783,7 @@ class TabPFNEnsemble:
         X_rows, y_rows = [], []
         for row in history:
             X_rows.append(row_to_vector(row))
-            outcome_val = row.get("ml_outcome") or row.get("outcome", "LOSS")
-            y_rows.append(1 if outcome_val in ("WIN", "PARTIAL") else 0)
+            y_rows.append(_win_label(row))
 
         if len(set(y_rows)) < 2:
             return False
@@ -708,8 +876,7 @@ def train_with_warm_start(
         xs, ys, ws = [], [], []
         for row in hist:
             xs.append(row_to_vector(row))
-            outcome_val = row.get("ml_outcome") or row.get("outcome", "LOSS")
-            ys.append(1 if outcome_val in ("WIN", "PARTIAL") else 0)
+            ys.append(_win_label(row))
             ws.append(_session_weight(row.get("created_at", "")))
         return (np.array(xs, np.float32), np.array(ys, np.int32), np.array(ws, np.float32))
 
@@ -830,7 +997,7 @@ def tune_gbm_hyperparams(pool: str, X: "np.ndarray", y: "np.ndarray",
 
 
 # ── SHAP TreeSHAP feature attribution (v4) ───────────────────────────────────
-# Per-trade explanation: which F1–F25 features drove the signal.
+# Per-trade explanation: which F1–F26 features drove the signal.
 # Uses TreeSHAP (O(TL) exact) — fast enough for real-time with top-8 features.
 
 try:

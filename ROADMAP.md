@@ -50,28 +50,33 @@ Next:    Hidden Markov Model — detects regime TRANSITIONS before they complete
          Act on the transition, not after it's confirmed
 ```
 
-**2B — Multi-Timeframe Confluence Engine**
+**2A — Market Regime Model — ✅ DONE (2026-06-14)**
 ```
-Current: f16_mtf = single 1H value
-Next:    Full MTF stack — 1H + 4H + Daily all scored and weighted
-         Signal only fires when 2 of 3 timeframes agree
-         Higher TF = higher weight in the decision
-```
-
-**2C — Volatility-Adjusted Position Sizing**
-```
-Current: Fixed TP/SL multipliers
-Next:    ATR-normalized sizing — wider market = wider SL, smaller size
-         R:R stays constant regardless of market conditions
-         Protects capital during high-volatility sessions
+Gaussian HMM (regime_model.py) — probabilistic TRENDING/RANGING/VOLATILE with
+forward-looking transition detection. Bounded confidence modulator in
+signal_engine. Refreshed hourly, persisted, surfaced in /health.
 ```
 
-**2D — News Intelligence Layer**
+**2B — Multi-Timeframe Confluence Engine — ✅ DONE (2026-06-14, backend-side)**
 ```
-Current: Basic sentiment score
-Next:    Economic calendar integration — know BEFORE high-impact events
-         NFP / FOMC / CPI = reduce position size or pause signals 30min before
-         Post-event volatility scoring — fade the spike or follow the breakout
+Implemented in the BACKEND (mtf_confluence.py) via yfinance 1H + 4H + Daily —
+no Pine Script changes, no alert re-creation, no feature cold-start. Each TF
+scored, higher TF weighted more (1H=1, 4H=2, 1D=3). Signal confidence boosted
+on 2-of-3 / 3-of-3 agreement, dampened when <2 agree.
+```
+
+**2C — Volatility-Adjusted Position Sizing — ➡️ MOVED TO PHASE 3**
+```
+Deferred: sizing is advisory-only until execution exists (Phase 4). Revisit
+with the Phase 3 signal-validation layer.
+```
+
+**2D — News Intelligence Layer — 🟡 calendar DONE, post-event scoring DONE (2026-06-14)**
+```
+Economic calendar (Finnhub) — forward NFP/FOMC/CPI awareness, de-risk before. ✅
+Post-event volatility scoring (post_event.py) — after a high-impact print,
+classify SETTLING / BREAKOUT / FADE from the asset's own price reaction and
+modulate signal confidence accordingly. ✅
 ```
 
 **2E — Correlation & Intermarket Analysis**
@@ -84,8 +89,62 @@ When VIX spikes → stock signals get size reduction
 
 ---
 
+## PHASE 2C — SPX 0-1DTE Options Layer (calls/puts only, long premium)
+**Goal:** Translate SPX500 directional signals into SPX (SPXW daily-expiry) CALL/PUT recommendations. 0DTE or 1DTE only. No spreads, no selling premium.
+
+**Instrument decision (locked 2026-06-11):** SPX index options — cash-settled (no assignment risk), European exercise, $5-wide strikes, section 1256 tax treatment, daily expirations Mon-Fri. ~$100/point multiplier — position sizing must respect this.
+
+**What already exists (reuse, don't rebuild):**
+- STOCKS_SPX500 pools (15M/30M/4H) produce LONG/SHORT signals through the full ML gate
+- JointStocksGBM covers SPX while per-pool models wait for 50+ trades
+- Economic calendar (Finnhub) + geopolitical shock detection — critical for options (IV crush around events)
+- Telegram delivery + data-branch persistence patterns
+
+### Stage A — Data & Translation (paper only, ~1-2 weeks dev)
+| Task | Method |
+|------|--------|
+| **VIX feed** | yfinance `^VIX` + VIX/VIX3M term structure — refresh hourly in market_macro. VIX > 25 = half size; backwardation (VIX/VIX3M > 1) = no trades, gamma too violent for long premium |
+| **Options chain source** | Backend: yfinance `^SPX` (delayed, paper-ledger baseline only). **Live premiums: user's TradingView OPRA subscription** — Telegram sends the exact contract symbol, user charts it in TV for live pricing. TV alerts on the contract's premium levels (-50%/+100%) fire back into the existing `/webhook`, giving the backend live exit data |
+| **IV Rank filter** | Daily ATM IV stored to data branch → IV Rank percentile over trailing 60 sessions. Only buy when IV Rank < 50 |
+| **Signal → contract translator** (`options_engine.py`) | LONG→CALL, SHORT→PUT. Strike: delta ~0.40 (slightly OTM). Expiry: **15M/30M signals → 0DTE (same-day SPXW); signals after 13:00 ET or 4H-pool signals → 1DTE** (next session) — never enter 0DTE in the last 2.5h with theta at maximum burn |
+| **Expected-move check** | 0DTE ATM straddle = market's expected move for the day. Skip if ATR-based TP1 target < 0.8× remaining expected move |
+| **Event filter** | No entries within 24h before FOMC/CPI/NFP, AND no 0DTE entries on the morning OF those events — reuse `_check_scheduled_events` |
+| **Exits — tight, time-first** | -50% premium stop / +100% premium target / **0DTE hard exit 15:30 ET no exceptions** / 1DTE time stop at next-day 14:00 ET. Intraday: exit immediately if the underlying signal flips |
+| **Sizing guard** | 0DTE total-loss probability is high by design: risk per trade = premium paid, capped at 1% of account. Expect ~40-45% of trades to expire worthless even with edge — the +100%/+200% winners carry the P&L |
+| **Paper ledger** | `data/options_paper_SPX.json` — entry premium, strike, delta, IV at entry, exit premium, time held. Same schema discipline as trade_history |
+| **Telegram format** | `🎯 SPX 0DTE — CALL 6080 (Δ0.41) @ $14.20 | IVR 32 | exp today | TP $28.40 / SL $7.10 / hard exit 15:30 ET` |
+
+### Stage B — ML & Validation (needs 50+ paper option trades, ~4-6 weeks data)
+| Task | Method |
+|------|--------|
+| Label option outcomes | WIN = ≥50% premium gain, LOSS = stopped, separate from underlying WIN/LOSS — an option can lose while direction was right (theta/IV) |
+| New features for option gate | f27_ivrank, f28_vix_regime, f29_term_structure, f30_dte — train a dedicated small GBM: "given the directional signal fired, will the OPTION pay?" |
+| Theta-adjusted Kelly sizing | Position size = ¼ Kelly on option win-rate × payoff ratio, capped at 2% account risk per trade |
+| Walk-forward validation | Same champion-challenger pattern as pools — never deploy an option gate that hasn't beaten "take every signal" out-of-sample |
+
+### Stage C — Execution (Phase 4 territory, only after Stage B proves edge)
+- Broker API: Tradier (cheapest API access, sandbox first) or IBKR
+- Hard limits: max 3 open contracts, max 5% account in premium, kill-switch env var
+
+**Prerequisites before Stage A is worth starting:**
+1. ⚠️ STOCKS_SPX500 pools are thin (8/8/3 trades) — the directional signal itself needs ~30+ trades to be trustworthy. 0DTE amplifies both edge AND noise more than any other instrument.
+2. ~~Instrument decision~~ ✅ **SPX, 0-1DTE** (decided 2026-06-11)
+
+**Exit criteria for Stage A → B:** 50 paper option trades logged with full IV/Greeks data
+**Exit criteria for Stage B → C:** option-gate WR ≥ 55% AND profit factor ≥ 1.5 over 50+ out-of-sample paper trades
+
+---
+
 ## PHASE 3 — Semi-Autonomous: Signal Validation Layer
 **Goal:** System validates its own signals before sending them
+
+**3D — Volatility-Adjusted Position Sizing (moved from 2C, 2026-06-14)**
+```
+ATR-normalized sizing — wider market = wider SL, smaller size, constant R:R.
+Advisory sizing notes in alerts now; becomes enforced sizing once Phase 4
+execution exists. Reuses the HMM VOLATILE regime + intermarket VIX size factor
+already built in Phase 2.
+```
 
 **3A — Pre-Signal Checklist (automatic)**
 ```

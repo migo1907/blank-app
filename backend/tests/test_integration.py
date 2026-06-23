@@ -137,12 +137,12 @@ def test_feature_selection():
     assert_true("GBM trains on 120 trades", ok2)
     assert_eq("GBM selects 8 features at n≥80", len(gbm._feature_indices), 8)
 
-    # At n<80: all 25 features used
+    # At n<80: all 26 features used
     small = _make_history(30, 30)
     rf2 = RandomForestEnsemble()
     ok3 = rf2.retrain(small)
     assert_true("RF trains on 60 trades", ok3)
-    assert_eq("RF uses all 25 features at n<80", len(rf2._feature_indices), 25)
+    assert_eq("RF uses all 26 features at n<80", len(rf2._feature_indices), 26)
 
 
 # ── 4. Champion-challenger rollback ─────────────────────────────────────────────

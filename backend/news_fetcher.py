@@ -95,6 +95,7 @@ HIGH_IMPACT_EVENTS = {
     "FOMC":            (["FOMC", "FED RATE DECISION", "FEDERAL RESERVE RATE", "POWELL SPEECH", "FED DECISION"], 1.0),
     "GDP":             (["GDP", "GROSS DOMESTIC PRODUCT"], 0.7),
     "WAR/CONFLICT":    (["WAR BROKE", "MILITARY STRIKE", "CONFLICT ESCALAT", "MISSILE ATTACK", "NUCLEAR", "INVASION"], 0.95),
+    "GEOPOLITICAL":    (["IRAN STRIKE", "IRAN ATTACK", "IRAN WAR", "AIRSTRIKE", "BOMBING", "CEASEFIRE", "PEACE DEAL", "TRUCE", "DE-ESCALAT", "CANCELLED STRIKE", "CANCELED STRIKE"], 0.9),
     "SANCTIONS":       (["SANCTIONS", "EMBARGO", "TRADE WAR"], 0.8),
     "CENTRAL_BANK":    (["CENTRAL BANK GOLD", "CHINA GOLD BUY", "GOLD RESERVE", "GOLD PURCHASE"], 0.8),
     "FLASH_CRASH":     (["FLASH CRASH", "MARKET CRASH", "CIRCUIT BREAKER", "HALT TRADING"], 0.95),
@@ -381,10 +382,17 @@ def _fj_auto_login() -> bool:
                     continue
                 t = t_m.group(1).lower()
                 n = n_m.group(1)
-                if t == "email" or (t == "text" and "mail" in n.lower()):
-                    email_field = n
-                elif t == "password":
-                    password_field = n
+                # FJ login page has multiple forms — prefer loginForm1 fields,
+                # skip GooglePlusLogin and forgotpasswordform fields
+                skip = any(x in n.lower() for x in ("forgot", "googleplus", "signup"))
+                is_login = "loginform1" in n.lower()
+                if not skip or is_login:
+                    if t == "email" or (t == "text" and "mail" in n.lower()):
+                        if not email_field or is_login:
+                            email_field = n
+                    if t == "password":
+                        if not password_field or is_login:
+                            password_field = n
 
             # Fallback to common names if not found in page
             email_field    = email_field    or "Email"
@@ -392,7 +400,8 @@ def _fj_auto_login() -> bool:
 
             form_data[email_field]    = email
             form_data[password_field] = password
-            form_data["RememberMe"]   = "true"
+            # Ensure the loginForm1 RememberMe checkbox is checked
+            form_data["ctl00$SignInSignUp$loginForm1$cbRemmebrMe"] = "on"
 
             # Also try setting the submit button value (ASP.NET WebForms often requires it)
             for m in _re.finditer(r'<input([^>]+)>', r0.text, _re.IGNORECASE):
@@ -415,6 +424,31 @@ def _fj_auto_login() -> bool:
                     "Cache-Control": "no-cache",
                 },
             )
+
+            # Step 2b: WebForms LinkButtons submit via __doPostBack — if the plain
+            # POST didn't authenticate, retry with __EVENTTARGET set to the login
+            # button extracted from the page's doPostBack call.
+            if ".ASPXAUTH" not in dict(client.cookies):
+                btn_m = (_re.search(r"__doPostBack\('([^']*loginForm1[^']*)'", r0.text)
+                         or _re.search(r"__doPostBack\('([^']*[Ll]ogin[^']*)'", r0.text))
+                if btn_m:
+                    form_data["__EVENTTARGET"]   = btn_m.group(1)
+                    form_data["__EVENTARGUMENT"] = ""
+                    # postback target replaces the submit button — remove submit values
+                    for k in [k for k in form_data if "btn" in k.lower() and k != "__EVENTTARGET"]:
+                        form_data.pop(k, None)
+                    print(f"[fj] Auto-login: retrying via __EVENTTARGET={btn_m.group(1)!r}")
+                    r1 = client.post(
+                        login_url, data=form_data,
+                        headers={
+                            "User-Agent":    _UA,
+                            "Referer":       login_url,
+                            "Content-Type":  "application/x-www-form-urlencoded",
+                            "Accept":        "text/html,application/xhtml+xml,*/*;q=0.8",
+                            "Origin":        "https://www.financialjuice.com",
+                            "Cache-Control": "no-cache",
+                        },
+                    )
 
         cookies = dict(client.cookies)
         auth_cookie   = cookies.get(".ASPXAUTH", "")
@@ -715,7 +749,9 @@ def fetch_upcoming_events(hours_ahead: int = 24) -> dict:
             resp.raise_for_status()
             events = resp.json().get("economicCalendar", []) or []
     except Exception as e:
-        print(f"[finnhub] calendar fetch failed: {e}")
+        # 403 = paid-only endpoint on free Finnhub tier — suppress noisy log
+        if "403" not in str(e):
+            print(f"[finnhub] calendar fetch failed: {e}")
         return {"detected": False, "scheduled": []}
 
     upcoming = []

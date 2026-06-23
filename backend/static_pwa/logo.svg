@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f2b5b"/>
+      <stop offset="100%" style="stop-color:#0a1a3a"/>
+    </linearGradient>
+    <linearGradient id="silver" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#c8d8e8"/>
+      <stop offset="100%" style="stop-color:#8090a0"/>
+    </linearGradient>
+    <linearGradient id="chartGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#22c55e;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#0d8a3a;stop-opacity:0.8"/>
+    </linearGradient>
+  </defs>
+  <!-- Outer ring -->
+  <circle cx="100" cy="100" r="98" fill="url(#silver)"/>
+  <!-- Inner circle -->
+  <circle cx="100" cy="100" r="90" fill="url(#bg)"/>
+  <!-- Inner ring accent -->
+  <circle cx="100" cy="100" r="82" fill="none" stroke="#1e4080" stroke-width="1.5"/>
+
+  <!-- Globe lines (simplified) -->
+  <ellipse cx="100" cy="108" rx="42" ry="42" fill="none" stroke="#1e4080" stroke-width="1.2"/>
+  <ellipse cx="100" cy="108" rx="20" ry="42" fill="none" stroke="#1e4080" stroke-width="1"/>
+  <line x1="58" y1="108" x2="142" y2="108" stroke="#1e4080" stroke-width="1"/>
+  <line x1="64" y1="90" x2="136" y2="90" stroke="#1e4080" stroke-width="0.8"/>
+  <line x1="64" y1="126" x2="136" y2="126" stroke="#1e4080" stroke-width="0.8"/>
+
+  <!-- Globe fill (translucent) -->
+  <ellipse cx="100" cy="108" rx="42" ry="42" fill="rgba(30,64,128,0.4)"/>
+
+  <!-- Candlestick bars -->
+  <rect x="74" y="118" width="7" height="16" fill="#22c55e" rx="1"/>
+  <line x1="77.5" y1="115" x2="77.5" y2="119" stroke="#22c55e" stroke-width="1.5"/>
+  <line x1="77.5" y1="134" x2="77.5" y2="137" stroke="#22c55e" stroke-width="1.5"/>
+
+  <rect x="85" y="110" width="7" height="20" fill="#ef4444" rx="1"/>
+  <line x1="88.5" y1="107" x2="88.5" y2="111" stroke="#ef4444" stroke-width="1.5"/>
+  <line x1="88.5" y1="130" x2="88.5" y2="133" stroke="#ef4444" stroke-width="1.5"/>
+
+  <rect x="96" y="100" width="7" height="24" fill="#22c55e" rx="1"/>
+  <line x1="99.5" y1="97" x2="99.5" y2="101" stroke="#22c55e" stroke-width="1.5"/>
+  <line x1="99.5" y1="124" x2="99.5" y2="127" stroke="#22c55e" stroke-width="1.5"/>
+
+  <rect x="107" y="94" width="7" height="18" fill="#22c55e" rx="1"/>
+  <line x1="110.5" y1="91" x2="110.5" y2="95" stroke="#22c55e" stroke-width="1.5"/>
+  <line x1="110.5" y1="112" x2="110.5" y2="115" stroke="#22c55e" stroke-width="1.5"/>
+
+  <rect x="118" y="88" width="7" height="14" fill="#ef4444" rx="1"/>
+  <line x1="121.5" y1="85" x2="121.5" y2="89" stroke="#ef4444" stroke-width="1.5"/>
+  <line x1="121.5" y1="102" x2="121.5" y2="105" stroke="#ef4444" stroke-width="1.5"/>
+
+  <!-- Arrow -->
+  <line x1="72" y1="130" x2="132" y2="82" stroke="white" stroke-width="3" stroke-linecap="round"/>
+  <polygon points="132,82 120,80 130,92" fill="white"/>
+
+  <!-- Currency symbols -->
+  <text x="100" y="152" text-anchor="middle" fill="#a0b8d0" font-size="10" font-weight="600" letter-spacing="3" font-family="Arial,sans-serif">$€¥£</text>
+
+  <!-- Top text arc: SNIPER SIGNALS -->
+  <path id="topArc" d="M 20,100 A 80,80 0 0,1 180,100" fill="none"/>
+  <text font-size="15" font-weight="800" fill="white" font-family="Arial,sans-serif" letter-spacing="3">
+    <textPath href="#topArc" startOffset="50%" text-anchor="middle">SNIPER SIGNALS</textPath>
+  </text>
+
+  <!-- Bottom text arc: GLOBAL MARKET INSIGHTS -->
+  <path id="botArc" d="M 18,108 A 82,82 0 0,0 182,108" fill="none"/>
+  <text font-size="9.5" font-weight="700" fill="#a0b8d0" font-family="Arial,sans-serif" letter-spacing="1.5">
+    <textPath href="#botArc" startOffset="50%" text-anchor="middle">GLOBAL MARKET INSIGHTS</textPath>
+  </text>
+</svg>

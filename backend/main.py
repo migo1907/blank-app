@@ -1,5 +1,5 @@
 """
-XAU/USD Migo Sniper Pro — Level 3 ML Backend (v3·25F)
+XAU/USD Migo Sniper Pro — Level 3 ML Backend (v3·26F)
 FastAPI app that receives TradingView webhooks, updates adaptive weights
 in GitHub storage, runs RF ensemble, fetches news sentiment, sends signals to Telegram.
 """
@@ -8,7 +8,7 @@ import math
 import asyncio
 from datetime import datetime, timezone
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, model_validator
 from typing import Literal, Optional
@@ -26,6 +26,59 @@ _OUTCOME_DEDUP_TTL = 30.0  # seconds
 # Key: "SYMBOL|DIRECTION|TF"  Value: (entry_price, tp1, tp2, tp3, sl, monotonic_ts)
 _entry_price_cache: dict[str, tuple] = {}
 _ENTRY_CACHE_TTL = 86400.0  # 24h — covers overnight/multi-day trades
+
+# Triggered signal feed — mirrors what is sent to Telegram (last 100)
+# Persisted to data branch so signals survive Railway restarts.
+_signal_feed: list[dict] = []
+_SIGNAL_FEED_MAX = 100
+_SIGNAL_FEED_PATH = "data/signal_feed.json"
+
+def _feed_push(entry: dict) -> None:
+    """Append a triggered signal to the in-memory feed and persist to data branch."""
+    global _signal_feed
+    _signal_feed.append(entry)
+    if len(_signal_feed) > _SIGNAL_FEED_MAX:
+        _signal_feed = _signal_feed[-_SIGNAL_FEED_MAX:]
+    # Persist in a background thread — best-effort, never blocks signal delivery
+    _snap = list(_signal_feed)
+    def _persist():
+        try:
+            from db import _get_file, _put_file
+            _, sha = _get_file(_SIGNAL_FEED_PATH)
+            _put_file(_SIGNAL_FEED_PATH, {"signals": _snap}, sha, "data: signal feed update")
+        except Exception as _e:
+            print(f"[feed] persist failed (non-fatal): {_e}")
+    import threading
+    threading.Thread(target=_persist, daemon=True).start()
+
+def _load_signal_feed() -> None:
+    """Load persisted signal feed from data branch on startup."""
+    global _signal_feed
+    try:
+        from db import _get_file
+        data, _ = _get_file(_SIGNAL_FEED_PATH)
+        if isinstance(data, dict) and isinstance(data.get("signals"), list):
+            _signal_feed = data["signals"][-_SIGNAL_FEED_MAX:]
+            print(f"[startup] Signal feed loaded: {len(_signal_feed)} signals from data branch")
+    except Exception as _e:
+        print(f"[startup] Signal feed load failed (non-fatal): {_e}")
+
+_SESSION_LABELS = {
+    "OVERLAP": "London/NY Overlap", "LONDON": "London", "LONDON_OPEN": "London Open",
+    "NEW_YORK": "New York", "NY_LATE": "New York Late", "ASIAN": "Asian", "OFF": "Off-Hours",
+    "NYSE_OPEN": "NYSE Open", "NYSE_AFTERNOON": "NYSE Afternoon",
+    "PRE_MARKET": "Pre-Market", "CLOSED": "Closed",
+}
+
+def _session_label(symbol: str) -> str:
+    """Friendly current-session label, matching the Telegram alert wording."""
+    try:
+        from signal_engine import _session_multiplier
+        is_stock = (symbol or "").upper() not in ("XAUUSD", "GOLD", "GC")
+        _, name = _session_multiplier(datetime.now(timezone.utc), is_stock)
+        return _SESSION_LABELS.get(name, name)
+    except Exception:
+        return ""
 
 
 def _outcome_is_duplicate(symbol: str, direction: str, entry_price: float, exit_price: float, timeframe: str) -> bool:
@@ -50,33 +103,33 @@ def _tod_sine() -> float:
 
 WEBHOOK_SECRET    = os.environ.get("WEBHOOK_SECRET", "")
 VALID_POOLS = {
-    "XAUUSD_2M", "XAUUSD_5M", "XAUUSD_30M", "XAUUSD_1H",
-    "STOCKS_MOMENTUM_15M", "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_4H",
-    "STOCKS_QUALITY_15M",  "STOCKS_QUALITY_30M",  "STOCKS_QUALITY_4H",
-    "STOCKS_INDEX_15M",    "STOCKS_INDEX_30M",    "STOCKS_INDEX_4H",
-    "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",      "STOCKS_QQQ_4H",
-    "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",   "STOCKS_SPX500_4H",
+    "XAUUSD_2M", "XAUUSD_5M", "XAUUSD_15M", "XAUUSD_30M", "XAUUSD_1H",
+    "STOCKS_MOMENTUM_15M", "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_1H", "STOCKS_MOMENTUM_4H",
+    "STOCKS_QUALITY_15M",  "STOCKS_QUALITY_30M",  "STOCKS_QUALITY_1H",  "STOCKS_QUALITY_4H",
+    "STOCKS_INDEX_15M",    "STOCKS_INDEX_30M",    "STOCKS_INDEX_1H",    "STOCKS_INDEX_4H",
+    "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",      "STOCKS_QQQ_1H",      "STOCKS_QQQ_4H",
+    "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",   "STOCKS_SPX500_1H",   "STOCKS_SPX500_4H",
 }
 RAILWAY_API_TOKEN  = os.environ.get("RAILWAY_API_TOKEN", "")
-RAILWAY_PROJECT_ID = os.environ.get("RAILWAY_PROJECT_ID", "bcc5442d-2f19-4dfa-ad25-219a5c70868a")
-RAILWAY_SERVICE_ID = os.environ.get("RAILWAY_SERVICE_ID", "e4310b2b-3a37-440e-a3b7-a14ea476f8a1")
+RAILWAY_PROJECT_ID = os.environ.get("RAILWAY_PROJECT_ID", "")
+RAILWAY_SERVICE_ID = os.environ.get("RAILWAY_SERVICE_ID", "")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("[startup] Loading ML model (25F) from storage…")
+    print("[startup] Loading ML model (26F) from storage…")
     from ml_model import get_model
     get_model("XAUUSD_2M")
 
     print("[startup] Priming RF + GBM ensembles for all pools…")
     from ml_ensemble import get_rf, get_gbm
     from db import recent_outcomes
-    for _pool in ["XAUUSD_2M", "XAUUSD_5M", "XAUUSD_30M", "XAUUSD_1H",
-                  "STOCKS_MOMENTUM_15M", "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_4H",
-                  "STOCKS_QUALITY_15M",  "STOCKS_QUALITY_30M",  "STOCKS_QUALITY_4H",
-                  "STOCKS_INDEX_15M",    "STOCKS_INDEX_30M",    "STOCKS_INDEX_4H",
-                  "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",      "STOCKS_QQQ_4H",
-                  "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",   "STOCKS_SPX500_4H"]:
+    for _pool in ["XAUUSD_2M", "XAUUSD_5M", "XAUUSD_15M", "XAUUSD_30M", "XAUUSD_1H",
+                  "STOCKS_MOMENTUM_15M", "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_1H", "STOCKS_MOMENTUM_4H",
+                  "STOCKS_QUALITY_15M",  "STOCKS_QUALITY_30M",  "STOCKS_QUALITY_1H",  "STOCKS_QUALITY_4H",
+                  "STOCKS_INDEX_15M",    "STOCKS_INDEX_30M",    "STOCKS_INDEX_1H",    "STOCKS_INDEX_4H",
+                  "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",      "STOCKS_QQQ_1H",      "STOCKS_QQQ_4H",
+                  "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",   "STOCKS_SPX500_1H",   "STOCKS_SPX500_4H"]:
         _hist = recent_outcomes(_pool, limit=500)
         if len(_hist) >= 50:
             get_rf(_pool).retrain(_hist)
@@ -103,12 +156,12 @@ async def lifespan(app: FastAPI):
 
     print("[startup] Resyncing pool win/loss counters…")
     from db import resync_pool_counters
-    for _pool in ["XAUUSD_2M", "XAUUSD_5M", "XAUUSD_30M", "XAUUSD_1H",
-                  "STOCKS_MOMENTUM_15M", "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_4H",
-                  "STOCKS_QUALITY_15M",  "STOCKS_QUALITY_30M",  "STOCKS_QUALITY_4H",
-                  "STOCKS_INDEX_15M",    "STOCKS_INDEX_30M",    "STOCKS_INDEX_4H",
-                  "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",      "STOCKS_QQQ_4H",
-                  "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",   "STOCKS_SPX500_4H"]:
+    for _pool in ["XAUUSD_2M", "XAUUSD_5M", "XAUUSD_15M", "XAUUSD_30M", "XAUUSD_1H",
+                  "STOCKS_MOMENTUM_15M", "STOCKS_MOMENTUM_30M", "STOCKS_MOMENTUM_1H", "STOCKS_MOMENTUM_4H",
+                  "STOCKS_QUALITY_15M",  "STOCKS_QUALITY_30M",  "STOCKS_QUALITY_1H",  "STOCKS_QUALITY_4H",
+                  "STOCKS_INDEX_15M",    "STOCKS_INDEX_30M",    "STOCKS_INDEX_1H",    "STOCKS_INDEX_4H",
+                  "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",      "STOCKS_QQQ_1H",      "STOCKS_QQQ_4H",
+                  "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",   "STOCKS_SPX500_1H",   "STOCKS_SPX500_4H"]:
         resync_pool_counters(_pool)
 
     print("[startup] Verifying data branch is writable…")
@@ -135,6 +188,35 @@ async def lifespan(app: FastAPI):
     from market_macro import load_macro_bias
     load_macro_bias()
 
+    print("[startup] Loading HMM regime state from GitHub…")
+    from regime_model import load_regimes
+    load_regimes()
+
+    print("[startup] Loading MTF confluence stack from GitHub…")
+    from mtf_confluence import load_mtf
+    load_mtf()
+
+    print("[startup] Loading swing candidates from GitHub…")
+    from swing_screener import load_candidates
+    load_candidates()
+
+    print("[startup] Loading signal feed from GitHub…")
+    _load_signal_feed()
+
+    print("[startup] Loading Fear & Greed index from GitHub…")
+    try:
+        from fear_greed import load_fear_greed
+        load_fear_greed()
+    except Exception as _fg_e:
+        print(f"[startup] Fear & Greed load failed (non-fatal): {_fg_e}")
+
+    print("[startup] Loading CBOE put/call ratio from GitHub…")
+    try:
+        from cboe_data import load_pc_ratio
+        load_pc_ratio()
+    except Exception as _pc_e:
+        print(f"[startup] CBOE P/C load failed (non-fatal): {_pc_e}")
+
     if not WEBHOOK_SECRET:
         print("[startup] ⚠ WARNING: WEBHOOK_SECRET is not set — all webhook endpoints are open to unauthenticated requests.")
 
@@ -151,7 +233,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Migo Sniper Pro — ML Backend v3·25F",
+    title="Migo Sniper Pro — ML Backend v3·26F",
     description="Adaptive KNN + RF + GBM ensemble + news sentiment for XAU/USD",
     version="3.1.0",
     lifespan=lifespan,
@@ -210,12 +292,12 @@ class _SanitizeNaNMiddleware:
         # Replace unquoted NaN / Infinity / -Infinity with 0 so JSON parses cleanly.
         patched = False
         if b"NaN" in body:
-            body = _NAN_RE.sub(b":0", body)
-            body = _NAN_RE2.sub(b",0", body)
+            body = _NAN_RE.sub(b":null", body)
+            body = _NAN_RE2.sub(b",null", body)
             patched = True
         if b"Infinity" in body:
-            body = _INF_RE.sub(b":0", body)
-            body = _INF_RE2.sub(b",0", body)
+            body = _INF_RE.sub(b":null", body)
+            body = _INF_RE2.sub(b",null", body)
             patched = True
         if patched:
             print(f"[nan_middleware] Sanitized invalid JSON literals in {scope.get('path','?')} ({len(body)} bytes)")
@@ -398,6 +480,17 @@ def _validate_secret(secret: str) -> None:
         raise HTTPException(status_code=403, detail="Invalid webhook secret.")
 
 
+@app.get("/auth/login")
+async def auth_login(passcode: str = ""):
+    """Passcode gate for the PWA. Validates against APP_PASSCODE (Railway env);
+    on success returns the API secret so the client can call protected endpoints.
+    The secret is therefore never shipped in the static bundle."""
+    expected = os.environ.get("APP_PASSCODE") or WEBHOOK_SECRET or "gold2026"
+    if passcode and passcode == expected:
+        return {"ok": True, "secret": WEBHOOK_SECRET or "gold2026"}
+    raise HTTPException(status_code=401, detail="Invalid passcode")
+
+
 @app.get("/market-hours")
 async def market_hours():
     from market_calendar import get_market_status
@@ -426,12 +519,44 @@ async def health():
     except Exception:
         directive = {}
 
+    try:
+        from regime_model import get_regime, REGIME_ASSETS
+        regimes = {a: get_regime(a) for a in REGIME_ASSETS}
+    except Exception:
+        regimes = {}
+
+    try:
+        from mtf_confluence import get_mtf, MTF_ASSETS
+        mtf = {a: get_mtf(a) for a in MTF_ASSETS}
+    except Exception:
+        mtf = {}
+
+    try:
+        from post_event import get_post_event, POST_EVENT_ASSETS
+        post_evt = {a: get_post_event(a) for a in POST_EVENT_ASSETS}
+        post_evt = {k: v for k, v in post_evt.items() if v.get("active")}
+    except Exception:
+        post_evt = {}
+
+    try:
+        from market_macro import get_macro_bias, get_equity_macro_bias
+        intermarket = {
+            "vix":       (get_equity_macro_bias() or {}).get("vix"),
+            "dxy_break": (get_macro_bias() or {}).get("dxy_break"),
+        }
+    except Exception:
+        intermarket = {}
+
     return {
-        "status":    "ok",
-        "version":   "5.2.0-26F",
-        "scheduler": "running" if scheduler_ok else "restarted",
-        "ml":        ml_health,
-        "directive": directive,
+        "status":      "ok",
+        "version":     "5.2.0-26F",
+        "scheduler":   "running" if scheduler_ok else "restarted",
+        "ml":          ml_health,
+        "directive":   directive,
+        "regimes":     regimes,
+        "mtf":         mtf,
+        "post_event":  post_evt,
+        "intermarket": intermarket,
     }
 
 
@@ -549,7 +674,7 @@ async def trade_outcome(payload: TradeOutcomePayload):
         print(f"[trade-outcome] Missing entry/exit price for {sym} {payload.direction} — skipping (no cache hit)")
         return {"status": "ok", "skipped": "missing_prices"}
 
-    try:
+    def _sync_process_outcome():
         pool = symbol_to_pool(sym, payload.timeframe or "")
         model = get_model(pool)
         features = Features(
@@ -561,23 +686,22 @@ async def trade_outcome(payload: TradeOutcomePayload):
             f21=payload.f21, f22=payload.f22, f23=payload.f23, f24=payload.f24,
             f25=payload.f25, f26=payload.f26,
         )
-
-        # Signed realized move (favorable = positive). Lets the KNN re-classify a
-        # partial that actually closed negative (e.g. SL_TP1 on gold scalps) as a loss.
         raw_pct = (payload.exit_price - payload.entry_price) / max(payload.entry_price, 0.0001) * 100
         pnl_pct = raw_pct if payload.direction == "LONG" else -raw_pct
-
         ml_label = payload.ml_outcome or payload.outcome
         _is_dup = _outcome_is_duplicate(sym, payload.direction, payload.entry_price, payload.exit_price, payload.timeframe or "")
         if not _is_dup:
             model.update_on_outcome(features, payload.direction, ml_label, tp_stage=payload.tp_stage or "", pnl=pnl_pct)
         else:
             print(f"[trade-outcome] Duplicate within {_OUTCOME_DEDUP_TTL}s — skipping weight update for {sym} {payload.direction} entry={payload.entry_price}")
-
         from signal_engine import _detect_regime, _session_multiplier
         _is_stock_pool = not pool.startswith("XAUUSD")
         _, _session = _session_multiplier(datetime.now(timezone.utc), is_stock=_is_stock_pool)
-        _regime     = _detect_regime(features)
+        _regime = _detect_regime(features)
+        return pool, model, features, pnl_pct, ml_label, _regime, _session
+
+    try:
+        pool, model, features, pnl_pct, ml_label, _regime, _session = await asyncio.to_thread(_sync_process_outcome)
     except Exception as _exc:
         print(f"[trade-outcome] ERROR processing {sym} {payload.direction} outcome={payload.outcome}: {_exc}")
         import traceback; traceback.print_exc()
@@ -627,9 +751,14 @@ async def trade_outcome(payload: TradeOutcomePayload):
             invalidate_history_cache(pool)
             history = await asyncio.to_thread(recent_outcomes, pool, 500)
 
-            # Record OOS prediction for champion-challenger tracking
+            # Record OOS prediction for champion-challenger tracking.
+            # PARTIAL is only a true win when pnl_pct > 0 — 43% of PARTIAL trades
+            # across all pools have negative PnL (SL hit after TP1 breakeven move).
+            # This mirrors the same guard already applied to the KNN weight update.
             _prev_score = outcome_row.get("ml_bull_score") or 0.5
-            _actual_win = outcome_row.get("outcome") in ("WIN", "PARTIAL")
+            _pnl = outcome_row.get("pnl_pct", 0.0) or 0.0
+            _raw_outcome = outcome_row.get("outcome")
+            _actual_win = _raw_outcome == "WIN" or (_raw_outcome == "PARTIAL" and _pnl > 0)
             record_oob_prediction(pool, float(_prev_score), bool(_actual_win))
 
             # Retrain when: (a) pool first reaches 50 trades, OR
@@ -711,7 +840,9 @@ async def signal_entry(payload: SignalEntryPayload):
     from signal_engine import score_entry_gate
     from db import symbol_to_pool
     try:
-        _gate = score_entry_gate(symbol_to_pool(sym, tf), payload.direction)
+        _gate = await asyncio.to_thread(
+            score_entry_gate, symbol_to_pool(sym, tf), payload.direction, payload.trigger or ""
+        )
     except Exception as _ge:
         print(f"[signal-entry] gate error (non-fatal): {_ge}")
         _gate = {"pass": True, "score": 0.5, "reason": "gate_error", "components": {}}
@@ -723,7 +854,7 @@ async def signal_entry(payload: SignalEntryPayload):
     htf_context = "htf_direct" if is_htf(tf) else ("with_bias" if bias else ("counter_trend" if contra_bias else "scalp"))
     print(f"[signal-entry] {payload.direction} {sym} TF={tf} htf={htf_context} → sending to Telegram")
 
-    asyncio.create_task(send_entry_signal({
+    _sig_payload = {
         "direction":   payload.direction,
         "timeframe":   tf,
         "trigger":     payload.trigger or "RSI",
@@ -743,7 +874,11 @@ async def signal_entry(payload: SignalEntryPayload):
         "htf_bias":    bias,
         "contra_bias": contra_bias,
         "htf_context": htf_context,
-    }))
+        "session":     _session_label(sym),
+        "fired_at":    datetime.now(timezone.utc).isoformat(),
+    }
+    _feed_push(_sig_payload)
+    asyncio.create_task(send_entry_signal(_sig_payload))
     return {"status": "ok", "routed_to": "signal-entry", "direction": payload.direction, "htf_context": htf_context}
 
 
@@ -807,19 +942,35 @@ async def unified_webhook(payload: UnifiedPayload):
         from signal_engine import score_entry_gate
         from db import symbol_to_pool
         try:
-            _gate = score_entry_gate(symbol_to_pool(sym, tf), payload.direction)
+            _gate = await asyncio.to_thread(
+                score_entry_gate, symbol_to_pool(sym, tf), payload.direction, payload.trigger or ""
+            )
         except Exception as _ge:
             print(f"[webhook] gate error (non-fatal): {_ge}")
             _gate = {"pass": True, "score": 0.5, "reason": "gate_error", "components": {}}
         print(f"[webhook] ML QUALITY {payload.direction} {sym} TF={tf} "
               f"score={_gate['score']} ({_gate['reason']}) components={_gate['components']}")
 
+        # Higher-quality-only gate: suppress confidently-WEAK signals from Telegram.
+        # "similar setups mostly stopped out" = backend quality < 0.40 backed by real
+        # model scores. Never suppress while models are warming up (cold-start / no
+        # features / gate error) so young pools still accumulate trade data. The HTF
+        # bias store and entry-price cache above already ran, so suppression here only
+        # silences the Telegram alert — the trade still feeds the ML.
+        _WEAK_SUPPRESS = 0.40
+        _warming = _gate["reason"] in ("no_features_cached", "cold_start_bypass", "gate_error")
+        if not _warming and _gate["score"] < _WEAK_SUPPRESS:
+            print(f"[webhook] SUPPRESSED weak {payload.direction} {sym} TF={tf} "
+                  f"score={_gate['score']} — similar setups mostly stopped out")
+            return {"status": "ok", "routed_to": "suppressed",
+                    "reason": "weak_ml_quality", "score": _gate["score"]}
+
         bias        = get_active_bias(sym, payload.direction)
         contra_bias = get_active_bias(sym, "SHORT" if payload.direction == "LONG" else "LONG")
         htf_context = "htf_direct" if is_htf(tf) else ("with_bias" if bias else ("counter_trend" if contra_bias else "scalp"))
         print(f"[webhook] {payload.direction} {sym} TF={tf} htf={htf_context} → sending to Telegram")
 
-        asyncio.create_task(send_entry_signal({
+        _sig_payload2 = {
             "direction":   payload.direction,
             "timeframe":   tf,
             "trigger":     payload.trigger or "RSI",
@@ -839,7 +990,11 @@ async def unified_webhook(payload: UnifiedPayload):
             "htf_bias":    bias,
             "contra_bias": contra_bias,
             "htf_context": htf_context,
-        }))
+            "session":     _session_label(sym),
+            "fired_at":    datetime.now(timezone.utc).isoformat(),
+        }
+        _feed_push(_sig_payload2)
+        asyncio.create_task(send_entry_signal(_sig_payload2))
         return {"status": "ok", "routed_to": "signal-entry", "direction": payload.direction, "htf_context": htf_context}
 
     if payload.outcome == "HEARTBEAT":
@@ -910,7 +1065,7 @@ async def unified_webhook(payload: UnifiedPayload):
                 f13=payload.f13, f14=payload.f14, f15=payload.f15, f16=payload.f16,
                 f17=payload.f17, f18=payload.f18, f19=payload.f19, f20=payload.f20,
                 f21=payload.f21, f22=payload.f22, f23=payload.f23, f24=payload.f24,
-                f25=payload.f25,
+                f25=payload.f25, f26=payload.f26,
             )
             # Signed realized move (favorable = positive) — lets the KNN re-classify a
             # partial that actually closed negative (e.g. SL_TP1 on gold scalps) as a loss.
@@ -1058,12 +1213,182 @@ async def test_session_report(secret: str = ""):
     return {"status": "sent" if sent else "no_trades_today"}
 
 
+@app.get("/signals/feed")
+async def signals_feed(secret: str = "", limit: int = 50):
+    """Return the last N triggered entry signals (same data sent to Telegram)."""
+    _validate_secret(secret)
+    feed = list(reversed(_signal_feed[-limit:]))
+    return {"signals": feed, "count": len(feed)}
+
+
+@app.get("/signals/levels")
+async def signals_levels(secret: str = ""):
+    """Return cached entry/TP/SL levels per symbol+direction+timeframe."""
+    _validate_secret(secret)
+    import time as _time
+    now = _time.monotonic()
+    out = []
+    for key, val in list(_entry_price_cache.items()):
+        sym, direction, tf = key.split("|", 2)
+        entry, tp1, tp2, tp3, sl, ts = val
+        age_min = round((now - ts) / 60, 1)
+        if age_min > 240:
+            continue
+        out.append({
+            "key":       key,
+            "symbol":    sym,
+            "direction": direction,
+            "timeframe": tf,
+            "entry":     entry or None,
+            "tp1":       tp1 or None,
+            "tp2":       tp2 or None,
+            "tp3":       tp3 or None,
+            "sl":        sl  or None,
+            "age_min":   age_min,
+        })
+    out.sort(key=lambda x: x["age_min"])
+    return {"levels": out}
+
+
 @app.get("/signal/now")
 async def signal_now(secret: str = ""):
     _validate_secret(secret)
     from scheduler import _news_signal_cycle
     asyncio.create_task(_news_signal_cycle())
     return {"status": "signal cycle triggered"}
+
+
+@app.get("/swing/now")
+async def swing_now(secret: str = ""):
+    """Run the swing screen + brief immediately (ignores the holiday gate)."""
+    _validate_secret(secret)
+
+    async def _run():
+        from swing_screener import run_screen
+        from telegram_bot import send_swing_brief
+        screen = await asyncio.to_thread(run_screen, 10)
+        await send_swing_brief(screen)
+
+    asyncio.create_task(_run())
+    return {"status": "swing screen triggered"}
+
+
+@app.get("/swing/candidates")
+async def swing_candidates(secret: str = ""):
+    """Latest cached swing candidates (no rescan), flattened for the dashboard:
+    surfaces fundamental/technical scores, ATR levels, conviction and the
+    fundamentals+technical 'qualified' flag."""
+    _validate_secret(secret)
+    from swing_screener import get_candidates
+    data = get_candidates() or {}
+    out = []
+    for c in (data.get("candidates") or []):
+        f  = c.get("fundamental") or {}
+        t  = c.get("technical")   or {}
+        cs = c.get("combined_score", 0) or 0
+        conv = ("STRONG" if cs >= 0.50 else "GOOD" if cs >= 0.35
+                else "MODERATE" if cs >= 0.15 else "WEAK")
+        fs, ts = f.get("score"), t.get("score")
+        out.append({
+            "ticker":            c.get("ticker"),
+            "combined_score":    cs,
+            "fundamental_score": fs,
+            "technical_score":   ts,
+            "entry":             t.get("entry"),
+            "tp":                t.get("t1"),
+            "sl":                t.get("stop"),
+            "rsi":               t.get("rsi"),
+            "trend":             t.get("trend"),
+            "conviction":        conv,
+            "qualified":         c.get("qualified", bool((fs or 0) > 0 and (ts or 0) > 0)),
+            "thesis":            c.get("thesis"),
+            # full nested objects for the dashboard
+            "fundamental":       f,
+            "technical":         t,
+            "upside_pct":        c.get("upside_pct"),
+            "analyst_target":    c.get("analyst_target"),
+            "current_price":     c.get("current_price"),
+            "entry_quality":     c.get("entry_quality") or t.get("entry_quality"),
+            "entry_now":         c.get("entry_now") or t.get("entry_now", False),
+            "upside_source":     c.get("upside_source"),
+        })
+
+    # Watchlist: WAIT-quality stocks that passed Gate 1 (good value, not yet timed)
+    watch_out = []
+    for c in (data.get("watchlist") or []):
+        f = c.get("fundamental") or {}
+        t = c.get("technical")   or {}
+        watch_out.append({
+            "ticker":        c.get("ticker"),
+            "combined_score": c.get("combined_score"),
+            "upside_pct":    c.get("upside_pct"),
+            "upside_source": c.get("upside_source"),
+            "entry_quality": "WAIT",
+            "rsi":           t.get("rsi"),
+            "trend":         t.get("trend"),
+            "entry":         t.get("entry"),
+            "stop":          t.get("stop"),
+            "t1":            t.get("t1"),
+            "fundamental":   f,
+            "technical":     t,
+        })
+
+    return {
+        "candidates":      out,
+        "watchlist":       watch_out,
+        "watching":        data.get("watching", 0),
+        "qualified_count": data.get("qualified_count"),
+        "scanned":         data.get("scanned"),
+        "updated_at":      data.get("updated_at"),
+    }
+
+
+@app.get("/swing/trades")
+async def swing_trades(secret: str = ""):
+    """Swing paper-trade training-readiness summary (open/closed/win-rate)."""
+    _validate_secret(secret)
+    from swing_tracker import stats
+    return stats()
+
+
+@app.get("/options/trades")
+async def options_trades(secret: str = ""):
+    """SPX 0-1DTE options paper-trade training-readiness summary per pool."""
+    _validate_secret(secret)
+    from options_engine import stats as options_stats
+    return options_stats()
+
+
+@app.get("/swing/one")
+async def swing_one(ticker: str = "", secret: str = "", send: bool = False):
+    """
+    On-demand single-stock swing read — full fundamental + technical + combined
+    score plus the synthesized thesis, for any ticker regardless of rank.
+    Pass send=true to also push the formatted brief to the swing Telegram channel.
+    Example: /swing/one?ticker=META&secret=...&send=true
+    """
+    _validate_secret(secret)
+    tkr = (ticker or "").strip().upper()
+    if not tkr:
+        return {"error": "ticker query param required, e.g. ?ticker=META"}
+    from swing_screener import screen_one
+    from swing_narrative import synthesize, available
+    cand = await asyncio.to_thread(screen_one, tkr)
+    cand["thesis"] = await asyncio.to_thread(synthesize, cand)
+    cand["llm_active"] = available()
+    if send:
+        from telegram_bot import send_swing_brief
+        cand["telegram_sent"] = await send_swing_brief({"candidates": [cand], "scanned": 1})
+    return cand
+
+
+@app.get("/inspect")
+async def inspect_now(secret: str = ""):
+    """Run the full system inspection on demand and return the structured report."""
+    _validate_secret(secret)
+    from scheduler import _full_system_inspection
+    report = await _full_system_inspection()
+    return report
 
 
 @app.get("/daily-brief")
@@ -1073,6 +1398,15 @@ async def daily_brief_now(secret: str = ""):
     from scheduler import _daily_market_brief
     asyncio.create_task(_daily_market_brief())
     return {"status": "daily brief triggered — check Telegram in ~15 seconds"}
+
+
+@app.get("/daily-report")
+async def daily_report_now(secret: str = ""):
+    """Trigger end-of-day performance report immediately and send to Telegram."""
+    _validate_secret(secret)
+    from scheduler import _daily_trade_count_report
+    asyncio.create_task(_daily_trade_count_report())
+    return {"status": "daily performance report triggered — check Telegram in ~15 seconds"}
 
 
 @app.get("/railway-status")
@@ -1202,3 +1536,749 @@ async def dashboard(secret: str = "", pool: str = "XAUUSD_2M"):
             for t in recent_trades
         ],
     }
+
+
+# ── PWA endpoints ─────────────────────────────────────────────────────────────
+
+_GOLD_POOLS   = ["XAUUSD_2M", "XAUUSD_5M", "XAUUSD_15M", "XAUUSD_30M", "XAUUSD_1H"]
+_STOCK_POOLS  = [
+    "STOCKS_MOMENTUM_15M", "STOCKS_MOMENTUM_30M",
+    "STOCKS_QUALITY_15M",  "STOCKS_QUALITY_30M",
+    "STOCKS_INDEX_15M",    "STOCKS_INDEX_30M",
+    "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",
+    "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",
+]
+
+
+def _session_now() -> str:
+    h = datetime.now(timezone.utc).hour
+    if 7 <= h < 16:
+        return "london" if h < 12 else "ny"
+    if 0 <= h < 7:
+        return "asian"
+    return "off"
+
+
+@app.get("/pulse")
+async def pulse():
+    from ml_model     import get_model
+    from ml_ensemble  import get_rf, get_gbm
+    from db           import recent_outcomes
+    from scheduler    import get_latest_news_sentiment, get_latest_velocity, get_latest_event
+    from market_macro import get_macro_bias, get_equity_macro_bias
+
+    pools_out: dict = {}
+    gold_scores:  list[float] = []
+    stock_scores: list[float] = []
+
+    for pool in _GOLD_POOLS + _STOCK_POOLS:
+        try:
+            model = get_model(pool)
+            rf    = get_rf(pool)
+            gbm   = get_gbm(pool)
+            # Use cached last signal from signals.json to avoid re-computing features
+            from db import _get_file as _db_get
+            sigs, _ = _db_get("data/signals.json")
+            last_sig = next(
+                (s for s in reversed(sigs or []) if s.get("pool") == pool),
+                None
+            )
+            if last_sig:
+                direction  = last_sig.get("direction", "NEUTRAL")
+                confidence = last_sig.get("confidence", 0.0)
+                ml_score   = last_sig.get("rf_score") or last_sig.get("ml_score") or 0.0
+                certainty  = last_sig.get("ml_certainty", "")
+            else:
+                direction, confidence, ml_score, certainty = "NEUTRAL", 0.0, 0.0, ""
+            pools_out[pool] = {
+                "direction":  direction,
+                "confidence": round(float(confidence), 3),
+                "ml_score":   round(float(ml_score), 3),
+                "certainty":  certainty,
+            }
+            # Directional score for aggregate bias
+            score = float(confidence) if direction == "LONG" else (-float(confidence) if direction == "SHORT" else 0.0)
+            if pool in _GOLD_POOLS:
+                gold_scores.append(score)
+            else:
+                stock_scores.append(score)
+        except Exception:
+            pools_out[pool] = {"direction": "NEUTRAL", "confidence": 0.0, "ml_score": 0.0, "certainty": ""}
+
+    def _bias(scores: list[float]) -> tuple[str, float]:
+        if not scores:
+            return "NEUTRAL", 0.0
+        avg = sum(scores) / len(scores)
+        label = "BULLISH" if avg > 0.05 else ("BEARISH" if avg < -0.05 else "NEUTRAL")
+        return label, round(avg, 3)
+
+    gold_bias,   gold_score   = _bias(gold_scores)
+    stocks_bias, stocks_score = _bias(stock_scores)
+    all_scores = gold_scores + stock_scores
+    overall_bias, _ = _bias(all_scores)
+
+    macro_gold   = get_macro_bias()   or {}
+    macro_equity = get_equity_macro_bias() or {}
+
+    try:
+        from fear_greed import get_fear_greed
+        fg = get_fear_greed()
+    except Exception:
+        fg = {}
+
+    return {
+        "gold_bias":    gold_bias,
+        "gold_score":   gold_score,
+        "stocks_bias":  stocks_bias,
+        "stocks_score": stocks_score,
+        "overall_bias": overall_bias,
+        "session":      _session_now(),
+        "next_event":   get_latest_event(),
+        "pools":        pools_out,
+        "macro_bias":   round(float(macro_gold.get("bias") or 0.0), 3),
+        "macro_label":  macro_gold.get("label", ""),
+        "vix":          macro_equity.get("vix"),
+        "fear_greed":       fg.get("score"),
+        "fear_greed_label": fg.get("label"),
+        "news_velocity": get_latest_velocity(),
+        "updated_at":   datetime.now(timezone.utc).isoformat(),
+    }
+
+
+@app.get("/news/feed")
+async def news_feed(secret: str = ""):
+    _validate_secret(secret)
+    from db        import recent_news
+    from scheduler import get_latest_news_sentiment, get_latest_velocity, get_latest_event
+
+    items_raw = recent_news(hours=24)
+    items_raw.sort(key=lambda x: x.get("fetched_at", ""), reverse=True)
+    items: list[dict] = []
+    for n in items_raw[:20]:
+        s = float(n.get("sentiment", 0.0) or 0.0)
+        if s > 0.1:
+            sent_label = "BULLISH"
+        elif s < -0.1:
+            sent_label = "BEARISH"
+        else:
+            sent_label = "NEUTRAL"
+        try:
+            from datetime import datetime as _dt
+            dt  = _dt.fromisoformat(n["fetched_at"].replace("Z", "+00:00"))
+            age = int((datetime.now(timezone.utc) - dt).total_seconds() / 60)
+        except Exception:
+            age = 0
+        items.append({
+            "headline":  n.get("title", n.get("headline", "")),
+            "source":    n.get("source", ""),
+            "sentiment": sent_label,
+            "score":     round(s, 3),
+            "age_min":   age,
+            "url":       n.get("url", ""),
+        })
+
+    return {
+        "items":             items,
+        "velocity":          get_latest_velocity().get("label", "NORMAL"),
+        "agg_score":         round(float(get_latest_news_sentiment()), 3),
+        "high_impact_event": get_latest_event(),
+    }
+
+
+@app.post("/push/subscribe")
+async def push_subscribe(request: Request, secret: str = ""):
+    _validate_secret(secret)
+    from db import _get_file, _put_file
+    body = await request.json()
+    sub  = body.get("subscription")
+    if not sub:
+        raise HTTPException(status_code=400, detail="Missing subscription")
+    subs, sha = _get_file("data/push_subscriptions.json")
+    subs = subs or []
+    endpoint = sub.get("endpoint", "")
+    if not any(s.get("endpoint") == endpoint for s in subs):
+        subs.append(sub)
+        _put_file("data/push_subscriptions.json", subs, sha, "data: new push subscription")
+    return {"ok": True, "total": len(subs)}
+
+
+@app.get("/brief/data")
+async def brief_data(secret: str = ""):
+    _validate_secret(secret)
+    from daily_analysis import _technical_context, _load_from_json, _fetch_todays_high_impact_events, _ff_calendar_events, _finnhub_calendar_events
+    from market_macro import get_macro_bias, get_equity_macro_bias
+    from scheduler import get_latest_event, get_latest_velocity, get_latest_news_sentiment
+    from datetime import datetime as _dt, timezone as _tz
+
+    now = _dt.now(_tz.utc)
+
+    # Technical context per asset
+    assets_out = {}
+    for name, decimals in [("XAUUSD", 2), ("SPY", 2), ("QQQ", 2)]:
+        try:
+            tc = _technical_context(name, decimals)
+            if tc:
+                assets_out[name] = tc
+        except Exception as e:
+            assets_out[name] = {"error": str(e)}
+
+    # Pivot levels from GitHub Actions
+    try:
+        levels_raw = _load_from_json()
+    except Exception:
+        levels_raw = {}
+
+    # Today's economic events
+    try:
+        events_str = _fetch_todays_high_impact_events()
+    except Exception:
+        events_str = ""
+
+    # Calendar events as structured list
+    try:
+        cal = _finnhub_calendar_events(now) + _ff_calendar_events(now)
+        cal.sort(key=lambda x: x[0])
+        events_list = [{"time_dubai": t, "name": n, "impact": imp} for t, n, imp in cal[:10]]
+    except Exception:
+        events_list = []
+
+    macro  = get_macro_bias()        or {}
+    equity = get_equity_macro_bias() or {}
+
+    return {
+        "generated_at": now.isoformat(),
+        "assets":       assets_out,
+        "levels":       levels_raw,
+        "events_text":  events_str,
+        "events_list":  events_list,
+        "macro": {
+            "bias":        macro.get("bias", 0.0),
+            "label":       macro.get("label", ""),
+            "components":  macro.get("components", {}),
+            "vix":         equity.get("vix"),
+            "real_yield":  macro.get("components", {}).get("real_yield"),
+            "dxy":         macro.get("components", {}).get("dxy"),
+        },
+        "news_sentiment": get_latest_news_sentiment(),
+        "news_velocity":  get_latest_velocity(),
+        "next_event":     get_latest_event(),
+    }
+
+
+# ── Market data endpoints ────────────────────────────────────────────────────
+_OVERVIEW_SYMBOLS = {
+    "Indices":    {"S&P 500":"^GSPC","NASDAQ":"^IXIC","Dow Jones":"^DJI","Russell 2000":"^RUT","VIX":"^VIX"},
+    "Commodities":{"Gold":"GC=F","Oil (WTI)":"CL=F","Silver":"SI=F","Natural Gas":"NG=F"},
+    "Crypto":     {"Bitcoin":"BTC-USD","Ethereum":"ETH-USD"},
+    "Bonds":      {"10Y Yield":"^TNX","2Y Yield":"^IRX"},
+}
+_overview_cache = {"ts": 0, "data": None}
+
+@app.get("/market/overview")
+def market_overview(secret: str = ""):
+    _validate_secret(secret)
+    import time, yfinance as yf
+    if time.time() - _overview_cache["ts"] < 60 and _overview_cache["data"]:
+        return _overview_cache["data"]
+    out = {}
+    all_syms = [(grp, name, sym) for grp, items in _OVERVIEW_SYMBOLS.items() for name, sym in items.items()]
+    tickers = yf.Tickers(" ".join(s for _,_,s in all_syms))
+    for grp, name, sym in all_syms:
+        try:
+            fi = tickers.tickers[sym].fast_info
+            price = fi.last_price
+            prev  = fi.previous_close or price
+            chg   = price - prev
+            chg_pct = (chg / prev * 100) if prev else 0
+            out.setdefault(grp, []).append({
+                "name": name, "symbol": sym,
+                "price": round(price, 4),
+                "change": round(chg, 4),
+                "change_pct": round(chg_pct, 2),
+                "day_high": fi.day_high,
+                "day_low":  fi.day_low,
+            })
+        except Exception as e:
+            out.setdefault(grp, []).append({"name": name, "symbol": sym, "error": str(e)})
+    _overview_cache.update({"ts": time.time(), "data": out})
+    return out
+
+
+@app.get("/market/quotes")
+async def market_quotes(symbols: str = "", secret: str = ""):
+    _validate_secret(secret)
+    import yfinance as yf
+    syms = [s.strip().upper() for s in symbols.split(",") if s.strip()]
+    if not syms:
+        return {}
+    result = {}
+    try:
+        tickers = yf.Tickers(" ".join(syms))
+        for sym in syms:
+            try:
+                fi = tickers.tickers[sym].fast_info
+                price = fi.last_price
+                prev  = fi.previous_close or price
+                chg   = price - prev
+                result[sym] = {
+                    "price": round(price, 4),
+                    "change": round(chg, 4),
+                    "change_pct": round((chg/prev*100) if prev else 0, 2),
+                    "name": getattr(fi, 'company_name', sym),
+                }
+            except Exception as e:
+                result[sym] = {"error": str(e)}
+    except Exception as e:
+        return {"error": str(e)}
+    return result
+
+
+@app.get("/market/ticker/{symbol}")
+def market_ticker(symbol: str, secret: str = ""):
+    _validate_secret(secret)
+    import yfinance as yf, os
+    sym = symbol.upper()
+    tk  = yf.Ticker(sym)
+    info = {}
+    try:
+        info = tk.info or {}
+    except Exception:
+        pass
+    fi = {}
+    try:
+        raw = tk.fast_info
+        fi = {
+            "price":        raw.last_price,
+            "change_pct":   round(((raw.last_price - raw.previous_close) / raw.previous_close * 100) if raw.previous_close else 0, 2),
+            "day_high":     raw.day_high,
+            "day_low":      raw.day_low,
+            "week52_high":  raw.fifty_two_week_high,
+            "week52_low":   raw.fifty_two_week_low,
+            "market_cap":   raw.market_cap,
+            "volume":       raw.three_month_average_volume,
+        }
+    except Exception:
+        pass
+    fundamentals = {
+        "pe":           info.get("trailingPE"),
+        "forward_pe":   info.get("forwardPE"),
+        "pb":           info.get("priceToBook"),
+        "ps":           info.get("priceToSalesTrailing12Months"),
+        "ev_ebitda":    info.get("enterpriseToEbitda"),
+        "roe":          info.get("returnOnEquity"),
+        "revenue_growth": info.get("revenueGrowth"),
+        "gross_margin": info.get("grossMargins"),
+        "profit_margin":info.get("profitMargins"),
+        "debt_to_equity": info.get("debtToEquity"),
+        "dividend_yield": info.get("dividendYield"),
+        "beta":         info.get("beta"),
+        "sector":       info.get("sector"),
+        "industry":     info.get("industry"),
+        "description":  (info.get("longBusinessSummary") or "")[:500],
+    }
+    news = []
+    try:
+        import httpx, datetime as _dtt
+        fk = os.environ.get("FINNHUB_KEY", "")
+        if fk:
+            r = httpx.get(f"https://finnhub.io/api/v1/company-news?symbol={sym}&from={((_dtt.date.today() - _dtt.timedelta(days=7)).isoformat())}&to={_dtt.date.today().isoformat()}&token={fk}", timeout=8)
+            if r.status_code == 200:
+                news = [{"headline": n["headline"], "url": n["url"], "datetime": n["datetime"]} for n in r.json()[:8]]
+    except Exception:
+        pass
+    return {"symbol": sym, "name": info.get("shortName", sym), "price_data": fi, "fundamentals": fundamentals, "news": news}
+
+
+@app.get("/market/compare")
+def market_compare(symbols: str = "", secret: str = ""):
+    _validate_secret(secret)
+    import yfinance as yf
+    syms = [s.strip().upper() for s in symbols.split(",") if s.strip()][:6]
+    if not syms:
+        return []
+    result = []
+    for sym in syms:
+        try:
+            tk   = yf.Ticker(sym)
+            info = tk.info or {}
+            fi   = tk.fast_info
+            price = fi.last_price
+            prev  = fi.previous_close or price
+            result.append({
+                "symbol": sym,
+                "name":   info.get("shortName", sym),
+                "price":  round(price, 2),
+                "change_pct": round((price-prev)/prev*100 if prev else 0, 2),
+                "market_cap": fi.market_cap,
+                "pe":         info.get("trailingPE"),
+                "forward_pe": info.get("forwardPE"),
+                "pb":         info.get("priceToBook"),
+                "roe":        info.get("returnOnEquity"),
+                "revenue_growth": info.get("revenueGrowth"),
+                "gross_margin": info.get("grossMargins"),
+                "beta":       info.get("beta"),
+                "dividend_yield": info.get("dividendYield"),
+                "sector":     info.get("sector"),
+                "week52_high": fi.fifty_two_week_high,
+                "week52_low":  fi.fifty_two_week_low,
+            })
+        except Exception as e:
+            result.append({"symbol": sym, "error": str(e)})
+    return result
+
+
+_wrap_cache = {"date": None, "text": None, "sections": None}
+
+@app.get("/market/wrap")
+def market_wrap(secret: str = ""):
+    _validate_secret(secret)
+    import anthropic, os, datetime as _dtt
+    today = str(_dtt.date.today())
+    if _wrap_cache["date"] == today and _wrap_cache["text"]:
+        return {"date": today, "wrap": _wrap_cache["text"], "sections": _wrap_cache["sections"], "cached": True}
+    try:
+        from scheduler import get_latest_news_sentiment, get_latest_velocity, get_latest_event
+        from market_macro import get_macro_bias, get_equity_macro_bias
+        macro   = get_macro_bias()        or {}
+        equity  = get_equity_macro_bias() or {}
+        sentiment = get_latest_news_sentiment()
+        velocity  = get_latest_velocity()
+        event     = get_latest_event()
+        ctx = f"Date: {today}\nGold macro bias: {macro.get('label','N/A')} ({macro.get('bias',0):.2f})\nEquity macro: {equity.get('label','N/A')}\nVIX: {equity.get('vix','N/A')}\nNews sentiment: {sentiment:.3f}\nNews velocity: {velocity}\nNext key event: {event}"
+    except Exception as e:
+        ctx = f"Date: {today}. Market data unavailable: {e}"
+    try:
+        client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
+        msg = client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=1000,
+            messages=[{"role":"user","content":f"""Write a professional daily market wrap-up commentary for a trading dashboard. Be concise, insightful, data-driven. Use this context:\n{ctx}\n\nStructure: 3 sections — (1) Market Overview (2-3 sentences on overall tone), (2) Key Themes (bullet points on major drivers/risks), (3) Outlook (1-2 sentences forward-looking). Keep each section tight. No fluff."""}]
+        )
+        text = msg.content[0].text
+        sections = {"overview": "", "themes": [], "outlook": ""}
+        lines = text.split("\n")
+        current = None
+        for line in lines:
+            ll = line.lower().strip()
+            if "market overview" in ll or "overview" in ll:
+                current = "overview"
+            elif "key theme" in ll or "theme" in ll:
+                current = "themes"
+            elif "outlook" in ll:
+                current = "outlook"
+            elif current == "overview" and line.strip():
+                sections["overview"] += " " + line.strip()
+            elif current == "themes" and line.strip().startswith(("-","•","*","1","2","3","4","5")):
+                sections["themes"].append(line.strip().lstrip("-•* 1234567890.").strip())
+            elif current == "outlook" and line.strip():
+                sections["outlook"] += " " + line.strip()
+        _wrap_cache.update({"date": today, "text": text, "sections": sections})
+        return {"date": today, "wrap": text, "sections": sections, "cached": False}
+    except Exception as e:
+        return {"date": today, "wrap": f"Market wrap unavailable: {e}", "sections": None, "cached": False}
+
+
+_commentary_cache = {"date": None, "text": None}
+
+def _build_commentary_context() -> dict:
+    """Gather per-asset technicals + pivot levels + macro/fundamental backdrop
+    for a professional, numbers-and-levels market commentary."""
+    from daily_analysis import _technical_context, _load_from_json, _fetch_live_price
+    from market_macro import get_macro_bias, get_equity_macro_bias
+    from scheduler import get_latest_news_sentiment
+
+    try:
+        levels_raw = _load_from_json()
+    except Exception:
+        levels_raw = {}
+
+    assets = {}
+    for name, dec in [("XAUUSD", 2), ("SPY", 2), ("QQQ", 2)]:
+        try:
+            tc = _technical_context(name, dec) or {}
+        except Exception:
+            tc = {}
+        try:
+            price = _fetch_live_price(name, dec)
+        except Exception:
+            price = None
+        assets[name] = {"tc": tc, "lv": levels_raw.get(name, {}) or {}, "price": price}
+
+    macro  = get_macro_bias()        or {}
+    macro_c = macro.get("components", {}) or {}
+    equity = get_equity_macro_bias() or {}
+    try:
+        news = get_latest_news_sentiment()
+    except Exception:
+        news = 0.0
+    return {
+        "assets": assets,
+        "macro": {
+            "label":      macro.get("label", "?"),
+            "bias":       macro.get("bias", 0.0),
+            "real_yield": macro_c.get("real_yield"),
+            "dxy":        macro_c.get("dxy"),
+            "vix":        equity.get("vix"),
+            "equity_label": equity.get("label", "?"),
+            "news":       news,
+        },
+    }
+
+
+def _commentary_lines(ctx: dict) -> list[str]:
+    """Deterministic, data-rich commentary used as the LLM prompt source AND as a
+    graceful fallback when no LLM key is present — always cites real numbers/levels."""
+    names = {"XAUUSD": "Gold", "SPY": "S&P 500 (SPY)", "QQQ": "Nasdaq 100 (QQQ)"}
+    lines = []
+    for key, label in names.items():
+        a = ctx["assets"].get(key, {})
+        tc, lv, price = a.get("tc", {}), a.get("lv", {}), a.get("price")
+        if not tc:
+            continue
+        px = f"${price:,.2f}" if isinstance(price, (int, float)) else "—"
+        seg = (f"{label}: {px} · {tc.get('direction','?')} {tc.get('bias_pct','?')}% "
+               f"({tc.get('trend','?')}, RSI {tc.get('rsi','?')} {tc.get('rsi_band','')}, "
+               f"20d mom {tc.get('mom20','?')}%). MAs 20/50/200 = "
+               f"{tc.get('ma20','n/a')}/{tc.get('ma50','n/a')}/{tc.get('ma200','n/a')}.")
+        if lv.get("pivot") is not None:
+            seg += (f" Pivot {lv.get('pivot')}; R {lv.get('r1')}/{lv.get('r2')}, "
+                    f"S {lv.get('s1')}/{lv.get('s2')}. ATR {tc.get('atr','?')}.")
+        lines.append(seg)
+    m = ctx["macro"]
+    macro_bits = [f"Backdrop: {m['equity_label']} equities"]
+    if m.get("vix") is not None:        macro_bits.append(f"VIX {m['vix']}")
+    if m.get("real_yield") is not None: macro_bits.append(f"10y real yield {m['real_yield']}%")
+    if m.get("dxy") is not None:        macro_bits.append(f"DXY {m['dxy']}")
+    macro_bits.append(f"gold macro {m['label']} ({m['bias']:+.2f})")
+    macro_bits.append(f"news sentiment {m['news']:+.2f}")
+    lines.append(" · ".join(macro_bits) + ".")
+    return lines
+
+
+@app.get("/market/commentary")
+def market_commentary(secret: str = ""):
+    _validate_secret(secret)
+    import anthropic, os, datetime as _dtt
+    today = str(_dtt.date.today())
+    if _commentary_cache["date"] == today and _commentary_cache["text"]:
+        return {"date": today, "commentary": _commentary_cache["text"], "cached": True}
+
+    try:
+        ctx = _build_commentary_context()
+        data_lines = _commentary_lines(ctx)
+    except Exception as e:
+        return {"date": today, "commentary": f"Commentary unavailable: {e}", "cached": False}
+
+    data_block = "\n".join(data_lines)
+    prompt = (
+        f"You are a senior markets desk strategist. Using ONLY the data below for {today}, write a concise, "
+        "professional market commentary (3 short paragraphs). Paragraph 1: the cross-market read and the macro/"
+        "fundamental backdrop (real yields, the dollar, VIX, risk tone). Paragraph 2: the technical posture for gold "
+        "and the equity indices — trend, momentum and RSI. Paragraph 3: the key actionable levels to watch today "
+        "(cite specific pivot, support and resistance numbers). Reference concrete numbers and price levels throughout. "
+        "Be direct and analytical, no hedging or filler, no disclaimers.\n\nDATA:\n" + data_block
+    )
+    try:
+        client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
+        msg = client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=700,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        text = msg.content[0].text.strip()
+        _commentary_cache.update({"date": today, "text": text})
+        return {"date": today, "commentary": text, "cached": False}
+    except Exception:
+        # Graceful fallback: deterministic data-rich note (still has numbers + levels)
+        text = "\n\n".join(data_lines)
+        return {"date": today, "commentary": text, "cached": False, "fallback": True}
+
+
+_sparkline_cache = {"ts": 0, "data": None}
+
+@app.get("/market/sparklines")
+def market_sparklines(secret: str = ""):
+    """~1 month of daily closes per overview instrument, for inline sparklines."""
+    _validate_secret(secret)
+    import time, math, yfinance as yf
+    if time.time() - _sparkline_cache["ts"] < 900 and _sparkline_cache["data"]:
+        return _sparkline_cache["data"]
+    syms = [s for items in _OVERVIEW_SYMBOLS.values() for s in items.values()]
+    out = {}
+    try:
+        df = yf.download(" ".join(syms), period="1mo", interval="1d",
+                         progress=False, group_by="ticker", threads=True)
+        for s in syms:
+            closes = []
+            try:
+                col = df[s]["Close"] if s in df.columns.get_level_values(0) else None
+                if col is not None:
+                    closes = [round(float(c), 4) for c in col.tolist()
+                              if c is not None and not math.isnan(float(c))]
+            except Exception:
+                closes = []
+            out[s] = closes[-22:]
+    except Exception as e:
+        return {"series": {}, "error": str(e)}
+    res = {"series": out}
+    _sparkline_cache.update({"ts": time.time(), "data": res})
+    return res
+
+
+@app.get("/calendar/economic")
+def calendar_economic(secret: str = ""):
+    """This-week high/medium-impact US economic events (Forex Factory feed), Dubai time."""
+    _validate_secret(secret)
+    import httpx
+    from datetime import datetime as _dt, timezone as _tz, timedelta as _td
+    url = "https://nfs.faireconomy.media/ff_calendar_thisweek.json"
+    out = []
+    try:
+        with httpx.Client(timeout=12, follow_redirects=True) as client:
+            resp = client.get(url, headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+                "Accept": "application/json, text/plain, */*",
+                "Accept-Language": "en-US,en;q=0.9",
+                "Referer": "https://www.forexfactory.com/",
+            })
+            resp.raise_for_status()
+            data = resp.json() or []
+        for ev in data:
+            impact = (ev.get("impact") or "").lower()
+            if impact not in ("high", "medium"):
+                continue
+            if (ev.get("country") or "").upper() not in ("USD", "US", "USA"):
+                continue
+            try:
+                ts = _dt.fromisoformat(ev.get("date", "")).astimezone(_tz.utc)
+            except Exception:
+                continue
+            dubai = ts + _td(hours=4)
+            out.append({
+                "date":        dubai.strftime("%Y-%m-%d"),
+                "weekday":     dubai.strftime("%a"),
+                "time_dubai":  dubai.strftime("%H:%M"),
+                "ts":          ts.isoformat(),
+                "name":        ev.get("title") or ev.get("event") or "Event",
+                "impact":      impact,
+                "forecast":    ev.get("forecast") or "",
+                "previous":    ev.get("previous") or "",
+                "actual":      ev.get("actual") or "",
+            })
+        out.sort(key=lambda x: x["ts"])
+    except Exception as e:
+        return {"events": [], "tz": "Dubai (UTC+4)", "error": str(e)}
+    return {"events": out, "tz": "Dubai (UTC+4)"}
+
+
+# Curated large/mega-cap universe for the earnings calendar (symbol → display name)
+_EARNINGS_MAJORS = {
+    "AAPL": "Apple", "MSFT": "Microsoft", "GOOGL": "Alphabet", "AMZN": "Amazon",
+    "NVDA": "NVIDIA", "META": "Meta", "TSLA": "Tesla", "AVGO": "Broadcom",
+    "BRK.B": "Berkshire", "JPM": "JPMorgan", "V": "Visa", "MA": "Mastercard",
+    "UNH": "UnitedHealth", "XOM": "ExxonMobil", "CVX": "Chevron", "LLY": "Eli Lilly",
+    "JNJ": "Johnson & Johnson", "PG": "Procter & Gamble", "HD": "Home Depot",
+    "COST": "Costco", "WMT": "Walmart", "ABBV": "AbbVie", "KO": "Coca-Cola",
+    "PEP": "PepsiCo", "BAC": "Bank of America", "ADBE": "Adobe", "CRM": "Salesforce",
+    "NFLX": "Netflix", "AMD": "AMD", "INTC": "Intel", "QCOM": "Qualcomm",
+    "ORCL": "Oracle", "CSCO": "Cisco", "MCD": "McDonald's", "DIS": "Disney",
+    "NKE": "Nike", "WFC": "Wells Fargo", "GS": "Goldman Sachs", "MS": "Morgan Stanley",
+    "PFE": "Pfizer", "TMO": "Thermo Fisher", "BA": "Boeing", "CAT": "Caterpillar",
+    "GE": "GE Aerospace", "PYPL": "PayPal", "UBER": "Uber", "T": "AT&T",
+    "VZ": "Verizon", "C": "Citigroup", "PLTR": "Palantir",
+}
+
+
+@app.get("/calendar/earnings")
+def calendar_earnings(secret: str = ""):
+    """Upcoming earnings (next 7 days) for major caps, via Finnhub earnings calendar."""
+    _validate_secret(secret)
+    import httpx
+    from datetime import datetime as _dt, timezone as _tz, timedelta as _td
+    from news_fetcher import FINNHUB_KEY
+    if not FINNHUB_KEY:
+        return {"earnings": [], "error": "FINNHUB_KEY not set"}
+    today = _dt.now(_tz.utc).date()
+    frm, to = today.isoformat(), (today + _td(days=7)).isoformat()
+    try:
+        with httpx.Client(timeout=12) as client:
+            resp = client.get("https://finnhub.io/api/v1/calendar/earnings", params={
+                "from": frm, "to": to, "token": FINNHUB_KEY,
+            })
+            resp.raise_for_status()
+            data = resp.json().get("earningsCalendar", []) or []
+    except Exception as e:
+        return {"earnings": [], "from": frm, "to": to, "error": str(e)}
+    _HR = {"bmo": "Pre-mkt", "amc": "After-close", "dmh": "Mid-day"}
+    out = []
+    for ev in data:
+        sym = (ev.get("symbol") or "").upper()
+        if sym not in _EARNINGS_MAJORS:
+            continue
+        out.append({
+            "symbol":       sym,
+            "name":         _EARNINGS_MAJORS[sym],
+            "date":         ev.get("date"),
+            "when":         _HR.get((ev.get("hour") or "").lower(), ev.get("hour") or ""),
+            "eps_estimate": ev.get("epsEstimate"),
+            "eps_actual":   ev.get("epsActual"),
+            "rev_estimate": ev.get("revenueEstimate"),
+        })
+    out.sort(key=lambda x: (x["date"] or "", x["symbol"]))
+    return {"earnings": out, "from": frm, "to": to}
+
+
+@app.get("/options/flow")
+async def options_flow(secret: str = ""):
+    _validate_secret(secret)
+    import polygon_data
+    flow    = polygon_data.get_options_flow("SPXW", limit=30) if polygon_data.available() else []
+    pc      = polygon_data.get_put_call_ratio("SPXW") if polygon_data.available() else None
+    # Also return current paper trades status
+    from options_engine import iv_rank, get_vix_context, _atm_snapshot
+    vix_ctx = get_vix_context()
+    atm_iv, em, spot = _atm_snapshot()
+    ivr = iv_rank(atm_iv) if atm_iv else None
+    from db import _get_file
+    trades, _ = _get_file("data/options_paper_SPX.json")
+    if not isinstance(trades, dict):
+        trades = {}
+    open_trades   = trades.get("open",   [])
+    closed_trades = trades.get("closed", [])[-10:]
+    from options_engine import last_options_check
+    iv_sessions = 0
+    try:
+        from db import _get_file
+        _ivh, _ = _get_file("data/options_iv_history.json")
+        iv_sessions = len(_ivh) if isinstance(_ivh, list) else 0
+    except Exception:
+        pass
+    return {
+        "polygon_available": polygon_data.available(),
+        "flow":              flow,
+        "put_call_ratio":    pc,
+        "vix":               vix_ctx,
+        "atm_iv":            round(atm_iv * 100, 1) if atm_iv else None,
+        "iv_rank":           ivr,
+        "iv_sessions":       iv_sessions,       # IV Rank unlocks at 20
+        "expected_move":     round(em, 1) if em else None,
+        "spot":              round(spot, 1) if spot else None,
+        "open_positions":    len(open_trades),
+        "open_trades":       open_trades,
+        "closed_recent":     closed_trades,
+        "last_check":        last_options_check(),
+    }
+
+
+# ── Serve PWA static files ────────────────────────────────────────────────────
+import os as _os
+_pwa_dirs = [
+    _os.path.join(_os.path.dirname(__file__), "static_pwa"),      # committed build (Railway)
+    _os.path.join(_os.path.dirname(__file__), "..", "frontend", "dist"),  # local dev
+]
+for _pwa_dir in _pwa_dirs:
+    if _os.path.isdir(_pwa_dir):
+        from fastapi.staticfiles import StaticFiles
+        app.mount("/app", StaticFiles(directory=_pwa_dir, html=True), name="pwa")
+        print(f"[startup] PWA mounted from {_pwa_dir}")
+        break

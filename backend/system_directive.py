@@ -49,7 +49,7 @@ CORE PRINCIPLES
 
 IMPROVEMENT ROADMAP (priority order)
 ──────────────────────────────────────
-Phase 1 — ACTIVE (25 features, RF+GBM+KNN)
+Phase 1 — ACTIVE (26 features, RF+GBM+KNN)
   Status: Live.  Pools with n≥50 have trained models.
 
 Phase 2 — SMALL-DATA BOOSTERS (implement when pool reaches n≥30)
@@ -86,7 +86,7 @@ ANTI-PATTERNS — NEVER DO THESE
 
 # ── Runtime constants derived from the directive ──────────────────────────────
 
-SYSTEM_VERSION = "5.1.0-25F"
+SYSTEM_VERSION = "5.2.0-26F"
 
 # Health thresholds
 MIN_TRADES_FOR_ML          = 50     # minimum pool size before RF/GBM activate
@@ -119,7 +119,7 @@ def get_directive_summary() -> dict:
         "champion_challenger": True,
         "inspection_every_hours": FULL_INSPECTION_HOURS,
         "improvement_phases": {
-            "phase1_active":   True,   # KNN+RF+GBM, 25 features
+            "phase1_active":   True,   # KNN+RF+GBM, 26 features
             "phase2_boosters": False,  # Bayesian HPO, isotonic cal, conformal pred
             "phase3_features": False,  # F26 stochastic, microstructure
             "phase4_joint":    True,   # JointGoldGBM active
