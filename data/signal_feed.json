@@ -2442,6 +2442,37 @@
       "htf_context": "counter_trend",
       "session": "NYSE Afternoon",
       "fired_at": "2026-06-23T16:15:20.685301+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "240",
+      "trigger": "FVG",
+      "symbol": "TSLL",
+      "entry_price": 12.03,
+      "tp1": 9.68,
+      "tp2": 7.72,
+      "tp3": 4.97,
+      "sl": 14.38,
+      "ml_score": 0.375,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.5326,
+      "quality_reason": "approved",
+      "news_score": -0.239,
+      "velocity": "LOW",
+      "event": "GEOPOLITICAL",
+      "htf_bias": {
+        "direction": "SHORT",
+        "timeframe": "240",
+        "symbol": "TSLL",
+        "trigger": "FVG",
+        "ml_score": 0.375,
+        "stored_at": "2026-06-23T17:30:14.238785+00:00",
+        "expires_at": "2026-06-24T01:30:14.238796+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "htf_direct",
+      "session": "NYSE Afternoon",
+      "fired_at": "2026-06-23T17:30:14.779114+00:00"
     }
   ]
 }
