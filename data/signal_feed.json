@@ -1630,6 +1630,37 @@
       "htf_context": "htf_direct",
       "session": "Closed",
       "fired_at": "2026-06-23T06:00:15.197871+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "5",
+      "trigger": "BOS",
+      "symbol": "XAUUSD",
+      "entry_price": 4114.86,
+      "tp1": 4104.13,
+      "tp2": 4096.97,
+      "tp3": 4086.24,
+      "sl": 4125.59,
+      "ml_score": 0.625,
+      "tier": "\u2705 MED",
+      "quality_score": 0.4063,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.1778,
+      "velocity": "CONFLICTED",
+      "event": "GEOPOLITICAL",
+      "htf_bias": {
+        "direction": "SHORT",
+        "timeframe": "60",
+        "symbol": "XAUUSD",
+        "trigger": "BOS",
+        "ml_score": 0.5,
+        "stored_at": "2026-06-23T05:02:01.862351+00:00",
+        "expires_at": "2026-06-23T09:02:01.862359+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "with_bias",
+      "session": "Asian",
+      "fired_at": "2026-06-23T06:12:03.169121+00:00"
     }
   ]
 }
