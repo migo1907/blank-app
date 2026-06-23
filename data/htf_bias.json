@@ -106,5 +106,41 @@
     "ml_score": 0.75,
     "stored_at": "2026-06-23T14:00:05.742030+00:00",
     "expires_at": "2026-06-23T16:00:05.742042+00:00"
+  },
+  "AMD_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "AMD",
+    "trigger": "RSI",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-23T14:00:07.597830+00:00",
+    "expires_at": "2026-06-23T16:00:07.597845+00:00"
+  },
+  "TSLL_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "TSLL",
+    "trigger": "BOS",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-23T14:00:12.235260+00:00",
+    "expires_at": "2026-06-23T16:00:12.235273+00:00"
+  },
+  "MU_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "MU",
+    "trigger": "RSI",
+    "ml_score": 0.75,
+    "stored_at": "2026-06-23T14:00:13.977898+00:00",
+    "expires_at": "2026-06-23T16:00:13.977911+00:00"
+  },
+  "SOXL_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "SOXL",
+    "trigger": "RSI",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-23T14:00:16.434530+00:00",
+    "expires_at": "2026-06-23T16:00:16.434541+00:00"
   }
 }
