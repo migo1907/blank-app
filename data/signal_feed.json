@@ -2163,6 +2163,37 @@
       "htf_context": "htf_direct",
       "session": "NYSE Open",
       "fired_at": "2026-06-23T14:30:57.626335+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "15",
+      "trigger": "FVG",
+      "symbol": "SOXL",
+      "entry_price": 238.0,
+      "tp1": 219.63,
+      "tp2": 205.84,
+      "tp3": 187.47,
+      "sl": 256.37,
+      "ml_score": 0.5,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.4424,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.1548,
+      "velocity": "CONFLICTED",
+      "event": "GEOPOLITICAL",
+      "htf_bias": {
+        "direction": "SHORT",
+        "timeframe": "30",
+        "symbol": "SOXL",
+        "trigger": "RSI",
+        "ml_score": 0.375,
+        "stored_at": "2026-06-23T14:00:16.434530+00:00",
+        "expires_at": "2026-06-23T16:00:16.434541+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "with_bias",
+      "session": "NYSE Open",
+      "fired_at": "2026-06-23T15:00:05.229251+00:00"
     }
   ]
 }
