@@ -2705,6 +2705,37 @@
       "htf_context": "scalp",
       "session": "New York",
       "fired_at": "2026-06-23T19:22:01.989855+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "240",
+      "trigger": "FVG",
+      "symbol": "SPY",
+      "entry_price": 733.69,
+      "tp1": 714.0,
+      "tp2": 697.58,
+      "tp3": 674.61,
+      "sl": 753.38,
+      "ml_score": 0.5,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.5003,
+      "quality_reason": "approved",
+      "news_score": -0.1986,
+      "velocity": "LOW",
+      "event": "WAR/CONFLICT",
+      "htf_bias": {
+        "direction": "SHORT",
+        "timeframe": "240",
+        "symbol": "SPY",
+        "trigger": "FVG",
+        "ml_score": 0.5,
+        "stored_at": "2026-06-23T20:00:21.467247+00:00",
+        "expires_at": "2026-06-24T04:00:21.467264+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "htf_direct",
+      "session": "NYSE Afternoon",
+      "fired_at": "2026-06-23T20:00:21.958298+00:00"
     }
   ]
 }
