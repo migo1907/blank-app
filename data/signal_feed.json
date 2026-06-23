@@ -1692,6 +1692,37 @@
       "htf_context": "counter_trend",
       "session": "London Open",
       "fired_at": "2026-06-23T07:22:01.949288+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "5",
+      "trigger": "BOS",
+      "symbol": "XAUUSD",
+      "entry_price": 4108.83,
+      "tp1": 4098.61,
+      "tp2": 4091.8,
+      "tp3": 4081.58,
+      "sl": 4119.05,
+      "ml_score": 0.75,
+      "tier": "\u2b50 HIGH",
+      "quality_score": 0.4304,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.07,
+      "velocity": "CONFLICTED",
+      "event": "GEOPOLITICAL",
+      "htf_bias": {
+        "direction": "SHORT",
+        "timeframe": "60",
+        "symbol": "XAUUSD",
+        "trigger": "BOS",
+        "ml_score": 0.5,
+        "stored_at": "2026-06-23T05:02:01.862351+00:00",
+        "expires_at": "2026-06-23T09:02:01.862359+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "with_bias",
+      "session": "London Open",
+      "fired_at": "2026-06-23T07:42:01.610548+00:00"
     }
   ]
 }
