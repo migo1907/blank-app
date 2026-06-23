@@ -2253,32 +2253,83 @@ _EARNINGS_MAJORS = {
 }
 
 
+def _yf_eps_surprise(sym: str):
+    """Return last-quarter EPS surprise % and beat/miss for a symbol via yfinance."""
+    try:
+        import yfinance as yf
+        tk = yf.Ticker(sym)
+        hist = tk.earnings_history
+        if hist is None or hist.empty:
+            return None, None
+        # earnings_history cols: epsActual, epsEstimate, epsDifference, surprisePercent
+        row = hist.iloc[-1]
+        surprise_pct = float(row.get("surprisePercent", 0) or 0) * 100
+        eps_actual   = float(row.get("epsActual", 0) or 0)
+        eps_estimate = float(row.get("epsEstimate", 0) or 0)
+        beat = "BEAT" if surprise_pct > 1 else ("MISS" if surprise_pct < -1 else "IN-LINE")
+        return round(surprise_pct, 1), beat
+    except Exception:
+        return None, None
+
+
 @app.get("/calendar/earnings")
 def calendar_earnings(secret: str = ""):
-    """Upcoming earnings (next 7 days) for major caps, via Finnhub earnings calendar."""
+    """Upcoming earnings (next 7 days) for major caps. Finnhub for dates/estimates + yfinance for last-quarter surprise."""
     _validate_secret(secret)
     import httpx
     from datetime import datetime as _dt, timezone as _tz, timedelta as _td
     from news_fetcher import FINNHUB_KEY
-    if not FINNHUB_KEY:
-        return {"earnings": [], "error": "FINNHUB_KEY not set"}
     today = _dt.now(_tz.utc).date()
     frm, to = today.isoformat(), (today + _td(days=7)).isoformat()
-    try:
-        with httpx.Client(timeout=12) as client:
-            resp = client.get("https://finnhub.io/api/v1/calendar/earnings", params={
-                "from": frm, "to": to, "token": FINNHUB_KEY,
-            })
-            resp.raise_for_status()
-            data = resp.json().get("earningsCalendar", []) or []
-    except Exception as e:
-        return {"earnings": [], "from": frm, "to": to, "error": str(e)}
+
+    # Primary: Finnhub earnings calendar
+    data = []
+    source_err = None
+    if FINNHUB_KEY:
+        try:
+            with httpx.Client(timeout=12) as client:
+                resp = client.get("https://finnhub.io/api/v1/calendar/earnings", params={
+                    "from": frm, "to": to, "token": FINNHUB_KEY,
+                })
+                resp.raise_for_status()
+                data = resp.json().get("earningsCalendar", []) or []
+        except Exception as e:
+            source_err = str(e)
+
+    # Fallback: yfinance upcoming earnings dates for curated list
+    if not data:
+        import yfinance as yf
+        for sym in _EARNINGS_MAJORS:
+            try:
+                tk = yf.Ticker(sym)
+                dates = tk.get_earnings_dates(limit=4)
+                if dates is None or dates.empty:
+                    continue
+                for idx_dt, row in dates.iterrows():
+                    # Only future dates within our window
+                    try:
+                        ev_date = idx_dt.date() if hasattr(idx_dt, "date") else None
+                    except Exception:
+                        continue
+                    if ev_date and today <= ev_date <= today + _td(days=7):
+                        data.append({
+                            "symbol": sym,
+                            "date": ev_date.isoformat(),
+                            "hour": "",
+                            "epsEstimate": row.get("EPS Estimate"),
+                            "epsActual": row.get("Reported EPS"),
+                            "revenueEstimate": None,
+                        })
+            except Exception:
+                continue
+
     _HR = {"bmo": "Pre-mkt", "amc": "After-close", "dmh": "Mid-day"}
     out = []
     for ev in data:
         sym = (ev.get("symbol") or "").upper()
         if sym not in _EARNINGS_MAJORS:
             continue
+        surprise_pct, beat_miss = _yf_eps_surprise(sym)
         out.append({
             "symbol":       sym,
             "name":         _EARNINGS_MAJORS[sym],
@@ -2287,9 +2338,16 @@ def calendar_earnings(secret: str = ""):
             "eps_estimate": ev.get("epsEstimate"),
             "eps_actual":   ev.get("epsActual"),
             "rev_estimate": ev.get("revenueEstimate"),
+            "last_surprise_pct": surprise_pct,
+            "last_beat_miss":    beat_miss,
         })
     out.sort(key=lambda x: (x["date"] or "", x["symbol"]))
-    return {"earnings": out, "from": frm, "to": to}
+    result = {"earnings": out, "from": frm, "to": to}
+    if source_err and not out:
+        result["error"] = f"Finnhub failed ({source_err}); yfinance fallback also empty"
+    elif source_err:
+        result["source"] = "yfinance_fallback"
+    return result
 
 
 @app.get("/options/flow")

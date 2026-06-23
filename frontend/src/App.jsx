@@ -1685,16 +1685,22 @@ function CalendarTab() {
             <div key={d} className="card">
               <div className="card-title" style={{color:d===todayStr?'var(--gold)':'var(--muted)'}}>{d===todayStr?'● Today · ':''}{lbl}</div>
               <table className="tbl" style={{width:'100%'}}>
-                <thead><tr><th>Ticker</th><th>Company</th><th>When</th><th className="num">EPS Est.</th></tr></thead>
+                <thead><tr><th>Ticker</th><th>Company</th><th>When</th><th className="num">EPS Est.</th><th className="num">Last Q</th></tr></thead>
                 <tbody>
-                  {dd.map((e,i)=>(
-                    <tr key={i}>
-                      <td style={{color:'var(--gold)',fontWeight:800}}>{e.symbol}</td>
-                      <td style={{color:'var(--text)'}}>{e.name}</td>
-                      <td style={{color:'var(--muted)',fontSize:11}}>{e.when||'—'}</td>
-                      <td className="num" style={{color:'var(--text)'}}>{e.eps_estimate!=null?e.eps_estimate:'—'}</td>
-                    </tr>
-                  ))}
+                  {dd.map((e,i)=>{
+                    const bm = e.last_beat_miss
+                    const bmColor = bm==='BEAT'?'var(--bull)':bm==='MISS'?'var(--bear)':'var(--muted)'
+                    const surp = e.last_surprise_pct!=null?(e.last_surprise_pct>0?'+':'')+e.last_surprise_pct+'%':null
+                    return (
+                      <tr key={i}>
+                        <td style={{color:'var(--gold)',fontWeight:800}}>{e.symbol}</td>
+                        <td style={{color:'var(--text)'}}>{e.name}</td>
+                        <td style={{color:'var(--muted)',fontSize:11}}>{e.when||'—'}</td>
+                        <td className="num" style={{color:'var(--text)'}}>{e.eps_estimate!=null?e.eps_estimate:'—'}</td>
+                        <td className="num" style={{color:bmColor,fontSize:11,fontWeight:600}}>{bm&&surp?`${bm} ${surp}`:bm||'—'}</td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
