@@ -1754,6 +1754,37 @@
       "htf_context": "htf_direct",
       "session": "London",
       "fired_at": "2026-06-23T08:02:01.480487+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "15",
+      "trigger": "FVG",
+      "symbol": "US500",
+      "entry_price": 7364.2,
+      "tp1": 7343.94,
+      "tp2": 7328.74,
+      "tp3": 7308.48,
+      "sl": 7384.46,
+      "ml_score": 0.375,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.4465,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.0292,
+      "velocity": "CONFLICTED",
+      "event": "GEOPOLITICAL",
+      "htf_bias": {
+        "direction": "SHORT",
+        "timeframe": "240",
+        "symbol": "US500",
+        "trigger": "FVG",
+        "ml_score": 0.5,
+        "stored_at": "2026-06-23T06:00:14.925969+00:00",
+        "expires_at": "2026-06-23T14:00:14.925984+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "with_bias",
+      "session": "Closed",
+      "fired_at": "2026-06-23T10:45:07.156428+00:00"
     }
   ]
 }
