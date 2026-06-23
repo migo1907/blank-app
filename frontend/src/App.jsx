@@ -1767,7 +1767,7 @@ function OptionsTab() {
             ['VIX',           vix.vix ?? '—', vix.backwardation ? 'var(--red)' : vix.half_size ? 'var(--gold)' : null,
               vix.backwardation ? '⚠ backwardation' : null],
             ['EXP MOVE',      data?.expected_move != null ? `±${data.expected_move}` : '—', null, null],
-            ['OPEN POS',      data?.open_positions ?? 0, data?.open_positions ? 'var(--gold)' : null, null],
+            ['OPEN POS',      (data?.open_positions||[]).length, (data?.open_positions||[]).length ? 'var(--gold)' : null, null],
           ].map(([label, val, color, sub]) => (
             <div className="metric" key={label}>
               <div className="metric-val" style={color?{color}:undefined}>{val}</div>

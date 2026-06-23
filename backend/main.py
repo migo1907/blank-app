@@ -2362,11 +2362,11 @@ async def options_flow(secret: str = ""):
     atm_iv, em, spot = _atm_snapshot()
     ivr = iv_rank(atm_iv) if atm_iv else None
     from db import _get_file
-    trades, _ = _get_file("data/options_paper_SPX.json")
-    if not isinstance(trades, dict):
-        trades = {}
-    open_trades   = trades.get("open",   [])
-    closed_trades = trades.get("closed", [])[-10:]
+    ledger, _ = _get_file("data/options_paper_SPX.json")
+    if not isinstance(ledger, list):
+        ledger = []
+    open_trades   = [r for r in ledger if r.get("status") == "OPEN"]
+    closed_trades = [r for r in ledger if r.get("status") == "CLOSED"][-10:]
     from options_engine import last_options_check
     iv_sessions = 0
     try:
@@ -2385,7 +2385,7 @@ async def options_flow(secret: str = ""):
         "iv_sessions":       iv_sessions,       # IV Rank unlocks at 20
         "expected_move":     round(em, 1) if em else None,
         "spot":              round(spot, 1) if spot else None,
-        "open_positions":    len(open_trades),
+        "open_positions":    open_trades,
         "open_trades":       open_trades,
         "closed_recent":     closed_trades,
         "last_check":        last_options_check(),
