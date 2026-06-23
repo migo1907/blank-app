@@ -23,7 +23,7 @@
     "half_size": false,
     "expected_move": 35.8,
     "tv_symbol": "OPRA:SPXW260623P7385",
-    "status": "OPEN",
+    "status": "CLOSED",
     "paper": true,
     "strategy": "long_option",
     "features": {
@@ -58,6 +58,11 @@
     "ml_score": null,
     "ml_interval": null,
     "ml_shap_top": null,
-    "wide_uncertainty": false
+    "wide_uncertainty": false,
+    "exit_premium": 19.9,
+    "exit_reason": "TP +100%",
+    "closed_at": "2026-06-23T16:05:00.780362+00:00",
+    "pnl_pct": 123.6,
+    "loss_reason": "WIN"
   }
 ]
