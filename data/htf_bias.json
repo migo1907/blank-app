@@ -107,15 +107,6 @@
     "stored_at": "2026-06-23T14:30:57.352288+00:00",
     "expires_at": "2026-06-23T18:30:57.352301+00:00"
   },
-  "AAPL_30": {
-    "direction": "SHORT",
-    "timeframe": "30",
-    "symbol": "AAPL",
-    "trigger": "RSI",
-    "ml_score": 0.75,
-    "stored_at": "2026-06-23T15:00:02.715280+00:00",
-    "expires_at": "2026-06-23T17:00:02.715300+00:00"
-  },
   "SPY_60": {
     "direction": "SHORT",
     "timeframe": "60",
@@ -169,5 +160,23 @@
     "ml_score": 0.625,
     "stored_at": "2026-06-23T17:00:02.427134+00:00",
     "expires_at": "2026-06-23T19:00:02.427159+00:00"
+  },
+  "TSLA_240": {
+    "direction": "SHORT",
+    "timeframe": "240",
+    "symbol": "TSLA",
+    "trigger": "FVG",
+    "ml_score": 0.875,
+    "stored_at": "2026-06-23T17:30:14.229382+00:00",
+    "expires_at": "2026-06-24T01:30:14.229400+00:00"
+  },
+  "TSLL_240": {
+    "direction": "SHORT",
+    "timeframe": "240",
+    "symbol": "TSLL",
+    "trigger": "FVG",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-23T17:30:14.238785+00:00",
+    "expires_at": "2026-06-24T01:30:14.238796+00:00"
   }
 }
