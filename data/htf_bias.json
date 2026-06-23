@@ -97,5 +97,14 @@
     "ml_score": 0.75,
     "stored_at": "2026-06-22T20:01:08.179296+00:00",
     "expires_at": "2026-06-22T22:01:08.179308+00:00"
+  },
+  "NVDA_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "NVDA",
+    "trigger": "BOS",
+    "ml_score": 0.75,
+    "stored_at": "2026-06-23T14:00:05.742030+00:00",
+    "expires_at": "2026-06-23T16:00:05.742042+00:00"
   }
 }
