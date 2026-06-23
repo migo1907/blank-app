@@ -1,25 +1,5 @@
 [
   {
-    "symbol": "XAUUSD",
-    "pool": "XAUUSD_2M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "news_score": -0.004,
-    "combined_score": 0.0,
-    "session": "OVERLAP",
-    "regime": "TRENDING_BEAR",
-    "regime_label": "TRENDING_BEAR",
-    "reasoning": "News CONFLICTED \u2014 low conviction",
-    "status": "NEUTRAL",
-    "expires_at": "2026-06-23T14:58:55.004771+00:00",
-    "created_at": "2026-06-23T14:28:55.159610+00:00",
-    "id": 101
-  },
-  {
     "symbol": "QQQ",
     "pool": "STOCKS_QQQ_30M",
     "direction": "LONG",
@@ -3355,6 +3335,40 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-23T19:29:57.042786+00:00",
     "created_at": "2026-06-23T18:59:58.452039+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "XAUUSD",
+    "pool": "XAUUSD_2M",
+    "direction": "NEUTRAL",
+    "lean_direction": "SHORT",
+    "lean_pct": 38,
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.375,
+    "rf_score": 0.28,
+    "gbm_score": 0.2857,
+    "ml_interval": [
+      0.0,
+      1.0
+    ],
+    "ml_interval_width": 1.0,
+    "ml_certainty": "LOW",
+    "news_score": -0.3393,
+    "macro_bias": -0.1455,
+    "macro_label": "NEUTRAL",
+    "combined_score": -0.2591,
+    "session": "NEW_YORK",
+    "regime": "TRENDING_BEAR",
+    "regime_label": "TREND_FOLLOW",
+    "hmm_regime": "hmm:RANGING(0.74)\u21c4",
+    "intermarket": "imkt:DXY-UP(0.18)",
+    "mtf_confluence": "mtf:3/3",
+    "post_event": "evt:na",
+    "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:TRENDING_BEAR(TREND_FOLLOW)\u00d71.15 | hmm:RANGING(0.74)\u21c4\u00d70.95 | imkt:DXY-UP(0.18)\u00d71.01 | mtf:3/3\u00d71.08 | evt:na\u00d71.00 | sess:NEW_YORK\u00d71.10 | confluence\u00d71.00 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-1.00) | news:bearish(-0.339) | macro:NEUTRAL(-0.145) | combined:-0.259 \u2192 conf:0.342 \u26a1 GEOPOLITICAL",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-23T19:44:57.729220+00:00",
+    "created_at": "2026-06-23T19:14:59.367325+00:00",
     "id": 101
   }
 ]
