@@ -1,40 +1,6 @@
 [
   {
     "symbol": "SPX500",
-    "pool": "STOCKS_SPX500_30M",
-    "direction": "LONG",
-    "lean_direction": "LONG",
-    "lean_pct": 62,
-    "confidence": 0.3,
-    "tier": "LOW",
-    "ml_score": 0.625,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "ml_interval": [
-      0.3,
-      0.7
-    ],
-    "ml_interval_width": 0.4,
-    "ml_certainty": "MODERATE",
-    "news_score": -0.2373,
-    "macro_bias": 0.0424,
-    "macro_label": "NEUTRAL",
-    "combined_score": 0.1439,
-    "session": "NYSE_AFTERNOON",
-    "regime": "TRENDING_BEAR",
-    "regime_label": "PULLBACK_LONG",
-    "hmm_regime": "hmm:VOLATILE(0.96)",
-    "intermarket": "imkt:VIX-NORMAL(18.91)",
-    "mtf_confluence": "mtf:1/3\u26a0",
-    "post_event": "evt:na",
-    "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:TRENDING_BEAR(PULLBACK_LONG)\u00d70.80 | hmm:VOLATILE(0.96)\u00d70.95 | imkt:VIX-NORMAL(18.91)\u00d70.97 | mtf:1/3\u26a0\u00d70.93 | evt:na\u00d71.00 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d70.53 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.03) | news:bearish(-0.237) | macro:NEUTRAL(+0.042) | combined:+0.144 \u2192 conf:0.300 \u26a1 GEOPOLITICAL",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-23T18:02:15.148562+00:00",
-    "created_at": "2026-06-23T17:32:15.487520+00:00",
-    "id": 101
-  },
-  {
-    "symbol": "SPX500",
     "pool": "STOCKS_SPX500_15M",
     "direction": "SHORT",
     "lean_direction": "SHORT",
@@ -3397,6 +3363,26 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-23T22:44:56.476662+00:00",
     "created_at": "2026-06-23T22:14:57.770641+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "XAUUSD",
+    "pool": "XAUUSD_2M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "news_score": -0.1118,
+    "combined_score": 0.0,
+    "session": "OFF",
+    "regime": "VOLATILE",
+    "regime_label": "VOLATILE",
+    "reasoning": "News CONFLICTED \u2014 low conviction",
+    "status": "NEUTRAL",
+    "expires_at": "2026-06-23T22:59:45.414789+00:00",
+    "created_at": "2026-06-23T22:29:45.555236+00:00",
     "id": 101
   }
 ]
