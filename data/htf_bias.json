@@ -286,5 +286,41 @@
     "ml_score": 0.75,
     "stored_at": "2026-06-23T14:30:15.851836+00:00",
     "expires_at": "2026-06-23T18:30:15.851848+00:00"
+  },
+  "MSFT_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "MSFT",
+    "trigger": "FVG",
+    "ml_score": 0.125,
+    "stored_at": "2026-06-23T14:30:15.909990+00:00",
+    "expires_at": "2026-06-23T16:30:15.910000+00:00"
+  },
+  "PLTR_60": {
+    "direction": "SHORT",
+    "timeframe": "60",
+    "symbol": "PLTR",
+    "trigger": "BOS",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-23T14:30:23.814979+00:00",
+    "expires_at": "2026-06-23T18:30:23.814989+00:00"
+  },
+  "RR_60": {
+    "direction": "LONG",
+    "timeframe": "60",
+    "symbol": "RR",
+    "trigger": "LIQ",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-23T14:30:25.843594+00:00",
+    "expires_at": "2026-06-23T18:30:25.843608+00:00"
+  },
+  "PLUG_60": {
+    "direction": "LONG",
+    "timeframe": "60",
+    "symbol": "PLUG",
+    "trigger": "LIQ",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-23T14:30:27.244837+00:00",
+    "expires_at": "2026-06-23T18:30:27.244846+00:00"
   }
 }
