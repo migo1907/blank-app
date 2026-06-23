@@ -1785,6 +1785,29 @@
       "htf_context": "with_bias",
       "session": "Closed",
       "fired_at": "2026-06-23T10:45:07.156428+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "5",
+      "trigger": "FVG",
+      "symbol": "XAUUSD",
+      "entry_price": 4118.35,
+      "tp1": 4111.12,
+      "tp2": 4106.31,
+      "tp3": 4099.08,
+      "sl": 4125.58,
+      "ml_score": 0.375,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.4053,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.1168,
+      "velocity": "CONFLICTED",
+      "event": "WAR/CONFLICT",
+      "htf_bias": null,
+      "contra_bias": null,
+      "htf_context": "scalp",
+      "session": "London",
+      "fired_at": "2026-06-23T11:02:01.879146+00:00"
     }
   ]
 }
