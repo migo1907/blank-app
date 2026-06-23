@@ -99,13 +99,13 @@
     "expires_at": "2026-06-23T18:30:27.244846+00:00"
   },
   "IBKR_60": {
-    "direction": "LONG",
+    "direction": "SHORT",
     "timeframe": "60",
     "symbol": "IBKR",
-    "trigger": "LIQ",
-    "ml_score": 0.75,
-    "stored_at": "2026-06-23T14:30:57.352288+00:00",
-    "expires_at": "2026-06-23T18:30:57.352301+00:00"
+    "trigger": "RSI",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-23T17:30:36.605831+00:00",
+    "expires_at": "2026-06-23T21:30:36.605856+00:00"
   },
   "SPY_60": {
     "direction": "SHORT",
@@ -169,5 +169,14 @@
     "ml_score": 0.875,
     "stored_at": "2026-06-23T17:30:14.229382+00:00",
     "expires_at": "2026-06-24T01:30:14.229400+00:00"
+  },
+  "TSLL_240": {
+    "direction": "SHORT",
+    "timeframe": "240",
+    "symbol": "TSLL",
+    "trigger": "FVG",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-23T17:30:14.238785+00:00",
+    "expires_at": "2026-06-24T01:30:14.238796+00:00"
   }
 }
