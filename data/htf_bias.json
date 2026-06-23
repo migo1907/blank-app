@@ -178,5 +178,23 @@
     "ml_score": 0.25,
     "stored_at": "2026-06-23T14:00:28.794136+00:00",
     "expires_at": "2026-06-23T16:00:28.794148+00:00"
+  },
+  "HTZ_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "HTZ",
+    "trigger": "LIQ",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-23T14:00:37.170185+00:00",
+    "expires_at": "2026-06-23T16:00:37.170199+00:00"
+  },
+  "XAUUSD_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "XAUUSD",
+    "trigger": "RSI",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-23T14:02:02.433183+00:00",
+    "expires_at": "2026-06-23T16:02:02.433196+00:00"
   }
 }
