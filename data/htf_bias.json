@@ -225,13 +225,13 @@
     "expires_at": "2026-06-23T18:30:23.814989+00:00"
   },
   "RR_60": {
-    "direction": "LONG",
+    "direction": "SHORT",
     "timeframe": "60",
     "symbol": "RR",
-    "trigger": "LIQ",
-    "ml_score": 0.625,
-    "stored_at": "2026-06-23T14:30:25.843594+00:00",
-    "expires_at": "2026-06-23T18:30:25.843608+00:00"
+    "trigger": "FVG",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-23T15:31:02.685769+00:00",
+    "expires_at": "2026-06-23T19:31:02.685787+00:00"
   },
   "PLUG_60": {
     "direction": "LONG",
