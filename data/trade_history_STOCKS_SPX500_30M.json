@@ -986,13 +986,13 @@
     "direction": "SHORT",
     "trigger": "BOS",
     "entry_price": 7416.1,
-    "exit_price": 7387.0949,
-    "outcome": "WIN",
-    "ml_outcome": "TP1_HIT",
+    "exit_price": 7404.8,
+    "outcome": "PARTIAL",
+    "ml_outcome": "WIN",
     "mfe": 0.0,
-    "tp_stage": "TP1",
+    "tp_stage": "SL_TP1",
     "timeframe": "30",
-    "pnl_pct": 0.3911,
+    "pnl_pct": 0.1524,
     "ml_bull_score": 0.5,
     "regime": "TRENDING_BEAR",
     "session": "CLOSED",
@@ -1022,8 +1022,8 @@
     "f24_fvgq": 0.0,
     "f25_tod": 0.9239,
     "f26_stoch": -0.4219,
-    "id": "f5cff171",
+    "id": "732253bb",
     "pool": "STOCKS_SPX500_30M",
-    "created_at": "2026-06-23T06:30:02.707460+00:00"
+    "created_at": "2026-06-23T06:30:03.866819+00:00"
   }
 ]
