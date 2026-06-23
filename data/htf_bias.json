@@ -232,23 +232,5 @@
     "ml_score": 0.75,
     "stored_at": "2026-06-23T14:30:05.605947+00:00",
     "expires_at": "2026-06-23T18:30:05.605960+00:00"
-  },
-  "AAPL_60": {
-    "direction": "LONG",
-    "timeframe": "60",
-    "symbol": "AAPL",
-    "trigger": "LIQ",
-    "ml_score": 0.5,
-    "stored_at": "2026-06-23T14:30:07.789435+00:00",
-    "expires_at": "2026-06-23T18:30:07.789448+00:00"
-  },
-  "MSTR_60": {
-    "direction": "SHORT",
-    "timeframe": "60",
-    "symbol": "MSTR",
-    "trigger": "BOS",
-    "ml_score": 0.625,
-    "stored_at": "2026-06-23T14:30:10.576206+00:00",
-    "expires_at": "2026-06-23T18:30:10.576224+00:00"
   }
 }
