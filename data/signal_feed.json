@@ -2062,6 +2062,37 @@
       "htf_context": "htf_direct",
       "session": "London/NY Overlap",
       "fired_at": "2026-06-23T14:02:02.784552+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "60",
+      "trigger": "LIQ",
+      "symbol": "AAPL",
+      "entry_price": 300.51,
+      "tp1": 306.48,
+      "tp2": 311.25,
+      "tp3": 317.22,
+      "sl": 294.54,
+      "ml_score": 0.5,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.4153,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.004,
+      "velocity": "CONFLICTED",
+      "event": "GEOPOLITICAL",
+      "htf_bias": {
+        "direction": "LONG",
+        "timeframe": "60",
+        "symbol": "AAPL",
+        "trigger": "LIQ",
+        "ml_score": 0.5,
+        "stored_at": "2026-06-23T14:30:07.789435+00:00",
+        "expires_at": "2026-06-23T18:30:07.789448+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "htf_direct",
+      "session": "NYSE Open",
+      "fired_at": "2026-06-23T14:30:08.088307+00:00"
     }
   ]
 }
