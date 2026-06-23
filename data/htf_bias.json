@@ -313,5 +313,23 @@
     "ml_score": 0.625,
     "stored_at": "2026-06-23T14:30:25.843594+00:00",
     "expires_at": "2026-06-23T18:30:25.843608+00:00"
+  },
+  "PLUG_60": {
+    "direction": "LONG",
+    "timeframe": "60",
+    "symbol": "PLUG",
+    "trigger": "LIQ",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-23T14:30:27.244837+00:00",
+    "expires_at": "2026-06-23T18:30:27.244846+00:00"
+  },
+  "IBKR_60": {
+    "direction": "LONG",
+    "timeframe": "60",
+    "symbol": "IBKR",
+    "trigger": "LIQ",
+    "ml_score": 0.75,
+    "stored_at": "2026-06-23T14:30:57.352288+00:00",
+    "expires_at": "2026-06-23T18:30:57.352301+00:00"
   }
 }
