@@ -2942,7 +2942,7 @@
     "mtf_confluence": "mtf:3/3",
     "post_event": "evt:na",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:RANGING(0.99)\u00d71.00 | imkt:DXY-UP(0.13)\u00d71.01 | mtf:3/3\u00d71.08 | evt:na\u00d71.00 | sess:OVERLAP\u00d71.30 | confluence\u00d71.00 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-1.00) | news:neutral(-0.052) | macro:NEUTRAL(-0.145) | combined:-0.130 \u2192 conf:0.185 \u26a1 GEOPOLITICAL",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-23T13:58:55.454070+00:00",
     "created_at": "2026-06-23T13:28:55.932431+00:00",
     "id": 101
@@ -2976,7 +2976,7 @@
     "mtf_confluence": "mtf:0/3\u26a0",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:RANGING(1.00)\u00d71.00 | imkt:VIX-NORMAL(19.63)\u00d70.89 | mtf:0/3\u26a0\u00d70.85 | evt:na\u00d71.00 | sess:NYSE_OPEN\u00d71.25 | confluence\u00d71.15 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.24) | news:neutral(-0.052) | macro:NEUTRAL(+0.042) | combined:-0.006 \u2192 conf:0.300 \u26a1 GEOPOLITICAL",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-23T13:58:57.663803+00:00",
     "created_at": "2026-06-23T13:28:58.182695+00:00",
     "id": 101
@@ -3010,7 +3010,7 @@
     "mtf_confluence": "mtf:3/3",
     "post_event": "evt:na",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:RANGING(RANGING)\u00d70.82 | hmm:TRENDING_BULL(0.97)\u00d71.05 | imkt:VIX-NORMAL(19.63)\u00d70.89 | mtf:3/3\u00d71.08 | evt:na\u00d71.00 | sess:NYSE_OPEN\u00d71.25 | confluence\u00d71.15 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.05) | news:neutral(-0.052) | macro:NEUTRAL(+0.042) | combined:+0.187 \u2192 conf:0.300 \u26a1 GEOPOLITICAL",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-23T13:59:00.022076+00:00",
     "created_at": "2026-06-23T13:29:01.857925+00:00",
     "id": 101
@@ -3044,7 +3044,7 @@
     "mtf_confluence": "mtf:0/3\u26a0",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BEAR(TREND_FOLLOW)\u00d71.15 | hmm:RANGING(1.00)\u00d71.00 | imkt:VIX-NORMAL(19.63)\u00d70.89 | mtf:0/3\u26a0\u00d70.85 | evt:na\u00d71.00 | sess:NYSE_OPEN\u00d71.25 | confluence\u00d71.14 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-1.00) | news:neutral(-0.052) | macro:NEUTRAL(+0.042) | combined:-0.198 \u2192 conf:0.300 \u26a1 GEOPOLITICAL",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-23T13:59:03.811016+00:00",
     "created_at": "2026-06-23T13:29:05.326986+00:00",
     "id": 101
