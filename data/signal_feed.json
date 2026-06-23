@@ -2473,6 +2473,37 @@
       "htf_context": "htf_direct",
       "session": "NYSE Afternoon",
       "fired_at": "2026-06-23T17:30:14.779114+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "240",
+      "trigger": "FVG",
+      "symbol": "TSLA",
+      "entry_price": 385.27,
+      "tp1": 349.7,
+      "tp2": 320.07,
+      "tp3": 278.57,
+      "sl": 420.84,
+      "ml_score": 0.875,
+      "tier": "\u2b50 HIGH",
+      "quality_score": 0.5326,
+      "quality_reason": "approved",
+      "news_score": -0.239,
+      "velocity": "LOW",
+      "event": "GEOPOLITICAL",
+      "htf_bias": {
+        "direction": "SHORT",
+        "timeframe": "240",
+        "symbol": "TSLA",
+        "trigger": "FVG",
+        "ml_score": 0.875,
+        "stored_at": "2026-06-23T17:30:14.229382+00:00",
+        "expires_at": "2026-06-24T01:30:14.229400+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "htf_direct",
+      "session": "NYSE Afternoon",
+      "fired_at": "2026-06-23T17:30:14.785474+00:00"
     }
   ]
 }
