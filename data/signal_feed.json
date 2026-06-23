@@ -2357,6 +2357,29 @@
       "htf_context": "htf_direct",
       "session": "NYSE Open",
       "fired_at": "2026-06-23T15:31:02.688153+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "15",
+      "trigger": "FVG",
+      "symbol": "US500",
+      "entry_price": 7403.4,
+      "tp1": 7432.78,
+      "tp2": 7454.82,
+      "tp3": 7484.2,
+      "sl": 7374.02,
+      "ml_score": 0.25,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.4032,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.1073,
+      "velocity": "CONFLICTED",
+      "event": "WAR/CONFLICT",
+      "htf_bias": null,
+      "contra_bias": null,
+      "htf_context": "scalp",
+      "session": "NYSE Afternoon",
+      "fired_at": "2026-06-23T16:15:09.020735+00:00"
     }
   ]
 }
