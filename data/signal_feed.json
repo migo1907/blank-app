@@ -2659,6 +2659,29 @@
       "htf_context": "htf_direct",
       "session": "NYSE Afternoon",
       "fired_at": "2026-06-23T19:00:29.072995+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "5",
+      "trigger": "FVG",
+      "symbol": "XAUUSD",
+      "entry_price": 4123.66,
+      "tp1": 4129.53,
+      "tp2": 4133.44,
+      "tp3": 4139.31,
+      "sl": 4117.79,
+      "ml_score": 0.125,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.4311,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.21,
+      "velocity": "NORMAL",
+      "event": "GEOPOLITICAL",
+      "htf_bias": null,
+      "contra_bias": null,
+      "htf_context": "scalp",
+      "session": "New York",
+      "fired_at": "2026-06-23T19:07:03.129183+00:00"
     }
   ]
 }
