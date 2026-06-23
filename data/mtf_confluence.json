@@ -8,7 +8,7 @@
     },
     "weighted": -1.0,
     "bias": "BEAR",
-    "updated_at": "2026-06-23T17:45:17.307550+00:00",
+    "updated_at": "2026-06-23T18:45:15.337244+00:00",
     "method": "yfinance"
   },
   "SPY": {
@@ -20,19 +20,19 @@
     },
     "weighted": 0.0,
     "bias": "NEUTRAL",
-    "updated_at": "2026-06-23T17:45:18.016446+00:00",
+    "updated_at": "2026-06-23T18:45:16.137837+00:00",
     "method": "yfinance"
   },
   "QQQ": {
     "asset": "QQQ",
     "votes": {
-      "h1": 0,
+      "h1": -1,
       "h4": 1,
       "d1": 1
     },
-    "weighted": 0.833,
+    "weighted": 0.667,
     "bias": "BULL",
-    "updated_at": "2026-06-23T17:45:18.727116+00:00",
+    "updated_at": "2026-06-23T18:45:16.884737+00:00",
     "method": "yfinance"
   }
 }
