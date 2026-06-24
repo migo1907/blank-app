@@ -9,9 +9,11 @@
 //    RED   = SELL NOW (use the Entry / Stop / Take profit shown)
 //  A matching BUY/SELL arrow prints on the chart at the same moment.
 //
-//  Levels are computed automatically from prior-day pivots + ATR, with an
+//  Levels are computed automatically from prior-period pivots + ATR, with an
 //  optional higher-timeframe swing as the far target. Nothing to type.
-//  APPLY ON THE 5-MINUTE CHART.
+//  WORKS ON ANY TIMEFRAME (1m..Daily): with "Auto-adjust all timeframes" ON
+//  (default), the pivot source, trend gate and HTF magnet are picked from the
+//  chart automatically. 5m/15m for scalps, 30m/1h intraday, 4h/D for swings.
 // =============================================================================
 indicator("XAU Auto Scenario Roadmap", shorttitle="XAU Auto Roadmap", overlay=true, max_lines_count=200, max_labels_count=300, max_boxes_count=20)
 
@@ -40,10 +42,29 @@ i_showBull = input.bool(true, "Show BULL scenario path", group=grpD)
 i_showBear = input.bool(true, "Show BEAR scenario path", group=grpD)
 i_panelPos = input.string("Top Right", "Panel position", options=["Top Right","Top Left","Bottom Right","Bottom Left"], group=grpD)
 
+// ---------- AUTO TIMEFRAME RESOLUTION ----------
+// When ON, the pivot source, trend gate and HTF magnet are all picked from the
+// chart timeframe, so the indicator works on 1m..Daily with nothing to change.
+i_autoTF = input.bool(true, "Auto-adjust all timeframes to chart", group=grpA, tooltip="ON = pivot source, trend gate and HTF magnet are derived from the chart automatically. OFF = use the manual values above.")
+
+f_autoPiv() =>
+    s = timeframe.in_seconds()
+    s <= 3600 ? "D" : s <= 14400 ? "W" : "M"
+f_autoGate() =>
+    s = timeframe.in_seconds()
+    s <= 60 ? "15" : s <= 180 ? "30" : s <= 300 ? "60" : s <= 1800 ? "240" : s <= 3600 ? "D" : s <= 14400 ? "W" : "M"
+f_autoStruct() =>
+    s = timeframe.in_seconds()
+    s <= 300 ? "240" : s <= 1800 ? "D" : s <= 14400 ? "W" : "M"
+
+pivTF    = i_autoTF ? f_autoPiv()    : i_pivTF
+htfTF    = i_autoTF ? f_autoGate()   : i_htf
+structTF = i_autoTF ? f_autoStruct() : i_structTF
+
 // ============================ AUTO LEVEL ENGINE ============================
-prevH = request.security(syminfo.tickerid, i_pivTF, high[1], lookahead=barmerge.lookahead_on)
-prevL = request.security(syminfo.tickerid, i_pivTF, low[1],  lookahead=barmerge.lookahead_on)
-prevC = request.security(syminfo.tickerid, i_pivTF, close[1],lookahead=barmerge.lookahead_on)
+prevH = request.security(syminfo.tickerid, pivTF, high[1], lookahead=barmerge.lookahead_on)
+prevL = request.security(syminfo.tickerid, pivTF, low[1],  lookahead=barmerge.lookahead_on)
+prevC = request.security(syminfo.tickerid, pivTF, close[1],lookahead=barmerge.lookahead_on)
 
 PP = (prevH + prevL + prevC) / 3.0
 R1 = 2.0 * PP - prevL
@@ -78,8 +99,8 @@ sup3    = nSup > 2 ? array.get(supBelow, nSup - 3) : sup2 - atr * 2.0
 // HTF swing magnet (extracted to functions = no repaint warning)
 f_htfPivH() => ta.pivothigh(5, 5)
 f_htfPivL() => ta.pivotlow(5, 5)
-htfPH = request.security(syminfo.tickerid, i_structTF, f_htfPivH(), lookahead=barmerge.lookahead_off)
-htfPL = request.security(syminfo.tickerid, i_structTF, f_htfPivL(), lookahead=barmerge.lookahead_off)
+htfPH = request.security(syminfo.tickerid, structTF, f_htfPivH(), lookahead=barmerge.lookahead_off)
+htfPL = request.security(syminfo.tickerid, structTF, f_htfPivL(), lookahead=barmerge.lookahead_off)
 var float lastHTFHigh = na
 var float lastHTFLow  = na
 if not na(htfPH)
@@ -107,7 +128,7 @@ f_htfDir() =>
     ef = ta.ema(close, i_emaFast)
     es = ta.ema(close, i_emaSlow)
     ef > es ? 1 : -1
-htfDir  = request.security(syminfo.tickerid, i_htf, f_htfDir())
+htfDir  = request.security(syminfo.tickerid, htfTF, f_htfDir())
 htfBull = htfDir > 0
 
 ph = ta.pivothigh(i_pivLen, i_pivLen)
