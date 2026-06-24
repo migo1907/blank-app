@@ -84,10 +84,10 @@
     "direction": "SHORT",
     "timeframe": "60",
     "symbol": "RR",
-    "trigger": "FVG",
+    "trigger": "BOS",
     "ml_score": 0.375,
-    "stored_at": "2026-06-23T15:31:02.685769+00:00",
-    "expires_at": "2026-06-23T19:31:02.685787+00:00"
+    "stored_at": "2026-06-24T14:30:27.038388+00:00",
+    "expires_at": "2026-06-24T18:30:27.038397+00:00"
   },
   "PLUG_60": {
     "direction": "SHORT",
@@ -338,8 +338,8 @@
     "symbol": "PLUG",
     "trigger": "FVG",
     "ml_score": 0.5,
-    "stored_at": "2026-06-24T14:00:17.576938+00:00",
-    "expires_at": "2026-06-24T16:00:17.576951+00:00"
+    "stored_at": "2026-06-24T14:30:20.115201+00:00",
+    "expires_at": "2026-06-24T16:30:20.115220+00:00"
   },
   "CRM_30": {
     "direction": "LONG",
@@ -412,5 +412,14 @@
     "ml_score": 0.75,
     "stored_at": "2026-06-24T14:30:18.928206+00:00",
     "expires_at": "2026-06-24T18:30:18.928216+00:00"
+  },
+  "BLNK_60": {
+    "direction": "SHORT",
+    "timeframe": "60",
+    "symbol": "BLNK",
+    "trigger": "BOS",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-24T14:30:20.150154+00:00",
+    "expires_at": "2026-06-24T18:30:20.150175+00:00"
   }
 }
