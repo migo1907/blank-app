@@ -414,13 +414,13 @@
     "expires_at": "2026-06-25T01:31:00.255393+00:00"
   },
   "US500_60": {
-    "direction": "SHORT",
+    "direction": "LONG",
     "timeframe": "60",
     "symbol": "US500",
-    "trigger": "BOS",
-    "ml_score": 0.5,
-    "stored_at": "2026-06-24T18:00:09.638111+00:00",
-    "expires_at": "2026-06-24T22:00:09.638129+00:00"
+    "trigger": "RSI",
+    "ml_score": 0.125,
+    "stored_at": "2026-06-24T21:00:00.217950+00:00",
+    "expires_at": "2026-06-25T01:00:00.217961+00:00"
   },
   "XAUUSD_30": {
     "direction": "SHORT",
