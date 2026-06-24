@@ -185,8 +185,8 @@
     "symbol": "HTZ",
     "trigger": "BOS",
     "ml_score": 0.5,
-    "stored_at": "2026-06-24T14:30:05.685744+00:00",
-    "expires_at": "2026-06-24T18:30:05.685760+00:00"
+    "stored_at": "2026-06-24T17:30:26.432018+00:00",
+    "expires_at": "2026-06-24T21:30:26.432026+00:00"
   },
   "XAUUSD_60": {
     "direction": "SHORT",
@@ -225,13 +225,13 @@
     "expires_at": "2026-06-24T16:00:05.286566+00:00"
   },
   "ADBE_30": {
-    "direction": "LONG",
+    "direction": "SHORT",
     "timeframe": "30",
     "symbol": "ADBE",
-    "trigger": "LIQ",
+    "trigger": "RSI",
     "ml_score": 0.375,
-    "stored_at": "2026-06-24T14:00:05.798890+00:00",
-    "expires_at": "2026-06-24T16:00:05.798904+00:00"
+    "stored_at": "2026-06-24T17:30:26.949349+00:00",
+    "expires_at": "2026-06-24T19:30:26.949370+00:00"
   },
   "MSTR_30": {
     "direction": "SHORT",
@@ -421,5 +421,41 @@
     "ml_score": 0.375,
     "stored_at": "2026-06-24T17:30:15.518272+00:00",
     "expires_at": "2026-06-24T19:30:15.518287+00:00"
+  },
+  "AMD_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "AMD",
+    "trigger": "FVG",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-24T17:30:16.453736+00:00",
+    "expires_at": "2026-06-24T19:30:16.453756+00:00"
+  },
+  "TSLL_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "TSLL",
+    "trigger": "BOS",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-24T17:30:17.838171+00:00",
+    "expires_at": "2026-06-24T19:30:17.838192+00:00"
+  },
+  "HTZ_240": {
+    "direction": "SHORT",
+    "timeframe": "240",
+    "symbol": "HTZ",
+    "trigger": "BOS",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-24T17:30:26.435229+00:00",
+    "expires_at": "2026-06-25T01:30:26.435235+00:00"
+  },
+  "BLNK_240": {
+    "direction": "SHORT",
+    "timeframe": "240",
+    "symbol": "BLNK",
+    "trigger": "BOS",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-24T17:31:00.255378+00:00",
+    "expires_at": "2026-06-25T01:31:00.255393+00:00"
   }
 }
