@@ -322,5 +322,23 @@
     "ml_score": 0.75,
     "stored_at": "2026-06-24T14:00:07.240684+00:00",
     "expires_at": "2026-06-24T16:00:07.240706+00:00"
+  },
+  "PATH_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "PATH",
+    "trigger": "LIQ",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-24T14:00:09.284792+00:00",
+    "expires_at": "2026-06-24T16:00:09.284829+00:00"
+  },
+  "MU_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "MU",
+    "trigger": "OB",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-24T14:00:10.641309+00:00",
+    "expires_at": "2026-06-24T16:00:10.641330+00:00"
   }
 }
