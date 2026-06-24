@@ -3074,7 +3074,7 @@
     "mtf_confluence": "mtf:3/3",
     "post_event": "evt:na",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:TRENDING_BEAR(0.98)\u00d71.05 | imkt:DXY-UP(0.03)\u00d71.00 | mtf:3/3\u00d71.08 | evt:na\u00d71.00 | sess:LONDON_OPEN\u00d70.90 | confluence\u00d71.14 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.27) | news:bearish(-0.286) | macro:BEARISH(-0.345) | combined:-0.222 \u2192 conf:0.258 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-24T07:59:44.928988+00:00",
     "created_at": "2026-06-24T07:29:46.472385+00:00",
     "id": 101
