@@ -2,37 +2,6 @@
   "signals": [
     {
       "direction": "SHORT",
-      "timeframe": "30",
-      "trigger": "FVG",
-      "symbol": "PLTR",
-      "entry_price": 122.89,
-      "tp1": 119.14,
-      "tp2": 116.41,
-      "tp3": 112.65,
-      "sl": 126.64,
-      "ml_score": 0.5,
-      "tier": "\u26a1 LOW",
-      "quality_score": 0.4204,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.0883,
-      "velocity": "CONFLICTED",
-      "event": "FOMC",
-      "htf_bias": {
-        "direction": "SHORT",
-        "timeframe": "30",
-        "symbol": "PLTR",
-        "trigger": "FVG",
-        "ml_score": 0.5,
-        "stored_at": "2026-06-22T15:30:08.579353+00:00",
-        "expires_at": "2026-06-22T17:30:08.579366+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "htf_direct",
-      "session": "NYSE Open",
-      "fired_at": "2026-06-22T15:30:09.060685+00:00"
-    },
-    {
-      "direction": "SHORT",
       "timeframe": "60",
       "trigger": "BOS",
       "symbol": "META",
@@ -2875,6 +2844,37 @@
       "htf_context": "scalp",
       "session": "NYSE Afternoon",
       "fired_at": "2026-06-24T17:00:26.771009+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "15",
+      "trigger": "BOS",
+      "symbol": "SMCI",
+      "entry_price": 32.16,
+      "tp1": 31.25,
+      "tp2": 30.56,
+      "tp3": 29.65,
+      "sl": 33.07,
+      "ml_score": 0.75,
+      "tier": "\u2b50 HIGH",
+      "quality_score": 0.4544,
+      "quality_reason": "approved",
+      "news_score": -0.3329,
+      "velocity": "NORMAL",
+      "event": "WAR/CONFLICT",
+      "htf_bias": null,
+      "contra_bias": {
+        "direction": "LONG",
+        "timeframe": "60",
+        "symbol": "SMCI",
+        "trigger": "LIQ",
+        "ml_score": 0.375,
+        "stored_at": "2026-06-24T14:30:05.551161+00:00",
+        "expires_at": "2026-06-24T18:30:05.551178+00:00"
+      },
+      "htf_context": "counter_trend",
+      "session": "NYSE Afternoon",
+      "fired_at": "2026-06-24T17:00:27.091544+00:00"
     }
   ]
 }
