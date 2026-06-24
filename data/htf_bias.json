@@ -233,15 +233,6 @@
     "stored_at": "2026-06-23T20:00:21.467247+00:00",
     "expires_at": "2026-06-24T04:00:21.467264+00:00"
   },
-  "US500_60": {
-    "direction": "LONG",
-    "timeframe": "60",
-    "symbol": "US500",
-    "trigger": "RSI",
-    "ml_score": 0.625,
-    "stored_at": "2026-06-24T05:00:03.250532+00:00",
-    "expires_at": "2026-06-24T09:00:03.250548+00:00"
-  },
   "XAUUSD_30": {
     "direction": "SHORT",
     "timeframe": "30",
@@ -255,10 +246,10 @@
     "direction": "LONG",
     "timeframe": "30",
     "symbol": "US500",
-    "trigger": "FVG",
-    "ml_score": 0.25,
-    "stored_at": "2026-06-24T12:30:02.351326+00:00",
-    "expires_at": "2026-06-24T14:30:02.351334+00:00"
+    "trigger": "LIQ",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-24T14:00:28.561262+00:00",
+    "expires_at": "2026-06-24T16:00:28.561276+00:00"
   },
   "XAUUSD_60": {
     "direction": "SHORT",
@@ -331,5 +322,23 @@
     "ml_score": 0.5,
     "stored_at": "2026-06-24T14:00:09.284792+00:00",
     "expires_at": "2026-06-24T16:00:09.284829+00:00"
+  },
+  "MU_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "MU",
+    "trigger": "OB",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-24T14:00:10.641309+00:00",
+    "expires_at": "2026-06-24T16:00:10.641330+00:00"
+  },
+  "PLUG_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "PLUG",
+    "trigger": "FVG",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-24T14:00:17.576938+00:00",
+    "expires_at": "2026-06-24T16:00:17.576951+00:00"
   }
 }
