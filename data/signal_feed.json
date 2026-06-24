@@ -1,29 +1,6 @@
 {
   "signals": [
     {
-      "direction": "SHORT",
-      "timeframe": "5",
-      "trigger": "BOS",
-      "symbol": "XAUUSD",
-      "entry_price": 4180.16,
-      "tp1": 4175.58,
-      "tp2": 4172.53,
-      "tp3": 4167.95,
-      "sl": 4184.74,
-      "ml_score": 0.375,
-      "tier": "\u26a1 LOW",
-      "quality_score": 0.4043,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.0492,
-      "velocity": "CONFLICTED",
-      "event": "GEOPOLITICAL",
-      "htf_bias": null,
-      "contra_bias": null,
-      "htf_context": "scalp",
-      "session": "Asian",
-      "fired_at": "2026-06-23T00:12:02.181937+00:00"
-    },
-    {
       "direction": "LONG",
       "timeframe": "5",
       "trigger": "RSI",
@@ -2875,6 +2852,29 @@
       "htf_context": "htf_direct",
       "session": "NYSE Afternoon",
       "fired_at": "2026-06-24T20:00:14.786032+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "15",
+      "trigger": "FVG",
+      "symbol": "XAUUSD",
+      "entry_price": 4014.98,
+      "tp1": 4036.66,
+      "tp2": 4052.93,
+      "tp3": 4074.61,
+      "sl": 3993.3,
+      "ml_score": 0.25,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.4118,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.2205,
+      "velocity": "CONFLICTED",
+      "event": "FOMC",
+      "htf_bias": null,
+      "contra_bias": null,
+      "htf_context": "scalp",
+      "session": "Off-Hours",
+      "fired_at": "2026-06-24T23:47:02.016985+00:00"
     }
   ]
 }
