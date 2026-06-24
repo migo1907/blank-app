@@ -180,8 +180,13 @@ var float tp1F   = na
 var float tp2F   = na
 var float tp3F   = na
 
-newLong  = rawLong  and actBars == 0
-newShort = rawShort and actBars == 0 and not rawLong
+// Confirm on candle close = signal can only fire on a closed candle, so the
+// BUY/SELL arrow + panel never flicker or vanish while a candle is forming.
+i_confirm = input.bool(true, "Confirm on candle close (no flicker)", group=grpE, tooltip="ON = BUY/SELL only fires after the candle closes (recommended). OFF = fires live and may flicker until the candle ends.")
+confirmOK = not i_confirm or barstate.isconfirmed
+
+newLong  = rawLong  and actBars == 0 and confirmOK
+newShort = rawShort and actBars == 0 and not rawLong and confirmOK
 
 if newLong
     actState := 3
