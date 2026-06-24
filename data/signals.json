@@ -1,5 +1,25 @@
 [
   {
+    "symbol": "XAUUSD",
+    "pool": "XAUUSD_2M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "news_score": -0.1118,
+    "combined_score": 0.0,
+    "session": "OFF",
+    "regime": "VOLATILE",
+    "regime_label": "VOLATILE",
+    "reasoning": "News CONFLICTED \u2014 low conviction",
+    "status": "NEUTRAL",
+    "expires_at": "2026-06-23T22:59:45.414789+00:00",
+    "created_at": "2026-06-23T22:29:45.555236+00:00",
+    "id": 101
+  },
+  {
     "symbol": "SPY",
     "pool": "STOCKS_INDEX_30M",
     "direction": "SHORT",
@@ -3054,7 +3074,7 @@
     "mtf_confluence": "mtf:3/3",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BEAR(TREND_FOLLOW)\u00d71.15 | hmm:TRENDING_BEAR(0.83)\u00d71.04 | imkt:DXY-UP(0.18)\u00d71.01 | mtf:3/3\u00d71.08 | evt:na\u00d71.00 | sess:ASIAN\u00d70.85 | confluence\u00d71.14 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-1.00) | news:neutral(-0.137) | macro:BEARISH(-0.345) | combined:-0.262 \u2192 conf:0.399 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-24T03:29:45.604048+00:00",
     "created_at": "2026-06-24T02:59:46.058204+00:00",
     "id": 101
@@ -3088,7 +3108,7 @@
     "mtf_confluence": "mtf:2/3",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:VOLATILE(0.99)\u00d70.95 | imkt:VIX-NORMAL(19.49)\u00d70.97 | mtf:2/3\u00d71.03 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d71.35 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.29) | news:neutral(-0.137) | macro:BEARISH(-0.424) | combined:-0.095 \u2192 conf:0.300 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-24T03:29:47.675074+00:00",
     "created_at": "2026-06-24T02:59:47.955770+00:00",
     "id": 101
@@ -3363,40 +3383,6 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-24T03:44:58.898240+00:00",
     "created_at": "2026-06-24T03:15:00.343104+00:00",
-    "id": 101
-  },
-  {
-    "symbol": "XAUUSD",
-    "pool": "XAUUSD_2M",
-    "direction": "NEUTRAL",
-    "lean_direction": "SHORT",
-    "lean_pct": 38,
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.375,
-    "rf_score": 0.3636,
-    "gbm_score": 0.2796,
-    "ml_interval": [
-      0.0,
-      1.0
-    ],
-    "ml_interval_width": 1.0,
-    "ml_certainty": "LOW",
-    "news_score": -0.2139,
-    "macro_bias": -0.3455,
-    "macro_label": "BEARISH",
-    "combined_score": -0.2044,
-    "session": "ASIAN",
-    "regime": "TRENDING_BEAR",
-    "regime_label": "TREND_FOLLOW",
-    "hmm_regime": "hmm:TRENDING_BEAR(0.83)",
-    "intermarket": "imkt:DXY-UP(0.18)",
-    "mtf_confluence": "mtf:3/3",
-    "post_event": "evt:na",
-    "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:TRENDING_BEAR(TREND_FOLLOW)\u00d71.15 | hmm:TRENDING_BEAR(0.83)\u00d71.04 | imkt:DXY-UP(0.18)\u00d71.01 | mtf:3/3\u00d71.08 | evt:na\u00d71.00 | sess:ASIAN\u00d70.85 | confluence\u00d71.25 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-1.00) | news:bearish(-0.214) | macro:BEARISH(-0.345) | combined:-0.204 \u2192 conf:0.285 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
-    "expires_at": "2026-06-24T03:59:45.294939+00:00",
-    "created_at": "2026-06-24T03:29:46.795939+00:00",
     "id": 101
   }
 ]
