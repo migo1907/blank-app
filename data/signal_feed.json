@@ -1,37 +1,6 @@
 {
   "signals": [
     {
-      "direction": "SHORT",
-      "timeframe": "30",
-      "trigger": "FVG",
-      "symbol": "US500",
-      "entry_price": 7447.6,
-      "tp1": 7423.94,
-      "tp2": 7406.74,
-      "tp3": 7383.08,
-      "sl": 7471.26,
-      "ml_score": 0.5,
-      "tier": "\u26a1 LOW",
-      "quality_score": 0.408,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.292,
-      "velocity": "CONFLICTED",
-      "event": "GEOPOLITICAL",
-      "htf_bias": {
-        "direction": "SHORT",
-        "timeframe": "30",
-        "symbol": "US500",
-        "trigger": "FVG",
-        "ml_score": 0.5,
-        "stored_at": "2026-06-22T00:00:07.319857+00:00",
-        "expires_at": "2026-06-22T02:00:07.319876+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "htf_direct",
-      "session": "Closed",
-      "fired_at": "2026-06-22T00:00:07.557549+00:00"
-    },
-    {
       "direction": "LONG",
       "timeframe": "30",
       "trigger": "RSI",
@@ -2899,6 +2868,37 @@
       "htf_context": "counter_trend",
       "session": "Asian",
       "fired_at": "2026-06-24T05:37:01.030663+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "5",
+      "trigger": "FVG",
+      "symbol": "XAUUSD",
+      "entry_price": 4084.89,
+      "tp1": 4093.66,
+      "tp2": 4099.51,
+      "tp3": 4108.28,
+      "sl": 4076.12,
+      "ml_score": 0.25,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.4213,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.217,
+      "velocity": "CONFLICTED",
+      "event": "WAR/CONFLICT",
+      "htf_bias": null,
+      "contra_bias": {
+        "direction": "SHORT",
+        "timeframe": "60",
+        "symbol": "XAUUSD",
+        "trigger": "BOS",
+        "ml_score": 0.5,
+        "stored_at": "2026-06-24T03:02:01.744862+00:00",
+        "expires_at": "2026-06-24T07:02:01.744872+00:00"
+      },
+      "htf_context": "counter_trend",
+      "session": "Asian",
+      "fired_at": "2026-06-24T06:07:02.025260+00:00"
     }
   ]
 }
