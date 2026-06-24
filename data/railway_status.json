@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-06-24T05:31:59.163714+00:00",
+  "checked_at": "2026-06-24T08:39:49.624586+00:00",
   "health": {
     "status_code": 200,
     "data": {
@@ -236,17 +236,17 @@
         "XAUUSD": {
           "asset": "XAUUSD",
           "regime": "TRENDING_BEAR",
-          "confidence": 0.946,
-          "transition_prob": 0.123,
+          "confidence": 0.949,
+          "transition_prob": 0.124,
           "next_regime": "TRENDING_BEAR",
           "shifting": false,
           "probs": {
-            "RANGING": 0.028,
-            "TRENDING_BEAR": 0.946,
-            "VOLATILE": 0.026
+            "RANGING": 0.048,
+            "TRENDING_BEAR": 0.949,
+            "VOLATILE": 0.003
           },
           "method": "hmm",
-          "updated_at": "2026-06-24T04:45:05.775269+00:00"
+          "updated_at": "2026-06-24T07:45:02.786080+00:00"
         },
         "SPY": {
           "asset": "SPY",
@@ -261,7 +261,7 @@
             "VOLATILE": 0.995
           },
           "method": "hmm",
-          "updated_at": "2026-06-24T04:45:07.176451+00:00"
+          "updated_at": "2026-06-24T07:45:03.606455+00:00"
         },
         "QQQ": {
           "asset": "QQQ",
@@ -276,7 +276,7 @@
             "VOLATILE": 1.0
           },
           "method": "hmm",
-          "updated_at": "2026-06-24T04:45:08.640347+00:00"
+          "updated_at": "2026-06-24T07:45:04.696080+00:00"
         }
       },
       "mtf": {
@@ -289,7 +289,7 @@
           },
           "weighted": -1.0,
           "bias": "BEAR",
-          "updated_at": "2026-06-24T04:45:11.071715+00:00",
+          "updated_at": "2026-06-24T07:45:09.715157+00:00",
           "method": "yfinance"
         },
         "SPY": {
@@ -301,7 +301,7 @@
           },
           "weighted": 0.0,
           "bias": "NEUTRAL",
-          "updated_at": "2026-06-24T04:45:11.777683+00:00",
+          "updated_at": "2026-06-24T07:45:10.468681+00:00",
           "method": "yfinance"
         },
         "QQQ": {
@@ -313,24 +313,24 @@
           },
           "weighted": 0.167,
           "bias": "BULL",
-          "updated_at": "2026-06-24T04:45:12.485920+00:00",
+          "updated_at": "2026-06-24T07:45:11.186225+00:00",
           "method": "yfinance"
         }
       },
       "post_event": {},
       "intermarket": {
         "vix": {
-          "vix": 19.49,
+          "vix": 19.16,
           "vix3m": 19.57,
-          "ratio": 0.996,
+          "ratio": 0.979,
           "regime": "NORMAL",
           "size_factor": 0.97,
           "backwardation": false
         },
         "dxy_break": {
           "direction": "UP",
-          "strength": 0.027,
-          "level": 101.478
+          "strength": 0.056,
+          "level": 101.55
         }
       }
     }
