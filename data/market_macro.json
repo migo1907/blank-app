@@ -1,15 +1,15 @@
 {
-  "bias": -0.2122,
+  "bias": -0.2255,
   "label": "BEARISH",
   "components": {
     "real_yield": -0.0667,
     "dollar": -0.5633,
-    "breakeven": -0.1333,
+    "breakeven": -0.2,
     "cot": 0.1836
   },
   "real_yield": 2.29,
   "dollar": 120.3958,
-  "breakeven": 2.21,
+  "breakeven": 2.18,
   "cot": {
     "report_date": "2026-06-16",
     "spec_long": 211127,
@@ -29,10 +29,10 @@
   },
   "dxy_break": {
     "direction": "UP",
-    "strength": 0.07,
-    "level": 101.584
+    "strength": 0.068,
+    "level": 101.581
   },
-  "updated_at": "2026-06-24T20:44:54.104628+00:00",
+  "updated_at": "2026-06-24T21:44:54.315349+00:00",
   "sources_live": {
     "fred": true,
     "cot": true,
