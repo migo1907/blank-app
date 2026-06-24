@@ -2,37 +2,6 @@
   "signals": [
     {
       "direction": "SHORT",
-      "timeframe": "60",
-      "trigger": "BOS",
-      "symbol": "META",
-      "entry_price": 560.62,
-      "tp1": 544.79,
-      "tp2": 532.13,
-      "tp3": 516.31,
-      "sl": 576.45,
-      "ml_score": 0.125,
-      "tier": "\u26a1 LOW",
-      "quality_score": 0.6447,
-      "quality_reason": "approved",
-      "news_score": -0.0883,
-      "velocity": "CONFLICTED",
-      "event": "FOMC",
-      "htf_bias": {
-        "direction": "SHORT",
-        "timeframe": "60",
-        "symbol": "META",
-        "trigger": "BOS",
-        "ml_score": 0.125,
-        "stored_at": "2026-06-22T15:30:21.666100+00:00",
-        "expires_at": "2026-06-22T19:30:21.666108+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "htf_direct",
-      "session": "NYSE Open",
-      "fired_at": "2026-06-22T15:30:21.962316+00:00"
-    },
-    {
-      "direction": "SHORT",
       "timeframe": "30",
       "trigger": "BOS",
       "symbol": "XAUUSD",
@@ -2875,6 +2844,37 @@
       "htf_context": "counter_trend",
       "session": "NYSE Afternoon",
       "fired_at": "2026-06-24T17:00:27.091544+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "30",
+      "trigger": "FVG",
+      "symbol": "SPY",
+      "entry_price": 732.16,
+      "tp1": 726.65,
+      "tp2": 722.64,
+      "tp3": 717.13,
+      "sl": 737.67,
+      "ml_score": 0.5,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.4976,
+      "quality_reason": "approved",
+      "news_score": -0.2403,
+      "velocity": "NORMAL",
+      "event": "WAR/CONFLICT",
+      "htf_bias": {
+        "direction": "SHORT",
+        "timeframe": "30",
+        "symbol": "SPY",
+        "trigger": "FVG",
+        "ml_score": 0.5,
+        "stored_at": "2026-06-24T17:30:01.815134+00:00",
+        "expires_at": "2026-06-24T19:30:01.815142+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "htf_direct",
+      "session": "NYSE Afternoon",
+      "fired_at": "2026-06-24T17:30:02.097784+00:00"
     }
   ]
 }
