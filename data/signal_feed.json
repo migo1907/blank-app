@@ -2,6 +2,37 @@
   "signals": [
     {
       "direction": "LONG",
+      "timeframe": "5",
+      "trigger": "FVG",
+      "symbol": "XAUUSD",
+      "entry_price": 4187.0,
+      "tp1": 4197.86,
+      "tp2": 4205.09,
+      "tp3": 4215.95,
+      "sl": 4176.14,
+      "ml_score": 0.375,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.4571,
+      "quality_reason": "approved",
+      "news_score": -0.3319,
+      "velocity": "CONFLICTED",
+      "event": "GEOPOLITICAL",
+      "htf_bias": {
+        "direction": "LONG",
+        "timeframe": "30",
+        "symbol": "XAUUSD",
+        "trigger": "RSI",
+        "ml_score": 0.375,
+        "stored_at": "2026-06-22T00:32:00.510957+00:00",
+        "expires_at": "2026-06-22T02:32:00.510972+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "with_bias",
+      "session": "Asian",
+      "fired_at": "2026-06-22T00:52:02.311767+00:00"
+    },
+    {
+      "direction": "LONG",
       "timeframe": "15",
       "trigger": "FVG",
       "symbol": "XAUUSD",
@@ -2860,37 +2891,6 @@
       "htf_context": "htf_direct",
       "session": "London",
       "fired_at": "2026-06-24T08:32:01.959383+00:00"
-    },
-    {
-      "direction": "LONG",
-      "timeframe": "5",
-      "trigger": "FVG",
-      "symbol": "XAUUSD",
-      "entry_price": 4087.39,
-      "tp1": 4095.13,
-      "tp2": 4100.29,
-      "tp3": 4108.02,
-      "sl": 4079.65,
-      "ml_score": 0.25,
-      "tier": "\u26a1 LOW",
-      "quality_score": 0.499,
-      "quality_reason": "approved",
-      "news_score": -0.2158,
-      "velocity": "CONFLICTED",
-      "event": "WAR/CONFLICT",
-      "htf_bias": {
-        "direction": "LONG",
-        "timeframe": "30",
-        "symbol": "XAUUSD",
-        "trigger": "OB",
-        "ml_score": 0.25,
-        "stored_at": "2026-06-24T08:32:01.651227+00:00",
-        "expires_at": "2026-06-24T10:32:01.651422+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "with_bias",
-      "session": "London",
-      "fired_at": "2026-06-24T08:32:02.163726+00:00"
     }
   ]
 }
