@@ -1886,13 +1886,13 @@
     "direction": "LONG",
     "trigger": "LIQ",
     "entry_price": 7388.1,
-    "exit_price": 7412.0791,
-    "outcome": "WIN",
-    "ml_outcome": "TP1_HIT",
+    "exit_price": 7405.4,
+    "outcome": "PARTIAL",
+    "ml_outcome": "WIN",
     "mfe": 39.5,
-    "tp_stage": "TP1",
+    "tp_stage": "SL_TP1",
     "timeframe": "15",
-    "pnl_pct": 0.3246,
+    "pnl_pct": 0.2342,
     "ml_bull_score": 0.375,
     "regime": "VOLATILE",
     "session": "NYSE_OPEN",
@@ -1922,8 +1922,8 @@
     "f24_fvgq": 0.0,
     "f25_tod": -0.4423,
     "f26_stoch": 0.2945,
-    "id": "cc4524fc",
+    "id": "76701c7c",
     "pool": "STOCKS_SPX500_15M",
-    "created_at": "2026-06-24T15:00:13.629560+00:00"
+    "created_at": "2026-06-24T15:00:12.592465+00:00"
   }
 ]
