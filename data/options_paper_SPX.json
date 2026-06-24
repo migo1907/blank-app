@@ -221,7 +221,7 @@
     "half_size": false,
     "expected_move": 44.8,
     "tv_symbol": "OPRA:SPXW260624P7345",
-    "status": "OPEN",
+    "status": "CLOSED",
     "paper": true,
     "strategy": "long_option",
     "features": {
@@ -256,6 +256,11 @@
     "ml_score": null,
     "ml_interval": null,
     "ml_shap_top": null,
-    "wide_uncertainty": false
+    "wide_uncertainty": false,
+    "exit_premium": 3.2,
+    "exit_reason": "SL -50%",
+    "closed_at": "2026-06-24T15:05:02.392704+00:00",
+    "pnl_pct": -69.8,
+    "loss_reason": "IV_CRUSH"
   }
 ]
