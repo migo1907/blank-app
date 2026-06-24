@@ -193,9 +193,9 @@
     "timeframe": "30",
     "symbol": "IBKR",
     "trigger": "FVG",
-    "ml_score": 0.5,
-    "stored_at": "2026-06-23T19:00:28.515486+00:00",
-    "expires_at": "2026-06-23T21:00:28.515500+00:00"
+    "ml_score": 0.75,
+    "stored_at": "2026-06-24T14:00:07.616446+00:00",
+    "expires_at": "2026-06-24T16:00:07.616465+00:00"
   },
   "AAPL_30": {
     "direction": "SHORT",
@@ -313,5 +313,14 @@
     "ml_score": 0.625,
     "stored_at": "2026-06-24T14:00:06.353602+00:00",
     "expires_at": "2026-06-24T16:00:06.353617+00:00"
+  },
+  "HTZ_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "HTZ",
+    "trigger": "BOS",
+    "ml_score": 0.75,
+    "stored_at": "2026-06-24T14:00:07.240684+00:00",
+    "expires_at": "2026-06-24T16:00:07.240706+00:00"
   }
 }
