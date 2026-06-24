@@ -102,10 +102,10 @@
     "direction": "SHORT",
     "timeframe": "60",
     "symbol": "IBKR",
-    "trigger": "RSI",
-    "ml_score": 0.625,
-    "stored_at": "2026-06-23T17:30:36.605831+00:00",
-    "expires_at": "2026-06-23T21:30:36.605856+00:00"
+    "trigger": "FVG",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-24T14:30:19.057675+00:00",
+    "expires_at": "2026-06-24T18:30:19.057694+00:00"
   },
   "MU_60": {
     "direction": "SHORT",
@@ -403,5 +403,14 @@
     "ml_score": 0.25,
     "stored_at": "2026-06-24T14:30:18.808786+00:00",
     "expires_at": "2026-06-24T16:30:18.808804+00:00"
+  },
+  "BBAI_60": {
+    "direction": "SHORT",
+    "timeframe": "60",
+    "symbol": "BBAI",
+    "trigger": "BOS",
+    "ml_score": 0.75,
+    "stored_at": "2026-06-24T14:30:18.928206+00:00",
+    "expires_at": "2026-06-24T18:30:18.928216+00:00"
   }
 }
