@@ -1,13 +1,13 @@
 {
-  "bias": -0.3455,
+  "bias": -0.2122,
   "label": "BEARISH",
   "components": {
-    "real_yield": -0.4667,
+    "real_yield": -0.0667,
     "dollar": -0.5633,
     "breakeven": -0.1333,
     "cot": 0.1836
   },
-  "real_yield": 2.28,
+  "real_yield": 2.29,
   "dollar": 120.3958,
   "breakeven": 2.21,
   "cot": {
@@ -20,19 +20,19 @@
   },
   "gld": {
     "date": "2026-06-24",
-    "price": 365.41,
+    "price": 365.92,
     "price_prev": 377.32,
-    "price_change": -11.9103,
+    "price_change": -11.4,
     "tonnes": null,
-    "tonnes_change": -11.9103,
+    "tonnes_change": -11.4,
     "source": "yfinance_proxy"
   },
   "dxy_break": {
     "direction": "UP",
-    "strength": 0.083,
-    "level": 101.618
+    "strength": 0.07,
+    "level": 101.584
   },
-  "updated_at": "2026-06-24T19:44:54.257295+00:00",
+  "updated_at": "2026-06-24T20:44:54.104628+00:00",
   "sources_live": {
     "fred": true,
     "cot": true,
