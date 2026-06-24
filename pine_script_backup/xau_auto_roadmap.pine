@@ -221,11 +221,11 @@ if barstate.islast
 
     if i_showBull
         swMid = (buyHi + buyLo) / 2.0
-        f_seg(segs, x,     close,     x+p,   swMid)
-        f_seg(segs, x+p,   swMid,     x+2*p, longEntry)
-        f_seg(segs, x+2*p, longEntry, x+3*p, t1)
-        f_seg(segs, x+3*p, t1,        x+4*p, t2)
-        f_seg(segs, x+4*p, t2,        x+5*p, t3)
+        f_seg(segs, x,     close,     x+p,   swMid,     cG)
+        f_seg(segs, x+p,   swMid,     x+2*p, longEntry, cG)
+        f_seg(segs, x+2*p, longEntry, x+3*p, t1,        cG)
+        f_seg(segs, x+3*p, t1,        x+4*p, t2,        cG)
+        f_seg(segs, x+4*p, t2,        x+5*p, t3,        cG)
         f_lbl(lbls, x+p,   swMid,     "SWEEP "+str.tostring(buyHi,"#.#")+"/"+str.tostring(buyLo,"#.#"), cG)
         f_lbl(lbls, x+2*p, longEntry, "BUY "+str.tostring(longEntry,"#.#")+"  stop "+str.tostring(longStop,"#.#"), cG)
         f_lbl(lbls, x+3*p, t1, "T1 "+str.tostring(t1,"#.#")+"  +"+f_pts(t1,longEntry)+" ("+f_rr(t1)+")", color.aqua)
@@ -233,10 +233,10 @@ if barstate.islast
         f_lbl(lbls, x+5*p, t3, "T3 "+str.tostring(t3,"#.#")+"  +"+f_pts(t3,longEntry)+" ("+f_rr(t3)+")", color.orange)
 
     if i_showBear
-        f_seg(segs, x,     close,    x+p,   sellHi)
-        f_seg(segs, x+p,   sellHi,   x+2*p, d1)
-        f_seg(segs, x+2*p, d1,       x+3*p, d2)
-        f_seg(segs, x+3*p, d2,       x+4*p, d3)
+        f_seg(segs, x,     close,    x+p,   sellHi, cR)
+        f_seg(segs, x+p,   sellHi,   x+2*p, d1,     cR)
+        f_seg(segs, x+2*p, d1,       x+3*p, d2,     cR)
+        f_seg(segs, x+3*p, d2,       x+4*p, d3,     cR)
         f_lbl(lbls, x+p,   sellHi, "SELL "+str.tostring(sellHi,"#.#")+" (reject) / break <"+str.tostring(buyHi,"#.#"), cR)
         f_lbl(lbls, x+2*p, d1, "D1 "+str.tostring(d1,"#.#")+"  -"+f_pts(sellHi,d1), color.fuchsia)
         f_lbl(lbls, x+3*p, d2, "D2 "+str.tostring(d2,"#.#")+"  -"+f_pts(sellHi,d2), color.fuchsia)
