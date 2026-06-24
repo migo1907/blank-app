@@ -1,37 +1,6 @@
 {
   "signals": [
     {
-      "direction": "SHORT",
-      "timeframe": "240",
-      "trigger": "BOS",
-      "symbol": "PLTR",
-      "entry_price": 119.45,
-      "tp1": 106.61,
-      "tp2": 95.91,
-      "tp3": 80.93,
-      "sl": 132.29,
-      "ml_score": 0.5,
-      "tier": "\u26a1 LOW",
-      "quality_score": 0.5092,
-      "quality_reason": "approved",
-      "news_score": -0.1177,
-      "velocity": "CONFLICTED",
-      "event": "GEOPOLITICAL",
-      "htf_bias": {
-        "direction": "SHORT",
-        "timeframe": "240",
-        "symbol": "PLTR",
-        "trigger": "BOS",
-        "ml_score": 0.5,
-        "stored_at": "2026-06-22T20:00:08.743540+00:00",
-        "expires_at": "2026-06-23T04:00:08.743559+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "htf_direct",
-      "session": "NYSE Afternoon",
-      "fired_at": "2026-06-22T20:00:09.300881+00:00"
-    },
-    {
       "direction": "LONG",
       "timeframe": "15",
       "trigger": "RSI",
@@ -2867,6 +2836,37 @@
       "htf_context": "htf_direct",
       "session": "NYSE Afternoon",
       "fired_at": "2026-06-24T17:31:00.490012+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "15",
+      "trigger": "FVG",
+      "symbol": "SPY",
+      "entry_price": 731.95,
+      "tp1": 728.38,
+      "tp2": 725.71,
+      "tp3": 722.14,
+      "sl": 735.52,
+      "ml_score": 0.625,
+      "tier": "\u2705 MED",
+      "quality_score": 0.4578,
+      "quality_reason": "approved",
+      "news_score": -0.3384,
+      "velocity": "LOW",
+      "event": "WAR/CONFLICT",
+      "htf_bias": {
+        "direction": "SHORT",
+        "timeframe": "30",
+        "symbol": "SPY",
+        "trigger": "FVG",
+        "ml_score": 0.5,
+        "stored_at": "2026-06-24T17:30:01.815134+00:00",
+        "expires_at": "2026-06-24T19:30:01.815142+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "with_bias",
+      "session": "NYSE Afternoon",
+      "fired_at": "2026-06-24T17:45:14.594113+00:00"
     }
   ]
 }
