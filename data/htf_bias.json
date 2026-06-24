@@ -241,5 +241,23 @@
     "ml_score": 0.875,
     "stored_at": "2026-06-24T03:02:01.730576+00:00",
     "expires_at": "2026-06-24T05:02:01.730589+00:00"
+  },
+  "XAUUSD_60": {
+    "direction": "SHORT",
+    "timeframe": "60",
+    "symbol": "XAUUSD",
+    "trigger": "BOS",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-24T03:02:01.744862+00:00",
+    "expires_at": "2026-06-24T07:02:01.744872+00:00"
+  },
+  "US500_60": {
+    "direction": "LONG",
+    "timeframe": "60",
+    "symbol": "US500",
+    "trigger": "RSI",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-24T05:00:03.250532+00:00",
+    "expires_at": "2026-06-24T09:00:03.250548+00:00"
   }
 }
