@@ -1,37 +1,6 @@
 {
   "signals": [
     {
-      "direction": "LONG",
-      "timeframe": "5",
-      "trigger": "FVG",
-      "symbol": "XAUUSD",
-      "entry_price": 4206.35,
-      "tp1": 4213.13,
-      "tp2": 4217.65,
-      "tp3": 4224.44,
-      "sl": 4199.57,
-      "ml_score": 0.5,
-      "tier": "\u26a1 LOW",
-      "quality_score": 0.4612,
-      "quality_reason": "approved",
-      "news_score": -0.3384,
-      "velocity": "NORMAL",
-      "event": "GEOPOLITICAL",
-      "htf_bias": {
-        "direction": "LONG",
-        "timeframe": "30",
-        "symbol": "XAUUSD",
-        "trigger": "FVG",
-        "ml_score": 0.625,
-        "stored_at": "2026-06-22T05:32:01.767066+00:00",
-        "expires_at": "2026-06-22T07:32:01.767073+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "with_bias",
-      "session": "Asian",
-      "fired_at": "2026-06-22T06:52:02.607757+00:00"
-    },
-    {
       "direction": "SHORT",
       "timeframe": "5",
       "trigger": "RSI",
@@ -2867,6 +2836,37 @@
       "htf_context": "htf_direct",
       "session": "NYSE Open",
       "fired_at": "2026-06-24T14:00:28.990321+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "60",
+      "trigger": "BOS",
+      "symbol": "BBAI",
+      "entry_price": 3.66,
+      "tp1": 3.46,
+      "tp2": 3.31,
+      "tp3": 3.11,
+      "sl": 3.86,
+      "ml_score": 0.75,
+      "tier": "\u2b50 HIGH",
+      "quality_score": 0.4112,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.3057,
+      "velocity": "ELEVATED",
+      "event": "FOMC",
+      "htf_bias": {
+        "direction": "SHORT",
+        "timeframe": "60",
+        "symbol": "BBAI",
+        "trigger": "BOS",
+        "ml_score": 0.75,
+        "stored_at": "2026-06-24T14:30:18.928206+00:00",
+        "expires_at": "2026-06-24T18:30:18.928216+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "htf_direct",
+      "session": "NYSE Open",
+      "fired_at": "2026-06-24T14:30:18.930738+00:00"
     }
   ]
 }
