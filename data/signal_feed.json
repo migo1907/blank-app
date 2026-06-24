@@ -1,37 +1,6 @@
 {
   "signals": [
     {
-      "direction": "SHORT",
-      "timeframe": "30",
-      "trigger": "FVG",
-      "symbol": "XAUUSD",
-      "entry_price": 4185.81,
-      "tp1": 4160.94,
-      "tp2": 4142.85,
-      "tp3": 4117.98,
-      "sl": 4210.68,
-      "ml_score": 0.375,
-      "tier": "\u26a1 LOW",
-      "quality_score": 0.5294,
-      "quality_reason": "approved",
-      "news_score": -0.2686,
-      "velocity": "LOW",
-      "event": "CPI",
-      "htf_bias": {
-        "direction": "SHORT",
-        "timeframe": "30",
-        "symbol": "XAUUSD",
-        "trigger": "FVG",
-        "ml_score": 0.375,
-        "stored_at": "2026-06-22T13:32:02.614570+00:00",
-        "expires_at": "2026-06-22T15:32:02.614591+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "htf_direct",
-      "session": "London/NY Overlap",
-      "fired_at": "2026-06-22T13:32:02.987501+00:00"
-    },
-    {
       "direction": "LONG",
       "timeframe": "5",
       "trigger": "OB",
@@ -2875,6 +2844,37 @@
       "htf_context": "scalp",
       "session": "NYSE Open",
       "fired_at": "2026-06-24T14:45:11.157099+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "30",
+      "trigger": "BOS",
+      "symbol": "TNA",
+      "entry_price": 74.49,
+      "tp1": 76.73,
+      "tp2": 78.35,
+      "tp3": 80.59,
+      "sl": 72.25,
+      "ml_score": 0.5,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.4297,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.2108,
+      "velocity": "LOW",
+      "event": "WAR/CONFLICT",
+      "htf_bias": {
+        "direction": "LONG",
+        "timeframe": "30",
+        "symbol": "TNA",
+        "trigger": "BOS",
+        "ml_score": 0.5,
+        "stored_at": "2026-06-24T15:30:26.233562+00:00",
+        "expires_at": "2026-06-24T17:30:26.233577+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "htf_direct",
+      "session": "NYSE Open",
+      "fired_at": "2026-06-24T15:30:26.735931+00:00"
     }
   ]
 }
