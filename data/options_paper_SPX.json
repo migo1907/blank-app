@@ -89,7 +89,7 @@
     "half_size": false,
     "expected_move": 59.8,
     "tv_symbol": "OPRA:SPXW260624C7440",
-    "status": "OPEN",
+    "status": "CLOSED",
     "paper": true,
     "strategy": "long_option",
     "features": {
@@ -124,7 +124,12 @@
     "ml_score": null,
     "ml_interval": null,
     "ml_shap_top": null,
-    "wide_uncertainty": false
+    "wide_uncertainty": false,
+    "exit_premium": 5.55,
+    "exit_reason": "SL -50%",
+    "closed_at": "2026-06-24T14:05:02.317349+00:00",
+    "pnl_pct": -56.3,
+    "loss_reason": "WRONG_DIRECTION"
   },
   {
     "id": "260623180005",
@@ -150,7 +155,7 @@
     "half_size": false,
     "expected_move": 57.7,
     "tv_symbol": "OPRA:SPXW260624C7440",
-    "status": "OPEN",
+    "status": "CLOSED",
     "paper": true,
     "strategy": "long_option",
     "features": {
@@ -185,7 +190,12 @@
     "ml_score": null,
     "ml_interval": null,
     "ml_shap_top": null,
-    "wide_uncertainty": false
+    "wide_uncertainty": false,
+    "exit_premium": 5.55,
+    "exit_reason": "SL -50%",
+    "closed_at": "2026-06-24T14:05:03.430222+00:00",
+    "pnl_pct": -58.0,
+    "loss_reason": "WRONG_DIRECTION"
   },
   {
     "id": "260624134513",
