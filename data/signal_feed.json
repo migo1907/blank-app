@@ -3,37 +3,6 @@
     {
       "direction": "LONG",
       "timeframe": "15",
-      "trigger": "RSI",
-      "symbol": "NOW",
-      "entry_price": 93.03,
-      "tp1": 94.14,
-      "tp2": 94.98,
-      "tp3": 96.09,
-      "sl": 91.92,
-      "ml_score": 0.5,
-      "tier": "\u26a1 LOW",
-      "quality_score": 0.4104,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.1177,
-      "velocity": "CONFLICTED",
-      "event": "GEOPOLITICAL",
-      "htf_bias": null,
-      "contra_bias": {
-        "direction": "SHORT",
-        "timeframe": "60",
-        "symbol": "NOW",
-        "trigger": "BOS",
-        "ml_score": 0.375,
-        "stored_at": "2026-06-22T16:30:01.375940+00:00",
-        "expires_at": "2026-06-22T20:30:01.375958+00:00"
-      },
-      "htf_context": "counter_trend",
-      "session": "NYSE Afternoon",
-      "fired_at": "2026-06-22T20:00:15.166756+00:00"
-    },
-    {
-      "direction": "LONG",
-      "timeframe": "15",
       "trigger": "BOS",
       "symbol": "MU",
       "entry_price": 1213.14,
@@ -2867,6 +2836,37 @@
       "htf_context": "with_bias",
       "session": "NYSE Afternoon",
       "fired_at": "2026-06-24T17:45:14.594113+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "30",
+      "trigger": "FVG",
+      "symbol": "IBKR",
+      "entry_price": 93.11,
+      "tp1": 91.34,
+      "tp2": 90.05,
+      "tp3": 88.28,
+      "sl": 94.88,
+      "ml_score": 0.375,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.4421,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.2587,
+      "velocity": "LOW",
+      "event": "WAR/CONFLICT",
+      "htf_bias": {
+        "direction": "SHORT",
+        "timeframe": "30",
+        "symbol": "IBKR",
+        "trigger": "FVG",
+        "ml_score": 0.375,
+        "stored_at": "2026-06-24T18:00:26.162524+00:00",
+        "expires_at": "2026-06-24T20:00:26.162530+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "htf_direct",
+      "session": "NYSE Afternoon",
+      "fired_at": "2026-06-24T18:00:26.565101+00:00"
     }
   ]
 }
