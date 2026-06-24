@@ -3006,7 +3006,7 @@
     "mtf_confluence": "mtf:2/3",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:VOLATILE(VOLATILE)\u00d70.92 | hmm:VOLATILE(1.00)\u00d70.95 | imkt:VIX-NORMAL(19.21)\u00d70.97 | mtf:2/3\u00d71.03 | evt:na\u00d71.00 | sess:NYSE_OPEN\u00d71.25 | confluence\u00d70.83 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.31) | news:bearish(-0.236) | macro:BEARISH(-0.424) | combined:-0.503 \u2192 conf:0.545 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-24T15:15:02.980870+00:00",
     "created_at": "2026-06-24T14:45:04.589472+00:00",
     "id": 101
@@ -3040,7 +3040,7 @@
     "mtf_confluence": "mtf:2/3",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:VOLATILE(0.99)\u00d70.95 | imkt:VIX-NORMAL(19.21)\u00d70.97 | mtf:2/3\u00d71.03 | evt:na\u00d71.00 | sess:NYSE_OPEN\u00d71.25 | confluence\u00d70.91 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.27) | news:bearish(-0.236) | macro:BEARISH(-0.424) | combined:-0.118 \u2192 conf:0.300 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-24T15:15:08.622408+00:00",
     "created_at": "2026-06-24T14:45:09.080736+00:00",
     "id": 101
@@ -3074,7 +3074,7 @@
     "mtf_confluence": "mtf:3/3",
     "post_event": "evt:na",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:TRENDING_BEAR(TREND_FOLLOW)\u00d71.15 | hmm:VOLATILE(0.67)\u21c4\u00d70.92 | imkt:DXY-UP(0.10)\u00d71.01 | mtf:3/3\u00d71.08 | evt:na\u00d71.00 | sess:OVERLAP\u00d71.30 | confluence\u00d71.35 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-1.00) | news:bearish(-0.210) | macro:BEARISH(-0.345) | combined:-0.123 \u2192 conf:0.247 \u26a1 FOMC",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-24T15:29:47.125642+00:00",
     "created_at": "2026-06-24T14:59:48.589729+00:00",
     "id": 101
