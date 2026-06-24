@@ -306,10 +306,17 @@ if barstate.islast
     biasTxt  = htfBull ? "UP" : "DOWN"
     head     = "WAIT"
     hbg      = color.new(color.gray, 30)
-    entryTxt = "-"
-    stopTxt  = "-"
-    tpTxt    = "-"
-    noteTxt  = "Do nothing until a BUY or SELL box appears here"
+    noteTxt  = "No trigger yet. Numbers below are the PLAN only - do not enter."
+    // Default (WAIT): show the bias-aligned scenario so the panel always
+    // mirrors the levels already drawn on the chart. "~" = estimate, not live.
+    planEntry = htfBull ? longEntry : sellEntry
+    planStop  = htfBull ? longStop  : sellHi + i_stopBuf
+    planT1    = htfBull ? t1 : d1
+    planT2    = htfBull ? t2 : d2
+    planT3    = htfBull ? t3 : d3
+    entryTxt = "~"+str.tostring(planEntry,"#.#")
+    stopTxt  = "~"+str.tostring(planStop,"#.#")
+    tpTxt    = "~"+str.tostring(planT1,"#.#")+" / "+str.tostring(planT2,"#.#")+" / "+str.tostring(planT3,"#.#")
     if actState == 3
         head     := "BUY NOW"
         hbg      := color.new(color.green, 0)
@@ -328,12 +335,16 @@ if barstate.islast
         head     := "GET READY (BUY)"
         hbg      := color.new(color.olive, 0)
         entryTxt := "~"+str.tostring(longEntry,"#.#")
-        noteTxt  := "Setup forming. Do NOT enter until it says BUY NOW."
+        stopTxt  := "~"+str.tostring(longStop,"#.#")
+        tpTxt    := "~"+str.tostring(t1,"#.#")+" / "+str.tostring(t2,"#.#")+" / "+str.tostring(t3,"#.#")
+        noteTxt  := "BUY setup forming. Do NOT enter until it says BUY NOW."
     else if atSupply
         head     := "GET READY (SELL)"
         hbg      := color.new(color.maroon, 0)
         entryTxt := "~"+str.tostring(sellEntry,"#.#")
-        noteTxt  := "Setup forming. Do NOT enter until it says SELL NOW."
+        stopTxt  := "~"+str.tostring(sellHi + i_stopBuf,"#.#")
+        tpTxt    := "~"+str.tostring(d1,"#.#")+" / "+str.tostring(d2,"#.#")+" / "+str.tostring(d3,"#.#")
+        noteTxt  := "SELL setup forming. Do NOT enter until it says SELL NOW."
 
     tfMode = i_autoTF ? "Auto TF" : "Manual TF"
     tfStr  = f_tfLabel(pivTF) + " / " + f_tfLabel(htfTF) + " / " + f_tfLabel(structTF)
