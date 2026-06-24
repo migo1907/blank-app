@@ -318,10 +318,10 @@
     "direction": "SHORT",
     "timeframe": "30",
     "symbol": "BBAI",
-    "trigger": "FVG",
-    "ml_score": 0.25,
-    "stored_at": "2026-06-24T14:30:18.808786+00:00",
-    "expires_at": "2026-06-24T16:30:18.808804+00:00"
+    "trigger": "BOS",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-24T18:00:32.073924+00:00",
+    "expires_at": "2026-06-24T20:00:32.073938+00:00"
   },
   "BBAI_60": {
     "direction": "SHORT",
