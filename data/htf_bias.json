@@ -53,6 +53,15 @@
     "stored_at": "2026-06-24T14:30:09.109186+00:00",
     "expires_at": "2026-06-24T18:30:09.109209+00:00"
   },
+  "QQQ_60": {
+    "direction": "SHORT",
+    "timeframe": "60",
+    "symbol": "QQQ",
+    "trigger": "RSI",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-23T14:30:12.545195+00:00",
+    "expires_at": "2026-06-23T18:30:12.545204+00:00"
+  },
   "HOOD_60": {
     "direction": "SHORT",
     "timeframe": "60",
@@ -205,6 +214,15 @@
     "ml_score": 0.5,
     "stored_at": "2026-06-24T14:30:05.685744+00:00",
     "expires_at": "2026-06-24T18:30:05.685760+00:00"
+  },
+  "SPY_240": {
+    "direction": "SHORT",
+    "timeframe": "240",
+    "symbol": "SPY",
+    "trigger": "FVG",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-23T20:00:21.467247+00:00",
+    "expires_at": "2026-06-24T04:00:21.467264+00:00"
   },
   "XAUUSD_60": {
     "direction": "SHORT",
