@@ -243,12 +243,12 @@
     "expires_at": "2026-06-24T09:00:03.250548+00:00"
   },
   "XAUUSD_30": {
-    "direction": "LONG",
+    "direction": "SHORT",
     "timeframe": "30",
     "symbol": "XAUUSD",
-    "trigger": "OB",
-    "ml_score": 0.25,
-    "stored_at": "2026-06-24T08:32:01.651227+00:00",
-    "expires_at": "2026-06-24T10:32:01.651422+00:00"
+    "trigger": "FVG",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-24T10:02:00.767814+00:00",
+    "expires_at": "2026-06-24T12:02:00.767840+00:00"
   }
 }
