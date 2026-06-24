@@ -342,13 +342,13 @@
     "expires_at": "2026-06-24T18:30:20.150175+00:00"
   },
   "TNA_30": {
-    "direction": "LONG",
+    "direction": "SHORT",
     "timeframe": "30",
     "symbol": "TNA",
-    "trigger": "BOS",
+    "trigger": "FVG",
     "ml_score": 0.5,
-    "stored_at": "2026-06-24T15:30:26.233562+00:00",
-    "expires_at": "2026-06-24T17:30:26.233577+00:00"
+    "stored_at": "2026-06-24T18:00:09.190745+00:00",
+    "expires_at": "2026-06-24T20:00:09.190759+00:00"
   },
   "HTZ_30": {
     "direction": "SHORT",
