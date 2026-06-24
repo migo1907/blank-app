@@ -233,6 +233,15 @@
     "stored_at": "2026-06-23T20:00:21.467247+00:00",
     "expires_at": "2026-06-24T04:00:21.467264+00:00"
   },
+  "US500_60": {
+    "direction": "LONG",
+    "timeframe": "60",
+    "symbol": "US500",
+    "trigger": "RSI",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-24T05:00:03.250532+00:00",
+    "expires_at": "2026-06-24T09:00:03.250548+00:00"
+  },
   "XAUUSD_30": {
     "direction": "SHORT",
     "timeframe": "30",
