@@ -207,13 +207,13 @@
     "expires_at": "2026-06-24T20:30:07.991446+00:00"
   },
   "GOOGL_30": {
-    "direction": "LONG",
+    "direction": "SHORT",
     "timeframe": "30",
     "symbol": "GOOGL",
-    "trigger": "RSI",
+    "trigger": "BOS",
     "ml_score": 0.75,
-    "stored_at": "2026-06-24T14:00:05.276368+00:00",
-    "expires_at": "2026-06-24T16:00:05.276380+00:00"
+    "stored_at": "2026-06-24T19:00:03.547487+00:00",
+    "expires_at": "2026-06-24T21:00:03.547507+00:00"
   },
   "SPCX_30": {
     "direction": "SHORT",
