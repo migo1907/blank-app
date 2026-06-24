@@ -216,13 +216,13 @@
     "expires_at": "2026-06-24T16:00:06.154057+00:00"
   },
   "HTZ_60": {
-    "direction": "LONG",
+    "direction": "SHORT",
     "timeframe": "60",
     "symbol": "HTZ",
-    "trigger": "LIQ",
-    "ml_score": 0.625,
-    "stored_at": "2026-06-23T19:30:20.952758+00:00",
-    "expires_at": "2026-06-23T23:30:20.952777+00:00"
+    "trigger": "BOS",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-24T14:30:05.685744+00:00",
+    "expires_at": "2026-06-24T18:30:05.685760+00:00"
   },
   "SPY_240": {
     "direction": "SHORT",
@@ -232,15 +232,6 @@
     "ml_score": 0.5,
     "stored_at": "2026-06-23T20:00:21.467247+00:00",
     "expires_at": "2026-06-24T04:00:21.467264+00:00"
-  },
-  "US500_60": {
-    "direction": "LONG",
-    "timeframe": "60",
-    "symbol": "US500",
-    "trigger": "RSI",
-    "ml_score": 0.625,
-    "stored_at": "2026-06-24T05:00:03.250532+00:00",
-    "expires_at": "2026-06-24T09:00:03.250548+00:00"
   },
   "XAUUSD_30": {
     "direction": "SHORT",
@@ -349,5 +340,23 @@
     "ml_score": 0.5,
     "stored_at": "2026-06-24T14:00:17.576938+00:00",
     "expires_at": "2026-06-24T16:00:17.576951+00:00"
+  },
+  "CRM_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "CRM",
+    "trigger": "LIQ",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-24T14:00:31.183010+00:00",
+    "expires_at": "2026-06-24T16:00:31.183027+00:00"
+  },
+  "SMCI_60": {
+    "direction": "LONG",
+    "timeframe": "60",
+    "symbol": "SMCI",
+    "trigger": "LIQ",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-24T14:30:05.551161+00:00",
+    "expires_at": "2026-06-24T18:30:05.551178+00:00"
   }
 }
