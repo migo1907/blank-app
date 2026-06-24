@@ -3040,7 +3040,7 @@
     "mtf_confluence": "mtf:1/3\u26a0",
     "post_event": "evt:na",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:VOLATILE(VOLATILE)\u00d70.92 | hmm:VOLATILE(1.00)\u00d70.95 | imkt:VIX-NORMAL(19.25)\u00d70.97 | mtf:1/3\u26a0\u00d70.93 | evt:na\u00d71.00 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d70.91 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.18) | news:neutral(-0.177) | macro:BEARISH(-0.424) | combined:+0.088 \u2192 conf:0.300 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-24T19:29:56.787290+00:00",
     "created_at": "2026-06-24T18:59:58.441613+00:00",
     "id": 101
