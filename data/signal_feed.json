@@ -2844,6 +2844,29 @@
       "htf_context": "scalp",
       "session": "Closed",
       "fired_at": "2026-06-24T00:00:21.930851+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "15",
+      "trigger": "FVG",
+      "symbol": "US500",
+      "entry_price": 7363.4,
+      "tp1": 7343.23,
+      "tp2": 7328.1,
+      "tp3": 7307.93,
+      "sl": 7383.57,
+      "ml_score": 0.625,
+      "tier": "\u2705 MED",
+      "quality_score": 0.5077,
+      "quality_reason": "approved",
+      "news_score": -0.1373,
+      "velocity": "CONFLICTED",
+      "event": "WAR/CONFLICT",
+      "htf_bias": null,
+      "contra_bias": null,
+      "htf_context": "scalp",
+      "session": "Closed",
+      "fired_at": "2026-06-24T03:00:02.840991+00:00"
     }
   ]
 }
