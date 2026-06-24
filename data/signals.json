@@ -3040,7 +3040,7 @@
     "mtf_confluence": "mtf:2/3",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:VOLATILE(0.99)\u00d70.95 | imkt:VIX-NORMAL(19.49)\u00d70.97 | mtf:2/3\u00d71.03 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.95 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.13) | news:neutral(-0.123) | macro:BEARISH(-0.424) | combined:-0.477 \u2192 conf:0.311 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-24T02:14:59.729601+00:00",
     "created_at": "2026-06-24T01:45:01.105995+00:00",
     "id": 101
@@ -3074,7 +3074,7 @@
     "mtf_confluence": "mtf:3/3",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:RANGING(0.93)\u00d71.00 | imkt:DXY-UP(0.19)\u00d71.01 | mtf:3/3\u00d71.08 | evt:na\u00d71.00 | sess:ASIAN\u00d70.85 | confluence\u00d71.35 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-0.66) | news:neutral(-0.134) | macro:BEARISH(-0.345) | combined:-0.245 \u2192 conf:0.369 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-24T02:29:45.503765+00:00",
     "created_at": "2026-06-24T01:59:47.118646+00:00",
     "id": 101
@@ -3108,7 +3108,7 @@
     "mtf_confluence": "mtf:2/3",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:VOLATILE(0.99)\u00d70.95 | imkt:VIX-NORMAL(19.49)\u00d70.97 | mtf:2/3\u00d71.03 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d71.35 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.29) | news:neutral(-0.134) | macro:BEARISH(-0.424) | combined:-0.095 \u2192 conf:0.300 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-24T02:29:48.742451+00:00",
     "created_at": "2026-06-24T01:59:50.093564+00:00",
     "id": 101
