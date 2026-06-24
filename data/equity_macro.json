@@ -1,22 +1,22 @@
 {
-  "bias": -0.4242,
-  "label": "BEARISH",
+  "bias": -0.097,
+  "label": "NEUTRAL",
   "components": {
-    "real_yield": -0.4667,
-    "nominal_yield": -0.3333,
+    "real_yield": -0.0667,
+    "nominal_yield": 0.0667,
     "dollar": -0.5
   },
-  "real_yield": 2.28,
-  "nominal_yield": 4.51,
+  "real_yield": 2.29,
+  "nominal_yield": 4.5,
   "dollar": 120.3958,
-  "updated_at": "2026-06-24T19:44:54.257279+00:00",
+  "updated_at": "2026-06-24T20:44:54.104608+00:00",
   "sources_live": {
     "fred": true
   },
   "vix": {
-    "vix": 19.92,
-    "vix3m": 21.09,
-    "ratio": 0.945,
+    "vix": 18.63,
+    "vix3m": 20.37,
+    "ratio": 0.915,
     "regime": "NORMAL",
     "size_factor": 0.97,
     "backwardation": false
