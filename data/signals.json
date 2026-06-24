@@ -2986,7 +2986,7 @@
     "mtf_confluence": "mtf:2/3",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:VOLATILE(0.99)\u00d70.95 | imkt:VIX-NORMAL(19.21)\u00d70.97 | mtf:2/3\u00d71.03 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d71.35 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.29) | news:bearish(-0.366) | macro:BEARISH(-0.424) | combined:-0.168 \u2192 conf:0.300 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-24T10:14:49.004573+00:00",
     "created_at": "2026-06-24T09:44:50.442576+00:00",
     "id": 101
