@@ -2,37 +2,6 @@
   "signals": [
     {
       "direction": "LONG",
-      "timeframe": "30",
-      "trigger": "FVG",
-      "symbol": "XAUUSD",
-      "entry_price": 4207.32,
-      "tp1": 4243.53,
-      "tp2": 4269.86,
-      "tp3": 4306.07,
-      "sl": 4171.11,
-      "ml_score": 0.375,
-      "tier": "\u26a1 LOW",
-      "quality_score": 0.4996,
-      "quality_reason": "approved",
-      "news_score": -0.3319,
-      "velocity": "CONFLICTED",
-      "event": "GEOPOLITICAL",
-      "htf_bias": {
-        "direction": "LONG",
-        "timeframe": "60",
-        "symbol": "XAUUSD",
-        "trigger": "RSI",
-        "ml_score": 0.75,
-        "stored_at": "2026-06-22T01:02:02.169802+00:00",
-        "expires_at": "2026-06-22T05:02:02.169812+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "htf_direct",
-      "session": "Asian",
-      "fired_at": "2026-06-22T01:02:02.739920+00:00"
-    },
-    {
-      "direction": "LONG",
       "timeframe": "5",
       "trigger": "FVG",
       "symbol": "XAUUSD",
@@ -2891,6 +2860,37 @@
       "htf_context": "htf_direct",
       "session": "London",
       "fired_at": "2026-06-24T10:02:01.083906+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "30",
+      "trigger": "BOS",
+      "symbol": "XAUUSD",
+      "entry_price": 4012.29,
+      "tp1": 3977.18,
+      "tp2": 3951.65,
+      "tp3": 3916.54,
+      "sl": 4047.4,
+      "ml_score": 0.25,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.4663,
+      "quality_reason": "approved",
+      "news_score": -0.3146,
+      "velocity": "NORMAL",
+      "event": "WAR/CONFLICT",
+      "htf_bias": {
+        "direction": "SHORT",
+        "timeframe": "30",
+        "symbol": "XAUUSD",
+        "trigger": "BOS",
+        "ml_score": 0.25,
+        "stored_at": "2026-06-24T12:32:01.694316+00:00",
+        "expires_at": "2026-06-24T14:32:01.694331+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "htf_direct",
+      "session": "London",
+      "fired_at": "2026-06-24T12:32:01.988098+00:00"
     }
   ]
 }
