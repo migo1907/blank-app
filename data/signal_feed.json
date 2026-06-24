@@ -2821,6 +2821,29 @@
       "htf_context": "with_bias",
       "session": "Off-Hours",
       "fired_at": "2026-06-23T23:07:00.958446+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "15",
+      "trigger": "RSI",
+      "symbol": "US500",
+      "entry_price": 7380.4,
+      "tp1": 7403.92,
+      "tp2": 7421.56,
+      "tp3": 7445.08,
+      "sl": 7356.88,
+      "ml_score": 0.375,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.4725,
+      "quality_reason": "approved",
+      "news_score": -0.2924,
+      "velocity": "CONFLICTED",
+      "event": "WAR/CONFLICT",
+      "htf_bias": null,
+      "contra_bias": null,
+      "htf_context": "scalp",
+      "session": "Closed",
+      "fired_at": "2026-06-24T00:00:21.930851+00:00"
     }
   ]
 }
