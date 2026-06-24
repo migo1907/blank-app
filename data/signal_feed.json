@@ -2,6 +2,37 @@
   "signals": [
     {
       "direction": "SHORT",
+      "timeframe": "5",
+      "trigger": "FVG",
+      "symbol": "XAUUSD",
+      "entry_price": 4175.42,
+      "tp1": 4166.38,
+      "tp2": 4160.36,
+      "tp3": 4151.32,
+      "sl": 4184.46,
+      "ml_score": 0.5,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.4284,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.0917,
+      "velocity": "CONFLICTED",
+      "event": "WAR/CONFLICT",
+      "htf_bias": {
+        "direction": "SHORT",
+        "timeframe": "30",
+        "symbol": "XAUUSD",
+        "trigger": "BOS",
+        "ml_score": 0.5,
+        "stored_at": "2026-06-22T16:02:02.841847+00:00",
+        "expires_at": "2026-06-22T18:02:02.841873+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "with_bias",
+      "session": "London/NY Overlap",
+      "fired_at": "2026-06-22T16:12:03.614813+00:00"
+    },
+    {
+      "direction": "SHORT",
       "timeframe": "60",
       "trigger": "BOS",
       "symbol": "NOW",
@@ -2844,29 +2875,6 @@
       "htf_context": "with_bias",
       "session": "NYSE Afternoon",
       "fired_at": "2026-06-24T17:30:02.333104+00:00"
-    },
-    {
-      "direction": "SHORT",
-      "timeframe": "15",
-      "trigger": "FVG",
-      "symbol": "SOXL",
-      "entry_price": 217.45,
-      "tp1": 205.73,
-      "tp2": 196.94,
-      "tp3": 185.22,
-      "sl": 229.17,
-      "ml_score": 0.5,
-      "tier": "\u26a1 LOW",
-      "quality_score": 0.4077,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.2403,
-      "velocity": "NORMAL",
-      "event": "WAR/CONFLICT",
-      "htf_bias": null,
-      "contra_bias": null,
-      "htf_context": "scalp",
-      "session": "NYSE Afternoon",
-      "fired_at": "2026-06-24T17:30:04.826118+00:00"
     }
   ]
 }
