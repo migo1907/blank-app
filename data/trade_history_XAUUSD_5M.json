@@ -15528,13 +15528,13 @@
     "direction": "SHORT",
     "trigger": "BOS",
     "entry_price": 4051.22,
-    "exit_price": 4043.6117,
-    "outcome": "WIN",
-    "ml_outcome": "TP1_HIT",
+    "exit_price": 4053.06,
+    "outcome": "PARTIAL",
+    "ml_outcome": "WIN",
     "mfe": 0.0,
-    "tp_stage": "TP1",
+    "tp_stage": "SL_TP2",
     "timeframe": "5",
-    "pnl_pct": 0.1878,
+    "pnl_pct": -0.0454,
     "ml_bull_score": 0.5,
     "regime": "TRENDING_BEAR",
     "session": "LONDON",
@@ -15564,8 +15564,8 @@
     "f24_fvgq": 0.0,
     "f25_tod": 0.2504,
     "f26_stoch": 0.0644,
-    "id": "8b2c3636",
+    "id": "8718afbc",
     "pool": "XAUUSD_5M",
-    "created_at": "2026-06-24T11:17:09.327588+00:00"
+    "created_at": "2026-06-24T11:17:07.727720+00:00"
   }
 ]
