@@ -18400,7 +18400,7 @@
     }
   },
   {
-    "received_at": "2026-06-24T16:15:15.989073+00:00",
+    "received_at": "2026-06-24T16:15:15.857967+00:00",
     "pool": "STOCKS_MOMENTUM_15M",
     "payload": {
       "secret": "gold2026",
@@ -18416,11 +18416,11 @@
       "ml_score": 0.5,
       "tier": null,
       "trade_id": "HTZ_1782317709512",
-      "outcome": "WIN",
-      "ml_outcome": "TP1_HIT",
+      "outcome": "PARTIAL",
+      "ml_outcome": "WIN",
       "mfe": 0.0,
-      "tp_stage": "TP1",
-      "exit_price": 3.5264,
+      "tp_stage": "SL_TP1",
+      "exit_price": 3.615,
       "f1": -0.8775,
       "f2": -0.6192,
       "f3": 1.0,
