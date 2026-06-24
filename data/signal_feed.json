@@ -1,37 +1,6 @@
 {
   "signals": [
     {
-      "direction": "SHORT",
-      "timeframe": "15",
-      "trigger": "BOS",
-      "symbol": "MSFT",
-      "entry_price": 367.14,
-      "tp1": 364.29,
-      "tp2": 362.16,
-      "tp3": 359.32,
-      "sl": 369.99,
-      "ml_score": 0.75,
-      "tier": "\u2b50 HIGH",
-      "quality_score": 0.4618,
-      "quality_reason": "approved",
-      "news_score": -0.1177,
-      "velocity": "CONFLICTED",
-      "event": "GEOPOLITICAL",
-      "htf_bias": {
-        "direction": "SHORT",
-        "timeframe": "240",
-        "symbol": "MSFT",
-        "trigger": "BOS",
-        "ml_score": 0.5,
-        "stored_at": "2026-06-22T17:30:14.358657+00:00",
-        "expires_at": "2026-06-23T01:30:14.358681+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "with_bias",
-      "session": "NYSE Afternoon",
-      "fired_at": "2026-06-22T20:00:18.109924+00:00"
-    },
-    {
       "direction": "LONG",
       "timeframe": "15",
       "trigger": "BOS",
@@ -2867,6 +2836,29 @@
       "htf_context": "with_bias",
       "session": "NYSE Afternoon",
       "fired_at": "2026-06-24T19:15:16.752360+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "15",
+      "trigger": "LIQ",
+      "symbol": "SPCX",
+      "entry_price": 156.72,
+      "tp1": 152.65,
+      "tp2": 149.59,
+      "tp3": 145.52,
+      "sl": 160.79,
+      "ml_score": 0.5,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.426,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.1186,
+      "velocity": "CONFLICTED",
+      "event": "WAR/CONFLICT",
+      "htf_bias": null,
+      "contra_bias": null,
+      "htf_context": "scalp",
+      "session": "NYSE Afternoon",
+      "fired_at": "2026-06-24T19:30:13.239755+00:00"
     }
   ]
 }
