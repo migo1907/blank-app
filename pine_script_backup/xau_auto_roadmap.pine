@@ -1,38 +1,37 @@
 //@version=6
 // =============================================================================
-//  XAU INTRADAY AUTO SCENARIO ROADMAP   (self-leveling - nothing to type)
+//  XAU INTRADAY AUTO SCENARIO ROADMAP   (self-leveling, plain-language plan)
 //  -------------------------------------------------------------------------
-//  Levels are computed automatically every session:
-//   - Backbone : prior-day CLASSIC PIVOTS (PP, R1-R3, S1-S3) = same framework
-//                as your brief. Non-repainting (uses the completed prior day).
-//   - Zones    : nearest support BELOW price = BUY zone, nearest resistance
-//                ABOVE price = SELL/supply zone, sized by ATR.
-//   - Targets  : the next pivots above/below; far target can snap to a
-//                higher-timeframe swing (the magnet) when one exists.
-//   - Triggers : sweep + reclaim + 5M CHoCH (long) / supply reject or floor
-//                break (short) - drawn as BUY/SELL arrows when they fire.
+//  Read ONLY the big colored box in the panel:
+//    GRAY  = WAIT (do nothing)
+//    OLIVE / DARK RED = GET READY (do not enter yet)
+//    GREEN = BUY NOW  (use the Entry / Stop / Take profit shown)
+//    RED   = SELL NOW (use the Entry / Stop / Take profit shown)
+//  A matching BUY/SELL arrow prints on the chart at the same moment.
 //
-//  APPLY ON THE 5-MINUTE CHART. No inputs needed; tweak only if you want.
+//  Levels are computed automatically from prior-day pivots + ATR, with an
+//  optional higher-timeframe swing as the far target. Nothing to type.
+//  APPLY ON THE 5-MINUTE CHART.
 // =============================================================================
 indicator("XAU Auto Scenario Roadmap", shorttitle="XAU Auto Roadmap", overlay=true, max_lines_count=200, max_labels_count=300, max_boxes_count=20)
 
-// ---------- INPUTS: Auto-level engine (optional tuning) ----------
+// ---------- INPUTS: Auto-level engine ----------
 grpA = "Auto Levels"
-i_pivTF    = input.timeframe("D",  "Pivot source timeframe", group=grpA, tooltip="Daily pivots for intraday scalping. Use W for swing.")
-i_zoneMult = input.float(0.5, "Zone width (x ATR)", group=grpA, minval=0.1, step=0.1)
-i_useHTF   = input.bool(true, "Use HTF swing as far-target magnet", group=grpA)
-i_structTF = input.timeframe("240", "HTF swing timeframe", group=grpA, tooltip="Higher-TF swing high/low used as the far magnet (e.g. 4H).")
-i_atrLen   = input.int(14, "ATR length", group=grpA)
+i_pivTF    = input.timeframe("D",   "Pivot source timeframe", group=grpA)
+i_zoneMult = input.float(0.5,       "Zone width (x ATR)", group=grpA, minval=0.1, step=0.1)
+i_useHTF   = input.bool(true,       "Use HTF swing as far-target magnet", group=grpA)
+i_structTF = input.timeframe("240", "HTF swing timeframe", group=grpA)
+i_atrLen   = input.int(14,          "ATR length", group=grpA)
 
 // ---------- INPUTS: Engine ----------
 grpE = "Engine"
-i_htf     = input.timeframe("60", "Trend gate timeframe", group=grpE)
-i_emaFast = input.int(50,  "Trend EMA fast", group=grpE)
-i_emaSlow = input.int(200, "Trend EMA slow", group=grpE)
-i_pivLen  = input.int(5,   "Swing length (CHoCH)", group=grpE)
-i_swLook  = input.int(12,  "Sweep recency window (bars)", group=grpE)
-i_stopBuf = input.float(8.0, "Stop buffer (points)", group=grpE)
-i_tol     = input.float(6.0, "Zone tolerance (points)", group=grpE)
+i_htf    = input.timeframe("60", "Trend gate timeframe", group=grpE)
+i_emaFast= input.int(50,  "Trend EMA fast", group=grpE)
+i_emaSlow= input.int(200, "Trend EMA slow", group=grpE)
+i_pivLen = input.int(5,   "Swing length (CHoCH)", group=grpE)
+i_swLook = input.int(12,  "Sweep recency window (bars)", group=grpE)
+i_stopBuf= input.float(8.0, "Stop buffer (points)", group=grpE)
+i_tol    = input.float(6.0, "Zone tolerance (points)", group=grpE)
 
 // ---------- INPUTS: Display ----------
 grpD = "Display"
@@ -42,10 +41,9 @@ i_showBear = input.bool(true, "Show BEAR scenario path", group=grpD)
 i_panelPos = input.string("Top Right", "Panel position", options=["Top Right","Top Left","Bottom Right","Bottom Left"], group=grpD)
 
 // ============================ AUTO LEVEL ENGINE ============================
-// prior-period OHLC (non-repainting: completed prior bar of the pivot TF)
-prevH = request.security(syminfo.tickerid, i_pivTF, high[1],  lookahead=barmerge.lookahead_on)
-prevL = request.security(syminfo.tickerid, i_pivTF, low[1],   lookahead=barmerge.lookahead_on)
-prevC = request.security(syminfo.tickerid, i_pivTF, close[1], lookahead=barmerge.lookahead_on)
+prevH = request.security(syminfo.tickerid, i_pivTF, high[1], lookahead=barmerge.lookahead_on)
+prevL = request.security(syminfo.tickerid, i_pivTF, low[1],  lookahead=barmerge.lookahead_on)
+prevC = request.security(syminfo.tickerid, i_pivTF, close[1],lookahead=barmerge.lookahead_on)
 
 PP = (prevH + prevL + prevC) / 3.0
 R1 = 2.0 * PP - prevL
@@ -58,7 +56,6 @@ S3 = prevL - 2.0 * (prevH - PP)
 atr = ta.atr(i_atrLen)
 w   = atr * i_zoneMult
 
-// split the (already ascending) pivot ladder into resistances-above / supports-below
 levels   = array.from(S3, S2, S1, PP, R1, R2, R3)
 resAbove = array.new<float>()
 supBelow = array.new<float>()
@@ -78,7 +75,7 @@ nearSup = nSup > 0 ? array.get(supBelow, nSup - 1) : close - atr * 2.0
 sup2    = nSup > 1 ? array.get(supBelow, nSup - 2) : nearSup - atr * 2.0
 sup3    = nSup > 2 ? array.get(supBelow, nSup - 3) : sup2 - atr * 2.0
 
-// optional HTF swing magnet for the far targets (extracted to functions = no repaint warning)
+// HTF swing magnet (extracted to functions = no repaint warning)
 f_htfPivH() => ta.pivothigh(5, 5)
 f_htfPivL() => ta.pivotlow(5, 5)
 htfPH = request.security(syminfo.tickerid, i_structTF, f_htfPivH(), lookahead=barmerge.lookahead_off)
@@ -90,7 +87,6 @@ if not na(htfPH)
 if not na(htfPL)
     lastHTFLow := htfPL
 
-// working levels
 buyHi  = nearSup + w
 buyLo  = nearSup - w
 sellLo = nearRes - w
@@ -124,7 +120,6 @@ if not na(pl)
     lastSwingLow := pl
 chochUp = not na(lastSwingHigh) and close > lastSwingHigh and close[1] <= lastSwingHigh
 
-// sweep + reclaim of the auto buy zone
 var bool  sweepArmed = false
 var float sweepLevel = na
 var int   sweepBar   = na
@@ -150,36 +145,56 @@ reclaimRecent = not na(lastReclaimBar) and (bar_index - lastReclaimBar) <= i_swL
 atSupply     = high >= sellLo - i_tol and close <= sellHi
 supplyReject = atSupply and close < open and (high - close) > (close - low)
 brokeFloor   = close < buyHi and close[1] >= buyHi
-longFire  = chochUp and reclaimRecent
-shortFire = supplyReject or brokeFloor
+rawLong  = chochUp and reclaimRecent
+rawShort = supplyReject or brokeFloor
 
-// keep the action on screen for a few bars after it fires, so it isn't missed
-var int actState = 0   // 0 none, 3 buy, 4 sell
-var int actBars  = 0
-if longFire
+// Fire only when not already in an active window (stops the arrow spam),
+// and FREEZE entry/stop/targets at the instant of firing so the panel
+// never drifts away from the price the signal was actually given at.
+var int   actState = 0
+var int   actBars  = 0
+var float entryF = na
+var float stopF  = na
+var float tp1F   = na
+var float tp2F   = na
+var float tp3F   = na
+
+newLong  = rawLong  and actBars == 0
+newShort = rawShort and actBars == 0 and not rawLong
+
+if newLong
     actState := 3
-    actBars  := 6
-else if shortFire
+    actBars  := 3
+    entryF := close
+    stopF  := math.min(buyLo, low) - i_stopBuf
+    tp1F   := t1
+    tp2F   := t2
+    tp3F   := t3
+else if newShort
     actState := 4
-    actBars  := 6
+    actBars  := 3
+    entryF := close
+    stopF  := math.max(sellHi, high) + i_stopBuf
+    tp1F   := d1
+    tp2F   := d2
+    tp3F   := d3
 else if actBars > 0
     actBars -= 1
     if actBars == 0
         actState := 0
 
-plotshape(longFire,  title="BUY",  style=shape.triangleup,   location=location.belowbar, color=color.new(color.lime,0), size=size.small, text="BUY")
-plotshape(shortFire, title="SELL", style=shape.triangledown, location=location.abovebar, color=color.new(color.red,0),  size=size.small, text="SELL")
-alertcondition(longFire,  "XAU BUY trigger",  "XAU bounce long triggered")
-alertcondition(shortFire, "XAU SELL trigger", "XAU short triggered")
+plotshape(newLong,  title="BUY",  style=shape.triangleup,   location=location.belowbar, color=color.new(color.lime,0), size=size.small, text="BUY")
+plotshape(newShort, title="SELL", style=shape.triangledown, location=location.abovebar, color=color.new(color.red,0),  size=size.small, text="SELL")
+alertcondition(newLong,  "XAU BUY trigger",  "XAU bounce long triggered")
+alertcondition(newShort, "XAU SELL trigger", "XAU short triggered")
 
 // ============================ CALCULATIONS =================================
 longEntry = buyHi
 longStop  = buyLo - i_stopBuf
 riskL     = math.max(longEntry - longStop, 1.0)
+sellEntry = sellHi
 f_pts(float a, float b) => str.tostring(math.round(math.abs(a - b)))
 f_rr(float tgt)         => str.tostring((tgt - longEntry) / riskL, "#.#") + "R"
-sellEntry = supplyReject ? sellHi : buyHi
-shortStop = sellHi + i_stopBuf
 
 // ============================ ZONES + TARGET LINES =========================
 var box buyBox  = na
@@ -242,7 +257,7 @@ if barstate.islast
         f_lbl(lbls, x+3*p, d2, "D2 "+str.tostring(d2,"#.#")+"  -"+f_pts(sellHi,d2), color.fuchsia)
         f_lbl(lbls, x+4*p, d3, "D3 "+str.tostring(d3,"#.#")+"  -"+f_pts(sellHi,d3), color.fuchsia)
 
-// ============================ CONCLUSION PANEL =============================
+// ============================ ACTION PANEL =================================
 f_pos() =>
     switch i_panelPos
         "Top Right"    => position.top_right
@@ -252,7 +267,7 @@ f_pos() =>
 var table panel = table.new(f_pos(), 2, 6, border_width=1)
 
 if barstate.islast
-    biasTxt = htfBull ? "UP" : "DOWN"
+    biasTxt  = htfBull ? "UP" : "DOWN"
     head     = "WAIT"
     hbg      = color.new(color.gray, 30)
     entryTxt = "-"
@@ -262,27 +277,27 @@ if barstate.islast
     if actState == 3
         head     := "BUY NOW"
         hbg      := color.new(color.green, 0)
-        entryTxt := str.tostring(longEntry, "#.#")
-        stopTxt  := str.tostring(longStop, "#.#")
-        tpTxt    := str.tostring(t1,"#.#")+" / "+str.tostring(t2,"#.#")+" / "+str.tostring(t3,"#.#")
+        entryTxt := str.tostring(entryF, "#.#")
+        stopTxt  := str.tostring(stopF, "#.#")
+        tpTxt    := str.tostring(tp1F,"#.#")+" / "+str.tostring(tp2F,"#.#")+" / "+str.tostring(tp3F,"#.#")
         noteTxt  := "Buy now. Set the stop. Bank profit at the targets."
     else if actState == 4
         head     := "SELL NOW"
         hbg      := color.new(color.red, 0)
-        entryTxt := str.tostring(sellEntry, "#.#")
-        stopTxt  := str.tostring(shortStop, "#.#")
-        tpTxt    := str.tostring(d1,"#.#")+" / "+str.tostring(d2,"#.#")+" / "+str.tostring(d3,"#.#")
+        entryTxt := str.tostring(entryF, "#.#")
+        stopTxt  := str.tostring(stopF, "#.#")
+        tpTxt    := str.tostring(tp1F,"#.#")+" / "+str.tostring(tp2F,"#.#")+" / "+str.tostring(tp3F,"#.#")
         noteTxt  := "Sell now. Set the stop. Bank profit at the targets."
     else if reclaimRecent
         head     := "GET READY (BUY)"
         hbg      := color.new(color.olive, 0)
         entryTxt := "~"+str.tostring(longEntry,"#.#")
-        noteTxt  := "Setup forming. DO NOT enter until it says BUY NOW."
+        noteTxt  := "Setup forming. Do NOT enter until it says BUY NOW."
     else if atSupply
         head     := "GET READY (SELL)"
         hbg      := color.new(color.maroon, 0)
         entryTxt := "~"+str.tostring(sellEntry,"#.#")
-        noteTxt  := "Setup forming. DO NOT enter until it says SELL NOW."
+        noteTxt  := "Setup forming. Do NOT enter until it says SELL NOW."
 
     table.cell(panel, 0, 0, "XAU PLAN", text_color=color.white, bgcolor=color.new(color.black,0))
     table.cell(panel, 1, 0, "Bias "+biasTxt, text_color = htfBull?color.lime:color.red, bgcolor=color.new(color.black,0))
