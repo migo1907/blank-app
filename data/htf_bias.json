@@ -277,23 +277,5 @@
     "ml_score": 0.75,
     "stored_at": "2026-06-24T14:00:05.239864+00:00",
     "expires_at": "2026-06-24T16:00:05.239870+00:00"
-  },
-  "GOOGL_30": {
-    "direction": "LONG",
-    "timeframe": "30",
-    "symbol": "GOOGL",
-    "trigger": "RSI",
-    "ml_score": 0.75,
-    "stored_at": "2026-06-24T14:00:05.276368+00:00",
-    "expires_at": "2026-06-24T16:00:05.276380+00:00"
-  },
-  "SPCX_30": {
-    "direction": "SHORT",
-    "timeframe": "30",
-    "symbol": "SPCX",
-    "trigger": "FVG",
-    "ml_score": 0.5,
-    "stored_at": "2026-06-24T14:00:05.286556+00:00",
-    "expires_at": "2026-06-24T16:00:05.286566+00:00"
   }
 }
