@@ -216,13 +216,13 @@
     "expires_at": "2026-06-24T16:00:06.154057+00:00"
   },
   "HTZ_60": {
-    "direction": "SHORT",
+    "direction": "LONG",
     "timeframe": "60",
     "symbol": "HTZ",
-    "trigger": "BOS",
-    "ml_score": 0.5,
-    "stored_at": "2026-06-24T14:30:05.685744+00:00",
-    "expires_at": "2026-06-24T18:30:05.685760+00:00"
+    "trigger": "LIQ",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-23T19:30:20.952758+00:00",
+    "expires_at": "2026-06-23T23:30:20.952777+00:00"
   },
   "SPY_240": {
     "direction": "SHORT",
