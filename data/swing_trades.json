@@ -1,32 +1,6 @@
 {
   "open": [
     {
-      "id": "LLY-2026-06-15",
-      "ticker": "LLY",
-      "entry_date": "2026-06-15",
-      "entry_price": 1129.35,
-      "atr": 40.96,
-      "tp": 1211.26,
-      "sl": 1088.39,
-      "combined_score": 0.79,
-      "features": {
-        "combined_score": 0.79,
-        "fund_score": 0.618,
-        "tech_score": 1.0,
-        "rsi": 61.6,
-        "rel_strength_pct": 9.4,
-        "target_upside_pct": 10.77,
-        "last_surprise_pct": 25.9,
-        "revenue_growth_pct": 55.5,
-        "earnings_growth_pct": 169.9,
-        "insider_net_buy": -1.0,
-        "short_pct_float": 1.1,
-        "news_7d": 172.0,
-        "imminent_earnings": 0.0
-      },
-      "opened_at": "2026-06-15T20:43:18.696954+00:00"
-    },
-    {
       "id": "UNH-2026-06-16",
       "ticker": "UNH",
       "entry_date": "2026-06-16",
@@ -129,32 +103,6 @@
         "imminent_earnings": 0.0
       },
       "opened_at": "2026-06-22T13:53:22.365138+00:00"
-    },
-    {
-      "id": "MRK-2026-06-22",
-      "ticker": "MRK",
-      "entry_date": "2026-06-22",
-      "entry_price": 113.77,
-      "atr": 3.05,
-      "tp": 119.87,
-      "sl": 110.72,
-      "combined_score": -0.001,
-      "features": {
-        "combined_score": -0.001,
-        "fund_score": 0.124,
-        "tech_score": -0.193,
-        "rsi": 44.1,
-        "rel_strength_pct": -6.2,
-        "target_upside_pct": 18.68,
-        "last_surprise_pct": 13.15,
-        "revenue_growth_pct": 4.9,
-        "earnings_growth_pct": 0.0,
-        "insider_net_buy": -1.0,
-        "short_pct_float": 1.2,
-        "news_7d": 46.0,
-        "imminent_earnings": 0.0
-      },
-      "opened_at": "2026-06-22T13:53:23.137684+00:00"
     },
     {
       "id": "AMZN-2026-06-22",
@@ -709,6 +657,72 @@
       "bars_held": 1,
       "label": 0,
       "closed_at": "2026-06-23T20:45:05.331221+00:00"
+    },
+    {
+      "id": "LLY-2026-06-15",
+      "ticker": "LLY",
+      "entry_date": "2026-06-15",
+      "entry_price": 1129.35,
+      "atr": 40.96,
+      "tp": 1211.26,
+      "sl": 1088.39,
+      "combined_score": 0.79,
+      "features": {
+        "combined_score": 0.79,
+        "fund_score": 0.618,
+        "tech_score": 1.0,
+        "rsi": 61.6,
+        "rel_strength_pct": 9.4,
+        "target_upside_pct": 10.77,
+        "last_surprise_pct": 25.9,
+        "revenue_growth_pct": 55.5,
+        "earnings_growth_pct": 169.9,
+        "insider_net_buy": -1.0,
+        "short_pct_float": 1.1,
+        "news_7d": 172.0,
+        "imminent_earnings": 0.0
+      },
+      "opened_at": "2026-06-15T20:43:18.696954+00:00",
+      "exit_date": "2026-06-23",
+      "exit_price": 1088.39,
+      "outcome": "LOSS",
+      "pnl_pct": -3.63,
+      "bars_held": 5,
+      "label": 0,
+      "closed_at": "2026-06-24T20:45:01.265978+00:00"
+    },
+    {
+      "id": "MRK-2026-06-22",
+      "ticker": "MRK",
+      "entry_date": "2026-06-22",
+      "entry_price": 113.77,
+      "atr": 3.05,
+      "tp": 119.87,
+      "sl": 110.72,
+      "combined_score": -0.001,
+      "features": {
+        "combined_score": -0.001,
+        "fund_score": 0.124,
+        "tech_score": -0.193,
+        "rsi": 44.1,
+        "rel_strength_pct": -6.2,
+        "target_upside_pct": 18.68,
+        "last_surprise_pct": 13.15,
+        "revenue_growth_pct": 4.9,
+        "earnings_growth_pct": 0.0,
+        "insider_net_buy": -1.0,
+        "short_pct_float": 1.2,
+        "news_7d": 46.0,
+        "imminent_earnings": 0.0
+      },
+      "opened_at": "2026-06-22T13:53:23.137684+00:00",
+      "exit_date": "2026-06-24",
+      "exit_price": 119.87,
+      "outcome": "WIN",
+      "pnl_pct": 5.36,
+      "bars_held": 2,
+      "label": 1,
+      "closed_at": "2026-06-24T20:45:03.301657+00:00"
     }
   ]
 }
