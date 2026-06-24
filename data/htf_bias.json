@@ -238,8 +238,17 @@
     "timeframe": "30",
     "symbol": "XAUUSD",
     "trigger": "BOS",
-    "ml_score": 1.0,
-    "stored_at": "2026-06-23T23:02:00.504049+00:00",
-    "expires_at": "2026-06-24T01:02:00.504063+00:00"
+    "ml_score": 0.875,
+    "stored_at": "2026-06-24T03:02:01.730576+00:00",
+    "expires_at": "2026-06-24T05:02:01.730589+00:00"
+  },
+  "XAUUSD_60": {
+    "direction": "SHORT",
+    "timeframe": "60",
+    "symbol": "XAUUSD",
+    "trigger": "BOS",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-24T03:02:01.744862+00:00",
+    "expires_at": "2026-06-24T07:02:01.744872+00:00"
   }
 }
