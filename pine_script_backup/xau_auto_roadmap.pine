@@ -306,7 +306,7 @@ if barstate.islast
     biasTxt  = htfBull ? "UP" : "DOWN"
     head     = "WAIT"
     hbg      = color.new(color.gray, 30)
-    noteTxt  = "No trigger yet. Numbers below are the PLAN only - do not enter."
+    noteTxt  = "WAIT - no setup. Watch the chart scenarios."
     // Default (WAIT): show the bias-aligned scenario so the panel always
     // mirrors the levels already drawn on the chart. "~" = estimate, not live.
     planEntry = htfBull ? longEntry : sellEntry
@@ -323,28 +323,28 @@ if barstate.islast
         entryTxt := str.tostring(entryF, "#.#")
         stopTxt  := str.tostring(stopF, "#.#")
         tpTxt    := str.tostring(tp1F,"#.#")+" / "+str.tostring(tp2F,"#.#")+" / "+str.tostring(tp3F,"#.#")
-        noteTxt  := "Buy now. Set the stop. Bank profit at the targets."
+        noteTxt  := "BUY NOW - enter long. Stop + targets as shown."
     else if actState == 4
         head     := "SELL NOW"
         hbg      := color.new(color.red, 0)
         entryTxt := str.tostring(entryF, "#.#")
         stopTxt  := str.tostring(stopF, "#.#")
         tpTxt    := str.tostring(tp1F,"#.#")+" / "+str.tostring(tp2F,"#.#")+" / "+str.tostring(tp3F,"#.#")
-        noteTxt  := "Sell now. Set the stop. Bank profit at the targets."
+        noteTxt  := "SELL NOW - enter short. Stop + targets as shown."
     else if reclaimRecent
         head     := "GET READY (BUY)"
         hbg      := color.new(color.olive, 0)
         entryTxt := "~"+str.tostring(longEntry,"#.#")
         stopTxt  := "~"+str.tostring(longStop,"#.#")
         tpTxt    := "~"+str.tostring(t1,"#.#")+" / "+str.tostring(t2,"#.#")+" / "+str.tostring(t3,"#.#")
-        noteTxt  := "BUY setup forming. Do NOT enter until it says BUY NOW."
+        noteTxt  := "WAIT - buy setup forming, not yet. Do NOT buy."
     else if atSupply
         head     := "GET READY (SELL)"
         hbg      := color.new(color.maroon, 0)
         entryTxt := "~"+str.tostring(sellEntry,"#.#")
         stopTxt  := "~"+str.tostring(sellHi + i_stopBuf,"#.#")
         tpTxt    := "~"+str.tostring(d1,"#.#")+" / "+str.tostring(d2,"#.#")+" / "+str.tostring(d3,"#.#")
-        noteTxt  := "SELL setup forming. Do NOT enter until it says SELL NOW."
+        noteTxt  := "WAIT - sell setup forming, not yet. Do NOT sell."
 
     tfMode = i_autoTF ? "Auto TF" : "Manual TF"
     tfStr  = f_tfLabel(pivTF) + " / " + f_tfLabel(htfTF) + " / " + f_tfLabel(structTF)
