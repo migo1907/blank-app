@@ -241,5 +241,68 @@
     "ml_score": 0.625,
     "stored_at": "2026-06-25T14:30:10.867902+00:00",
     "expires_at": "2026-06-25T18:30:10.867919+00:00"
+  },
+  "AMD_60": {
+    "direction": "SHORT",
+    "timeframe": "60",
+    "symbol": "AMD",
+    "trigger": "LIQ",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-25T14:30:12.855800+00:00",
+    "expires_at": "2026-06-25T18:30:12.855813+00:00"
+  },
+  "TNA_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "TNA",
+    "trigger": "FVG",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-25T14:30:15.983086+00:00",
+    "expires_at": "2026-06-25T16:30:15.983099+00:00"
+  },
+  "CRM_60": {
+    "direction": "LONG",
+    "timeframe": "60",
+    "symbol": "CRM",
+    "trigger": "LIQ",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-25T14:30:16.264038+00:00",
+    "expires_at": "2026-06-25T18:30:16.264053+00:00"
+  },
+  "HOOD_60": {
+    "direction": "SHORT",
+    "timeframe": "60",
+    "symbol": "HOOD",
+    "trigger": "OB",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-25T14:30:16.296665+00:00",
+    "expires_at": "2026-06-25T18:30:16.296679+00:00"
+  },
+  "IBKR_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "IBKR",
+    "trigger": "FVG",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-25T14:30:18.991884+00:00",
+    "expires_at": "2026-06-25T16:30:18.991901+00:00"
+  },
+  "PLUG_60": {
+    "direction": "SHORT",
+    "timeframe": "60",
+    "symbol": "PLUG",
+    "trigger": "BOS",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-25T14:30:21.948792+00:00",
+    "expires_at": "2026-06-25T18:30:21.948804+00:00"
+  },
+  "ADBE_60": {
+    "direction": "LONG",
+    "timeframe": "60",
+    "symbol": "ADBE",
+    "trigger": "LIQ",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-25T14:30:25.230587+00:00",
+    "expires_at": "2026-06-25T18:30:25.230601+00:00"
   }
 }
