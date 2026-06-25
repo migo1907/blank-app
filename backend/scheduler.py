@@ -1083,6 +1083,11 @@ async def _daily_trade_count_report() -> None:
                 continue
             for t in hist:
                 if t.get("created_at", "").startswith(today):
+                    # Exclude the 2M gold scalper from the daily report only.
+                    # It still trades and trains; its partials just net ~breakeven
+                    # and were inflating the headline. 5M + all other TFs still count.
+                    if str(t.get("timeframe", "")) == "2":
+                        continue
                     today_all.append(t)
 
         now_utc = datetime.now(timezone.utc)
@@ -1111,13 +1116,10 @@ async def _daily_trade_count_report() -> None:
             # This is the honest hit-rate; the headline WIN count only counts full TP3.
             reached_tp1 = tp + par
             hit_rate = reached_tp1 / total * 100 if total else 0.0
-            line = (
-                f"Signals: <b>{total}</b>  |  "
-                f"✅ TP: {tp}  🔶 Partial: {par}  ❌ SL: {sl}\n"
-                f"Reached TP1+: <b>{hit_rate:.0f}%</b>"
-            )
-            # Net-positive rate + expectancy from realized price (catches SL_TP1 partials
-            # that actually closed red on the fast gold scalps).
+            # Lead with the money truth: net-positive rate + expectancy from realized
+            # price. Partials that closed red (SL_TP1) drag these down honestly, so they
+            # are the headline. "Reached TP1+" is kept as a secondary touch-rate only.
+            line = f"Signals: <b>{total}</b>  |  ✅ TP: {tp}  🔶 Partial: {par}  ❌ SL: {sl}"
             if trades:
                 moves = [m for m in (_realized_pct(t) for t in trades) if m is not None]
                 if moves:
@@ -1127,6 +1129,7 @@ async def _daily_trade_count_report() -> None:
                         f"\nNet positive: <b>{net_pos:.0f}%</b>  |  "
                         f"Expectancy: <b>{expectancy:+.2f}%</b>/trade"
                     )
+            line += f"\n<i>Touch-rate (reached TP1+): {hit_rate:.0f}%</i>"
             return line
 
         # ── Overall ──────────────────────────────────────────────────────────

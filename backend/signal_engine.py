@@ -518,16 +518,32 @@ def score_entry_gate(pool: str, direction: str, trigger: str = "") -> dict:
 
     score     = sum(components.values()) / len(components)
 
-    # Session bleed guard — data-driven, self-healing. If the current session's
-    # historical WR in this pool is <30% over n>=30 trades, scale the score down.
-    # (June 11 audit: OVERLAP session ran 21% WR over 42 trades on XAUUSD_2M.)
+    # Session bleed guard — data-driven, self-healing, tiered. Uses the current
+    # session's realized hit-rate in this pool over n>=30 trades.
+    #   <23% WR  → hard block (these sessions lose money; June audit: the worst
+    #              session bucket ran ~20-23% WR across both gold pools).
+    #   <30% WR  → strong de-weight (×0.75).
+    #   <35% WR  → mild de-weight (×0.88).
+    # Self-deactivates as a session's WR recovers; needs n>=30 to engage at all.
     _, cur_session = _session_multiplier(datetime.now(timezone.utc), pool in STOCK_POOL_IDS)
     sess_rows = [t for t in history if t.get("session") == cur_session
                  and t.get("outcome") in ("WIN", "PARTIAL", "LOSS")]
     if len(sess_rows) >= 30:
         sess_wr = sum(1 for t in sess_rows if t["outcome"] in ("WIN", "PARTIAL")) / len(sess_rows)
-        if sess_wr < 0.30:
-            score *= 0.85
+        if sess_wr < 0.23:
+            components["session_guard"] = round(sess_wr, 3)
+            return {
+                "pass": False, "score": round(score * 0.5, 4),
+                "reason": "rejected_losing_session",
+                "components": components,
+                "threshold": _pool_thresholds.get(pool, ML_GATE_THRESHOLD),
+                "shap_drivers": [],
+            }
+        elif sess_wr < 0.30:
+            score *= 0.75
+            components["session_guard"] = round(sess_wr, 3)
+        elif sess_wr < 0.35:
+            score *= 0.88
             components["session_guard"] = round(sess_wr, 3)
 
     threshold = _pool_thresholds.get(pool, ML_GATE_THRESHOLD)
