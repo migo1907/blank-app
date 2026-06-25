@@ -3040,7 +3040,7 @@
     "mtf_confluence": "mtf:1/3\u26a0",
     "post_event": "evt:na",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:TRENDING_BEAR(PULLBACK_LONG)\u00d70.80 | hmm:VOLATILE(0.99)\u00d70.95 | imkt:VIX-NORMAL(18.89)\u00d70.97 | mtf:1/3\u26a0\u00d70.93 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.67 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.07) | news:neutral(-0.004) | macro:BULLISH(+0.309) | combined:+0.008 \u2192 conf:0.002 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-25T22:49:53.952119+00:00",
     "created_at": "2026-06-25T22:19:55.580130+00:00",
     "id": 101
@@ -3074,7 +3074,7 @@
     "mtf_confluence": "mtf:3/3",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:RANGING(0.55)\u21c4\u00d70.95 | imkt:na\u00d71.00 | mtf:3/3\u00d71.08 | evt:na\u00d71.00 | sess:OFF\u00d70.65 | confluence\u00d70.84 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+0.70) | news:bearish(-0.254) | macro:NEUTRAL(+0.010) | combined:-0.265 \u2192 conf:0.178 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-25T23:04:39.375250+00:00",
     "created_at": "2026-06-25T22:34:41.089722+00:00",
     "id": 101
@@ -3108,7 +3108,7 @@
     "mtf_confluence": "mtf:2/3",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:VOLATILE(0.99)\u00d70.95 | imkt:VIX-NORMAL(18.89)\u00d70.97 | mtf:2/3\u00d71.03 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d71.02 | cluster\u00d70.88 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.04) | news:bearish(-0.254) | macro:BULLISH(+0.309) | combined:-0.026 \u2192 conf:0.300 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-25T23:04:42.856583+00:00",
     "created_at": "2026-06-25T22:34:44.153839+00:00",
     "id": 101
@@ -3142,7 +3142,7 @@
     "mtf_confluence": "mtf:1/3\u26a0",
     "post_event": "evt:na",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:VOLATILE(0.98)\u00d70.95 | imkt:VIX-NORMAL(18.89)\u00d70.97 | mtf:1/3\u26a0\u00d70.93 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d71.02 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.14) | news:bearish(-0.254) | macro:BULLISH(+0.309) | combined:+0.152 \u2192 conf:0.300 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-25T23:04:45.915314+00:00",
     "created_at": "2026-06-25T22:34:47.360817+00:00",
     "id": 101
@@ -3176,7 +3176,7 @@
     "mtf_confluence": "mtf:1/3\u26a0",
     "post_event": "evt:na",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:TRENDING_BEAR(PULLBACK_LONG)\u00d70.80 | hmm:VOLATILE(0.99)\u00d70.95 | imkt:VIX-NORMAL(18.89)\u00d70.97 | mtf:1/3\u26a0\u00d70.93 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.70 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.08) | news:bearish(-0.254) | macro:BULLISH(+0.309) | combined:+0.152 \u2192 conf:0.300 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-25T23:04:49.946967+00:00",
     "created_at": "2026-06-25T22:34:51.311884+00:00",
     "id": 101
