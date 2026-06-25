@@ -2,37 +2,6 @@
   "signals": [
     {
       "direction": "LONG",
-      "timeframe": "30",
-      "trigger": "RSI",
-      "symbol": "XAUUSD",
-      "entry_price": 4135.73,
-      "tp1": 4167.31,
-      "tp2": 4190.28,
-      "tp3": 4221.86,
-      "sl": 4104.15,
-      "ml_score": 0.375,
-      "tier": "\u26a1 LOW",
-      "quality_score": 0.4917,
-      "quality_reason": "approved",
-      "news_score": 0.0297,
-      "velocity": "CONFLICTED",
-      "event": "GEOPOLITICAL",
-      "htf_bias": {
-        "direction": "LONG",
-        "timeframe": "30",
-        "symbol": "XAUUSD",
-        "trigger": "RSI",
-        "ml_score": 0.375,
-        "stored_at": "2026-06-23T14:02:02.433183+00:00",
-        "expires_at": "2026-06-23T16:02:02.433196+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "htf_direct",
-      "session": "London/NY Overlap",
-      "fired_at": "2026-06-23T14:02:02.784552+00:00"
-    },
-    {
-      "direction": "LONG",
       "timeframe": "60",
       "trigger": "LIQ",
       "symbol": "AAPL",
@@ -2915,6 +2884,37 @@
       "htf_context": "counter_trend",
       "session": "NYSE Open",
       "fired_at": "2026-06-25T14:45:18.998310+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "15",
+      "trigger": "FVG",
+      "symbol": "BLNK",
+      "entry_price": 0.59,
+      "tp1": 0.6,
+      "tp2": 0.61,
+      "tp3": 0.62,
+      "sl": 0.58,
+      "ml_score": 0.375,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.4341,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": 0.0023,
+      "velocity": "CONFLICTED",
+      "event": "WAR/CONFLICT",
+      "htf_bias": null,
+      "contra_bias": {
+        "direction": "SHORT",
+        "timeframe": "30",
+        "symbol": "BLNK",
+        "trigger": "OB",
+        "ml_score": 0.5,
+        "stored_at": "2026-06-25T14:00:59.120176+00:00",
+        "expires_at": "2026-06-25T16:00:59.120195+00:00"
+      },
+      "htf_context": "counter_trend",
+      "session": "NYSE Open",
+      "fired_at": "2026-06-25T14:46:01.068798+00:00"
     }
   ]
 }
