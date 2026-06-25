@@ -518,6 +518,28 @@ def score_entry_gate(pool: str, direction: str, trigger: str = "") -> dict:
 
     score     = sum(components.values()) / len(components)
 
+    # f15 session-bucket gate — data-driven, self-validating. The Pine f15 feature
+    # is a quantized time-of-day bucket; the f15==0.5 bucket is a structural
+    # money-loser (audit: XAUUSD_2M 22.6% over 93, XAUUSD_5M 19.7% over 33). Block
+    # an entry whenever the CURRENT bar sits in that bucket AND this pool's own
+    # history confirms it loses (<27% WR over n>=30). Per-pool + n-gated so it never
+    # blind-blocks a pool where that session is actually fine, and never fires on
+    # thin/cold-start pools.
+    if abs(getattr(features, "f15", 0.0) - 0.5) < 0.05:
+        f15_rows = [t for t in history
+                    if abs(t.get("f15_sess", -9) - 0.5) < 0.05
+                    and t.get("outcome") in ("WIN", "PARTIAL", "LOSS")]
+        if len(f15_rows) >= 30:
+            f15_wr = sum(1 for t in f15_rows if t["outcome"] in ("WIN", "PARTIAL")) / len(f15_rows)
+            if f15_wr < 0.27:
+                return {
+                    "pass": False, "score": round(score * 0.5, 4),
+                    "reason": "rejected_losing_f15_session",
+                    "components": {**components, "f15_guard": round(f15_wr, 3)},
+                    "threshold": _pool_thresholds.get(pool, ML_GATE_THRESHOLD),
+                    "shap_drivers": [],
+                }
+
     # Session bleed guard — data-driven, self-healing, tiered. Uses the current
     # session's realized hit-rate in this pool over n>=30 trades.
     #   <23% WR  → hard block (these sessions lose money; June audit: the worst
