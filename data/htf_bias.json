@@ -142,5 +142,32 @@
     "ml_score": 0.75,
     "stored_at": "2026-06-25T14:00:52.832569+00:00",
     "expires_at": "2026-06-25T16:00:52.832585+00:00"
+  },
+  "US500_60": {
+    "direction": "SHORT",
+    "timeframe": "60",
+    "symbol": "US500",
+    "trigger": "BOS",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-25T14:00:53.334346+00:00",
+    "expires_at": "2026-06-25T18:00:53.334364+00:00"
+  },
+  "BBAI_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "BBAI",
+    "trigger": "BOS",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-25T14:00:55.938378+00:00",
+    "expires_at": "2026-06-25T16:00:55.938400+00:00"
+  },
+  "US500_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "US500",
+    "trigger": "BOS",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-25T14:00:57.224406+00:00",
+    "expires_at": "2026-06-25T16:00:57.224426+00:00"
   }
 }
