@@ -1,37 +1,6 @@
 {
   "signals": [
     {
-      "direction": "LONG",
-      "timeframe": "60",
-      "trigger": "LIQ",
-      "symbol": "AAPL",
-      "entry_price": 300.51,
-      "tp1": 306.48,
-      "tp2": 311.25,
-      "tp3": 317.22,
-      "sl": 294.54,
-      "ml_score": 0.5,
-      "tier": "\u26a1 LOW",
-      "quality_score": 0.4153,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.004,
-      "velocity": "CONFLICTED",
-      "event": "GEOPOLITICAL",
-      "htf_bias": {
-        "direction": "LONG",
-        "timeframe": "60",
-        "symbol": "AAPL",
-        "trigger": "LIQ",
-        "ml_score": 0.5,
-        "stored_at": "2026-06-23T14:30:07.789435+00:00",
-        "expires_at": "2026-06-23T18:30:07.789448+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "htf_direct",
-      "session": "NYSE Open",
-      "fired_at": "2026-06-23T14:30:08.088307+00:00"
-    },
-    {
       "direction": "SHORT",
       "timeframe": "60",
       "trigger": "LIQ",
@@ -2915,6 +2884,37 @@
       "htf_context": "counter_trend",
       "session": "NYSE Open",
       "fired_at": "2026-06-25T14:46:01.068798+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "60",
+      "trigger": "FVG",
+      "symbol": "AAPL",
+      "entry_price": 277.65,
+      "tp1": 269.25,
+      "tp2": 262.53,
+      "tp3": 254.12,
+      "sl": 286.05,
+      "ml_score": 0.625,
+      "tier": "\u2705 MED",
+      "quality_score": 0.5011,
+      "quality_reason": "approved",
+      "news_score": -0.278,
+      "velocity": "NORMAL",
+      "event": "CPI",
+      "htf_bias": {
+        "direction": "SHORT",
+        "timeframe": "60",
+        "symbol": "AAPL",
+        "trigger": "FVG",
+        "ml_score": 0.625,
+        "stored_at": "2026-06-25T15:30:02.374828+00:00",
+        "expires_at": "2026-06-25T19:30:02.374847+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "htf_direct",
+      "session": "NYSE Open",
+      "fired_at": "2026-06-25T15:30:02.671242+00:00"
     }
   ]
 }
