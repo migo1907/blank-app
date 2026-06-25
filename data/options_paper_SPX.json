@@ -419,7 +419,7 @@
     "half_size": false,
     "expected_move": 44.2,
     "tv_symbol": "OPRA:SPXW260625P7350",
-    "status": "OPEN",
+    "status": "CLOSED",
     "paper": true,
     "strategy": "long_option",
     "features": {
@@ -454,6 +454,11 @@
     "ml_score": null,
     "ml_interval": null,
     "ml_shap_top": null,
-    "wide_uncertainty": false
+    "wide_uncertainty": false,
+    "exit_premium": 6.2,
+    "exit_reason": "hard exit 15:30 ET",
+    "closed_at": "2026-06-25T20:05:01.614111+00:00",
+    "pnl_pct": -23.0,
+    "loss_reason": "THETA_DECAY"
   }
 ]
