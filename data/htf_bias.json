@@ -57,10 +57,10 @@
     "direction": "SHORT",
     "timeframe": "30",
     "symbol": "PLUG",
-    "trigger": "BOS",
-    "ml_score": 0.25,
-    "stored_at": "2026-06-25T14:00:09.809086+00:00",
-    "expires_at": "2026-06-25T16:00:09.809095+00:00"
+    "trigger": "FVG",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-25T20:00:15.131368+00:00",
+    "expires_at": "2026-06-25T22:00:15.131391+00:00"
   },
   "MU_30": {
     "direction": "LONG",
