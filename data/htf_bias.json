@@ -269,6 +269,15 @@
     "stored_at": "2026-06-25T15:00:27.583704+00:00",
     "expires_at": "2026-06-25T17:00:27.583720+00:00"
   },
+  "AAPL_60": {
+    "direction": "SHORT",
+    "timeframe": "60",
+    "symbol": "AAPL",
+    "trigger": "FVG",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-25T15:30:02.374828+00:00",
+    "expires_at": "2026-06-25T19:30:02.374847+00:00"
+  },
   "MSFT_60": {
     "direction": "SHORT",
     "timeframe": "60",
