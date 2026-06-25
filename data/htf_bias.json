@@ -179,15 +179,6 @@
     "stored_at": "2026-06-25T14:00:58.199292+00:00",
     "expires_at": "2026-06-25T16:00:58.199303+00:00"
   },
-  "AAPL_30": {
-    "direction": "SHORT",
-    "timeframe": "30",
-    "symbol": "AAPL",
-    "trigger": "BOS",
-    "ml_score": 0.625,
-    "stored_at": "2026-06-25T14:00:58.211417+00:00",
-    "expires_at": "2026-06-25T16:00:58.211428+00:00"
-  },
   "BLNK_30": {
     "direction": "SHORT",
     "timeframe": "30",
@@ -376,5 +367,14 @@
     "ml_score": 0.375,
     "stored_at": "2026-06-25T17:30:02.444295+00:00",
     "expires_at": "2026-06-26T01:30:02.444307+00:00"
+  },
+  "PLTR_240": {
+    "direction": "SHORT",
+    "timeframe": "240",
+    "symbol": "PLTR",
+    "trigger": "BOS",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-25T17:30:06.818278+00:00",
+    "expires_at": "2026-06-26T01:30:06.818293+00:00"
   }
 }
