@@ -3040,7 +3040,7 @@
     "mtf_confluence": "mtf:2/3",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BEAR(TREND_FOLLOW)\u00d71.15 | hmm:VOLATILE(0.99)\u00d70.95 | imkt:VIX-NORMAL(18.89)\u00d70.97 | mtf:2/3\u00d71.03 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d71.02 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.31) | news:neutral(-0.169) | macro:BULLISH(+0.309) | combined:-0.164 \u2192 conf:0.131 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-25T22:34:54.736066+00:00",
     "created_at": "2026-06-25T22:04:59.224162+00:00",
     "id": 101
@@ -3074,7 +3074,7 @@
     "mtf_confluence": "mtf:3/3",
     "post_event": "evt:na",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:TRENDING_BEAR(TREND_FOLLOW)\u00d71.15 | hmm:RANGING(0.55)\u21c4\u00d70.95 | imkt:na\u00d71.00 | mtf:3/3\u00d71.08 | evt:na\u00d71.00 | sess:OFF\u00d70.65 | confluence\u00d71.35 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.47) | news:neutral(-0.004) | macro:NEUTRAL(+0.010) | combined:-0.120 \u2192 conf:0.125 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-25T22:49:37.791892+00:00",
     "created_at": "2026-06-25T22:19:39.537331+00:00",
     "id": 101
