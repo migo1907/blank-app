@@ -2916,7 +2916,7 @@
     "mtf_confluence": "mtf:3/3",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:VOLATILE(1.00)\u00d70.95 | imkt:na\u00d71.00 | mtf:3/3\u00d71.08 | evt:na\u00d71.00 | sess:ASIAN\u00d70.85 | confluence\u00d70.92 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+0.63) | news:neutral(+0.032) | macro:BEARISH(-0.226) | combined:-0.278 \u2192 conf:0.269 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-25T05:29:46.921464+00:00",
     "created_at": "2026-06-25T04:59:48.327701+00:00",
     "id": 101
@@ -2950,7 +2950,7 @@
     "mtf_confluence": "mtf:2/3",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:VOLATILE(1.00)\u00d70.95 | imkt:VIX-NORMAL(18.63)\u00d70.97 | mtf:2/3\u00d71.03 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d71.19 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.19) | news:neutral(+0.032) | macro:NEUTRAL(-0.097) | combined:-0.199 \u2192 conf:0.300 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-25T05:29:49.854119+00:00",
     "created_at": "2026-06-25T04:59:51.141994+00:00",
     "id": 101
@@ -2984,7 +2984,7 @@
     "mtf_confluence": "mtf:1/3\u26a0",
     "post_event": "evt:na",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:VOLATILE(1.00)\u00d70.95 | imkt:VIX-NORMAL(18.63)\u00d70.97 | mtf:1/3\u26a0\u00d70.93 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.91 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.10) | news:neutral(+0.032) | macro:NEUTRAL(-0.097) | combined:+0.185 \u2192 conf:0.300 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-25T05:29:52.754954+00:00",
     "created_at": "2026-06-25T04:59:54.053849+00:00",
     "id": 101
@@ -3018,7 +3018,7 @@
     "mtf_confluence": "mtf:2/3",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:RANGING(RANGING)\u00d70.82 | hmm:VOLATILE(1.00)\u00d70.95 | imkt:VIX-NORMAL(18.63)\u00d70.97 | mtf:2/3\u00d71.03 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.89 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.11) | news:neutral(+0.032) | macro:NEUTRAL(-0.097) | combined:-0.199 \u2192 conf:0.300 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-25T05:29:56.140779+00:00",
     "created_at": "2026-06-25T04:59:57.554056+00:00",
     "id": 101
@@ -3052,7 +3052,7 @@
     "mtf_confluence": "mtf:1/3\u26a0",
     "post_event": "evt:na",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:VOLATILE(1.00)\u00d70.95 | imkt:VIX-NORMAL(18.63)\u00d70.97 | mtf:1/3\u26a0\u00d70.93 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d71.02 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.00) | news:neutral(+0.032) | macro:NEUTRAL(-0.097) | combined:+0.185 \u2192 conf:0.300 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-25T05:29:59.162175+00:00",
     "created_at": "2026-06-25T05:00:00.504322+00:00",
     "id": 101
@@ -3086,7 +3086,7 @@
     "mtf_confluence": "mtf:0/3\u26a0",
     "post_event": "evt:na",
     "reasoning": "KNN:LONG RF:SHORT GBM:LONG | agree\u00d71.00 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:VOLATILE(1.00)\u00d70.95 | imkt:na\u00d71.00 | mtf:0/3\u26a0\u00d70.85 | evt:na\u00d71.00 | sess:ASIAN\u00d70.85 | confluence\u00d71.15 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.48) | news:neutral(+0.019) | macro:BEARISH(-0.226) | combined:+0.192 \u2192 conf:0.151 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-25T05:36:14.772091+00:00",
     "created_at": "2026-06-25T05:06:15.282157+00:00",
     "id": 101
