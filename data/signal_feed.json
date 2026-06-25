@@ -2,37 +2,6 @@
   "signals": [
     {
       "direction": "SHORT",
-      "timeframe": "60",
-      "trigger": "RSI",
-      "symbol": "IBKR",
-      "entry_price": 95.89,
-      "tp1": 93.25,
-      "tp2": 91.14,
-      "tp3": 88.5,
-      "sl": 98.53,
-      "ml_score": 0.625,
-      "tier": "\u2705 MED",
-      "quality_score": 0.6026,
-      "quality_reason": "approved",
-      "news_score": -0.239,
-      "velocity": "LOW",
-      "event": "GEOPOLITICAL",
-      "htf_bias": {
-        "direction": "SHORT",
-        "timeframe": "60",
-        "symbol": "IBKR",
-        "trigger": "RSI",
-        "ml_score": 0.625,
-        "stored_at": "2026-06-23T17:30:36.605831+00:00",
-        "expires_at": "2026-06-23T21:30:36.605856+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "htf_direct",
-      "session": "NYSE Afternoon",
-      "fired_at": "2026-06-23T17:30:37.265623+00:00"
-    },
-    {
-      "direction": "SHORT",
       "timeframe": "15",
       "trigger": "FVG",
       "symbol": "META",
@@ -2907,6 +2876,29 @@
       "htf_context": "htf_direct",
       "session": "NYSE Afternoon",
       "fired_at": "2026-06-25T20:00:24.041139+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "15",
+      "trigger": "LIQ",
+      "symbol": "XAUUSD",
+      "entry_price": 4034.46,
+      "tp1": 4056.01,
+      "tp2": 4072.17,
+      "tp3": 4093.71,
+      "sl": 4012.91,
+      "ml_score": 0.125,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.4039,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.111,
+      "velocity": "CONFLICTED",
+      "event": "GEOPOLITICAL",
+      "htf_bias": null,
+      "contra_bias": null,
+      "htf_context": "scalp",
+      "session": "New York Late",
+      "fired_at": "2026-06-25T20:02:03.397771+00:00"
     }
   ]
 }
