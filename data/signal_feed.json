@@ -1,29 +1,6 @@
 {
   "signals": [
     {
-      "direction": "SHORT",
-      "timeframe": "15",
-      "trigger": "RSI",
-      "symbol": "AMD",
-      "entry_price": 512.69,
-      "tp1": 498.76,
-      "tp2": 488.31,
-      "tp3": 474.38,
-      "sl": 526.62,
-      "ml_score": 0.625,
-      "tier": "\u2705 MED",
-      "quality_score": 0.4135,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.1144,
-      "velocity": "LOW",
-      "event": "GEOPOLITICAL",
-      "htf_bias": null,
-      "contra_bias": null,
-      "htf_context": "scalp",
-      "session": "NYSE Open",
-      "fired_at": "2026-06-23T13:45:39.211360+00:00"
-    },
-    {
       "direction": "LONG",
       "timeframe": "15",
       "trigger": "LIQ",
@@ -2899,6 +2876,37 @@
       "htf_context": "htf_direct",
       "session": "NYSE Open",
       "fired_at": "2026-06-25T14:30:16.299220+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "60",
+      "trigger": "BOS",
+      "symbol": "PLUG",
+      "entry_price": 2.57,
+      "tp1": 2.39,
+      "tp2": 2.25,
+      "tp3": 2.08,
+      "sl": 2.74,
+      "ml_score": 0.625,
+      "tier": "\u2705 MED",
+      "quality_score": 0.4556,
+      "quality_reason": "approved",
+      "news_score": -0.1153,
+      "velocity": "CONFLICTED",
+      "event": "WAR/CONFLICT",
+      "htf_bias": {
+        "direction": "SHORT",
+        "timeframe": "60",
+        "symbol": "PLUG",
+        "trigger": "BOS",
+        "ml_score": 0.625,
+        "stored_at": "2026-06-25T14:30:21.948792+00:00",
+        "expires_at": "2026-06-25T18:30:21.948804+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "htf_direct",
+      "session": "NYSE Open",
+      "fired_at": "2026-06-25T14:30:22.266798+00:00"
     }
   ]
 }
