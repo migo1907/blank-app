@@ -3,6 +3,37 @@
     {
       "direction": "LONG",
       "timeframe": "15",
+      "trigger": "RSI",
+      "symbol": "HOOD",
+      "entry_price": 105.7,
+      "tp1": 108.07,
+      "tp2": 109.84,
+      "tp3": 112.2,
+      "sl": 103.33,
+      "ml_score": 0.625,
+      "tier": "\u2705 MED",
+      "quality_score": 0.4374,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.1073,
+      "velocity": "CONFLICTED",
+      "event": "WAR/CONFLICT",
+      "htf_bias": null,
+      "contra_bias": {
+        "direction": "SHORT",
+        "timeframe": "60",
+        "symbol": "HOOD",
+        "trigger": "RSI",
+        "ml_score": 0.75,
+        "stored_at": "2026-06-23T14:30:15.851836+00:00",
+        "expires_at": "2026-06-23T18:30:15.851848+00:00"
+      },
+      "htf_context": "counter_trend",
+      "session": "NYSE Afternoon",
+      "fired_at": "2026-06-23T16:15:12.021052+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "15",
       "trigger": "FVG",
       "symbol": "ADBE",
       "entry_price": 197.9,
@@ -2876,37 +2907,6 @@
       "htf_context": "counter_trend",
       "session": "NYSE Afternoon",
       "fired_at": "2026-06-25T18:30:05.133143+00:00"
-    },
-    {
-      "direction": "LONG",
-      "timeframe": "15",
-      "trigger": "RSI",
-      "symbol": "CRM",
-      "entry_price": 151.47,
-      "tp1": 153.21,
-      "tp2": 154.51,
-      "tp3": 156.25,
-      "sl": 149.73,
-      "ml_score": 0.25,
-      "tier": "\u26a1 LOW",
-      "quality_score": 0.42,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.1846,
-      "velocity": "CONFLICTED",
-      "event": "WAR/CONFLICT",
-      "htf_bias": {
-        "direction": "LONG",
-        "timeframe": "60",
-        "symbol": "CRM",
-        "trigger": "LIQ",
-        "ml_score": 0.5,
-        "stored_at": "2026-06-25T14:30:16.264038+00:00",
-        "expires_at": "2026-06-25T18:30:16.264053+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "with_bias",
-      "session": "NYSE Afternoon",
-      "fired_at": "2026-06-25T18:30:05.206925+00:00"
     }
   ]
 }
