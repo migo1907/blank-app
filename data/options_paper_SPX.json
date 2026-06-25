@@ -287,7 +287,7 @@
     "half_size": false,
     "expected_move": 69.6,
     "tv_symbol": "OPRA:SPXW260625C7415",
-    "status": "OPEN",
+    "status": "CLOSED",
     "paper": true,
     "strategy": "long_option",
     "features": {
@@ -322,7 +322,12 @@
     "ml_score": null,
     "ml_interval": null,
     "ml_shap_top": null,
-    "wide_uncertainty": false
+    "wide_uncertainty": false,
+    "exit_premium": 3.65,
+    "exit_reason": "SL -50%",
+    "closed_at": "2026-06-25T16:05:01.771044+00:00",
+    "pnl_pct": -66.8,
+    "loss_reason": "WRONG_DIRECTION"
   },
   {
     "id": "260625135000",
