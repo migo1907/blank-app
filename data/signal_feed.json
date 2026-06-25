@@ -2,37 +2,6 @@
   "signals": [
     {
       "direction": "SHORT",
-      "timeframe": "15",
-      "trigger": "FVG",
-      "symbol": "TSLL",
-      "entry_price": 12.07,
-      "tp1": 11.63,
-      "tp2": 11.31,
-      "tp3": 10.88,
-      "sl": 12.5,
-      "ml_score": 0.75,
-      "tier": "\u2b50 HIGH",
-      "quality_score": 0.4307,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.0754,
-      "velocity": "CONFLICTED",
-      "event": "GEOPOLITICAL",
-      "htf_bias": {
-        "direction": "SHORT",
-        "timeframe": "60",
-        "symbol": "TSLL",
-        "trigger": "FVG",
-        "ml_score": 0.75,
-        "stored_at": "2026-06-23T14:30:05.605947+00:00",
-        "expires_at": "2026-06-23T18:30:05.605960+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "with_bias",
-      "session": "NYSE Open",
-      "fired_at": "2026-06-23T15:15:12.773291+00:00"
-    },
-    {
-      "direction": "SHORT",
       "timeframe": "60",
       "trigger": "FVG",
       "symbol": "SPY",
@@ -2907,6 +2876,37 @@
       "htf_context": "htf_direct",
       "session": "NYSE Open",
       "fired_at": "2026-06-25T15:30:19.100368+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "240",
+      "trigger": "BOS",
+      "symbol": "AAPL",
+      "entry_price": 278.03,
+      "tp1": 260.28,
+      "tp2": 245.49,
+      "tp3": 224.79,
+      "sl": 295.78,
+      "ml_score": 0.375,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.5763,
+      "quality_reason": "approved",
+      "news_score": -0.2903,
+      "velocity": "NORMAL",
+      "event": "CPI",
+      "htf_bias": {
+        "direction": "SHORT",
+        "timeframe": "240",
+        "symbol": "AAPL",
+        "trigger": "BOS",
+        "ml_score": 0.375,
+        "stored_at": "2026-06-25T17:30:02.444295+00:00",
+        "expires_at": "2026-06-26T01:30:02.444307+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "htf_direct",
+      "session": "NYSE Afternoon",
+      "fired_at": "2026-06-25T17:30:03.025886+00:00"
     }
   ]
 }
