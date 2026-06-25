@@ -367,5 +367,32 @@
     "ml_score": 0.5,
     "stored_at": "2026-06-25T17:30:06.818278+00:00",
     "expires_at": "2026-06-26T01:30:06.818293+00:00"
+  },
+  "GOOG_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "GOOG",
+    "trigger": "OB",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-25T17:30:14.050381+00:00",
+    "expires_at": "2026-06-25T19:30:14.050397+00:00"
+  },
+  "GOOG_240": {
+    "direction": "SHORT",
+    "timeframe": "240",
+    "symbol": "GOOG",
+    "trigger": "BOS",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-25T17:30:14.119175+00:00",
+    "expires_at": "2026-06-26T01:30:14.119193+00:00"
+  },
+  "MSTR_240": {
+    "direction": "SHORT",
+    "timeframe": "240",
+    "symbol": "MSTR",
+    "trigger": "BOS",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-25T17:30:19.202237+00:00",
+    "expires_at": "2026-06-26T01:30:19.202253+00:00"
   }
 }
