@@ -84,10 +84,10 @@
     "direction": "LONG",
     "timeframe": "30",
     "symbol": "MU",
-    "trigger": "BOS",
-    "ml_score": 0.5,
-    "stored_at": "2026-06-25T14:00:11.862730+00:00",
-    "expires_at": "2026-06-25T16:00:11.862749+00:00"
+    "trigger": "FVG",
+    "ml_score": 0.875,
+    "stored_at": "2026-06-25T14:30:01.243884+00:00",
+    "expires_at": "2026-06-25T16:30:01.243898+00:00"
   },
   "MSFT_30": {
     "direction": "SHORT",
