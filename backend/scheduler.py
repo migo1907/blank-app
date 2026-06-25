@@ -1136,7 +1136,8 @@ async def _daily_trade_count_report() -> None:
         gold_trades   = [t for t in today_all if t.get("symbol","").upper() in ("XAUUSD","GOLD","GC")]
         spy_trades    = [t for t in today_all if t.get("symbol","").upper() == "SPY"]
         qqq_trades    = [t for t in today_all if t.get("symbol","").upper() == "QQQ"]
-        other_trades  = [t for t in today_all if t.get("symbol","").upper() not in ("XAUUSD","GOLD","GC","SPY","QQQ")]
+        spx_trades    = [t for t in today_all if t.get("symbol","").upper() in ("SPX500","SP500","US500","SPX")]
+        other_trades  = [t for t in today_all if t.get("symbol","").upper() not in ("XAUUSD","GOLD","GC","SPY","QQQ","SPX500","SP500","US500","SPX")]
 
         lines = []
 
@@ -1159,6 +1160,11 @@ async def _daily_trade_count_report() -> None:
                 q_tot, q_tp, q_sl, q_par = _stats(qqq_trades)
                 lines.append(f"\n📊 <b>QQQ</b> ({q_tot} trades)")
                 lines.append(_wr_line(q_tot, q_tp, q_sl, q_par, qqq_trades))
+
+            if spx_trades:
+                x_tot, x_tp, x_sl, x_par = _stats(spx_trades)
+                lines.append(f"\n📊 <b>SPX500</b> ({x_tot} trades)")
+                lines.append(_wr_line(x_tot, x_tp, x_sl, x_par, spx_trades))
 
             if other_trades:
                 o_tot, o_tp, o_sl, o_par = _stats(other_trades)
