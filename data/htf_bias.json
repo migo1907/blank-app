@@ -124,5 +124,23 @@
     "ml_score": 0.5,
     "stored_at": "2026-06-25T14:00:39.670255+00:00",
     "expires_at": "2026-06-25T16:00:39.670265+00:00"
+  },
+  "SOXL_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "SOXL",
+    "trigger": "LIQ",
+    "ml_score": 0.75,
+    "stored_at": "2026-06-25T14:00:48.386223+00:00",
+    "expires_at": "2026-06-25T16:00:48.386233+00:00"
+  },
+  "PATH_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "PATH",
+    "trigger": "BOS",
+    "ml_score": 0.75,
+    "stored_at": "2026-06-25T14:00:52.832569+00:00",
+    "expires_at": "2026-06-25T16:00:52.832585+00:00"
   }
 }
