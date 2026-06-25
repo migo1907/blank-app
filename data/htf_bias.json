@@ -106,5 +106,23 @@
     "ml_score": 0.625,
     "stored_at": "2026-06-25T14:00:14.980189+00:00",
     "expires_at": "2026-06-25T16:00:14.980203+00:00"
+  },
+  "META_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "META",
+    "trigger": "BOS",
+    "ml_score": 0.25,
+    "stored_at": "2026-06-25T14:00:37.989791+00:00",
+    "expires_at": "2026-06-25T16:00:37.989805+00:00"
+  },
+  "NOW_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "NOW",
+    "trigger": "BOS",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-25T14:00:39.670255+00:00",
+    "expires_at": "2026-06-25T16:00:39.670265+00:00"
   }
 }
