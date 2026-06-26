@@ -1,39 +1,5 @@
 [
   {
-    "symbol": "XAUUSD",
-    "pool": "XAUUSD_2M",
-    "direction": "NEUTRAL",
-    "lean_direction": "LONG",
-    "lean_pct": 88,
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.875,
-    "rf_score": 0.3019,
-    "gbm_score": 0.2222,
-    "ml_interval": [
-      0.0,
-      0.996
-    ],
-    "ml_interval_width": 0.996,
-    "ml_certainty": "LOW",
-    "news_score": -0.0661,
-    "macro_bias": 0.0101,
-    "macro_label": "NEUTRAL",
-    "combined_score": 0.0059,
-    "session": "OVERLAP",
-    "regime": "NORMAL",
-    "regime_label": "NORMAL",
-    "hmm_regime": "hmm:na",
-    "intermarket": "imkt:na",
-    "mtf_confluence": "mtf:na",
-    "post_event": "evt:na",
-    "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:na\u00d71.00 | imkt:na\u00d71.00 | mtf:na\u00d71.00 | evt:na\u00d71.00 | sess:OVERLAP\u00d71.30 | confluence\u00d70.94 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:neutral(-0.066) | macro:NEUTRAL(+0.010) | combined:+0.006 \u2192 conf:0.006 \u26a1 WAR/CONFLICT",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-26T17:18:53.394863+00:00",
-    "created_at": "2026-06-26T16:48:54.867832+00:00",
-    "id": 101
-  },
-  {
     "symbol": "SPY",
     "pool": "STOCKS_INDEX_30M",
     "direction": "LONG",
@@ -3054,7 +3020,7 @@
     "mtf_confluence": "mtf:na",
     "post_event": "evt:na",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:TRENDING_BEAR(TREND_FOLLOW)\u00d71.15 | hmm:na\u00d71.00 | imkt:VIX-NORMAL(18.89)\u00d70.97 | mtf:na\u00d71.00 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d71.43 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.05) | news:neutral(+0.155) | macro:NEUTRAL(+0.054) | combined:-0.027 \u2192 conf:0.022 \u26a1 GEOPOLITICAL",
-    "status": "EXPIRED",
+    "status": "ACTIVE",
     "expires_at": "2026-06-26T21:42:20.376648+00:00",
     "created_at": "2026-06-26T21:12:22.096650+00:00",
     "id": 101
@@ -3088,7 +3054,7 @@
     "mtf_confluence": "mtf:na",
     "post_event": "evt:na",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:TRENDING_BEAR(TREND_FOLLOW)\u00d71.15 | hmm:na\u00d71.00 | imkt:na\u00d71.00 | mtf:na\u00d71.00 | evt:na\u00d71.00 | sess:NY_LATE\u00d70.90 | confluence\u00d70.90 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:neutral(-0.184) | macro:NEUTRAL(-0.055) | combined:-0.203 \u2192 conf:0.161 \u26a1 GEOPOLITICAL",
-    "status": "EXPIRED",
+    "status": "ACTIVE",
     "expires_at": "2026-06-26T21:57:04.301919+00:00",
     "created_at": "2026-06-26T21:27:05.962122+00:00",
     "id": 101
@@ -3397,6 +3363,40 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-26T22:12:18.557802+00:00",
     "created_at": "2026-06-26T21:42:20.280438+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "XAUUSD",
+    "pool": "XAUUSD_2M",
+    "direction": "NEUTRAL",
+    "lean_direction": "SHORT",
+    "lean_pct": 25,
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.25,
+    "rf_score": 0.1818,
+    "gbm_score": 0.2586,
+    "ml_interval": [
+      0.0,
+      0.983
+    ],
+    "ml_interval_width": 0.983,
+    "ml_certainty": "LOW",
+    "news_score": 0.0399,
+    "macro_bias": -0.1081,
+    "macro_label": "NEUTRAL",
+    "combined_score": -0.0995,
+    "session": "NY_LATE",
+    "regime": "TRENDING_BEAR",
+    "regime_label": "TREND_FOLLOW",
+    "hmm_regime": "hmm:na",
+    "intermarket": "imkt:na",
+    "mtf_confluence": "mtf:na",
+    "post_event": "evt:na",
+    "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:TRENDING_BEAR(TREND_FOLLOW)\u00d71.15 | hmm:na\u00d71.00 | imkt:na\u00d71.00 | mtf:na\u00d71.00 | evt:na\u00d71.00 | sess:NY_LATE\u00d70.90 | confluence\u00d70.90 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:neutral(+0.040) | macro:NEUTRAL(-0.108) | combined:-0.100 \u2192 conf:0.079 \u26a1 GEOPOLITICAL",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-26T22:27:08.818063+00:00",
+    "created_at": "2026-06-26T21:57:10.340006+00:00",
     "id": 101
   }
 ]
