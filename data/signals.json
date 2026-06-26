@@ -3054,7 +3054,7 @@
     "mtf_confluence": "mtf:2/3",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BEAR(TREND_FOLLOW)\u00d71.15 | hmm:VOLATILE(0.99)\u00d70.95 | imkt:VIX-NORMAL(19.72)\u00d70.89 | mtf:2/3\u00d71.03 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.91 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.38) | news:neutral(+0.006) | macro:BULLISH(+0.309) | combined:-0.165 \u2192 conf:0.092 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-26T08:35:02.565375+00:00",
     "created_at": "2026-06-26T08:05:04.250495+00:00",
     "id": 101
@@ -3088,7 +3088,7 @@
     "mtf_confluence": "mtf:2/3",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BEAR(TREND_FOLLOW)\u00d71.15 | hmm:VOLATILE(0.99)\u00d70.95 | imkt:VIX-NORMAL(19.72)\u00d70.89 | mtf:2/3\u00d71.03 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.89 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.22) | news:neutral(+0.006) | macro:BULLISH(+0.309) | combined:-0.337 \u2192 conf:0.300 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-26T08:35:06.010496+00:00",
     "created_at": "2026-06-26T08:05:07.430509+00:00",
     "id": 101
@@ -3122,7 +3122,7 @@
     "mtf_confluence": "mtf:3/3",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:RANGING(1.00)\u00d71.00 | imkt:na\u00d71.00 | mtf:3/3\u00d71.08 | evt:na\u00d71.00 | sess:LONDON\u00d71.15 | confluence\u00d70.90 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:neutral(+0.051) | macro:NEUTRAL(+0.010) | combined:-0.218 \u2192 conf:0.248 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-06-26T08:49:36.226236+00:00",
     "created_at": "2026-06-26T08:19:36.900566+00:00",
     "id": 101
