@@ -61,32 +61,5 @@
     "ml_score": 0.25,
     "stored_at": "2026-06-26T14:00:36.658155+00:00",
     "expires_at": "2026-06-26T16:00:36.658176+00:00"
-  },
-  "NOW_30": {
-    "direction": "LONG",
-    "timeframe": "30",
-    "symbol": "NOW",
-    "trigger": "FVG",
-    "ml_score": 0.5,
-    "stored_at": "2026-06-26T14:30:12.781667+00:00",
-    "expires_at": "2026-06-26T16:30:12.781687+00:00"
-  },
-  "MSFT_30": {
-    "direction": "LONG",
-    "timeframe": "30",
-    "symbol": "MSFT",
-    "trigger": "FVG",
-    "ml_score": 0.5,
-    "stored_at": "2026-06-26T14:30:12.882615+00:00",
-    "expires_at": "2026-06-26T16:30:12.882632+00:00"
-  },
-  "HOOD_30": {
-    "direction": "LONG",
-    "timeframe": "30",
-    "symbol": "HOOD",
-    "trigger": "FVG",
-    "ml_score": 0.75,
-    "stored_at": "2026-06-26T14:30:14.909508+00:00",
-    "expires_at": "2026-06-26T16:30:14.909527+00:00"
   }
 }
