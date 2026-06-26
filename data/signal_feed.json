@@ -3,37 +3,6 @@
     {
       "direction": "SHORT",
       "timeframe": "60",
-      "trigger": "FVG",
-      "symbol": "IBKR",
-      "entry_price": 93.03,
-      "tp1": 90.3,
-      "tp2": 88.11,
-      "tp3": 85.37,
-      "sl": 95.76,
-      "ml_score": 0.5,
-      "tier": "\u26a1 LOW",
-      "quality_score": 0.5688,
-      "quality_reason": "approved",
-      "news_score": -0.3057,
-      "velocity": "ELEVATED",
-      "event": "FOMC",
-      "htf_bias": {
-        "direction": "SHORT",
-        "timeframe": "60",
-        "symbol": "IBKR",
-        "trigger": "FVG",
-        "ml_score": 0.5,
-        "stored_at": "2026-06-24T14:30:19.057675+00:00",
-        "expires_at": "2026-06-24T18:30:19.057694+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "htf_direct",
-      "session": "NYSE Open",
-      "fired_at": "2026-06-24T14:30:19.063362+00:00"
-    },
-    {
-      "direction": "SHORT",
-      "timeframe": "60",
       "trigger": "BOS",
       "symbol": "BLNK",
       "entry_price": 0.59,
@@ -2835,6 +2804,37 @@
       "htf_context": "htf_direct",
       "session": "NYSE Afternoon",
       "fired_at": "2026-06-26T19:30:04.143588+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "60",
+      "trigger": "FVG",
+      "symbol": "SPCX",
+      "entry_price": 151.68,
+      "tp1": 141.02,
+      "tp2": 132.49,
+      "tp3": 121.82,
+      "sl": 162.34,
+      "ml_score": 0.5,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.49,
+      "quality_reason": "approved",
+      "news_score": 0.0711,
+      "velocity": "CONFLICTED",
+      "event": "GEOPOLITICAL",
+      "htf_bias": {
+        "direction": "SHORT",
+        "timeframe": "60",
+        "symbol": "SPCX",
+        "trigger": "FVG",
+        "ml_score": 0.5,
+        "stored_at": "2026-06-26T19:30:15.319516+00:00",
+        "expires_at": "2026-06-26T23:30:15.319539+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "htf_direct",
+      "session": "NYSE Afternoon",
+      "fired_at": "2026-06-26T19:30:15.323603+00:00"
     }
   ]
 }
