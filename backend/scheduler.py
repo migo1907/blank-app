@@ -958,11 +958,22 @@ async def _hourly_system_check() -> None:
             fj = [i for i in news if "juice" in str(i.get("source", "")).lower()]
             fj_age = _age_min(fj)
             if (fj_age is None or fj_age > 360) and overall_age is not None and overall_age < 60:
+                # Proactively attempt re-login here — don't wait for the next breaking
+                # cycle to hit a 401. Empty-JSON sessions return 200 so auto-login
+                # never fires from the fetch path.
+                try:
+                    from news_fetcher import _fj_auto_login
+                    relogin_ok = await asyncio.to_thread(_fj_auto_login)
+                    relogin_note = "Re-login attempted: ✅ succeeded" if relogin_ok else "Re-login attempted: ❌ failed — check FJ_EMAIL/FJ_PASSWORD"
+                    print(f"[system_check] FJ silent — proactive re-login: {'ok' if relogin_ok else 'FAILED'}")
+                except Exception as _rle:
+                    relogin_note = f"Re-login error: {_rle}"
+                    print(f"[system_check] FJ re-login exception: {_rle}")
                 critical_alerts.append((
                     "FinancialJuice Feed Silent",
                     f"FJ has no fresh items ({'none in cache' if fj_age is None else f'{fj_age:.0f} min old'}) "
-                    f"while other sources are live — FJ session likely lapsed.",
-                    "Auto-relogin should recover it; if not, check FJ_EMAIL/FJ_PASSWORD in Railway."
+                    f"while other sources are live — FJ session likely lapsed.\n{relogin_note}",
+                    "If re-login failed, check FJ_EMAIL/FJ_PASSWORD in Railway env vars."
                 ))
                 issues.append("FJ feed silent ⚠️")
             elif fj_age is not None:
