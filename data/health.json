@@ -1,18 +1,17 @@
 {
-  "timestamp": "2026-06-26T13:17:20.404339+00:00",
+  "timestamp": "2026-06-26T13:19:04.087240+00:00",
   "signal": "NEUTRAL",
   "confidence": 0.0,
-  "news_score": -0.0139,
+  "news_score": -0.0169,
   "velocity": "CONFLICTED",
   "breaking_count": 10,
   "trades_total": 500,
   "rf_trained": true,
-  "win_rate": 45.6,
+  "win_rate": 49.6,
   "knn_bearish_pct": 25.0,
   "macro_bias": 0.0101,
   "macro_label": "NEUTRAL",
   "equity_macro_bias": 0.3091,
   "equity_macro_label": "BULLISH",
-  "scheduler": "running",
-  "startup_at": "2026-06-26T13:18:33.035449+00:00"
+  "scheduler": "running"
 }
