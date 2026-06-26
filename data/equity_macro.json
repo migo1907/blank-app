@@ -9,16 +9,16 @@
   "real_yield": 2.23,
   "nominal_yield": 4.41,
   "dollar": 120.3958,
-  "updated_at": "2026-06-26T07:04:44.593697+00:00",
+  "updated_at": "2026-06-26T08:04:45.900165+00:00",
   "sources_live": {
     "fred": true
   },
   "vix": {
-    "vix": 18.89,
+    "vix": 19.72,
     "vix3m": 19.57,
-    "ratio": 0.965,
+    "ratio": 1.008,
     "regime": "NORMAL",
-    "size_factor": 0.97,
-    "backwardation": false
+    "size_factor": 0.892,
+    "backwardation": true
   }
 }
