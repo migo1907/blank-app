@@ -2,37 +2,6 @@
   "signals": [
     {
       "direction": "LONG",
-      "timeframe": "30",
-      "trigger": "OB",
-      "symbol": "XAUUSD",
-      "entry_price": 4087.39,
-      "tp1": 4118.88,
-      "tp2": 4141.78,
-      "tp3": 4173.26,
-      "sl": 4055.9,
-      "ml_score": 0.25,
-      "tier": "\u26a1 LOW",
-      "quality_score": 0.4035,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.2158,
-      "velocity": "CONFLICTED",
-      "event": "WAR/CONFLICT",
-      "htf_bias": {
-        "direction": "LONG",
-        "timeframe": "30",
-        "symbol": "XAUUSD",
-        "trigger": "OB",
-        "ml_score": 0.25,
-        "stored_at": "2026-06-24T08:32:01.651227+00:00",
-        "expires_at": "2026-06-24T10:32:01.651422+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "htf_direct",
-      "session": "London",
-      "fired_at": "2026-06-24T08:32:01.959383+00:00"
-    },
-    {
-      "direction": "LONG",
       "timeframe": "5",
       "trigger": "FVG",
       "symbol": "XAUUSD",
@@ -2851,6 +2820,29 @@
       "htf_context": "with_bias",
       "session": "NYSE Open",
       "fired_at": "2026-06-26T15:45:13.688562+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "15",
+      "trigger": "FVG",
+      "symbol": "MSTR",
+      "entry_price": 85.06,
+      "tp1": 82.11,
+      "tp2": 79.9,
+      "tp3": 76.95,
+      "sl": 88.01,
+      "ml_score": 0.5,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.4827,
+      "quality_reason": "approved",
+      "news_score": 0.0889,
+      "velocity": "LOW",
+      "event": "WAR/CONFLICT",
+      "htf_bias": null,
+      "contra_bias": null,
+      "htf_context": "scalp",
+      "session": "NYSE Afternoon",
+      "fired_at": "2026-06-26T16:30:17.002222+00:00"
     }
   ]
 }
