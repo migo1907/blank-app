@@ -2,37 +2,6 @@
   "signals": [
     {
       "direction": "SHORT",
-      "timeframe": "30",
-      "trigger": "BOS",
-      "symbol": "XAUUSD",
-      "entry_price": 4060.99,
-      "tp1": 4026.22,
-      "tp2": 4000.94,
-      "tp3": 3966.17,
-      "sl": 4095.76,
-      "ml_score": 0.875,
-      "tier": "\u2b50 HIGH",
-      "quality_score": 0.4221,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.1373,
-      "velocity": "CONFLICTED",
-      "event": "WAR/CONFLICT",
-      "htf_bias": {
-        "direction": "SHORT",
-        "timeframe": "60",
-        "symbol": "XAUUSD",
-        "trigger": "BOS",
-        "ml_score": 0.5,
-        "stored_at": "2026-06-24T03:02:01.744862+00:00",
-        "expires_at": "2026-06-24T07:02:01.744872+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "htf_direct",
-      "session": "Asian",
-      "fired_at": "2026-06-24T03:02:02.055638+00:00"
-    },
-    {
-      "direction": "SHORT",
       "timeframe": "15",
       "trigger": "OB",
       "symbol": "US500",
@@ -2859,6 +2828,37 @@
       "htf_context": "htf_direct",
       "session": "London/NY Overlap",
       "fired_at": "2026-06-26T15:02:03.448756+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "60",
+      "trigger": "FVG",
+      "symbol": "TSLA",
+      "entry_price": 384.89,
+      "tp1": 398.06,
+      "tp2": 408.59,
+      "tp3": 421.76,
+      "sl": 371.72,
+      "ml_score": 0.875,
+      "tier": "\u2b50 HIGH",
+      "quality_score": 0.5722,
+      "quality_reason": "approved",
+      "news_score": 0.1813,
+      "velocity": "LOW",
+      "event": "GEOPOLITICAL",
+      "htf_bias": {
+        "direction": "LONG",
+        "timeframe": "60",
+        "symbol": "TSLA",
+        "trigger": "FVG",
+        "ml_score": 0.875,
+        "stored_at": "2026-06-26T15:30:07.979437+00:00",
+        "expires_at": "2026-06-26T19:30:07.979450+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "htf_direct",
+      "session": "NYSE Open",
+      "fired_at": "2026-06-26T15:30:08.248563+00:00"
     }
   ]
 }
