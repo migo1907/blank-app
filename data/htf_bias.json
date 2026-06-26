@@ -9,13 +9,13 @@
     "expires_at": "2026-06-26T16:30:10.472372+00:00"
   },
   "MU_30": {
-    "direction": "LONG",
+    "direction": "SHORT",
     "timeframe": "30",
     "symbol": "MU",
-    "trigger": "LIQ",
-    "ml_score": 0.75,
-    "stored_at": "2026-06-26T14:00:13.534860+00:00",
-    "expires_at": "2026-06-26T16:00:13.534876+00:00"
+    "trigger": "RSI",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-26T15:00:03.765932+00:00",
+    "expires_at": "2026-06-26T17:00:03.765952+00:00"
   },
   "IBKR_30": {
     "direction": "SHORT",
