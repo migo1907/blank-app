@@ -1,37 +1,6 @@
 {
   "signals": [
     {
-      "direction": "SHORT",
-      "timeframe": "30",
-      "trigger": "BOS",
-      "symbol": "XAUUSD",
-      "entry_price": 3972.61,
-      "tp1": 3932.33,
-      "tp2": 3903.03,
-      "tp3": 3862.75,
-      "sl": 4012.89,
-      "ml_score": 0.25,
-      "tier": "\u26a1 LOW",
-      "quality_score": 0.4125,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.2078,
-      "velocity": "CONFLICTED",
-      "event": "FOMC",
-      "htf_bias": {
-        "direction": "SHORT",
-        "timeframe": "60",
-        "symbol": "XAUUSD",
-        "trigger": "BOS",
-        "ml_score": 0.5,
-        "stored_at": "2026-06-24T13:02:02.031748+00:00",
-        "expires_at": "2026-06-24T17:02:02.031765+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "htf_direct",
-      "session": "London/NY Overlap",
-      "fired_at": "2026-06-24T13:02:02.409634+00:00"
-    },
-    {
       "direction": "LONG",
       "timeframe": "15",
       "trigger": "LIQ",
@@ -2843,6 +2812,37 @@
       "htf_context": "htf_direct",
       "session": "NYSE Afternoon",
       "fired_at": "2026-06-26T17:30:20.861366+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "60",
+      "trigger": "OB",
+      "symbol": "AMD",
+      "entry_price": 517.28,
+      "tp1": 488.65,
+      "tp2": 465.74,
+      "tp3": 437.1,
+      "sl": 545.91,
+      "ml_score": 0.5,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.5079,
+      "quality_reason": "approved",
+      "news_score": 0.0101,
+      "velocity": "CONFLICTED",
+      "event": "GEOPOLITICAL",
+      "htf_bias": {
+        "direction": "SHORT",
+        "timeframe": "60",
+        "symbol": "AMD",
+        "trigger": "OB",
+        "ml_score": 0.5,
+        "stored_at": "2026-06-26T18:30:07.362862+00:00",
+        "expires_at": "2026-06-26T22:30:07.362887+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "htf_direct",
+      "session": "NYSE Afternoon",
+      "fired_at": "2026-06-26T18:30:08.019745+00:00"
     }
   ]
 }
