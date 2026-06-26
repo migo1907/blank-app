@@ -44802,13 +44802,13 @@
     "direction": "LONG",
     "trigger": "OB",
     "entry_price": 4032.6,
-    "exit_price": 4032.37,
-    "outcome": "PARTIAL",
-    "ml_outcome": "WIN",
+    "exit_price": 4035.9404,
+    "outcome": "WIN",
+    "ml_outcome": "TP1_HIT",
     "mfe": 5.42,
-    "tp_stage": "SL_TP1",
+    "tp_stage": "TP1",
     "timeframe": "2",
-    "pnl_pct": -0.0057,
+    "pnl_pct": 0.0828,
     "ml_bull_score": 0.375,
     "regime": "TRENDING_BEAR",
     "session": "LONDON_OPEN",
@@ -44838,8 +44838,8 @@
     "f24_fvgq": 0.0,
     "f25_tod": 0.9336,
     "f26_stoch": 1.0,
-    "id": "e848b7bc",
+    "id": "d3a82f69",
     "pool": "XAUUSD_2M",
-    "created_at": "2026-06-26T07:28:05.182850+00:00"
+    "created_at": "2026-06-26T07:28:03.464248+00:00"
   }
 ]
