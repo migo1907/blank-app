@@ -223,5 +223,41 @@
     "ml_score": 0.625,
     "stored_at": "2026-06-26T20:00:39.941304+00:00",
     "expires_at": "2026-06-27T00:00:39.941326+00:00"
+  },
+  "GOOGL_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "GOOGL",
+    "trigger": "OB",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-26T20:00:41.455572+00:00",
+    "expires_at": "2026-06-26T22:00:41.455595+00:00"
+  },
+  "SPY_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "SPY",
+    "trigger": "OB",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-26T20:00:42.240135+00:00",
+    "expires_at": "2026-06-26T22:00:42.240156+00:00"
+  },
+  "UPST_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "UPST",
+    "trigger": "BOS",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-26T20:00:42.895217+00:00",
+    "expires_at": "2026-06-26T22:00:42.895232+00:00"
+  },
+  "QQQ_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "QQQ",
+    "trigger": "OB",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-26T20:00:43.194358+00:00",
+    "expires_at": "2026-06-26T22:00:43.194381+00:00"
   }
 }
