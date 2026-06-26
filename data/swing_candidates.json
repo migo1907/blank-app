@@ -3,10 +3,10 @@
   "watchlist": [
     {
       "ticker": "BSX",
-      "combined_score": 0.564,
-      "upside_pct": 65.92,
+      "combined_score": 0.565,
+      "upside_pct": 67.31,
       "analyst_target": null,
-      "current_price": 44.6,
+      "current_price": 44.23,
       "upside_source": "analyst",
       "entry_quality": "WAIT",
       "entry_now": false,
@@ -66,7 +66,7 @@
           "evEbitdaTTM": 16.0859,
           "evRevenueTTM": 3.6698,
           "focfCagr5Y": 29.98,
-          "forwardPE": 13.143984619753745,
+          "forwardPE": 13.201972787193835,
           "grossMargin5Y": 69.08,
           "grossMarginAnnual": 69.01,
           "grossMarginTTM": 69.14,
@@ -162,9 +162,9 @@
         },
         "analyst": {
           "recommendation": "buy",
-          "target_upside_pct": 65.92,
+          "target_upside_pct": 67.31,
           "num_analysts": 29,
-          "current_price": 44.6
+          "current_price": 44.23
         },
         "insider": {
           "net_buy_signal": 1.0,
@@ -185,13 +185,13 @@
           "piotroski_f": 8,
           "altman_z": 6.07,
           "rule_of_40": null,
-          "fcf_yield_pct": 4.23,
+          "fcf_yield_pct": 4.27,
           "peg": 0.54,
           "roe_pct": 14.7,
           "roa_pct": 6.1,
-          "price_to_book": 2.56,
-          "pe_ratio": 18.7,
-          "forward_pe": 12.0
+          "price_to_book": 2.54,
+          "pe_ratio": 18.5,
+          "forward_pe": 11.9
         },
         "earnings_call": {
           "reported": false,
@@ -205,16 +205,16 @@
           "tone": 0.0,
           "note": "",
           "score_delta": 0.0,
-          "updated_at": "2026-06-26T13:50:27.172127+00:00"
+          "updated_at": "2026-06-26T20:35:17.641911+00:00"
         },
         "news": {
-          "news_7d": 17,
+          "news_7d": 18,
           "headlines": [
+            "2 Healthcare Stocks for Long-Term Investors and 1 We Brush Off",
             "Boston Scientific's Fall From Penthouse To Doghouse Creates A Value Opportunity",
             "TD Cowen Maintains a Buy Rating on Boston Scientific (BSX)",
             "Stifel Maintains Buy on Boston Scientific, Lowers Price Target to $65",
-            "Boston Scientific (BSX) Registers a Bigger Fall Than the Market: Important Facts to Note",
-            "How a Targeted Valve Recall and Watchman Questions at Boston Scientific (BSX) Have Changed Its Investment Story"
+            "Boston Scientific (BSX) Registers a Bigger Fall Than the Market: Important Facts to Note"
           ],
           "sentiment": 0.0
         },
@@ -224,8 +224,8 @@
         "rss_news": {
           "rss_news_7d": 0
         },
-        "score": 0.935,
-        "updated_at": "2026-06-26T13:50:23.117131+00:00"
+        "score": 0.936,
+        "updated_at": "2026-06-26T20:35:13.801285+00:00"
       },
       "technical": {
         "score": 0.0,
@@ -242,14 +242,14 @@
         "entry_now": false,
         "rel_volume": null
       },
-      "updated_at": "2026-06-26T13:50:27.622479+00:00"
+      "updated_at": "2026-06-26T20:35:18.119307+00:00"
     },
     {
       "ticker": "NVDA",
       "combined_score": 0.542,
-      "upside_pct": 49.42,
+      "upside_pct": 49.59,
       "analyst_target": null,
-      "current_price": 192.75,
+      "current_price": 192.53,
       "upside_source": "analyst",
       "entry_quality": "WAIT",
       "entry_now": false,
@@ -280,9 +280,9 @@
           "cashFlowPerShareTTM": 8.20683,
           "cashPerSharePerShareAnnual": 2.5739,
           "cashPerSharePerShareQuarterly": 3.3265,
-          "currentDividendYieldTTM": 0.0202,
-          "currentEv/freeCashFlowAnnual": 49.7645,
-          "currentEv/freeCashFlowTTM": 40.403,
+          "currentDividendYieldTTM": 0.0208,
+          "currentEv/freeCashFlowAnnual": 48.2412,
+          "currentEv/freeCashFlowTTM": 39.1663,
           "currentRatioAnnual": 3.9053,
           "currentRatioQuarterly": 3.4408,
           "dividendGrowthRate5Y": 20.05,
@@ -294,7 +294,7 @@
           "ebitdPerShareTTM": 6.767,
           "ebitdaCagr5Y": 88.29,
           "ebitdaInterimCagr5Y": 89.41,
-          "enterpriseValue": 4811033,
+          "enterpriseValue": 4663761.5,
           "epsAnnual": 4.8979,
           "epsBasicExclExtraItemsAnnual": 4.8979,
           "epsBasicExclExtraItemsTTM": 6.529999999999999,
@@ -308,8 +308,8 @@
           "epsInclExtraItemsTTM": 6.529999999999999,
           "epsNormalizedAnnual": 4.8979,
           "epsTTM": 6.529999999999999,
-          "evEbitdaTTM": 29.0672,
-          "evRevenueTTM": 18.9791,
+          "evEbitdaTTM": 28.1774,
+          "evRevenueTTM": 18.3981,
           "focfCagr5Y": 83.13,
           "forwardPE": 19.23306,
           "forwardPEG": 0.37173,
@@ -320,7 +320,7 @@
           "inventoryTurnoverTTM": 3.5302,
           "longTermDebt/equityAnnual": 0.0475,
           "longTermDebt/equityQuarterly": 0.0382,
-          "marketCapitalization": 4815800,
+          "marketCapitalization": 4668528.5,
           "monthToDatePriceReturnDaily": -7.2937,
           "netIncomeEmployeeAnnual": 2.8587,
           "netIncomeEmployeeTTM": 3.8003,
@@ -335,21 +335,21 @@
           "operatingMarginTTM": 64.02,
           "payoutRatioAnnual": 0.81,
           "payoutRatioTTM": 0.61,
-          "pb": 24.6365,
+          "pb": 23.8831,
           "pbAnnual": 28.8075,
           "pbQuarterly": 26.9275,
-          "pcfShareAnnual": 46.8837,
-          "pcfShareTTM": 38.3277,
-          "peAnnual": 40.1093,
-          "peBasicExclExtraTTM": 30.1717,
+          "pcfShareAnnual": 45.45,
+          "pcfShareTTM": 37.1556,
+          "peAnnual": 38.8827,
+          "peBasicExclExtraTTM": 29.249,
           "peExclExtraAnnual": 274.2091,
-          "peExclExtraTTM": 30.1717,
-          "peInclExtraTTM": 30.1717,
-          "peNormalizedAnnual": 40.1093,
-          "peTTM": 30.1717,
+          "peExclExtraTTM": 29.249,
+          "peInclExtraTTM": 29.249,
+          "peNormalizedAnnual": 38.8827,
+          "peTTM": 29.249,
           "pegTTM": 0.59208,
-          "pfcfShareAnnual": 49.8138,
-          "pfcfShareTTM": 40.4431,
+          "pfcfShareAnnual": 48.2905,
+          "pfcfShareTTM": 39.2063,
           "pretaxMargin5Y": 47.57,
           "pretaxMarginAnnual": 65.5,
           "pretaxMarginTTM": 74.73,
@@ -358,8 +358,8 @@
           "priceRelativeToS&P5004Week": -5.9492,
           "priceRelativeToS&P50052Week": 5.9005,
           "priceRelativeToS&P500Ytd": -2.7269,
-          "psAnnual": 22.3018,
-          "psTTM": 18.9979,
+          "psAnnual": 21.6198,
+          "psTTM": 18.4169,
           "ptbvAnnual": 29.426,
           "ptbvQuarterly": 27.3643,
           "quickRatioAnnual": 3.1409,
@@ -408,9 +408,9 @@
         },
         "analyst": {
           "recommendation": "strong_buy",
-          "target_upside_pct": 49.42,
+          "target_upside_pct": 49.59,
           "num_analysts": 59,
-          "current_price": 192.75
+          "current_price": 192.53
         },
         "insider": {
           "net_buy_signal": -1.0,
@@ -435,8 +435,8 @@
           "peg": 0.6,
           "roe_pct": 114.3,
           "roa_pct": 52.7,
-          "price_to_book": 23.88,
-          "pe_ratio": 29.5,
+          "price_to_book": 23.86,
+          "pe_ratio": 29.4,
           "forward_pe": 15.1
         },
         "earnings_call": {
@@ -451,16 +451,16 @@
           "tone": 0.0,
           "note": "",
           "score_delta": 0.0,
-          "updated_at": "2026-06-26T13:45:15.631661+00:00"
+          "updated_at": "2026-06-26T20:30:15.363405+00:00"
         },
         "news": {
-          "news_7d": 249,
+          "news_7d": 250,
           "headlines": [
-            "Prediction: Oil Is Heading to $60 a Barrel by 2027, and These Stocks Are Worth Buying Now",
-            "Staying Away From SpaceX? Here Are 3 Other Stocks That Can Boost Your Portfolio's Satellite Economy Exposure.",
-            "Stocks Fall Pre-Bell as Tech Weakness Persists",
-            "Here's Why Taiwan Semiconductor (TSM) May Be the Smartest AI Infrastructure Buy Right Now",
-            "Micron Leads Tech Stocks Rally on Blowout Earnings"
+            "UnitedHealth is Near its 52-Week High. Wall Street Is Starting to Notice This Blue Chip Stock -- and So Should You.",
+            "Prediction: Walmart Will Rejoin the $1 Trillion Club by 2027. Here's Why It's a Great Buy Now.",
+            "Rocket Lab Just Shattered This Space Force Record: Does That Make The Stock a Buy?",
+            "What a $10,000 Investment in SpaceX Could Return by 2030",
+            "Could Buying These 3 Rare Earth Stocks Make You Rich?"
           ],
           "sentiment": 0.0
         },
@@ -471,7 +471,7 @@
           "rss_news_7d": 0
         },
         "score": 0.895,
-        "updated_at": "2026-06-26T13:45:11.512383+00:00"
+        "updated_at": "2026-06-26T20:30:11.500799+00:00"
       },
       "technical": {
         "score": 0.0,
@@ -488,14 +488,14 @@
         "entry_now": false,
         "rel_volume": null
       },
-      "updated_at": "2026-06-26T13:45:16.000102+00:00"
+      "updated_at": "2026-06-26T20:30:15.909210+00:00"
     },
     {
       "ticker": "CVX",
       "combined_score": 0.51,
-      "upside_pct": 28.78,
+      "upside_pct": 28.9,
       "analyst_target": null,
-      "current_price": 171.22,
+      "current_price": 171.06,
       "upside_source": "analyst",
       "entry_quality": "WAIT",
       "entry_now": false,
@@ -526,9 +526,9 @@
           "cashFlowPerShareTTM": 21.86113,
           "cashPerSharePerShareAnnual": 3.1573,
           "cashPerSharePerShareQuarterly": 2.6747,
-          "currentDividendYieldTTM": 3.8808,
-          "currentEv/freeCashFlowAnnual": 23.0617,
-          "currentEv/freeCashFlowTTM": 27.7658,
+          "currentDividendYieldTTM": 3.9199,
+          "currentEv/freeCashFlowAnnual": 22.8559,
+          "currentEv/freeCashFlowTTM": 27.5179,
           "currentRatioAnnual": 1.1547,
           "currentRatioQuarterly": 1.0945,
           "dividendGrowthRate5Y": 5.97,
@@ -540,7 +540,7 @@
           "ebitdPerShareTTM": 20.0942,
           "ebitdaCagr5Y": 21.53,
           "ebitdaInterimCagr5Y": 7.88,
-          "enterpriseValue": 382639.9,
+          "enterpriseValue": 379224.3,
           "epsAnnual": 6.6266,
           "epsBasicExclExtraItemsAnnual": 6.6266,
           "epsBasicExclExtraItemsTTM": 5.7604,
@@ -554,8 +554,8 @@
           "epsInclExtraItemsTTM": 5.7604,
           "epsNormalizedAnnual": 6.6266,
           "epsTTM": 5.7604,
-          "evEbitdaTTM": 9.9485,
-          "evRevenueTTM": 2.0585,
+          "evEbitdaTTM": 9.8597,
+          "evRevenueTTM": 2.0401,
           "focfCagr5Y": 58.57,
           "forwardPE": 12.95946,
           "forwardPEG": 0.78069,
@@ -566,7 +566,7 @@
           "inventoryTurnoverTTM": 10.9395,
           "longTermDebt/equityAnnual": 0.2098,
           "longTermDebt/equityQuarterly": 0.2156,
-          "marketCapitalization": 342534.9,
+          "marketCapitalization": 339119.3,
           "monthToDatePriceReturnDaily": -5.6012,
           "netIncomeEmployeeAnnual": 0.2858,
           "netIncomeEmployeeTTM": 0.2558,
@@ -581,21 +581,21 @@
           "operatingMarginTTM": 8.95,
           "payoutRatioAnnual": 103.68,
           "payoutRatioTTM": 120.75,
-          "pb": 1.8645,
+          "pb": 1.8459,
           "pbAnnual": 1.6459,
           "pbQuarterly": 2.2433,
-          "pcfShareAnnual": 10.0927,
-          "pcfShareTTM": 10.9562,
-          "peAnnual": 27.8506,
-          "peBasicExclExtraTTM": 31.1141,
+          "pcfShareAnnual": 9.992,
+          "pcfShareTTM": 10.847,
+          "peAnnual": 27.5729,
+          "peBasicExclExtraTTM": 30.8038,
           "peExclExtraAnnual": 7.92629,
-          "peExclExtraTTM": 31.1141,
-          "peInclExtraTTM": 31.1141,
-          "peNormalizedAnnual": 27.8506,
-          "peTTM": 31.1141,
+          "peExclExtraTTM": 30.8038,
+          "peInclExtraTTM": 30.8038,
+          "peNormalizedAnnual": 27.5729,
+          "peTTM": 30.8038,
           "pegTTM": 1.84036,
-          "pfcfShareAnnual": 20.6446,
-          "pfcfShareTTM": 20.6446,
+          "pfcfShareAnnual": 20.4387,
+          "pfcfShareTTM": 20.4387,
           "pretaxMargin5Y": 14.98,
           "pretaxMarginAnnual": 10.7,
           "pretaxMarginTTM": 9.74,
@@ -604,8 +604,8 @@
           "priceRelativeToS&P5004Week": -3.205,
           "priceRelativeToS&P50052Week": -0.694,
           "priceRelativeToS&P500Ytd": 5.3297,
-          "psAnnual": 1.8572,
-          "psTTM": 1.8427,
+          "psAnnual": 1.8387,
+          "psTTM": 1.8243,
           "ptbvAnnual": 1.76442,
           "ptbvQuarterly": 1.69867,
           "quickRatioAnnual": 0.7352,
@@ -654,9 +654,9 @@
         },
         "analyst": {
           "recommendation": "buy",
-          "target_upside_pct": 28.78,
+          "target_upside_pct": 28.9,
           "num_analysts": 22,
-          "current_price": 171.22
+          "current_price": 171.06
         },
         "insider": {
           "net_buy_signal": -1.0,
@@ -677,7 +677,7 @@
           "piotroski_f": 6,
           "altman_z": 3.24,
           "rule_of_40": null,
-          "fcf_yield_pct": 3.45,
+          "fcf_yield_pct": 3.46,
           "peg": 0.69,
           "roe_pct": 6.6,
           "roa_pct": 3.5,
@@ -697,16 +697,16 @@
           "tone": 0.0,
           "note": "",
           "score_delta": 0.0,
-          "updated_at": "2026-06-26T13:47:17.465046+00:00"
+          "updated_at": "2026-06-26T20:32:15.726689+00:00"
         },
         "news": {
-          "news_7d": 141,
+          "news_7d": 151,
           "headlines": [
-            "High Income Outpaces Mega-Cap Tech In Return/Risk Terms",
-            "Chevron (CVX) Expands Into a Promising New Offshore Region; Could It Be a Long-Term Growth Driver?",
-            "/C O R R E C T I O N -- Chevron/",
-            "Chevron, Microsoft deal fuels West Texas data center expansion",
-            "Sector Update: Energy Stocks Higher Late Afternoon"
+            "Uncover the latest developments among dow jones stocks in today's session.",
+            "Explore the top gainers and losers within the dow jones index in today's session.",
+            "Chevron (CVX) Expands Into Greece Block 10 While Venezuela Operations Stay Running",
+            "2026 2H Oil Dividend Roundup: Chevron Outshines Enterprise Products Partners",
+            "Chevron Confirms Safe Venezuela Operations After Major Earthquakes"
           ],
           "sentiment": 0.0
         },
@@ -717,7 +717,7 @@
           "rss_news_7d": 0
         },
         "score": 0.836,
-        "updated_at": "2026-06-26T13:47:13.633018+00:00"
+        "updated_at": "2026-06-26T20:32:11.956760+00:00"
       },
       "technical": {
         "score": 0.0,
@@ -734,14 +734,14 @@
         "entry_now": false,
         "rel_volume": null
       },
-      "updated_at": "2026-06-26T13:47:17.884601+00:00"
+      "updated_at": "2026-06-26T20:32:16.143227+00:00"
     },
     {
       "ticker": "MSFT",
       "combined_score": 0.505,
-      "upside_pct": 53.89,
+      "upside_pct": 48.81,
       "analyst_target": null,
-      "current_price": 360.6525,
+      "current_price": 372.97,
       "upside_source": "analyst",
       "entry_quality": "WAIT",
       "entry_now": false,
@@ -772,9 +772,9 @@
           "cashFlowPerShareTTM": 12.3339,
           "cashPerSharePerShareAnnual": 12.7206,
           "cashPerSharePerShareQuarterly": 10.536,
-          "currentDividendYieldTTM": 0.9524,
-          "currentEv/freeCashFlowAnnual": 38.903,
-          "currentEv/freeCashFlowTTM": 38.2068,
+          "currentDividendYieldTTM": 0.9654,
+          "currentEv/freeCashFlowAnnual": 38.3927,
+          "currentEv/freeCashFlowTTM": 37.7055,
           "currentRatioAnnual": 1.3534,
           "currentRatioQuarterly": 1.2829,
           "dividendGrowthRate5Y": 10.24,
@@ -786,7 +786,7 @@
           "ebitdPerShareTTM": 25.1422,
           "ebitdaCagr5Y": 19.77,
           "ebitdaInterimCagr5Y": 19.43,
-          "enterpriseValue": 2785884.8,
+          "enterpriseValue": 2749336.8,
           "epsAnnual": 13.6413,
           "epsBasicExclExtraItemsAnnual": 13.6413,
           "epsBasicExclExtraItemsTTM": 16.7896,
@@ -800,8 +800,8 @@
           "epsInclExtraItemsTTM": 16.7896,
           "epsNormalizedAnnual": 13.6413,
           "epsTTM": 16.7896,
-          "evEbitdaTTM": 14.8567,
-          "evRevenueTTM": 8.7531,
+          "evEbitdaTTM": 14.6618,
+          "evRevenueTTM": 8.6383,
           "focfCagr5Y": 9.62,
           "forwardPE": 19.31673,
           "forwardPEG": 1.14064,
@@ -812,7 +812,7 @@
           "inventoryTurnoverTTM": 97.5936,
           "longTermDebt/equityAnnual": 0.1169,
           "longTermDebt/equityQuarterly": 0.0758,
-          "marketCapitalization": 2714795.8,
+          "marketCapitalization": 2678247.8,
           "monthToDatePriceReturnDaily": -21.6351,
           "netIncomeEmployeeAnnual": 0.4466,
           "netIncomeEmployeeTTM": 0.5492,
@@ -827,21 +827,21 @@
           "operatingMarginTTM": 46.75,
           "payoutRatioAnnual": 23.65,
           "payoutRatioTTM": 20.65,
-          "pb": 6.5517,
+          "pb": 6.4635,
           "pbAnnual": 10.7635,
           "pbQuarterly": 6.6336,
-          "pcfShareAnnual": 19.938,
-          "pcfShareTTM": 15.9562,
-          "peAnnual": 26.6596,
-          "peBasicExclExtraTTM": 21.6809,
+          "pcfShareAnnual": 19.6696,
+          "pcfShareTTM": 15.7413,
+          "peAnnual": 26.3007,
+          "peBasicExclExtraTTM": 21.389,
           "peExclExtraAnnual": 38.97343,
-          "peExclExtraTTM": 21.6809,
-          "peInclExtraTTM": 21.6809,
-          "peNormalizedAnnual": 26.6596,
-          "peTTM": 21.6809,
+          "peExclExtraTTM": 21.389,
+          "peInclExtraTTM": 21.389,
+          "peNormalizedAnnual": 26.3007,
+          "peTTM": 21.389,
           "pegTTM": 1.31515,
-          "pfcfShareAnnual": 37.9103,
-          "pfcfShareTTM": 37.2318,
+          "pfcfShareAnnual": 37.3999,
+          "pfcfShareTTM": 36.7306,
           "pretaxMargin5Y": 42.9,
           "pretaxMarginAnnual": 43.88,
           "pretaxMarginTTM": 48.54,
@@ -850,8 +850,8 @@
           "priceRelativeToS&P5004Week": -14.6779,
           "priceRelativeToS&P50052Week": -49.274,
           "priceRelativeToS&P500Ytd": -34.7253,
-          "psAnnual": 9.6364,
-          "psTTM": 8.5298,
+          "psAnnual": 9.5066,
+          "psTTM": 8.4149,
           "ptbvAnnual": 11.5217,
           "ptbvQuarterly": 6.9581,
           "quickRatioAnnual": 1.3468,
@@ -900,9 +900,9 @@
         },
         "analyst": {
           "recommendation": "strong_buy",
-          "target_upside_pct": 53.89,
+          "target_upside_pct": 48.81,
           "num_analysts": 55,
-          "current_price": 360.6525
+          "current_price": 372.97
         },
         "insider": {
           "net_buy_signal": -0.714,
@@ -923,13 +923,13 @@
           "piotroski_f": 6,
           "altman_z": 7.71,
           "rule_of_40": 29.9,
-          "fcf_yield_pct": 1.38,
+          "fcf_yield_pct": 1.34,
           "peg": 1.09,
           "roe_pct": 34.0,
           "roa_pct": 14.8,
-          "price_to_book": 6.47,
-          "pe_ratio": 21.5,
-          "forward_pe": 18.6
+          "price_to_book": 6.69,
+          "pe_ratio": 22.2,
+          "forward_pe": 19.3
         },
         "earnings_call": {
           "reported": false,
@@ -943,16 +943,16 @@
           "tone": 0.0,
           "note": "",
           "score_delta": 0.0,
-          "updated_at": "2026-06-26T13:45:11.005886+00:00"
+          "updated_at": "2026-06-26T20:30:10.969678+00:00"
         },
         "news": {
-          "news_7d": 249,
+          "news_7d": 248,
           "headlines": [
-            "Microsoft Corp (NASDAQ:MSFT) Shines as a Quality Investment Through Caviar Cruise Screening",
-            "Dow Jones Futures: S&P 500 Set To Break Key Level As Techs Tumble; What To Do Now",
-            "Veteran Bank Cuts Microsoft Stock Price Target on AI Spending Concerns",
-            "Microsoft Faces Italy Probe Over AI Pricing",
-            "Asian stocks suffer fresh rout as rollercoaster week draws to close"
+            "Sector Update: Tech Stocks Fall Late Afternoon",
+            "Microsoft Has Fallen 25% This Year: What Could Push MSFT Back to $500?",
+            "Uncover the latest developments among dow jones stocks in today's session.",
+            "VOO Became the First ETF to Hit $1 Trillion, but Nearly 40% of It Is Now Tech",
+            "A VC Says the \u2018All Your Eggs in the AI Basket\u2019 Trade Is Finally Cracking \u2014 Here\u2019s Where the Money Goes Next"
           ],
           "sentiment": 0.0
         },
@@ -962,8 +962,8 @@
         "rss_news": {
           "rss_news_7d": 0
         },
-        "score": 0.828,
-        "updated_at": "2026-06-26T13:45:06.922527+00:00"
+        "score": 0.827,
+        "updated_at": "2026-06-26T20:30:06.902138+00:00"
       },
       "technical": {
         "score": 0.0,
@@ -980,14 +980,14 @@
         "entry_now": false,
         "rel_volume": null
       },
-      "updated_at": "2026-06-26T13:45:11.512304+00:00"
+      "updated_at": "2026-06-26T20:30:11.500703+00:00"
     },
     {
       "ticker": "CRM",
       "combined_score": 0.505,
-      "upside_pct": 57.39,
+      "upside_pct": 55.33,
       "analyst_target": null,
-      "current_price": 156.295,
+      "current_price": 158.37,
       "upside_source": "analyst",
       "entry_quality": "WAIT",
       "entry_now": false,
@@ -1018,9 +1018,9 @@
           "cashFlowPerShareTTM": 5.75543,
           "cashPerSharePerShareAnnual": 10.296,
           "cashPerSharePerShareQuarterly": 14.453,
-          "currentDividendYieldTTM": 1.2512,
-          "currentEv/freeCashFlowAnnual": 10.7084,
-          "currentEv/freeCashFlowTTM": 10.5193,
+          "currentDividendYieldTTM": 1.2074,
+          "currentEv/freeCashFlowAnnual": 11.0206,
+          "currentEv/freeCashFlowTTM": 10.8259,
           "currentRatioAnnual": 0.7603,
           "currentRatioQuarterly": 0.7859,
           "dividendIndicatedAnnual": 1.76,
@@ -1031,7 +1031,7 @@
           "ebitdPerShareTTM": 9.935,
           "ebitdaCagr5Y": 57.4,
           "ebitdaInterimCagr5Y": 40.79,
-          "enterpriseValue": 154222.84,
+          "enterpriseValue": 158719.16,
           "epsAnnual": 7.8002,
           "epsBasicExclExtraItemsAnnual": 7.8002,
           "epsBasicExclExtraItemsTTM": 8.6432,
@@ -1045,8 +1045,8 @@
           "epsInclExtraItemsTTM": 8.6432,
           "epsNormalizedAnnual": 7.8002,
           "epsTTM": 8.6432,
-          "evEbitdaTTM": 16.6781,
-          "evRevenueTTM": 3.6009,
+          "evEbitdaTTM": 17.1644,
+          "evRevenueTTM": 3.7059,
           "focfCagr5Y": 28.62,
           "forwardPE": 10.43016,
           "forwardPEG": 0.68171,
@@ -1055,7 +1055,7 @@
           "grossMarginTTM": 77.64,
           "longTermDebt/equityAnnual": 0.1765,
           "longTermDebt/equityQuarterly": 1.1474,
-          "marketCapitalization": 123877.84,
+          "marketCapitalization": 128374.16,
           "monthToDatePriceReturnDaily": -21.4076,
           "netIncomeEmployeeAnnual": 0.0895,
           "netIncomeEmployeeTTM": 0.0963,
@@ -1070,21 +1070,21 @@
           "operatingMarginTTM": 19.07,
           "payoutRatioAnnual": 21.28,
           "payoutRatioTTM": 19.32,
-          "pb": 3.6185,
+          "pb": 3.7498,
           "pbAnnual": 3.3399,
           "pbQuarterly": 4.2182,
-          "pcfShareAnnual": 8.2607,
-          "pcfShareTTM": 8.1386,
-          "peAnnual": 16.6123,
-          "peBasicExclExtraTTM": 15.4403,
+          "pcfShareAnnual": 8.5606,
+          "pcfShareTTM": 8.434,
+          "peAnnual": 17.2153,
+          "peBasicExclExtraTTM": 16.0008,
           "peExclExtraAnnual": 1075.493,
-          "peExclExtraTTM": 15.4403,
-          "peInclExtraTTM": 15.4403,
-          "peNormalizedAnnual": 16.6123,
-          "peTTM": 15.4403,
+          "peExclExtraTTM": 16.0008,
+          "peInclExtraTTM": 16.0008,
+          "peNormalizedAnnual": 17.2153,
+          "peTTM": 16.0008,
           "pegTTM": 1.16015,
-          "pfcfShareAnnual": 8.6014,
-          "pfcfShareTTM": 8.4495,
+          "pfcfShareAnnual": 8.9136,
+          "pfcfShareTTM": 8.7562,
           "pretaxMargin5Y": 12.93,
           "pretaxMarginAnnual": 22.93,
           "pretaxMarginTTM": 23.97,
@@ -1093,8 +1093,8 @@
           "priceRelativeToS&P5004Week": -12.0569,
           "priceRelativeToS&P50052Week": -64.8568,
           "priceRelativeToS&P500Ytd": -50.9866,
-          "psAnnual": 2.9832,
-          "psTTM": 2.8924,
+          "psAnnual": 3.0915,
+          "psTTM": 2.9974,
           "ptbvAnnual": 3.7749,
           "ptbvQuarterly": 5.2351,
           "quickRatioAnnual": 0.6999,
@@ -1143,9 +1143,9 @@
         },
         "analyst": {
           "recommendation": "buy",
-          "target_upside_pct": 57.39,
+          "target_upside_pct": 55.33,
           "num_analysts": 52,
-          "current_price": 156.295
+          "current_price": 158.37
         },
         "insider": {
           "net_buy_signal": 0.0,
@@ -1166,13 +1166,13 @@
           "piotroski_f": 7,
           "altman_z": 5.08,
           "rule_of_40": 51.9,
-          "fcf_yield_pct": 12.93,
+          "fcf_yield_pct": 12.76,
           "peg": 0.72,
           "roe_pct": 16.9,
           "roa_pct": 5.7,
-          "price_to_book": 3.74,
-          "pe_ratio": 18.1,
-          "forward_pe": 10.1
+          "price_to_book": 3.79,
+          "pe_ratio": 18.3,
+          "forward_pe": 10.2
         },
         "earnings_call": {
           "reported": false,
@@ -1186,16 +1186,16 @@
           "tone": 0.0,
           "note": "",
           "score_delta": 0.0,
-          "updated_at": "2026-06-26T13:47:04.349775+00:00"
+          "updated_at": "2026-06-26T20:32:02.814080+00:00"
         },
         "news": {
-          "news_7d": 106,
+          "news_7d": 118,
           "headlines": [
-            "TD Cowen Reaffirms Buy Rating on Salesforce (CRM) as AI Momentum and Agentforce Drive Growth",
-            "AI Is A Secular Growth Unicorn",
-            "Adtran Holdings, Inc. Appoints Anne DelSanto to Board of Directors",
-            "Salesforce Grants Equity Awards to Momentum Under Its Inducement Equity Incentive Plan",
-            "Look Past the AI Hype: The Cold, Hard Financial Metric Telling You Exactly Which Enterprise Software Giant to Buy Right "
+            "Uncover the latest developments among dow jones stocks in today's session.",
+            "Stock Market Today: Small Caps Edge Lower As Dow Goes Flat; Heavy Construction Play Surges (Live Coverage)",
+            "Stock Market Today: Dow Index Turns Higher After Soft Start; Microsoft Leads Software Rally (Live Coverage)",
+            "Palantir Joins Software Stock Rally Amid Semiconductor, Tech Sell-Off",
+            "Explore the top gainers and losers within the dow jones index in today's session."
           ],
           "sentiment": 0.0
         },
@@ -1206,7 +1206,7 @@
           "rss_news_7d": 0
         },
         "score": 0.828,
-        "updated_at": "2026-06-26T13:47:00.437264+00:00"
+        "updated_at": "2026-06-26T20:31:58.853262+00:00"
       },
       "technical": {
         "score": 0.0,
@@ -1223,14 +1223,14 @@
         "entry_now": false,
         "rel_volume": null
       },
-      "updated_at": "2026-06-26T13:47:04.812510+00:00"
+      "updated_at": "2026-06-26T20:32:03.267417+00:00"
     },
     {
       "ticker": "MA",
       "combined_score": 0.488,
-      "upside_pct": 32.32,
+      "upside_pct": 31.76,
       "analyst_target": null,
-      "current_price": 496.915,
+      "current_price": 499.02,
       "upside_source": "analyst",
       "entry_quality": "WAIT",
       "entry_now": false,
@@ -1261,9 +1261,9 @@
           "cashFlowPerShareTTM": 12.29081,
           "cashPerSharePerShareAnnual": 12.1765,
           "cashPerSharePerShareQuarterly": 9.2661,
-          "currentDividendYieldTTM": 0.6476,
-          "currentEv/freeCashFlowAnnual": 27.3509,
-          "currentEv/freeCashFlowTTM": 26.3241,
+          "currentDividendYieldTTM": 0.6457,
+          "currentEv/freeCashFlowAnnual": 27.4273,
+          "currentEv/freeCashFlowTTM": 26.3976,
           "currentRatioAnnual": 1.035,
           "currentRatioQuarterly": 0.981,
           "dividendGrowthRate5Y": 13.7,
@@ -1275,7 +1275,7 @@
           "ebitdPerShareTTM": 23.1099,
           "ebitdaCagr5Y": 18.27,
           "ebitdaInterimCagr5Y": 17.14,
-          "enterpriseValue": 449457.4,
+          "enterpriseValue": 450712.1,
           "epsAnnual": 16.521,
           "epsBasicExclExtraItemsAnnual": 16.521,
           "epsBasicExclExtraItemsTTM": 17.284,
@@ -1289,14 +1289,14 @@
           "epsInclExtraItemsTTM": 17.284,
           "epsNormalizedAnnual": 16.521,
           "epsTTM": 17.284,
-          "evEbitdaTTM": 21.5857,
-          "evRevenueTTM": 13.2431,
+          "evEbitdaTTM": 21.646,
+          "evRevenueTTM": 13.2801,
           "focfCagr5Y": 20.32,
           "forwardPE": 23.16994,
           "forwardPEG": 1.49619,
           "longTermDebt/equityAnnual": 2.3589,
           "longTermDebt/equityQuarterly": 2.5617,
-          "marketCapitalization": 438403.4,
+          "marketCapitalization": 439658.1,
           "monthToDatePriceReturnDaily": -1.0243,
           "netIncomeEmployeeAnnual": 0.3761,
           "netIncomeEmployeeTTM": 0.3912,
@@ -1311,21 +1311,21 @@
           "operatingMarginTTM": 57.91,
           "payoutRatioAnnual": 18.41,
           "payoutRatioTTM": 18.23,
-          "pb": 65.2483,
+          "pb": 65.435,
           "pbAnnual": 66.2593,
           "pbQuarterly": 66.3198,
-          "pcfShareAnnual": 24.8415,
-          "pcfShareTTM": 23.9997,
-          "peAnnual": 29.2894,
-          "peBasicExclExtraTTM": 28.1569,
+          "pcfShareAnnual": 24.9126,
+          "pcfShareTTM": 24.0684,
+          "peAnnual": 29.3732,
+          "peBasicExclExtraTTM": 28.2375,
           "peExclExtraAnnual": 40.3361,
-          "peExclExtraTTM": 28.1569,
-          "peInclExtraTTM": 28.1569,
-          "peNormalizedAnnual": 29.2894,
-          "peTTM": 28.1569,
+          "peExclExtraTTM": 28.2375,
+          "peInclExtraTTM": 28.2375,
+          "peNormalizedAnnual": 29.3732,
+          "peTTM": 28.2375,
           "pegTTM": 1.82346,
-          "pfcfShareAnnual": 26.6782,
-          "pfcfShareTTM": 25.6767,
+          "pfcfShareAnnual": 26.7546,
+          "pfcfShareTTM": 25.7502,
           "pretaxMargin5Y": 54.5,
           "pretaxMarginAnnual": 56.66,
           "pretaxMarginTTM": 57.04,
@@ -1334,8 +1334,8 @@
           "priceRelativeToS&P5004Week": 1.712,
           "priceRelativeToS&P50052Week": -32.005,
           "priceRelativeToS&P500Ytd": -22.0381,
-          "psAnnual": 13.3696,
-          "psTTM": 12.9174,
+          "psAnnual": 13.4079,
+          "psTTM": 12.9544,
           "ptbvAnnual": 234.8364,
           "ptbvQuarterly": 364.0547,
           "quickRatioAnnual": 1.035,
@@ -1384,9 +1384,9 @@
         },
         "analyst": {
           "recommendation": "strong_buy",
-          "target_upside_pct": 32.32,
+          "target_upside_pct": 31.76,
           "num_analysts": 36,
-          "current_price": 496.915
+          "current_price": 499.02
         },
         "insider": {
           "net_buy_signal": 0.0,
@@ -1407,13 +1407,13 @@
           "piotroski_f": 9,
           "altman_z": 11.03,
           "rule_of_40": 63.4,
-          "fcf_yield_pct": 3.68,
+          "fcf_yield_pct": 3.66,
           "peg": 1.5,
           "roe_pct": 232.1,
           "roa_pct": 25.0,
-          "price_to_book": 65.59,
-          "pe_ratio": 28.8,
-          "forward_pe": 21.8
+          "price_to_book": 65.87,
+          "pe_ratio": 28.9,
+          "forward_pe": 21.9
         },
         "earnings_call": {
           "reported": false,
@@ -1427,16 +1427,16 @@
           "tone": 0.0,
           "note": "",
           "score_delta": 0.0,
-          "updated_at": "2026-06-26T13:46:19.850729+00:00"
+          "updated_at": "2026-06-26T20:31:16.585365+00:00"
         },
         "news": {
-          "news_7d": 31,
+          "news_7d": 35,
           "headlines": [
-            "Has Mastercard Stock's Core Growth Engine Gone Quiet?",
-            "From boots to bookings: Mastercard insights show where Calgary Stampede drives meaningful lift for local businesses",
-            "Mastercard Launches Priceless Africa on Priceless.com, Unlocking a Curated Travel Experience Across Nine Iconic Destinat",
-            "How AmEx's Latest SMB Partnership Fits Its Long-Term Growth Strategy",
-            "Can Visa and Thredd Drive Faster Issuing Across the Asia Pacific?"
+            "Forget Mastercard: 1 Dominant Payment Tollbooth to Buy Hand Over Fist",
+            "Can Visa's New Travel Play Become Its Next Growth Driver?",
+            "Here is What to Know Beyond Why Mastercard Incorporated (MA) is a Trending Stock",
+            "Why Is Circle Internet Group Stock Surging On Friday?",
+            "Has Mastercard Stock's Core Growth Engine Gone Quiet?"
           ],
           "sentiment": 0.0
         },
@@ -1444,10 +1444,10 @@
           "form4_count": 12
         },
         "rss_news": {
-          "rss_news_7d": 30
+          "rss_news_7d": 33
         },
         "score": 0.796,
-        "updated_at": "2026-06-26T13:46:15.927072+00:00"
+        "updated_at": "2026-06-26T20:31:12.809964+00:00"
       },
       "technical": {
         "score": 0.0,
@@ -1464,259 +1464,14 @@
         "entry_now": false,
         "rel_volume": null
       },
-      "updated_at": "2026-06-26T13:46:20.219418+00:00"
-    },
-    {
-      "ticker": "AVGO",
-      "combined_score": 0.482,
-      "upside_pct": 43.2,
-      "analyst_target": null,
-      "current_price": 366.61,
-      "upside_source": "analyst",
-      "entry_quality": "WAIT",
-      "entry_now": false,
-      "fundamental": {
-        "ticker": "AVGO",
-        "archetype": "mega_tech",
-        "finnhub_metrics": {
-          "10DayAverageTradingVolume": 32.47437,
-          "13WeekPriceReturnDaily": 19.0455,
-          "26WeekPriceReturnDaily": 16.2229,
-          "3MonthADReturnStd": 54.249058,
-          "3MonthAverageTradingVolume": 26.42353,
-          "52WeekHigh": 495,
-          "52WeekHighDate": "2026-06-03",
-          "52WeekLow": 262.66,
-          "52WeekLowDate": "2025-07-01",
-          "52WeekPriceReturnDaily": 43.174,
-          "5DayPriceReturnDaily": -7.8862,
-          "assetTurnoverAnnual": 0.3734,
-          "assetTurnoverTTM": 0.4402,
-          "beta": 1.4767668,
-          "bookValuePerShareAnnual": 17.1466,
-          "bookValuePerShareQuarterly": 18.521,
-          "bookValueShareGrowth5Y": 23.93,
-          "capexCagr5Y": 6.12,
-          "cashFlowPerShareAnnual": 5.6769,
-          "cashFlowPerShareQuarterly": 6.9196,
-          "cashFlowPerShareTTM": 42.44956,
-          "cashPerSharePerShareAnnual": 3.4124,
-          "cashPerSharePerShareQuarterly": 4.1456,
-          "currentDividendYieldTTM": 0.65,
-          "currentEv/freeCashFlowAnnual": 68.9114,
-          "currentEv/freeCashFlowTTM": 56.6108,
-          "currentRatioAnnual": 1.7054,
-          "currentRatioQuarterly": 2.238,
-          "dividendGrowthRate5Y": 11.45,
-          "dividendIndicatedAnnual": 2.6,
-          "dividendPerShareAnnual": 2.3638,
-          "dividendPerShareTTM": 2.4924,
-          "dividendYieldIndicatedAnnual": 0.6861787759626297,
-          "ebitdPerShareAnnual": 5.6697,
-          "ebitdPerShareTTM": 7.1345,
-          "ebitdaCagr5Y": 33.1,
-          "ebitdaInterimCagr5Y": 35.61,
-          "enterpriseValue": 1854681.9,
-          "epsAnnual": 4.7653,
-          "epsBasicExclExtraItemsAnnual": 4.7653,
-          "epsBasicExclExtraItemsTTM": 6.007099999999999,
-          "epsExclExtraItemsAnnual": 4.7653,
-          "epsExclExtraItemsTTM": 6.007099999999999,
-          "epsGrowth3Y": 20.59,
-          "epsGrowth5Y": 46.63,
-          "epsGrowthQuarterlyYoy": 85.59,
-          "epsGrowthTTMYoy": 125.78,
-          "epsInclExtraItemsAnnual": 4.7653,
-          "epsInclExtraItemsTTM": 6.007099999999999,
-          "epsNormalizedAnnual": 4.7653,
-          "epsTTM": 6.007099999999999,
-          "evEbitdaTTM": 53.2893,
-          "evRevenueTTM": 24.5767,
-          "focfCagr5Y": 18.34,
-          "forwardPE": 23.2388,
-          "grossMargin5Y": 65.67,
-          "grossMarginAnnual": 67.89,
-          "grossMarginTTM": 68.35,
-          "inventoryTurnoverAnnual": 10.1821,
-          "inventoryTurnoverTTM": 7.5284,
-          "longTermDebt/equityAnnual": 0.7625,
-          "longTermDebt/equityQuarterly": 0.7145,
-          "marketCapitalization": 1809402.9,
-          "monthToDatePriceReturnDaily": -15.189,
-          "netIncomeEmployeeAnnual": 0.7008,
-          "netIncomeEmployeeTTM": 0.8884,
-          "netInterestCoverageAnnual": 10.5967,
-          "netInterestCoverageTTM": 8.892,
-          "netMarginGrowth5Y": 23.92,
-          "netProfitMargin5Y": 29.22,
-          "netProfitMarginAnnual": 36.2,
-          "netProfitMarginTTM": 38.85,
-          "operatingMargin5Y": 37.02,
-          "operatingMarginAnnual": 39.89,
-          "operatingMarginTTM": 43.43,
-          "payoutRatioAnnual": 48.18,
-          "payoutRatioTTM": 40.12,
-          "pb": 20.6338,
-          "pbAnnual": 21.061,
-          "pbQuarterly": 22.4879,
-          "pcfShareAnnual": 65.7081,
-          "pcfShareTTM": 53.816,
-          "peAnnual": 78.2411,
-          "peBasicExclExtraTTM": 61.7186,
-          "peExclExtraAnnual": 36.89406,
-          "peExclExtraTTM": 61.7186,
-          "peInclExtraTTM": 61.7186,
-          "peNormalizedAnnual": 78.2411,
-          "peTTM": 61.7186,
-          "pegTTM": 1.20543,
-          "pfcfShareAnnual": 67.2291,
-          "pfcfShareTTM": 55.2287,
-          "pretaxMargin5Y": 31.81,
-          "pretaxMarginAnnual": 35.58,
-          "pretaxMarginTTM": 40.39,
-          "priceRelativeToS&P50013Week": 6.6263,
-          "priceRelativeToS&P50026Week": 6.8544,
-          "priceRelativeToS&P5004Week": -8.4847,
-          "priceRelativeToS&P50052Week": 22.2259,
-          "priceRelativeToS&P500Ytd": 1.7986,
-          "psAnnual": 28.3219,
-          "psTTM": 23.9767,
-          "ptbvAnnual": 34.9271,
-          "ptbvQuarterly": 33.222,
-          "quickRatioAnnual": 1.5548,
-          "quickRatioQuarterly": 2.0085,
-          "receivablesTurnoverAnnual": 6.9134,
-          "receivablesTurnoverTTM": 7.6899,
-          "revenueEmployeeAnnual": 1.936,
-          "revenueEmployeeTTM": 2.2868,
-          "revenueGrowth3Y": 24.38,
-          "revenueGrowth5Y": 21.74,
-          "revenueGrowthQuarterlyYoy": 47.87,
-          "revenueGrowthTTMYoy": 32.29,
-          "revenuePerShareAnnual": 13.1644,
-          "revenuePerShareTTM": 15.4768,
-          "revenueShareGrowth5Y": 18.33,
-          "roa5Y": 12.2,
-          "roaRfy": 13.52,
-          "roaTTM": 17.1,
-          "roe5Y": 34.69,
-          "roeRfy": 28.449999999999996,
-          "roeTTM": 36.4,
-          "roi5Y": 14.26,
-          "roiAnnual": 15.790000000000001,
-          "roiTTM": 20.13,
-          "tangibleBookValuePerShareAnnual": 10.3394,
-          "tangibleBookValuePerShareQuarterly": 12.5369,
-          "tbvCagr5Y": 47.2,
-          "totalDebt/totalEquityAnnual": 0.8013,
-          "totalDebt/totalEquityQuarterly": 0.7402,
-          "yearToDatePriceReturnDaily": 9.4799
-        },
-        "earnings_quality": {
-          "beat_rate": 0.5,
-          "avg_surprise_pct": 0.5,
-          "consecutive_beats": 2
-        },
-        "analyst_revision": {
-          "revision_score": -0.014,
-          "buy_pct_now": 92.9,
-          "buy_pct_3m_avg": 94.2
-        },
-        "earnings": {
-          "next_days": 69,
-          "last_surprise_pct": 1.74,
-          "imminent": false
-        },
-        "analyst": {
-          "recommendation": "strong_buy",
-          "target_upside_pct": 43.2,
-          "num_analysts": 45,
-          "current_price": 366.61
-        },
-        "insider": {
-          "net_buy_signal": -0.818,
-          "buy_count": 1,
-          "sell_count": 10
-        },
-        "institutional": {
-          "inst_held_pct": 79.9
-        },
-        "growth": {
-          "revenue_growth_pct": 47.9,
-          "earnings_growth_pct": 85.4
-        },
-        "short": {
-          "short_pct_float": 1.3
-        },
-        "advanced": {
-          "piotroski_f": 8,
-          "altman_z": 5.91,
-          "rule_of_40": 84.0,
-          "fcf_yield_pct": 1.56,
-          "peg": 0.69,
-          "roe_pct": 37.3,
-          "roa_pct": 12.1,
-          "price_to_book": 19.89,
-          "pe_ratio": 60.9,
-          "forward_pe": 18.9
-        },
-        "earnings_call": {
-          "reported": false,
-          "date": null,
-          "days_ago": null,
-          "surprise_pct": null,
-          "rev_beat_pct": null,
-          "guidance": "none",
-          "buyback": false,
-          "dividend_raise": false,
-          "tone": 0.0,
-          "note": "",
-          "score_delta": 0.0,
-          "updated_at": "2026-06-26T13:45:43.128526+00:00"
-        },
-        "news": {
-          "news_7d": 168,
-          "headlines": [
-            "Micron Leads Tech Stocks Rally on Blowout Earnings",
-            "Nvidia once explored a $100B chip deal with OpenAI. Now OpenAI is building its own chips from scratch",
-            "High Income Outpaces Mega-Cap Tech In Return/Risk Terms",
-            "OpenAI, Broadcom (AVGO) Unveil \u201cJalape\u00f1o\u201d AI Accelerator for Enhanced LLM Inference",
-            "INTC Stock Has More Than Tripled This Year \u2014 But Goldman Sachs Names 3 Better Chip Bets"
-          ],
-          "sentiment": 0.0
-        },
-        "edgar_insider": {
-          "form4_count": 16
-        },
-        "rss_news": {
-          "rss_news_7d": 0
-        },
-        "score": 0.786,
-        "updated_at": "2026-06-26T13:45:39.095517+00:00"
-      },
-      "technical": {
-        "score": 0.0,
-        "rsi": null,
-        "trend": "NEUTRAL",
-        "rel_strength_pct": null,
-        "entry": null,
-        "atr": null,
-        "stop": null,
-        "t1": null,
-        "t2": null,
-        "t3": null,
-        "entry_quality": "WAIT",
-        "entry_now": false,
-        "rel_volume": null
-      },
-      "updated_at": "2026-06-26T13:45:43.478962+00:00"
+      "updated_at": "2026-06-26T20:31:16.933731+00:00"
     },
     {
       "ticker": "RTX",
-      "combined_score": 0.478,
-      "upside_pct": 16.33,
+      "combined_score": 0.484,
+      "upside_pct": 17.03,
       "analyst_target": null,
-      "current_price": 189.12,
+      "current_price": 187.99,
       "upside_source": "analyst",
       "entry_quality": "WAIT",
       "entry_now": false,
@@ -1875,9 +1630,9 @@
         },
         "analyst": {
           "recommendation": "buy",
-          "target_upside_pct": 16.33,
+          "target_upside_pct": 17.03,
           "num_analysts": 22,
-          "current_price": 189.12
+          "current_price": 187.99
         },
         "insider": {
           "net_buy_signal": -1.0,
@@ -1896,15 +1651,15 @@
         },
         "advanced": {
           "piotroski_f": 9,
-          "altman_z": 2.67,
+          "altman_z": 2.66,
           "rule_of_40": null,
-          "fcf_yield_pct": 2.84,
+          "fcf_yield_pct": 2.86,
           "peg": 2.56,
           "roe_pct": 11.6,
           "roa_pct": 4.1,
-          "price_to_book": 3.84,
-          "pe_ratio": 35.4,
-          "forward_pe": 25.0
+          "price_to_book": 3.82,
+          "pe_ratio": 35.2,
+          "forward_pe": 24.8
         },
         "earnings_call": {
           "reported": false,
@@ -1918,16 +1673,16 @@
           "tone": 0.0,
           "note": "",
           "score_delta": 0.0,
-          "updated_at": "2026-06-26T13:49:29.118032+00:00"
+          "updated_at": "2026-06-26T20:34:27.595650+00:00"
         },
         "news": {
-          "news_7d": 29,
+          "news_7d": 34,
           "headlines": [
-            "RTX (RTX) Stock Near Fair Value After Strong Five-Year Share Price Gains",
-            "The Number That Could Test GE Stock",
-            "White House order shifts focus back to defense stocks",
-            "RTX: Own A Piece Of Global Multipolar Peace",
-            "Anduril Eyes Nissan Factory In Japan To Expand Drone, Weapons Production"
+            "GE Stock At 52-Week Highs: Is the Best Still Ahead?",
+            "GE Aerospace Stock Looks Strong. One Number Says Be Careful.",
+            "65 Years Old With $1.4 Million. This Is My Income Blueprint With Uncertain Fed Policies",
+            "RTX's Raytheon awarded $1.1 billion U.S. Navy contract to produce AIM-9X Block II missiles",
+            "RTX (RTX) Stock Near Fair Value After Strong Five-Year Share Price Gains"
           ],
           "sentiment": 0.0
         },
@@ -1937,8 +1692,8 @@
         "rss_news": {
           "rss_news_7d": 0
         },
-        "score": 0.857,
-        "updated_at": "2026-06-26T13:49:25.179483+00:00"
+        "score": 0.861,
+        "updated_at": "2026-06-26T20:34:23.860874+00:00"
       },
       "technical": {
         "score": 0.0,
@@ -1955,14 +1710,259 @@
         "entry_now": false,
         "rel_volume": null
       },
-      "updated_at": "2026-06-26T13:49:29.537930+00:00"
+      "updated_at": "2026-06-26T20:34:28.014778+00:00"
+    },
+    {
+      "ticker": "AVGO",
+      "combined_score": 0.482,
+      "upside_pct": 43.83,
+      "analyst_target": null,
+      "current_price": 365.02,
+      "upside_source": "analyst",
+      "entry_quality": "WAIT",
+      "entry_now": false,
+      "fundamental": {
+        "ticker": "AVGO",
+        "archetype": "mega_tech",
+        "finnhub_metrics": {
+          "10DayAverageTradingVolume": 32.47437,
+          "13WeekPriceReturnDaily": 19.0455,
+          "26WeekPriceReturnDaily": 16.2229,
+          "3MonthADReturnStd": 54.249058,
+          "3MonthAverageTradingVolume": 26.42353,
+          "52WeekHigh": 495,
+          "52WeekHighDate": "2026-06-03",
+          "52WeekLow": 262.66,
+          "52WeekLowDate": "2025-07-01",
+          "52WeekPriceReturnDaily": 43.174,
+          "5DayPriceReturnDaily": -7.8862,
+          "assetTurnoverAnnual": 0.3734,
+          "assetTurnoverTTM": 0.4402,
+          "beta": 1.4767668,
+          "bookValuePerShareAnnual": 17.1466,
+          "bookValuePerShareQuarterly": 18.521,
+          "bookValueShareGrowth5Y": 23.93,
+          "capexCagr5Y": 6.12,
+          "cashFlowPerShareAnnual": 5.6769,
+          "cashFlowPerShareQuarterly": 6.9196,
+          "cashFlowPerShareTTM": 42.44956,
+          "cashPerSharePerShareAnnual": 3.4124,
+          "cashPerSharePerShareQuarterly": 4.1456,
+          "currentDividendYieldTTM": 0.65,
+          "currentEv/freeCashFlowAnnual": 68.9114,
+          "currentEv/freeCashFlowTTM": 56.6108,
+          "currentRatioAnnual": 1.7054,
+          "currentRatioQuarterly": 2.238,
+          "dividendGrowthRate5Y": 11.45,
+          "dividendIndicatedAnnual": 2.6,
+          "dividendPerShareAnnual": 2.3638,
+          "dividendPerShareTTM": 2.4924,
+          "dividendYieldIndicatedAnnual": 0.6861787759626297,
+          "ebitdPerShareAnnual": 5.6697,
+          "ebitdPerShareTTM": 7.1345,
+          "ebitdaCagr5Y": 33.1,
+          "ebitdaInterimCagr5Y": 35.61,
+          "enterpriseValue": 1854681.9,
+          "epsAnnual": 4.7653,
+          "epsBasicExclExtraItemsAnnual": 4.7653,
+          "epsBasicExclExtraItemsTTM": 6.007099999999999,
+          "epsExclExtraItemsAnnual": 4.7653,
+          "epsExclExtraItemsTTM": 6.007099999999999,
+          "epsGrowth3Y": 20.59,
+          "epsGrowth5Y": 46.63,
+          "epsGrowthQuarterlyYoy": 85.59,
+          "epsGrowthTTMYoy": 125.78,
+          "epsInclExtraItemsAnnual": 4.7653,
+          "epsInclExtraItemsTTM": 6.007099999999999,
+          "epsNormalizedAnnual": 4.7653,
+          "epsTTM": 6.007099999999999,
+          "evEbitdaTTM": 53.2893,
+          "evRevenueTTM": 24.5767,
+          "focfCagr5Y": 18.34,
+          "forwardPE": 23.2388,
+          "grossMargin5Y": 65.67,
+          "grossMarginAnnual": 67.89,
+          "grossMarginTTM": 68.35,
+          "inventoryTurnoverAnnual": 10.1821,
+          "inventoryTurnoverTTM": 7.5284,
+          "longTermDebt/equityAnnual": 0.7625,
+          "longTermDebt/equityQuarterly": 0.7145,
+          "marketCapitalization": 1809402.9,
+          "monthToDatePriceReturnDaily": -15.189,
+          "netIncomeEmployeeAnnual": 0.7008,
+          "netIncomeEmployeeTTM": 0.8884,
+          "netInterestCoverageAnnual": 10.5967,
+          "netInterestCoverageTTM": 8.892,
+          "netMarginGrowth5Y": 23.92,
+          "netProfitMargin5Y": 29.22,
+          "netProfitMarginAnnual": 36.2,
+          "netProfitMarginTTM": 38.85,
+          "operatingMargin5Y": 37.02,
+          "operatingMarginAnnual": 39.89,
+          "operatingMarginTTM": 43.43,
+          "payoutRatioAnnual": 48.18,
+          "payoutRatioTTM": 40.12,
+          "pb": 20.6338,
+          "pbAnnual": 21.061,
+          "pbQuarterly": 22.4879,
+          "pcfShareAnnual": 65.7081,
+          "pcfShareTTM": 53.816,
+          "peAnnual": 78.2411,
+          "peBasicExclExtraTTM": 61.7186,
+          "peExclExtraAnnual": 36.89406,
+          "peExclExtraTTM": 61.7186,
+          "peInclExtraTTM": 61.7186,
+          "peNormalizedAnnual": 78.2411,
+          "peTTM": 61.7186,
+          "pegTTM": 1.20543,
+          "pfcfShareAnnual": 67.2291,
+          "pfcfShareTTM": 55.2287,
+          "pretaxMargin5Y": 31.81,
+          "pretaxMarginAnnual": 35.58,
+          "pretaxMarginTTM": 40.39,
+          "priceRelativeToS&P50013Week": 6.6263,
+          "priceRelativeToS&P50026Week": 6.8544,
+          "priceRelativeToS&P5004Week": -8.4847,
+          "priceRelativeToS&P50052Week": 22.2259,
+          "priceRelativeToS&P500Ytd": 1.7986,
+          "psAnnual": 28.3219,
+          "psTTM": 23.9767,
+          "ptbvAnnual": 34.9271,
+          "ptbvQuarterly": 33.222,
+          "quickRatioAnnual": 1.5548,
+          "quickRatioQuarterly": 2.0085,
+          "receivablesTurnoverAnnual": 6.9134,
+          "receivablesTurnoverTTM": 7.6899,
+          "revenueEmployeeAnnual": 1.936,
+          "revenueEmployeeTTM": 2.2868,
+          "revenueGrowth3Y": 24.38,
+          "revenueGrowth5Y": 21.74,
+          "revenueGrowthQuarterlyYoy": 47.87,
+          "revenueGrowthTTMYoy": 32.29,
+          "revenuePerShareAnnual": 13.1644,
+          "revenuePerShareTTM": 15.4768,
+          "revenueShareGrowth5Y": 18.33,
+          "roa5Y": 12.2,
+          "roaRfy": 13.52,
+          "roaTTM": 17.1,
+          "roe5Y": 34.69,
+          "roeRfy": 28.449999999999996,
+          "roeTTM": 36.4,
+          "roi5Y": 14.26,
+          "roiAnnual": 15.790000000000001,
+          "roiTTM": 20.13,
+          "tangibleBookValuePerShareAnnual": 10.3394,
+          "tangibleBookValuePerShareQuarterly": 12.5369,
+          "tbvCagr5Y": 47.2,
+          "totalDebt/totalEquityAnnual": 0.8013,
+          "totalDebt/totalEquityQuarterly": 0.7402,
+          "yearToDatePriceReturnDaily": 9.4799
+        },
+        "earnings_quality": {
+          "beat_rate": 0.5,
+          "avg_surprise_pct": 0.5,
+          "consecutive_beats": 2
+        },
+        "analyst_revision": {
+          "revision_score": -0.014,
+          "buy_pct_now": 92.9,
+          "buy_pct_3m_avg": 94.2
+        },
+        "earnings": {
+          "next_days": 69,
+          "last_surprise_pct": 1.74,
+          "imminent": false
+        },
+        "analyst": {
+          "recommendation": "strong_buy",
+          "target_upside_pct": 43.83,
+          "num_analysts": 45,
+          "current_price": 365.02
+        },
+        "insider": {
+          "net_buy_signal": -0.818,
+          "buy_count": 1,
+          "sell_count": 10
+        },
+        "institutional": {
+          "inst_held_pct": 79.9
+        },
+        "growth": {
+          "revenue_growth_pct": 47.9,
+          "earnings_growth_pct": 85.4
+        },
+        "short": {
+          "short_pct_float": 1.3
+        },
+        "advanced": {
+          "piotroski_f": 8,
+          "altman_z": 5.91,
+          "rule_of_40": 84.0,
+          "fcf_yield_pct": 1.57,
+          "peg": 0.69,
+          "roe_pct": 37.3,
+          "roa_pct": 12.1,
+          "price_to_book": 19.81,
+          "pe_ratio": 60.6,
+          "forward_pe": 18.8
+        },
+        "earnings_call": {
+          "reported": false,
+          "date": null,
+          "days_ago": null,
+          "surprise_pct": null,
+          "rev_beat_pct": null,
+          "guidance": "none",
+          "buyback": false,
+          "dividend_raise": false,
+          "tone": 0.0,
+          "note": "",
+          "score_delta": 0.0,
+          "updated_at": "2026-06-26T20:30:41.687907+00:00"
+        },
+        "news": {
+          "news_7d": 191,
+          "headlines": [
+            "OpenAI Just Signaled It Might Delay Its IPO. AI Stocks Are Tumbling. Is the Bubble Bursting?",
+            "Is The Growth Baked Into Advanced Micro Devices Stock Believable?",
+            "How Much Upside Can NVDA Stock's Growth Deliver?",
+            "Why everyone from OpenAI to SpaceX is building their own chips (and turning up the heat on Nvidia)",
+            "These Are the Best Income Investments Now.  Where to Find Yields of 5% or More."
+          ],
+          "sentiment": 0.0
+        },
+        "edgar_insider": {
+          "form4_count": 16
+        },
+        "rss_news": {
+          "rss_news_7d": 0
+        },
+        "score": 0.786,
+        "updated_at": "2026-06-26T20:30:37.623379+00:00"
+      },
+      "technical": {
+        "score": 0.0,
+        "rsi": null,
+        "trend": "NEUTRAL",
+        "rel_strength_pct": null,
+        "entry": null,
+        "atr": null,
+        "stop": null,
+        "t1": null,
+        "t2": null,
+        "t3": null,
+        "entry_quality": "WAIT",
+        "entry_now": false,
+        "rel_volume": null
+      },
+      "updated_at": "2026-06-26T20:30:42.038832+00:00"
     },
     {
       "ticker": "NOW",
-      "combined_score": 0.456,
-      "upside_pct": 41.48,
+      "combined_score": 0.455,
+      "upside_pct": 37.28,
       "analyst_target": null,
-      "current_price": 95.4223,
+      "current_price": 98.34,
       "upside_source": "analyst",
       "entry_quality": "WAIT",
       "entry_now": false,
@@ -1994,8 +1994,8 @@
           "cashPerSharePerShareAnnual": 6.0003,
           "cashPerSharePerShareQuarterly": 5.0012,
           "currentDividendYieldTTM": null,
-          "currentEv/freeCashFlowAnnual": 21.0734,
-          "currentEv/freeCashFlowTTM": 20.6587,
+          "currentEv/freeCashFlowAnnual": 20.0996,
+          "currentEv/freeCashFlowTTM": 19.7041,
           "currentRatioAnnual": 1.0027,
           "currentRatioQuarterly": 0.8449,
           "dividendPerShareTTM": null,
@@ -2003,7 +2003,7 @@
           "ebitdPerShareTTM": 2.595,
           "ebitdaCagr5Y": 39.29,
           "ebitdaInterimCagr5Y": 30.25,
-          "enterpriseValue": 95525.695,
+          "enterpriseValue": 91111.69,
           "epsAnnual": 1.67,
           "epsBasicExclExtraItemsAnnual": 1.67,
           "epsBasicExclExtraItemsTTM": 1.6814,
@@ -2017,16 +2017,16 @@
           "epsInclExtraItemsTTM": 1.6814,
           "epsNormalizedAnnual": 1.67,
           "epsTTM": 1.6814,
-          "evEbitdaTTM": 35.2233,
-          "evRevenueTTM": 6.8428,
+          "evEbitdaTTM": 33.5958,
+          "evRevenueTTM": 6.5266,
           "focfCagr5Y": 27.34,
-          "forwardPE": 21.550821372290436,
+          "forwardPE": 23.517646781267345,
           "grossMargin5Y": 78.13,
           "grossMarginAnnual": 77.53,
           "grossMarginTTM": 76.57,
           "longTermDebt/equityAnnual": 0.115,
           "longTermDebt/equityQuarterly": 0.1271,
-          "marketCapitalization": 96736.695,
+          "marketCapitalization": 92322.69,
           "monthToDatePriceReturnDaily": -28.0212,
           "netIncomeEmployeeAnnual": 0.0599,
           "netIncomeEmployeeTTM": 0.0602,
@@ -2041,21 +2041,21 @@
           "operatingMarginTTM": 13.44,
           "payoutRatioAnnual": null,
           "payoutRatioTTM": null,
-          "pb": 8.2484,
+          "pb": 7.872,
           "pbAnnual": 12.2702,
           "pbQuarterly": 9.1909,
-          "pcfShareAnnual": 17.7694,
-          "pcfShareTTM": 17.7923,
-          "peAnnual": 55.3414,
-          "peBasicExclExtraTTM": 55.0579,
+          "pcfShareAnnual": 16.9586,
+          "pcfShareTTM": 16.9804,
+          "peAnnual": 52.8162,
+          "peBasicExclExtraTTM": 52.5456,
           "peExclExtraAnnual": 422.0369,
-          "peExclExtraTTM": 55.0579,
-          "peInclExtraTTM": 55.0579,
-          "peNormalizedAnnual": 55.3414,
-          "peTTM": 55.0579,
-          "pegTTM": 3.9559877295155212,
-          "pfcfShareAnnual": 21.3405,
-          "pfcfShareTTM": 20.9206,
+          "peExclExtraTTM": 52.5456,
+          "peInclExtraTTM": 52.5456,
+          "peNormalizedAnnual": 52.8162,
+          "peTTM": 52.5456,
+          "pegTTM": 3.7754799738403992,
+          "pfcfShareAnnual": 20.3668,
+          "pfcfShareTTM": 19.966,
           "pretaxMargin5Y": 10.76,
           "pretaxMarginAnnual": 17.03,
           "pretaxMarginTTM": 17.04,
@@ -2064,8 +2064,8 @@
           "priceRelativeToS&P5004Week": -14.9774,
           "priceRelativeToS&P50052Week": -76.4174,
           "priceRelativeToS&P500Ytd": -49.2441,
-          "psAnnual": 7.2855,
-          "psTTM": 6.9296,
+          "psAnnual": 6.9531,
+          "psTTM": 6.6134,
           "ptbvAnnual": 13.4317,
           "ptbvQuarterly": 10.5172,
           "quickRatioAnnual": 0.9104,
@@ -2114,9 +2114,9 @@
         },
         "analyst": {
           "recommendation": "strong_buy",
-          "target_upside_pct": 41.48,
+          "target_upside_pct": 37.28,
           "num_analysts": 45,
-          "current_price": 95.4223
+          "current_price": 98.34
         },
         "insider": {
           "net_buy_signal": -1.0,
@@ -2137,13 +2137,13 @@
           "piotroski_f": 5,
           "altman_z": 5.54,
           "rule_of_40": 58.7,
-          "fcf_yield_pct": 5.19,
+          "fcf_yield_pct": 5.04,
           "peg": 0.87,
           "roe_pct": 16.1,
           "roa_pct": 5.7,
-          "price_to_book": 8.39,
-          "pe_ratio": 56.8,
-          "forward_pe": 19.0
+          "price_to_book": 8.65,
+          "pe_ratio": 58.5,
+          "forward_pe": 19.6
         },
         "earnings_call": {
           "reported": false,
@@ -2157,16 +2157,16 @@
           "tone": 0.0,
           "note": "",
           "score_delta": 0.0,
-          "updated_at": "2026-06-26T13:49:20.388362+00:00"
+          "updated_at": "2026-06-26T20:34:19.143818+00:00"
         },
         "news": {
-          "news_7d": 62,
+          "news_7d": 75,
           "headlines": [
-            "Oppenheimer Reaffirms Bullish Outlook on ServiceNow (NOW) Amid AI Growth and Cognizant Partnership",
-            "1 Large-Cap Stock with Impressive Fundamentals and 2 We Question",
-            "Now Corporation (PSE:NOW) Approves Board Changes, New Risk Chief, And Office Move",
-            "Explore the top gainers and losers within the S&P500 index in today's session.",
-            "ServiceNow: An Excellent Business Trading at a Discount"
+            "Discover which S&P500 stocks are making waves on Friday.",
+            "Microsoft and Amazon Lead Tech Spending Survey",
+            "Palantir Joins Software Stock Rally Amid Semiconductor, Tech Sell-Off",
+            "Friday's session: top gainers and losers in the S&P500 index",
+            "The Market Rotation Is On. ServiceNow, Workday, and AppLovin Rise as Software Tops Chips."
           ],
           "sentiment": 0.0
         },
@@ -2174,10 +2174,10 @@
           "form4_count": 29
         },
         "rss_news": {
-          "rss_news_7d": 6
+          "rss_news_7d": 2
         },
-        "score": 0.739,
-        "updated_at": "2026-06-26T13:49:16.181332+00:00"
+        "score": 0.737,
+        "updated_at": "2026-06-26T20:34:15.243126+00:00"
       },
       "technical": {
         "score": 0.0,
@@ -2194,14 +2194,14 @@
         "entry_now": false,
         "rel_volume": null
       },
-      "updated_at": "2026-06-26T13:49:20.723095+00:00"
+      "updated_at": "2026-06-26T20:34:19.603299+00:00"
     },
     {
       "ticker": "AMZN",
       "combined_score": 0.453,
-      "upside_pct": 38.18,
+      "upside_pct": 35.37,
       "analyst_target": null,
-      "current_price": 227.97,
+      "current_price": 232.69,
       "upside_source": "analyst",
       "entry_quality": "WAIT",
       "entry_now": false,
@@ -2233,7 +2233,7 @@
           "cashPerSharePerShareAnnual": 11.4648,
           "cashPerSharePerShareQuarterly": 13.3057,
           "currentDividendYieldTTM": null,
-          "currentEv/freeCashFlowAnnual": 329.737,
+          "currentEv/freeCashFlowAnnual": 321.3633,
           "currentEv/freeCashFlowTTM": 115.2247,
           "currentRatioAnnual": 1.0508,
           "currentRatioQuarterly": 1.1772,
@@ -2243,7 +2243,7 @@
           "ebitdPerShareTTM": 14.369,
           "ebitdaCagr5Y": 28.12,
           "ebitdaInterimCagr5Y": 21.19,
-          "enterpriseValue": 2537326,
+          "enterpriseValue": 2472890.8,
           "epsAnnual": 7.1737,
           "epsBasicExclExtraItemsAnnual": 7.1737,
           "epsBasicExclExtraItemsTTM": 8.3676,
@@ -2257,8 +2257,8 @@
           "epsInclExtraItemsTTM": 8.3676,
           "epsNormalizedAnnual": 7.1737,
           "epsTTM": 8.3676,
-          "evEbitdaTTM": 16.2794,
-          "evRevenueTTM": 3.416,
+          "evEbitdaTTM": 15.866,
+          "evRevenueTTM": 3.3293,
           "focfCagr5Y": -21.57,
           "forwardPE": 24.88951,
           "forwardPEG": 1.21412,
@@ -2269,7 +2269,7 @@
           "inventoryTurnoverTTM": 10.1357,
           "longTermDebt/equityAnnual": 0.1597,
           "longTermDebt/equityQuarterly": 0.2695,
-          "marketCapitalization": 2520068,
+          "marketCapitalization": 2455632.8,
           "monthToDatePriceReturnDaily": -16.121,
           "netIncomeEmployeeAnnual": 0.0493,
           "netIncomeEmployeeTTM": 0.0576,
@@ -2283,20 +2283,20 @@
           "operatingMarginAnnual": 11.16,
           "operatingMarginTTM": 11.5,
           "payoutRatioTTM": null,
-          "pb": 5.7026,
+          "pb": 5.5568,
           "pbAnnual": 6.0027,
           "pbQuarterly": 5.0684,
-          "pcfShareAnnual": 18.0632,
-          "pcfShareTTM": 16.9666,
-          "peAnnual": 32.4458,
-          "peBasicExclExtraTTM": 27.7547,
-          "peExclExtraTTM": 27.7547,
-          "peInclExtraTTM": 27.7547,
-          "peNormalizedAnnual": 32.4458,
-          "peTTM": 27.7547,
+          "pcfShareAnnual": 17.6013,
+          "pcfShareTTM": 16.5328,
+          "peAnnual": 31.6162,
+          "peBasicExclExtraTTM": 27.045,
+          "peExclExtraTTM": 27.045,
+          "peInclExtraTTM": 27.045,
+          "peNormalizedAnnual": 31.6162,
+          "peTTM": 27.045,
           "pegTTM": 1.36477,
-          "pfcfShareAnnual": 327.4942,
-          "pfcfShareTTM": 160.5241,
+          "pfcfShareAnnual": 319.1206,
+          "pfcfShareTTM": 156.4197,
           "pretaxMargin5Y": 7.57,
           "pretaxMarginAnnual": 13.57,
           "pretaxMarginTTM": 15.55,
@@ -2305,8 +2305,8 @@
           "priceRelativeToS&P5004Week": -14.4594,
           "priceRelativeToS&P50052Week": -13.8629,
           "priceRelativeToS&P500Ytd": -9.3319,
-          "psAnnual": 3.5151,
-          "psTTM": 3.3928,
+          "psAnnual": 3.4252,
+          "psTTM": 3.306,
           "ptbvAnnual": 6.1401,
           "ptbvQuarterly": 8.0857,
           "quickRatioAnnual": 0.8434,
@@ -2355,9 +2355,9 @@
         },
         "analyst": {
           "recommendation": "strong_buy",
-          "target_upside_pct": 38.18,
+          "target_upside_pct": 35.37,
           "num_analysts": 63,
-          "current_price": 227.97
+          "current_price": 232.69
         },
         "insider": {
           "net_buy_signal": -1.0,
@@ -2378,13 +2378,13 @@
           "piotroski_f": 7,
           "altman_z": 6.22,
           "rule_of_40": null,
-          "fcf_yield_pct": 0.4,
+          "fcf_yield_pct": 0.39,
           "peg": 1.83,
           "roe_pct": 24.3,
           "roa_pct": 6.8,
-          "price_to_book": 5.55,
-          "pe_ratio": 31.8,
-          "forward_pe": 23.1
+          "price_to_book": 5.66,
+          "pe_ratio": 32.5,
+          "forward_pe": 23.6
         },
         "earnings_call": {
           "reported": false,
@@ -2398,16 +2398,16 @@
           "tone": 0.0,
           "note": "",
           "score_delta": 0.0,
-          "updated_at": "2026-06-26T13:45:20.280626+00:00"
+          "updated_at": "2026-06-26T20:30:19.738592+00:00"
         },
         "news": {
-          "news_7d": 248,
+          "news_7d": 247,
           "headlines": [
-            "Ranking the FAANG Stocks From Most to Least Attractive, Based on Future Cash Flow",
-            "Ross Gerber Says Slate Auto Is What Happens When 'Top Tesla And Amazon' Execs Build An EV, Predicts Buyers Will \u2018Love\u2019 I",
-            "The AI boom now has a price tag \u2014 and Micron just sent the bill: Chart of the Day",
-            "How Low Can Microsoft Stock Go?",
-            "Update: Amazon's AWS, Microsoft Azure Should Be Classified as EU Gatekeepers, European Commission Says"
+            "Sector Update: Tech Stocks Fall Late Afternoon",
+            "80-year-old discount grocery chain closes 36 stores",
+            "Which S&P500 stocks are the most active on Friday?",
+            "Down 38% From Its All-Time High, Is MercadoLibre a Buy?",
+            "Microsoft and Amazon Lead Tech Spending Survey"
           ],
           "sentiment": 0.0
         },
@@ -2418,7 +2418,7 @@
           "rss_news_7d": 0
         },
         "score": 0.733,
-        "updated_at": "2026-06-26T13:45:16.000174+00:00"
+        "updated_at": "2026-06-26T20:30:15.909363+00:00"
       },
       "technical": {
         "score": 0.0,
@@ -2435,7 +2435,7 @@
         "entry_now": false,
         "rel_volume": null
       },
-      "updated_at": "2026-06-26T13:45:20.737565+00:00"
+      "updated_at": "2026-06-26T20:30:20.108913+00:00"
     }
   ],
   "scanned": 70,
@@ -2444,5 +2444,5 @@
   "top_n": 15,
   "skipped_upside": 31,
   "skipped_technical": 0,
-  "updated_at": "2026-06-26T13:50:49.917008+00:00"
+  "updated_at": "2026-06-26T20:35:42.930827+00:00"
 }
