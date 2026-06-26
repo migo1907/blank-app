@@ -88,8 +88,8 @@ def _recent_fired_event() -> dict | None:
 def _reaction(ticker: str, fired_at: datetime) -> dict | None:
     """Measure the asset's 5-minute price reaction since the print."""
     try:
-        import yfinance as yf
-        df = yf.Ticker(ticker).history(period="1d", interval="5m")
+        from market_data import fetch_intraday
+        df = fetch_intraday(ticker, interval="1h", period="60d")
         if not len(df):
             return None
         idx = df.index

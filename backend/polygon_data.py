@@ -162,27 +162,5 @@ def get_put_call_ratio(underlying: str = "SPXW") -> dict | None:
                     "source":         "polygon",
                 }
 
-    # Fallback: yfinance SPX options chain (nearest expiry)
-    try:
-        import yfinance as yf
-        tk  = yf.Ticker("^SPX")
-        exp = tk.options[0] if tk.options else None
-        if not exp:
-            return None
-        chain = tk.option_chain(exp)
-        call_vol = int(chain.calls["volume"].fillna(0).sum())
-        put_vol  = int(chain.puts["volume"].fillna(0).sum())
-        total    = call_vol + put_vol
-        if not total:
-            return None
-        return {
-            "call_volume":    call_vol,
-            "put_volume":     put_vol,
-            "total_volume":   total,
-            "put_call_ratio": round(put_vol / call_vol, 3) if call_vol else None,
-            "sentiment":      "bullish" if call_vol > put_vol else "bearish",
-            "source":         "yfinance",
-        }
-    except Exception as e:
-        print(f"[polygon] put_call_ratio yfinance fallback failed: {e}")
+    # No free fallback available for P/C ratio without paid options chain access
     return None

@@ -847,7 +847,26 @@ def fetch_fundamentals(ticker: str) -> dict:
     except Exception as e:
         print(f"[fundamental] analyst_revision {ticker} error: {e}")
 
-    # ── yfinance (secondary — gaps + statements + archetype) ─────────────────
+    # ── Finnhub profile2 — sector/industry for archetype classification ──────
+    try:
+        import httpx as _hx, os as _os
+        _fk = _os.environ.get("FINNHUB_KEY", "")
+        if _fk:
+            _pr = _hx.get("https://finnhub.io/api/v1/stock/profile2",
+                          params={"symbol": ticker, "token": _fk}, timeout=8)
+            if _pr.status_code == 200:
+                _pd2 = _pr.json() or {}
+                _ind = _pd2.get("finnhubIndustry") or ""
+                # Build a minimal info-like dict so archetype_of() works
+                f["archetype"] = archetype_of({
+                    "sector": _ind, "industry": _ind.lower(),
+                    "profitMargins": (f.get("finnhub_metrics") or {}).get("netProfitMarginTTM"),
+                    "marketCap": (_pd2.get("marketCapitalization") or 0) * 1e6,
+                })
+    except Exception as e:
+        print(f"[fundamental] finnhub profile2 {ticker} error: {e}")
+
+    # ── yfinance (best-effort — statements + insider + institutional) ─────────
     cik = cik_for(ticker)
     tkr = None
     try:
@@ -855,7 +874,9 @@ def fetch_fundamentals(ticker: str) -> dict:
         tkr  = yf.Ticker(ticker)
         info = tkr.info or {}
         f["_info"]         = info
-        f["archetype"]     = archetype_of(info)
+        # Override archetype with yfinance sector if available (more precise)
+        if info.get("sector"):
+            f["archetype"] = archetype_of(info)
         f["earnings"]      = _earnings(tkr)
         f["analyst"]       = _analyst(tkr)
         f["insider"]       = _insider(tkr)
@@ -874,7 +895,7 @@ def fetch_fundamentals(ticker: str) -> dict:
         except Exception as e:
             print(f"[fundamental] advanced {ticker} error: {e}")
     except Exception as e:
-        print(f"[fundamental] yfinance {ticker} failed: {e}")
+        print(f"[fundamental] yfinance {ticker} failed (best-effort): {e}")
 
     # ── Finnhub company news ──────────────────────────────────────────────────
     f["news"] = _news_sentiment(ticker)
