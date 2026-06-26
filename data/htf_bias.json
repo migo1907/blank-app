@@ -1,103 +1,4 @@
 {
-  "US500_30": {
-    "direction": "LONG",
-    "timeframe": "30",
-    "symbol": "US500",
-    "trigger": "FVG",
-    "ml_score": 0.5,
-    "stored_at": "2026-06-26T14:30:10.472355+00:00",
-    "expires_at": "2026-06-26T16:30:10.472372+00:00"
-  },
-  "MU_30": {
-    "direction": "SHORT",
-    "timeframe": "30",
-    "symbol": "MU",
-    "trigger": "RSI",
-    "ml_score": 0.375,
-    "stored_at": "2026-06-26T15:00:03.765932+00:00",
-    "expires_at": "2026-06-26T17:00:03.765952+00:00"
-  },
-  "TNA_30": {
-    "direction": "LONG",
-    "timeframe": "30",
-    "symbol": "TNA",
-    "trigger": "LIQ",
-    "ml_score": 0.375,
-    "stored_at": "2026-06-26T14:00:27.446477+00:00",
-    "expires_at": "2026-06-26T16:00:27.446543+00:00"
-  },
-  "CRM_30": {
-    "direction": "LONG",
-    "timeframe": "30",
-    "symbol": "CRM",
-    "trigger": "FVG",
-    "ml_score": 0.5,
-    "stored_at": "2026-06-26T14:00:30.643545+00:00",
-    "expires_at": "2026-06-26T16:00:30.643559+00:00"
-  },
-  "UPST_30": {
-    "direction": "LONG",
-    "timeframe": "30",
-    "symbol": "UPST",
-    "trigger": "LIQ",
-    "ml_score": 0.375,
-    "stored_at": "2026-06-26T14:00:34.809459+00:00",
-    "expires_at": "2026-06-26T16:00:34.809473+00:00"
-  },
-  "RR_30": {
-    "direction": "LONG",
-    "timeframe": "30",
-    "symbol": "RR",
-    "trigger": "LIQ",
-    "ml_score": 0.25,
-    "stored_at": "2026-06-26T14:00:36.658155+00:00",
-    "expires_at": "2026-06-26T16:00:36.658176+00:00"
-  },
-  "NOW_30": {
-    "direction": "LONG",
-    "timeframe": "30",
-    "symbol": "NOW",
-    "trigger": "FVG",
-    "ml_score": 0.5,
-    "stored_at": "2026-06-26T14:30:12.781667+00:00",
-    "expires_at": "2026-06-26T16:30:12.781687+00:00"
-  },
-  "MSFT_30": {
-    "direction": "LONG",
-    "timeframe": "30",
-    "symbol": "MSFT",
-    "trigger": "FVG",
-    "ml_score": 0.5,
-    "stored_at": "2026-06-26T14:30:12.882615+00:00",
-    "expires_at": "2026-06-26T16:30:12.882632+00:00"
-  },
-  "HOOD_30": {
-    "direction": "LONG",
-    "timeframe": "30",
-    "symbol": "HOOD",
-    "trigger": "FVG",
-    "ml_score": 0.75,
-    "stored_at": "2026-06-26T14:30:14.909508+00:00",
-    "expires_at": "2026-06-26T16:30:14.909527+00:00"
-  },
-  "PATH_30": {
-    "direction": "LONG",
-    "timeframe": "30",
-    "symbol": "PATH",
-    "trigger": "FVG",
-    "ml_score": 0.75,
-    "stored_at": "2026-06-26T14:30:15.194840+00:00",
-    "expires_at": "2026-06-26T16:30:15.194861+00:00"
-  },
-  "ADBE_30": {
-    "direction": "LONG",
-    "timeframe": "30",
-    "symbol": "ADBE",
-    "trigger": "FVG",
-    "ml_score": 0.5,
-    "stored_at": "2026-06-26T14:30:15.429978+00:00",
-    "expires_at": "2026-06-26T16:30:15.429997+00:00"
-  },
   "QQQ_60": {
     "direction": "LONG",
     "timeframe": "60",
@@ -108,49 +9,13 @@
     "expires_at": "2026-06-26T18:30:15.451831+00:00"
   },
   "AMD_60": {
-    "direction": "LONG",
+    "direction": "SHORT",
     "timeframe": "60",
     "symbol": "AMD",
-    "trigger": "LIQ",
-    "ml_score": 0.75,
-    "stored_at": "2026-06-26T14:30:19.025364+00:00",
-    "expires_at": "2026-06-26T18:30:19.025386+00:00"
-  },
-  "BBAI_30": {
-    "direction": "LONG",
-    "timeframe": "30",
-    "symbol": "BBAI",
-    "trigger": "FVG",
-    "ml_score": 0.125,
-    "stored_at": "2026-06-26T14:30:23.363775+00:00",
-    "expires_at": "2026-06-26T16:30:23.363790+00:00"
-  },
-  "PLTR_30": {
-    "direction": "LONG",
-    "timeframe": "30",
-    "symbol": "PLTR",
-    "trigger": "FVG",
-    "ml_score": 0.125,
-    "stored_at": "2026-06-26T14:30:23.398230+00:00",
-    "expires_at": "2026-06-26T16:30:23.398264+00:00"
-  },
-  "XAUUSD_30": {
-    "direction": "LONG",
-    "timeframe": "30",
-    "symbol": "XAUUSD",
-    "trigger": "FVG",
-    "ml_score": 0.375,
-    "stored_at": "2026-06-26T14:32:03.204664+00:00",
-    "expires_at": "2026-06-26T16:32:03.204682+00:00"
-  },
-  "META_30": {
-    "direction": "LONG",
-    "timeframe": "30",
-    "symbol": "META",
-    "trigger": "FVG",
+    "trigger": "OB",
     "ml_score": 0.5,
-    "stored_at": "2026-06-26T15:00:18.909416+00:00",
-    "expires_at": "2026-06-26T17:00:18.909431+00:00"
+    "stored_at": "2026-06-26T18:30:07.362862+00:00",
+    "expires_at": "2026-06-26T22:30:07.362887+00:00"
   },
   "XAUUSD_60": {
     "direction": "LONG",
@@ -188,24 +53,6 @@
     "stored_at": "2026-06-26T15:30:16.201056+00:00",
     "expires_at": "2026-06-26T19:30:16.201075+00:00"
   },
-  "TSLL_30": {
-    "direction": "LONG",
-    "timeframe": "30",
-    "symbol": "TSLL",
-    "trigger": "FVG",
-    "ml_score": 0.875,
-    "stored_at": "2026-06-26T15:30:18.030082+00:00",
-    "expires_at": "2026-06-26T17:30:18.030094+00:00"
-  },
-  "SPCX_30": {
-    "direction": "LONG",
-    "timeframe": "30",
-    "symbol": "SPCX",
-    "trigger": "RSI",
-    "ml_score": 0.5,
-    "stored_at": "2026-06-26T15:30:18.278184+00:00",
-    "expires_at": "2026-06-26T17:30:18.278196+00:00"
-  },
   "TSLL_60": {
     "direction": "LONG",
     "timeframe": "60",
@@ -224,15 +71,6 @@
     "stored_at": "2026-06-26T15:30:25.637842+00:00",
     "expires_at": "2026-06-26T19:30:25.637862+00:00"
   },
-  "TSLA_30": {
-    "direction": "LONG",
-    "timeframe": "30",
-    "symbol": "TSLA",
-    "trigger": "FVG",
-    "ml_score": 0.875,
-    "stored_at": "2026-06-26T15:30:26.478278+00:00",
-    "expires_at": "2026-06-26T17:30:26.478292+00:00"
-  },
   "PATH_60": {
     "direction": "LONG",
     "timeframe": "60",
@@ -242,15 +80,6 @@
     "stored_at": "2026-06-26T15:30:34.072104+00:00",
     "expires_at": "2026-06-26T19:30:34.072121+00:00"
   },
-  "SPY_30": {
-    "direction": "LONG",
-    "timeframe": "30",
-    "symbol": "SPY",
-    "trigger": "FVG",
-    "ml_score": 0.625,
-    "stored_at": "2026-06-26T16:00:02.729197+00:00",
-    "expires_at": "2026-06-26T18:00:02.729213+00:00"
-  },
   "US500_60": {
     "direction": "LONG",
     "timeframe": "60",
@@ -259,24 +88,6 @@
     "ml_score": 0.625,
     "stored_at": "2026-06-26T16:00:04.328742+00:00",
     "expires_at": "2026-06-26T20:00:04.328764+00:00"
-  },
-  "GOOG_30": {
-    "direction": "LONG",
-    "timeframe": "30",
-    "symbol": "GOOG",
-    "trigger": "FVG",
-    "ml_score": 0.75,
-    "stored_at": "2026-06-26T16:00:17.671594+00:00",
-    "expires_at": "2026-06-26T18:00:17.671630+00:00"
-  },
-  "GOOGL_30": {
-    "direction": "LONG",
-    "timeframe": "30",
-    "symbol": "GOOGL",
-    "trigger": "FVG",
-    "ml_score": 0.375,
-    "stored_at": "2026-06-26T16:00:29.815200+00:00",
-    "expires_at": "2026-06-26T18:00:29.815237+00:00"
   },
   "PLTR_60": {
     "direction": "LONG",
