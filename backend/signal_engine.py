@@ -518,6 +518,13 @@ def score_entry_gate(pool: str, direction: str, trigger: str = "") -> dict:
 
     score     = sum(components.values()) / len(components)
 
+    # Rule 8 (thin-pool deadlock) safety: the hard-block gates below can return
+    # pass=False, which would starve a cold-start pool of the entries it needs to
+    # mature. They are individually n>=30-in-bucket gated, but enforce the 50-trade
+    # floor explicitly here so no per-bucket concentration can ever hard-block a
+    # thin pool. Soft de-weights still apply; only the hard blocks are suppressed.
+    _thin_pool = len(history) < 50
+
     # f15 session-bucket gate — data-driven, self-validating. The Pine f15 feature
     # is a quantized time-of-day bucket; the f15==0.5 bucket is a structural
     # money-loser (audit: XAUUSD_2M 22.6% over 93, XAUUSD_5M 19.7% over 33). Block
@@ -525,7 +532,7 @@ def score_entry_gate(pool: str, direction: str, trigger: str = "") -> dict:
     # history confirms it loses (<27% WR over n>=30). Per-pool + n-gated so it never
     # blind-blocks a pool where that session is actually fine, and never fires on
     # thin/cold-start pools.
-    if abs(getattr(features, "f15", 0.0) - 0.5) < 0.05:
+    if not _thin_pool and abs(getattr(features, "f15", 0.0) - 0.5) < 0.05:
         f15_rows = [t for t in history
                     if abs(t.get("f15_sess", -9) - 0.5) < 0.05
                     and t.get("outcome") in ("WIN", "PARTIAL", "LOSS")]
@@ -552,7 +559,7 @@ def score_entry_gate(pool: str, direction: str, trigger: str = "") -> dict:
                  and t.get("outcome") in ("WIN", "PARTIAL", "LOSS")]
     if len(sess_rows) >= 30:
         sess_wr = sum(1 for t in sess_rows if t["outcome"] in ("WIN", "PARTIAL")) / len(sess_rows)
-        if sess_wr < 0.23:
+        if sess_wr < 0.23 and not _thin_pool:
             components["session_guard"] = round(sess_wr, 3)
             return {
                 "pass": False, "score": round(score * 0.5, 4),

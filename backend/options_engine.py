@@ -71,7 +71,7 @@ def get_vix_context() -> dict:
     out = {"vix": None, "vix3m": None, "vix9d": None, "ratio": None,
            "vix9d_ratio": None, "backwardation": False, "half_size": False, "ok": False}
     try:
-        import io as _io, pandas as _pd
+        import io as _io, pandas as _pd, httpx
         _nan = lambda x: x is None or (x != x)
 
         def _cboe_vix(name: str) -> float | None:

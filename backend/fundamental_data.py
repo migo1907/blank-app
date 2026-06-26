@@ -267,6 +267,52 @@ def archetype_of(info: dict) -> str:
     return "default"
 
 
+def _archetype_from_finnhub(industry: str, profit_margin=None, market_cap=0.0) -> str:
+    """Map a Finnhub `finnhubIndustry` string → business-model archetype.
+
+    Finnhub's vocabulary ("Banking", "Pharmaceuticals", "Semiconductors", ...)
+    differs from yfinance's `sector` literals, so archetype_of() would fall
+    through to "default" for most names. This does substring matching on the
+    Finnhub vocabulary instead. Used only in the yfinance-down fallback path.
+    """
+    ind = (industry or "").lower()
+    pm  = profit_margin or 0.0
+    mc  = market_cap or 0.0
+    if not ind:
+        return "default"
+    # Order matters — most specific first.
+    if "bank" in ind:
+        return "bank"
+    if any(k in ind for k in ("insurance", "financial", "asset management",
+                              "investment", "credit", "capital markets")):
+        return "nonbank_fin"
+    if "reit" in ind or "real estate" in ind:
+        return "reit"
+    if any(k in ind for k in ("pharma", "health", "biotech", "medical", "life science")):
+        return "healthcare"
+    if any(k in ind for k in ("semiconductor", "technology", "software", "internet",
+                              "it services", "hardware", "electronic")):
+        # Mirror archetype_of's mega vs growth split.
+        return "mega_tech" if (pm > 0.15 and mc > 5e11) else "growth_tech"
+    if any(k in ind for k in ("oil", "gas", "energy", "coal", "petroleum")):
+        return "energy"
+    if any(k in ind for k in ("utility", "utilities", "telecom", "communication")):
+        return "utility"
+    if any(k in ind for k in ("food", "beverage", "household", "staple", "tobacco")):
+        return "staples"
+    if any(k in ind for k in ("retail", "automobile", "auto ", "apparel", "leisure",
+                              "hotel", "restaurant", "consumer discretionary")):
+        return "discretionary"
+    if any(k in ind for k in ("aerospace", "defense", "machinery", "industrial",
+                              "construction", "logistics", "transportation", "airline")):
+        return "industrial"
+    if any(k in ind for k in ("chemical", "metal", "mining", "materials", "paper", "steel")):
+        return "materials"
+    if any(k in ind for k in ("media", "entertainment", "advertising")):
+        return "growth_tech"
+    return "default"
+
+
 # ── Statement-based advanced composite scores ─────────────────────────────────
 
 def _safe(df, *keys, col=0):
@@ -857,12 +903,9 @@ def fetch_fundamentals(ticker: str) -> dict:
             if _pr.status_code == 200:
                 _pd2 = _pr.json() or {}
                 _ind = _pd2.get("finnhubIndustry") or ""
-                # Build a minimal info-like dict so archetype_of() works
-                f["archetype"] = archetype_of({
-                    "sector": _ind, "industry": _ind.lower(),
-                    "profitMargins": (f.get("finnhub_metrics") or {}).get("netProfitMarginTTM"),
-                    "marketCap": (_pd2.get("marketCapitalization") or 0) * 1e6,
-                })
+                _pm  = (f.get("finnhub_metrics") or {}).get("netMarginTTM")
+                _mc  = (_pd2.get("marketCapitalization") or 0) * 1e6
+                f["archetype"] = _archetype_from_finnhub(_ind, _pm, _mc)
     except Exception as e:
         print(f"[fundamental] finnhub profile2 {ticker} error: {e}")
 
