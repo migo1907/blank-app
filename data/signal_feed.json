@@ -1,29 +1,6 @@
 {
   "signals": [
     {
-      "direction": "SHORT",
-      "timeframe": "15",
-      "trigger": "RSI",
-      "symbol": "NOW",
-      "entry_price": 95.21,
-      "tp1": 93.46,
-      "tp2": 92.16,
-      "tp3": 90.42,
-      "sl": 96.95,
-      "ml_score": 0.875,
-      "tier": "\u2b50 HIGH",
-      "quality_score": 0.4106,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.3078,
-      "velocity": "NORMAL",
-      "event": "FOMC",
-      "htf_bias": null,
-      "contra_bias": null,
-      "htf_context": "scalp",
-      "session": "NYSE Open",
-      "fired_at": "2026-06-24T14:00:09.571894+00:00"
-    },
-    {
       "direction": "LONG",
       "timeframe": "30",
       "trigger": "LIQ",
@@ -2843,6 +2820,29 @@
       "htf_context": "scalp",
       "session": "NYSE Afternoon",
       "fired_at": "2026-06-26T18:45:42.951351+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "15",
+      "trigger": "BOS",
+      "symbol": "RR",
+      "entry_price": 1.89,
+      "tp1": 1.85,
+      "tp2": 1.82,
+      "tp3": 1.78,
+      "sl": 1.93,
+      "ml_score": 1.0,
+      "tier": "\u2b50 HIGH",
+      "quality_score": 0.4273,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": 0.0273,
+      "velocity": "LOW",
+      "event": "GEOPOLITICAL",
+      "htf_bias": null,
+      "contra_bias": null,
+      "htf_context": "scalp",
+      "session": "NYSE Afternoon",
+      "fired_at": "2026-06-26T19:00:19.870419+00:00"
     }
   ]
 }
