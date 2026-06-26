@@ -71,29 +71,46 @@ def get_vix_context() -> dict:
     out = {"vix": None, "vix3m": None, "vix9d": None, "ratio": None,
            "vix9d_ratio": None, "backwardation": False, "half_size": False, "ok": False}
     try:
-        import yfinance as yf
-        vix   = yf.Ticker("^VIX").history(period="1d")
-        vix3m = yf.Ticker("^VIX3M").history(period="1d")
-        vix9d = yf.Ticker("^VIX9D").history(period="1d")
-        _v_raw  = float(vix["Close"].iloc[-1])  if len(vix)  else None
-        _v3_raw = float(vix3m["Close"].iloc[-1]) if len(vix3m) else None
-        _v9_raw = float(vix9d["Close"].iloc[-1]) if len(vix9d) else None
-        # NaN guard (yfinance returns NaN rows from cloud IPs)
-        _nan = lambda x: x is None or x != x
-        v  = None if _nan(_v_raw)  else _v_raw
-        v3 = None if _nan(_v3_raw) else _v3_raw
-        v9 = None if _nan(_v9_raw) else _v9_raw
+        import io as _io, pandas as _pd
+        _nan = lambda x: x is None or (x != x)
+
+        def _cboe_vix(name: str) -> float | None:
+            """Fetch latest close from CBOE CDN CSV — no auth, CDN-served."""
+            url = f"https://cdn.cboe.com/api/global/us_indices/daily_prices/{name}_History.csv"
+            try:
+                r = httpx.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=10, follow_redirects=True)
+                r.raise_for_status()
+                df = _pd.read_csv(_io.StringIO(r.text))
+                if not df.empty and "CLOSE" in df.columns:
+                    v = float(df["CLOSE"].iloc[-1])
+                    return None if _nan(v) or v <= 0 else v
+            except Exception:
+                pass
+            # Stooq fallback
+            try:
+                from market_data import _stooq_daily
+                df = _stooq_daily(f"^{name.lower()}")
+                if len(df):
+                    v = float(df["Close"].iloc[-1])
+                    return None if _nan(v) or v <= 0 else v
+            except Exception:
+                pass
+            return None
+
+        v  = _cboe_vix("VIX")
+        v3 = _cboe_vix("VIX3M")
+        v9 = _cboe_vix("VIX9D")
+
         if v and v3:
             out.update({
-                "vix":          round(v, 2),
-                "vix3m":        round(v3, 2),
-                "vix9d":        round(v9, 2) if v9 else None,
-                "ratio":        round(v / v3, 3) if v3 else None,
-                # VIX9D/VIX > 1 = near-term risk priced above avg → worse for buying premium
-                "vix9d_ratio":  round(v9 / v, 3) if (v9 and v) else None,
-                "backwardation": v3 > 0 and (v / v3) > 1.0,
-                "half_size":    v > VIX_HALF_SIZE,
-                "ok":           True,
+                "vix":           round(v, 2),
+                "vix3m":         round(v3, 2),
+                "vix9d":         round(v9, 2) if v9 else None,
+                "ratio":         round(v / v3, 3),
+                "vix9d_ratio":   round(v9 / v, 3) if v9 else None,
+                "backwardation": (v / v3) > 1.0,
+                "half_size":     v > VIX_HALF_SIZE,
+                "ok":            True,
             })
     except Exception as e:
         print(f"[options] VIX fetch failed: {e}")
@@ -151,19 +168,22 @@ def _spx_chain(expiry: str):
             return spot, chain
         print("[options] Tradier chain empty — falling back")
 
-    # Polygon: 15-min delayed with real Greeks (better than yfinance scrape)
+    # Polygon: 15-min delayed with real Greeks (better than scrape)
     try:
         import polygon_data
         if polygon_data.available():
             chain_data = polygon_data.get_options_chain("SPXW", expiry)
             if chain_data and (chain_data["calls"] or chain_data["puts"]):
-                import yfinance as yf, pandas as pd
+                import pandas as pd
                 spot = polygon_data.get_spot("I:SPX")
                 if not spot:
-                    _spx_h = yf.Ticker("^SPX").history(period="1d")
-                    if len(_spx_h):
-                        spot = float(_spx_h["Close"].iloc[-1])
-                    if not spot or spot != spot:
+                    # Stooq SPX proxy via SPY (SPX ≈ SPY × 10)
+                    try:
+                        from market_data import _stooq_daily
+                        _spy = _stooq_daily("spy.us")
+                        if len(_spy):
+                            spot = float(_spy["Close"].iloc[-1]) * 10
+                    except Exception:
                         spot = None
                 calls_df = pd.DataFrame(chain_data["calls"])
                 puts_df  = pd.DataFrame(chain_data["puts"])
@@ -180,28 +200,27 @@ def _spx_chain(expiry: str):
     except Exception as e:
         print(f"[options] Polygon chain failed: {e}")
 
-    import yfinance as yf
-    tk   = yf.Ticker("^SPX")
-    _h   = tk.history(period="1d")
-    if not len(_h):
-        raise ValueError("^SPX history empty — yfinance cloud IP block")
-    spot = float(_h["Close"].iloc[-1])
-    if spot != spot:
-        raise ValueError("^SPX returned NaN")
-    chain = tk.option_chain(expiry)
-    return spot, chain
+    # No chain source available — raise so caller skips this cycle
+    raise ValueError("No options chain source available (Tradier/Polygon not configured)")
 
 
 def _list_expiries() -> list[str]:
-    """Sorted expiry strings from Tradier when available, else yfinance."""
+    """Sorted expiry strings from Tradier when available, else Polygon reference data."""
     import tradier_data
     if tradier_data.available():
         exps = tradier_data.get_expirations()
         if exps:
             return exps
-        print("[options] Tradier expiries empty — falling back to yfinance")
-    import yfinance as yf
-    return list(yf.Ticker("^SPX").options or [])
+        print("[options] Tradier expiries empty — falling back to Polygon")
+    try:
+        import polygon_data
+        if polygon_data.available():
+            exps = polygon_data.get_expirations("SPXW")
+            if exps:
+                return exps
+    except Exception:
+        pass
+    return []
 
 
 def _pick_expiry(now_et: datetime) -> tuple[str, int] | None:
@@ -269,22 +288,25 @@ def _get_market_context(spot: float, chain, atm_iv: float | None,
         pass
 
     # How much of the expected move has SPX already travelled today?
+    # Use SPY daily range as proxy (SPX ≈ SPY × 10) via Stooq
     try:
-        import yfinance as yf
-        intra = yf.Ticker("^SPX").history(period="1d", interval="5m")
-        if len(intra) >= 2:
-            rng = float(intra["High"].max() - intra["Low"].min())
+        from market_data import _stooq_daily
+        intra = _stooq_daily("spy.us")
+        if len(intra) >= 1:
+            last = intra.iloc[-1]
+            rng = float(last["High"] - last["Low"]) * 10  # scale to SPX
             ctx["spx_intraday_range_pct"] = round(rng / expected_move, 3) if expected_move else 0.0
     except Exception:
         pass
 
     # 5-day realised vol vs option IV (1 = fair, >1 = IV cheap, <1 = IV rich)
     try:
-        import yfinance as yf, numpy as np
-        hist = yf.Ticker("^SPX").history(period="1mo")
+        import numpy as np
+        from market_data import _stooq_daily
+        hist = _stooq_daily("spy.us")
         if len(hist) >= 6 and atm_iv:
-            rets  = np.log(hist["Close"] / hist["Close"].shift(1)).dropna()
-            hv5   = float(rets.tail(5).std() * (252 ** 0.5))
+            rets = np.log(hist["Close"] / hist["Close"].shift(1)).dropna()
+            hv5  = float(rets.tail(5).std() * (252 ** 0.5))
             ctx["hv5_vs_iv"] = round(hv5 / atm_iv, 3) if atm_iv else 1.0
     except Exception:
         pass

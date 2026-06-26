@@ -16,12 +16,6 @@ import anthropic
 import httpx
 
 try:
-    import yfinance as yf
-    _YF_AVAILABLE = True
-except ImportError:
-    _YF_AVAILABLE = False
-
-try:
     from tvdatafeed import TvDatafeed, Interval
     _TV_AVAILABLE = True
 except ImportError:
@@ -33,16 +27,11 @@ _LEVELS_URL = (
     "data/data/daily_levels.json"
 )
 
-# yfinance tickers for live price lookup
-# Live PRICE lookup (absolute price + gap). Gold uses SPOT only (XAUUSD=X / XAU=X) —
-# never futures, whose basis premium ($5–30 over spot) would create a false gap vs
-# prev close. If spot is down on Yahoo (frequent "possibly delisted" from Railway IPs),
-# _fetch_live_price returns None and the caller falls back to TradingView spot
-# (levels["current"]) — still spot, never futures.
-_YF_LIVE = {
-    "XAUUSD": ["XAUUSD=X", "XAU=X"],
-    "SPY":    ["SPY"],
-    "QQQ":    ["QQQ"],
+# Stooq tickers for daily/prev-close lookups (daily_analysis live price uses TV first)
+_STOOQ_LIVE = {
+    "XAUUSD": "xauusd",   # gold spot
+    "SPY":    "spy.us",
+    "QQQ":    "qqq.us",
 }
 
 
@@ -299,40 +288,42 @@ def _fetch_live_price_tv(name: str, decimals: int) -> float | None:
 def _fetch_live_price(name: str, decimals: int) -> float | None:
     """
     Fetch current live/pre-market price. Priority:
-    1. TradingView scanner API (most reliable from cloud IPs, same source as GitHub Actions)
-    2. yfinance fast_info (pre/post-market aware, fallback)
+    1. TradingView scanner API (most reliable from cloud IPs)
+    2. Stooq daily (last close — good enough for morning brief gap analysis)
     """
     tv = _fetch_live_price_tv(name, decimals)
     if tv:
         return tv
-    if _YF_AVAILABLE:
-        for sym in _YF_LIVE.get(name, []):
-            try:
-                tk = yf.Ticker(sym)
-                price = getattr(tk.fast_info, "last_price", None)
-                if price and float(price) > 0:
-                    print(f"[daily] live price yfinance fallback {sym}={round(float(price), decimals)}")
-                    return round(float(price), decimals)
-            except Exception as e:
-                print(f"[daily] live price {sym} failed: {e}")
+    stooq_sym = _STOOQ_LIVE.get(name)
+    if stooq_sym:
+        try:
+            from market_data import _stooq_daily
+            df = _stooq_daily(stooq_sym)
+            if len(df):
+                price = float(df["Close"].iloc[-1])
+                if price > 0:
+                    print(f"[daily] live price Stooq fallback {stooq_sym}={round(price, decimals)}")
+                    return round(price, decimals)
+        except Exception as e:
+            print(f"[daily] Stooq price {name} failed: {e}")
     return None
 
 
 def _refresh_prev_close(assets: dict) -> dict:
     """
     When daily_levels.json is stale (GH Actions missed this morning), pull the
-    previous completed session's H/L/C from yfinance and recalculate pivots.
-    Falls back to the stored values if yfinance is unavailable.
+    previous completed session's H/L/C from Stooq and recalculate pivots.
+    Falls back to the stored values if Stooq is unavailable.
     """
-    from market_data import fetch_daily
-    _TICKER_MAP = {"XAUUSD": "GC=F", "SPY": "SPY", "QQQ": "QQQ"}
+    from market_data import _stooq_daily
+    _TICKER_MAP = {"XAUUSD": "xauusd", "SPY": "spy.us", "QQQ": "qqq.us"}
     _DECIMALS   = {"XAUUSD": 2,       "SPY": 2,      "QQQ": 2}
     out = dict(assets)
     for name, ticker in _TICKER_MAP.items():
         if name not in out:
             continue
         try:
-            df = fetch_daily(ticker, period="5d")
+            df = _stooq_daily(ticker)
             if df is None or len(df) < 2:
                 continue
             # Use the last fully-closed bar (iloc[-1] is today's incomplete bar
@@ -347,7 +338,7 @@ def _refresh_prev_close(assets: dict) -> dict:
                 new_levels["current"] = out[name]["current"]
             old_pc = out[name].get("prev_close")
             out[name] = new_levels
-            print(f"[daily] {name}: corrected prev_close {old_pc} → {pc:.2f} from yfinance")
+            print(f"[daily] {name}: corrected prev_close {old_pc} → {pc:.2f} from Stooq")
         except Exception as e:
             print(f"[daily] {name}: could not refresh prev_close: {e}")
     return out
