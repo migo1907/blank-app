@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-06-25T23:06:21.753120+00:00",
+  "checked_at": "2026-06-26T00:20:41.015945+00:00",
   "health": {
     "status_code": 200,
     "data": {
@@ -236,17 +236,17 @@
         "XAUUSD": {
           "asset": "XAUUSD",
           "regime": "RANGING",
-          "confidence": 0.797,
-          "transition_prob": 0.223,
+          "confidence": 0.999,
+          "transition_prob": 0.032,
           "next_regime": "RANGING",
           "shifting": false,
           "probs": {
-            "RANGING": 0.797,
-            "TRENDING_BEAR": 0.202,
+            "RANGING": 0.999,
+            "TRENDING_BEAR": 0.0,
             "VOLATILE": 0.001
           },
           "method": "hmm",
-          "updated_at": "2026-06-25T23:04:52.063119+00:00"
+          "updated_at": "2026-06-26T00:04:49.445142+00:00"
         },
         "SPY": {
           "asset": "SPY",
@@ -261,7 +261,7 @@
             "VOLATILE": 0.987
           },
           "method": "hmm",
-          "updated_at": "2026-06-25T23:04:52.903992+00:00"
+          "updated_at": "2026-06-26T00:04:50.147877+00:00"
         },
         "QQQ": {
           "asset": "QQQ",
@@ -276,7 +276,7 @@
             "VOLATILE": 0.978
           },
           "method": "hmm",
-          "updated_at": "2026-06-25T23:04:53.817113+00:00"
+          "updated_at": "2026-06-26T00:04:50.800872+00:00"
         }
       },
       "mtf": {
@@ -289,7 +289,7 @@
           },
           "weighted": -1.0,
           "bias": "BEAR",
-          "updated_at": "2026-06-25T23:04:56.914680+00:00",
+          "updated_at": "2026-06-26T00:04:51.973121+00:00",
           "method": "yfinance"
         },
         "SPY": {
@@ -301,7 +301,7 @@
           },
           "weighted": 0.0,
           "bias": "NEUTRAL",
-          "updated_at": "2026-06-25T23:04:57.244396+00:00",
+          "updated_at": "2026-06-26T00:04:52.235264+00:00",
           "method": "yfinance"
         },
         "QQQ": {
@@ -313,7 +313,7 @@
           },
           "weighted": 0.0,
           "bias": "NEUTRAL",
-          "updated_at": "2026-06-25T23:04:57.399671+00:00",
+          "updated_at": "2026-06-26T00:04:52.415684+00:00",
           "method": "yfinance"
         }
       },
@@ -330,7 +330,7 @@
         "dxy_break": {
           "direction": "NONE",
           "strength": 0.0,
-          "level": 101.441
+          "level": 101.5
         }
       }
     }
