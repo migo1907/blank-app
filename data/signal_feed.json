@@ -2,29 +2,6 @@
   "signals": [
     {
       "direction": "SHORT",
-      "timeframe": "15",
-      "trigger": "FVG",
-      "symbol": "US500",
-      "entry_price": 7364.0,
-      "tp1": 7339.74,
-      "tp2": 7321.54,
-      "tp3": 7297.28,
-      "sl": 7388.26,
-      "ml_score": 0.625,
-      "tier": "\u2705 MED",
-      "quality_score": 0.4524,
-      "quality_reason": "approved",
-      "news_score": -0.1647,
-      "velocity": "LOW",
-      "event": "CPI",
-      "htf_bias": null,
-      "contra_bias": null,
-      "htf_context": "scalp",
-      "session": "Closed",
-      "fired_at": "2026-06-23T22:45:03.886240+00:00"
-    },
-    {
-      "direction": "SHORT",
       "timeframe": "30",
       "trigger": "BOS",
       "symbol": "XAUUSD",
@@ -2859,6 +2836,29 @@
       "htf_context": "scalp",
       "session": "NYSE Open",
       "fired_at": "2026-06-26T13:45:24.560238+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "15",
+      "trigger": "BOS",
+      "symbol": "HOOD",
+      "entry_price": 95.93,
+      "tp1": 98.12,
+      "tp2": 99.76,
+      "tp3": 101.94,
+      "sl": 93.74,
+      "ml_score": 0.5,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.4437,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": 0.1327,
+      "velocity": "LOW",
+      "event": "WAR/CONFLICT",
+      "htf_bias": null,
+      "contra_bias": null,
+      "htf_context": "scalp",
+      "session": "NYSE Open",
+      "fired_at": "2026-06-26T14:00:05.852901+00:00"
     }
   ]
 }
