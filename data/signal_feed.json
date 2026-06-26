@@ -1,37 +1,6 @@
 {
   "signals": [
     {
-      "direction": "LONG",
-      "timeframe": "30",
-      "trigger": "LIQ",
-      "symbol": "US500",
-      "entry_price": 7388.1,
-      "tp1": 7419.63,
-      "tp2": 7442.55,
-      "tp3": 7474.08,
-      "sl": 7356.57,
-      "ml_score": 0.625,
-      "tier": "\u2705 MED",
-      "quality_score": 0.4022,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.3078,
-      "velocity": "NORMAL",
-      "event": "FOMC",
-      "htf_bias": {
-        "direction": "LONG",
-        "timeframe": "30",
-        "symbol": "US500",
-        "trigger": "LIQ",
-        "ml_score": 0.625,
-        "stored_at": "2026-06-24T14:00:28.561262+00:00",
-        "expires_at": "2026-06-24T16:00:28.561276+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "htf_direct",
-      "session": "NYSE Open",
-      "fired_at": "2026-06-24T14:00:28.990321+00:00"
-    },
-    {
       "direction": "SHORT",
       "timeframe": "60",
       "trigger": "BOS",
@@ -2843,6 +2812,29 @@
       "htf_context": "scalp",
       "session": "NYSE Afternoon",
       "fired_at": "2026-06-26T19:00:19.870419+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "15",
+      "trigger": "FVG",
+      "symbol": "BBAI",
+      "entry_price": 3.45,
+      "tp1": 3.39,
+      "tp2": 3.34,
+      "tp3": 3.29,
+      "sl": 3.5,
+      "ml_score": 0.875,
+      "tier": "\u2b50 HIGH",
+      "quality_score": 0.4726,
+      "quality_reason": "approved",
+      "news_score": 0.0273,
+      "velocity": "LOW",
+      "event": "GEOPOLITICAL",
+      "htf_bias": null,
+      "contra_bias": null,
+      "htf_context": "scalp",
+      "session": "NYSE Afternoon",
+      "fired_at": "2026-06-26T19:00:21.920688+00:00"
     }
   ]
 }
