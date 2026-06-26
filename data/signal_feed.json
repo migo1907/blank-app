@@ -2,37 +2,6 @@
   "signals": [
     {
       "direction": "LONG",
-      "timeframe": "15",
-      "trigger": "RSI",
-      "symbol": "XAUUSD",
-      "entry_price": 4077.89,
-      "tp1": 4099.53,
-      "tp2": 4115.76,
-      "tp3": 4137.4,
-      "sl": 4056.25,
-      "ml_score": 0.375,
-      "tier": "\u26a1 LOW",
-      "quality_score": 0.4331,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.1535,
-      "velocity": "CONFLICTED",
-      "event": "WAR/CONFLICT",
-      "htf_bias": null,
-      "contra_bias": {
-        "direction": "SHORT",
-        "timeframe": "60",
-        "symbol": "XAUUSD",
-        "trigger": "BOS",
-        "ml_score": 0.5,
-        "stored_at": "2026-06-24T03:02:01.744862+00:00",
-        "expires_at": "2026-06-24T07:02:01.744872+00:00"
-      },
-      "htf_context": "counter_trend",
-      "session": "Asian",
-      "fired_at": "2026-06-24T05:32:01.267535+00:00"
-    },
-    {
-      "direction": "LONG",
       "timeframe": "5",
       "trigger": "FVG",
       "symbol": "XAUUSD",
@@ -2867,6 +2836,29 @@
       "htf_context": "htf_direct",
       "session": "NYSE Open",
       "fired_at": "2026-06-26T15:30:12.081205+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "15",
+      "trigger": "FVG",
+      "symbol": "TSLL",
+      "entry_price": 11.97,
+      "tp1": 12.29,
+      "tp2": 12.54,
+      "tp3": 12.86,
+      "sl": 11.64,
+      "ml_score": 0.375,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.4019,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": 0.1813,
+      "velocity": "LOW",
+      "event": "GEOPOLITICAL",
+      "htf_bias": null,
+      "contra_bias": null,
+      "htf_context": "scalp",
+      "session": "NYSE Open",
+      "fired_at": "2026-06-26T15:30:17.985088+00:00"
     }
   ]
 }
