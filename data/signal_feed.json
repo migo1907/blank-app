@@ -3,37 +3,6 @@
     {
       "direction": "SHORT",
       "timeframe": "60",
-      "trigger": "BOS",
-      "symbol": "BBAI",
-      "entry_price": 3.66,
-      "tp1": 3.46,
-      "tp2": 3.31,
-      "tp3": 3.11,
-      "sl": 3.86,
-      "ml_score": 0.75,
-      "tier": "\u2b50 HIGH",
-      "quality_score": 0.4112,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.3057,
-      "velocity": "ELEVATED",
-      "event": "FOMC",
-      "htf_bias": {
-        "direction": "SHORT",
-        "timeframe": "60",
-        "symbol": "BBAI",
-        "trigger": "BOS",
-        "ml_score": 0.75,
-        "stored_at": "2026-06-24T14:30:18.928206+00:00",
-        "expires_at": "2026-06-24T18:30:18.928216+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "htf_direct",
-      "session": "NYSE Open",
-      "fired_at": "2026-06-24T14:30:18.930738+00:00"
-    },
-    {
-      "direction": "SHORT",
-      "timeframe": "60",
       "trigger": "FVG",
       "symbol": "IBKR",
       "entry_price": 93.03,
@@ -2835,6 +2804,37 @@
       "htf_context": "scalp",
       "session": "NYSE Afternoon",
       "fired_at": "2026-06-26T19:00:21.920688+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "60",
+      "trigger": "FVG",
+      "symbol": "MSTR",
+      "entry_price": 83.21,
+      "tp1": 76.56,
+      "tp2": 71.24,
+      "tp3": 64.59,
+      "sl": 89.86,
+      "ml_score": 0.875,
+      "tier": "\u2b50 HIGH",
+      "quality_score": 0.4902,
+      "quality_reason": "approved",
+      "news_score": 0.0711,
+      "velocity": "CONFLICTED",
+      "event": "GEOPOLITICAL",
+      "htf_bias": {
+        "direction": "SHORT",
+        "timeframe": "60",
+        "symbol": "MSTR",
+        "trigger": "FVG",
+        "ml_score": 0.875,
+        "stored_at": "2026-06-26T19:30:03.524239+00:00",
+        "expires_at": "2026-06-26T23:30:03.524255+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "htf_direct",
+      "session": "NYSE Afternoon",
+      "fired_at": "2026-06-26T19:30:04.143588+00:00"
     }
   ]
 }
