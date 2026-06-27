@@ -52,6 +52,71 @@ def _mfe_pct(t: dict) -> float | None:
         return None
 
 
+def _mae_pct(t: dict) -> float | None:
+    """Max ADVERSE excursion as % of entry (Phase B). Positive number = how far the
+    trade went against us. 0/absent until the Pine Script sends `mae`."""
+    try:
+        mae = abs(float(t.get("mae") or 0.0))
+        ep = float(t.get("entry_price"))
+        if ep <= 0:
+            return None
+        return mae / ep * 100.0
+    except Exception:
+        return None
+
+
+def optimize_stop(trades: list[dict], tp_pct: float | None) -> dict | None:
+    """Learn the expectancy-maximizing STOP from MAE, given the chosen take-profit.
+    Dormant (returns {'status':'pending_mae_capture'}) until enough trades carry mae>0.
+
+    Simulation per trade, holding the learned TP:
+      • adverse reached the candidate stop first (mae% >= stop) AND it isn't a trade
+        that would have hit TP earlier → −stop (cost-adjusted)
+      • else favorable reached TP (mfe% >= tp)                  → +tp − cost
+      • else                                                     → keep realized pnl
+    """
+    usable = [t for t in trades if (_mae_pct(t) or 0) > 0
+              and _mfe_pct(t) is not None and t.get("pnl_pct") is not None]
+    if len(usable) < 30:
+        return {"status": "pending_mae_capture",
+                "trades_with_mae": len(usable),
+                "note": "Stop learning activates once the Pine Script sends MAE "
+                        "(≥30 trades). Until then, take-profit optimization only."}
+
+    maes = sorted(_mae_pct(t) for t in usable)
+    hi = maes[min(len(maes) - 1, int(len(maes) * 0.90))]
+    lo, steps = 0.02, 30
+    if hi <= lo:
+        return {"status": "insufficient_range"}
+    step = (hi - lo) / steps
+
+    def _exp(stop):
+        sims = []
+        for t in usable:
+            mae = _mae_pct(t) or 0.0
+            mfe = _mfe_pct(t) or 0.0
+            realized = float(t["pnl_pct"])
+            if tp_pct and mfe >= tp_pct and (mae < stop):
+                sims.append(tp_pct - _COST_PCT)        # took profit, never hit the stop
+            elif mae >= stop:
+                sims.append(-(stop + _COST_PCT))       # stopped out
+            else:
+                sims.append(realized)
+        return _st.mean(sims) if sims else 0.0
+
+    cur = _st.mean([float(t["pnl_pct"]) for t in usable])
+    best_stop, best_exp = None, cur
+    for i in range(steps + 1):
+        s = lo + step * i
+        e = _exp(s)
+        if e > best_exp:
+            best_stop, best_exp = s, e
+    return {"status": "learned", "n": len(usable),
+            "recommended_stop_pct": round(best_stop, 4) if best_stop else None,
+            "projected_expectancy": round(best_exp, 5),
+            "current_expectancy": round(cur, 5)}
+
+
 def _expectancy_at_tp(trades: list[dict], tp_pct: float) -> float:
     """Mean simulated pnl% if take-profit were a fixed tp_pct (cost-adjusted).
     Reached → bank tp_pct − cost; not reached → keep actual realized pnl_pct."""
@@ -101,6 +166,7 @@ def optimize_pool(trades: list[dict]) -> dict | None:
             best_tp, best_exp = tp, exp
 
     n_scratch = sum(1 for t in usable if t.get("tp_stage") == "SL_TP1")
+    stop = optimize_stop(usable, best_tp)
     return {
         "n": len(usable),
         "current_expectancy": round(current_exp, 5),
@@ -111,9 +177,10 @@ def optimize_pool(trades: list[dict]) -> dict | None:
         "flips_positive": current_exp <= 0 < best_exp,
         "scratched_sl_tp1": n_scratch,
         "median_favorable_move_pct": round(_st.median(mfes), 4),
+        "stop_learning": stop,
         "grid": grid,
-        "note": ("Optimizes take-profit only — MAE not captured, so stop placement "
-                 "is held as-is (Phase B). SHADOW: not applied to live trades."),
+        "note": ("SHADOW: not applied to live trades. Take-profit learned from MFE; "
+                 "stop learned from MAE once the Pine Script sends it (Phase B)."),
     }
 
 
