@@ -2400,6 +2400,17 @@ def calendar_earnings(secret: str = ""):
     return result
 
 
+@app.get("/data/health")
+def data_health_report(secret: str = ""):
+    """Data-flow observability: per-source success/failure/freshness across every
+    external feed (price, options, VIX, news, calendar, macro). `degraded` lists
+    anything failing or stale so a broken source surfaces instead of silently
+    degrading the signals/brief."""
+    _validate_secret(secret)
+    import data_health
+    return data_health.report()
+
+
 @app.get("/options/flow")
 async def options_flow(secret: str = ""):
     _validate_secret(secret)

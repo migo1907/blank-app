@@ -17,7 +17,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-NEWSAPI_KEY        = os.environ.get("NEWSAPI_KEY", "")
 FJ_SESSION_COOKIE  = os.environ.get("FJ_SESSION_COOKIE", "")
 FJ_ASPNET_SESSION  = os.environ.get("FJ_ASPNET_SESSION", "")
 FJ_UID             = os.environ.get("FJ_UID", "")
@@ -74,18 +73,6 @@ CRYPTO_NOISE_TERMS = [
     "bitcoin", "ethereum", "crypto", "blockchain", "stablecoin",
     "defi", "nft", "altcoin", "solana", "binance", "coinbase",
     "tokenis", "web3", "metaverse",
-]
-
-# NewsAPI search queries
-NEWSAPI_QUERIES = [
-    "gold XAU price",
-    "Federal Reserve interest rates",
-    "inflation CPI US dollar",
-    "geopolitical risk war conflict",
-    "safe haven demand gold",
-    "FOMC Fed Powell",
-    "China gold demand",
-    "US Treasury yields bond",
 ]
 
 # ── Breaking news event detector ─────────────────────────────────────────────
@@ -220,6 +207,16 @@ def fetch_rss_headlines() -> list[dict]:
                 print(f"[rss] {source_name} failed: {e}")
 
     print(f"[rss] {len(articles)} relevant articles from RSS")
+    try:
+        import data_health
+        # Healthy when the aggregate feed produced articles (FJ + RSS). Empty across
+        # all feeds means the news flow is degraded (all sources blocked/stale).
+        data_health.record("news_rss_aggregate", bool(articles), "news",
+                           "" if articles else "no articles from any feed")
+        data_health.record("financialjuice", bool(fj_rss), "news",
+                           "" if fj_rss else "FJ returned no items (session/empty)")
+    except Exception:
+        pass
     return articles[:80]
 
 
@@ -638,16 +635,17 @@ def fetch_newsapi_headlines(max_articles: int = 20) -> list[dict]:
     """
     Fetch gold-relevant market headlines from Finnhub (free tier, cloud-friendly).
 
-    Replaces NewsAPI.org, whose free tier blocks requests from cloud servers
-    (HTTP 426) and delays articles 24h — making it useless from Railway. Finnhub's
-    free tier allows 60 req/min and works server-side.
-    Falls back to NewsAPI only if FINNHUB_KEY is unset and NEWSAPI_KEY is present.
+    Replaced NewsAPI.org, whose free tier blocks cloud servers (HTTP 426) and
+    delays articles 24h — useless from Railway. Finnhub's free tier allows
+    60 req/min and works server-side. NewsAPI has been retired entirely (it never
+    worked from the cloud), so without FINNHUB_KEY this simply returns nothing.
     """
     if not FINNHUB_KEY:
-        return _fetch_newsapi_legacy(max_articles)
+        return []
 
     articles = []
     seen     = set()
+    ok = False
     try:
         with httpx.Client(timeout=15) as client:
             for category in ("forex", "general"):
@@ -656,6 +654,7 @@ def fetch_newsapi_headlines(max_articles: int = 20) -> list[dict]:
                         "category": category, "token": FINNHUB_KEY,
                     })
                     resp.raise_for_status()
+                    ok = True
                     for art in resp.json():
                         title = (art.get("headline", "") or "").strip()
                         key   = title[:60].lower()
@@ -674,6 +673,12 @@ def fetch_newsapi_headlines(max_articles: int = 20) -> list[dict]:
                     print(f"[finnhub] news category '{category}' failed: {e}")
     except Exception as e:
         print(f"[finnhub] news fetch failed: {e}")
+    try:
+        import data_health
+        data_health.record("finnhub_news", ok, "news",
+                           "" if ok else "Finnhub news fetch failed")
+    except Exception:
+        pass
 
     return articles[:max_articles]
 
@@ -685,35 +690,6 @@ def _is_relevant(title: str) -> bool:
           "dollar", "treasury", "fomc", "payroll", "nfp", "geopolit", "war",
           "tariff", "recession", "safe haven", "bullion", "precious metal")
     return any(k in t for k in kw)
-
-
-def _fetch_newsapi_legacy(max_articles: int = 20) -> list[dict]:
-    """Legacy NewsAPI fallback — only used if FINNHUB_KEY is unset. Likely no-op on cloud."""
-    if not NEWSAPI_KEY:
-        return []
-    articles, seen = [], set()
-    with httpx.Client(timeout=15) as client:
-        for query in NEWSAPI_QUERIES[:4]:
-            try:
-                resp = client.get(
-                    "https://newsapi.org/v2/everything",
-                    params={"q": query, "language": "en", "sortBy": "publishedAt",
-                            "pageSize": 6, "apiKey": NEWSAPI_KEY},
-                )
-                resp.raise_for_status()
-                for art in resp.json().get("articles", []):
-                    title = art.get("title", "").strip()
-                    key   = title[:60].lower()
-                    if title and key not in seen and len(title) > 20:
-                        seen.add(key)
-                        articles.append({
-                            "title":  title,
-                            "source": art.get("source", {}).get("name", "unknown"),
-                            "url":    art.get("url", ""),
-                        })
-            except Exception:
-                pass
-    return articles[:max_articles]
 
 
 def fetch_upcoming_events(hours_ahead: int = 24) -> dict:

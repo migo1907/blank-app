@@ -114,6 +114,12 @@ def get_vix_context() -> dict:
             })
     except Exception as e:
         print(f"[options] VIX fetch failed: {e}")
+    try:
+        import data_health
+        data_health.record("cboe_vix", bool(out.get("ok")), "volatility",
+                           "" if out.get("ok") else "VIX/VIX3M unavailable")
+    except Exception:
+        pass
     return out
 
 
@@ -165,6 +171,7 @@ def _spx_chain(expiry: str):
         spot = tradier_data.get_spot()
         chain = tradier_data.get_chain(tradier_data.SPX_SYMBOL, expiry)
         if spot and chain is not None and (len(chain.calls) or len(chain.puts)):
+            _chain_health(True)
             return spot, chain
         print("[options] Tradier chain empty — falling back")
 
@@ -197,12 +204,22 @@ def _spx_chain(expiry: str):
                     def __init__(self, c, p): self.calls, self.puts = c, p
 
                 print(f"[options] Polygon chain: {expiry} ({len(calls_df)}C {len(puts_df)}P, real Greeks)")
+                _chain_health(True)
                 return spot, _Chain(calls_df, puts_df)
     except Exception as e:
         print(f"[options] Polygon chain failed: {e}")
 
     # No chain source available — raise so caller skips this cycle
+    _chain_health(False, "no Tradier/Polygon chain")
     raise ValueError("No options chain source available (Tradier/Polygon not configured)")
+
+
+def _chain_health(ok: bool, detail: str = "") -> None:
+    try:
+        import data_health
+        data_health.record("options_chain", ok, "options", detail)
+    except Exception:
+        pass
 
 
 def _list_expiries() -> list[str]:

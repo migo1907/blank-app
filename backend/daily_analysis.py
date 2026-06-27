@@ -525,6 +525,11 @@ def _ff_calendar_events(now: datetime) -> list[tuple]:
             raw = resp.json() or []
     except Exception as e:
         print(f"[daily_brief] Forex Factory calendar fetch failed: {e}")
+        try:
+            import data_health
+            data_health.record("forexfactory_calendar", False, "calendar", str(e))
+        except Exception:
+            pass
         # In-memory cache first, then the persisted weekly snapshot (survives restart).
         return _ff_cache["data"] or _ff_week_from_disk(now)
 
@@ -559,6 +564,11 @@ def _ff_calendar_events(now: datetime) -> list[tuple]:
 
     _ff_cache["data"] = out
     _ff_cache["fetched_date"] = today_str
+    try:
+        import data_health
+        data_health.record("forexfactory_calendar", True, "calendar")
+    except Exception:
+        pass
     print(f"[daily_brief] Forex Factory: {len(out)} high-impact USD event(s) today (cached, {len(week_rows)} this week)")
     return out
 

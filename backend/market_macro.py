@@ -519,6 +519,15 @@ def refresh_macro_bias() -> dict:
         f"equity bias={_cached_equity_macro['bias']:+.3f} ({_cached_equity_macro['label']}) "
         f"components={macro['components']} live={macro['sources_live']}"
     )
+    # Data-flow health: FRED/COT/GLD are live when sources_live is non-empty.
+    try:
+        import data_health
+        live = macro.get("sources_live")
+        ok = bool(live) if live is not None else True
+        data_health.record("macro_fred_cot_gld", ok, "macro",
+                           "" if ok else "no live macro sources")
+    except Exception:
+        pass
     return macro
 
 

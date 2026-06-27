@@ -656,6 +656,21 @@ async def _hourly_system_check() -> None:
     except Exception as e:
         ok.append(f"Breaking news dedup — {len(_fj_seen_headlines)} in memory ✅")
 
+    # ── Data-flow health — every external source's live status ────────────────
+    try:
+        import data_health
+        deg = data_health.degraded()
+        tracked = data_health.snapshot()
+        if not tracked:
+            ok.append("Data flow — no sources probed yet (fresh start) ⚠️")
+        elif not deg:
+            ok.append(f"Data flow — all {len(tracked)} sources healthy ✅")
+        else:
+            names = ", ".join(f"{d['source']}({d['reason']})" for d in deg[:8])
+            issues.append(f"Data flow — {len(deg)}/{len(tracked)} source(s) degraded: {names} ⚠️")
+    except Exception as e:
+        issues.append(f"Data-flow health error: {e} ❌")
+
     try:
         from db import _get_file
         signals, _ = await asyncio.to_thread(_get_file, "data/signals.json")

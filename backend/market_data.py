@@ -105,6 +105,7 @@ def fetch_intraday(ticker: str, interval: str = "1h", period: str = "60d"):
     import pandas as pd
     av = _alphavantage_intraday(ticker, interval="60min")
     if len(av):
+        _health("alphavantage_intraday", True, "price")
         return av
     return pd.DataFrame()
 
@@ -130,6 +131,15 @@ def _stooq_daily(stooq_symbol: str):
     return df[keep]
 
 
+def _health(source: str, ok: bool, category: str = "", detail: str = "") -> None:
+    """Report a fetch outcome to the data-flow health registry (never raises)."""
+    try:
+        import data_health
+        data_health.record(source, ok, category, detail)
+    except Exception:
+        pass
+
+
 def fetch_daily(ticker: str, period: str = "1y"):
     """Daily OHLC — Stooq primary (free, cloud-reliable). Empty DataFrame if unavailable."""
     import pandas as pd
@@ -138,7 +148,10 @@ def fetch_daily(ticker: str, period: str = "1y"):
         try:
             df = _stooq_daily(sym)
             if len(df):
+                _health("stooq_daily", True, "price")
                 return df
+            _health("stooq_daily", False, "price", f"empty for {sym}")
         except Exception as e:
             print(f"[mktdata] Stooq {sym} failed: {e}")
+            _health("stooq_daily", False, "price", str(e))
     return pd.DataFrame()
