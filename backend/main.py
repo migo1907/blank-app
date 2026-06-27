@@ -2417,6 +2417,19 @@ def data_health_report(secret: str = ""):
     return rep
 
 
+@app.get("/exit/optimization")
+def exit_optimization(secret: str = "", run: int = 0):
+    """Adaptive exit optimizer (SHADOW) — per-pool learned take-profit + projected
+    expectancy. `run=1` recomputes now; otherwise serves the last persisted result."""
+    _validate_secret(secret)
+    if run:
+        import exit_optimizer
+        return exit_optimizer.run_all()
+    from db import _get_file
+    data, _ = _get_file("data/exit_optimization.json")
+    return data if isinstance(data, dict) else {"pools": {}, "note": "not computed yet — call with run=1"}
+
+
 @app.get("/options/flow")
 async def options_flow(secret: str = ""):
     _validate_secret(secret)
