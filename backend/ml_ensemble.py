@@ -189,9 +189,13 @@ class RandomForestEnsemble:
                     _oos_acc = float(np.mean(_oos_preds == y[train_size:]))
                     print(f"[rf] Walk-forward OOS accuracy ({oos_size} trades): {_oos_acc:.3f}")
                     _oos_errors = np.abs(_oos_proba_win - y[train_size:].astype(float))
-                    self._conformal_q = float(np.percentile(_oos_errors, 90))
+                    # Floor q so a near-perfect (often degenerate) OOS fold can't
+                    # collapse the interval to ~0 and masquerade as max certainty.
+                    self._conformal_q = max(0.05, float(np.percentile(_oos_errors, 90)))
                     print(f"[rf] Conformal q={self._conformal_q:.3f} (90th-pctile OOS error, {oos_size} trades)")
-                    if len(X_rows) >= _ISO_MIN_TRADES:
+                    # Isotonic needs both classes present in the OOS slice it fits on,
+                    # else it degenerates to a flat mapping that poisons inference.
+                    if len(X_rows) >= _ISO_MIN_TRADES and len(set(y[train_size:].tolist())) >= 2:
                         _iso = IsotonicRegression(y_min=0.0, y_max=1.0, out_of_bounds="clip")
                         _iso.fit(_oos_proba_win, y[train_size:])
                         new_iso = _iso
@@ -403,9 +407,11 @@ class GradientBoostEnsemble:
                     _oos_acc = float(np.mean(_oos_preds == y[train_size_gbm:]))
                     print(f"[gbm] Walk-forward OOS accuracy ({oos_size_gbm} trades): {_oos_acc:.3f}")
                     _oos_errors = np.abs(_oos_proba_win - y[train_size_gbm:].astype(float))
-                    self._conformal_q = float(np.percentile(_oos_errors, 90))
+                    # Floor q (see RF note) so a degenerate OOS fold can't fake max certainty.
+                    self._conformal_q = max(0.05, float(np.percentile(_oos_errors, 90)))
                     print(f"[gbm] Conformal q={self._conformal_q:.3f} (90th-pctile OOS error, {oos_size_gbm} trades)")
-                    if len(X_rows) >= _ISO_MIN_TRADES:
+                    # Isotonic needs both classes in the OOS slice (see RF note).
+                    if len(X_rows) >= _ISO_MIN_TRADES and len(set(y[train_size_gbm:].tolist())) >= 2:
                         _iso = IsotonicRegression(y_min=0.0, y_max=1.0, out_of_bounds="clip")
                         _iso.fit(_oos_proba_win, y[train_size_gbm:])
                         new_iso_gbm = _iso

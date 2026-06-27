@@ -188,7 +188,8 @@ def _spx_chain(expiry: str):
                 calls_df = pd.DataFrame(chain_data["calls"])
                 puts_df  = pd.DataFrame(chain_data["puts"])
                 for df in (calls_df, puts_df):
-                    for col in ("impliedVolatility", "lastPrice", "strike", "openInterest", "delta"):
+                    for col in ("impliedVolatility", "lastPrice", "strike",
+                                "openInterest", "delta", "bid", "ask"):
                         if col not in df.columns:
                             df[col] = None
 
@@ -891,7 +892,9 @@ def _current_mid(rec: dict) -> float | None:
         row = side[side["strike"] == rec["strike"]]
         if row.empty:
             return None
-        bid, ask = float(row["bid"].iloc[0] or 0), float(row["ask"].iloc[0] or 0)
+        _bid = row["bid"].iloc[0] if "bid" in row.columns else None
+        _ask = row["ask"].iloc[0] if "ask" in row.columns else None
+        bid, ask = float(_bid or 0), float(_ask or 0)
         last = float(row["lastPrice"].iloc[0] or 0)
         return round((bid + ask) / 2, 2) if (bid and ask) else (round(last, 2) or None)
     except Exception:

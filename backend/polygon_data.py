@@ -45,6 +45,31 @@ def get_spot(symbol: str = "I:SPX") -> float | None:
     return None
 
 
+def get_expirations(underlying: str = "SPXW") -> list[str]:
+    """Sorted upcoming expiration dates (YYYY-MM-DD) for the underlying.
+
+    Uses the free-tier /v3/reference/options/contracts endpoint (no real-time
+    snapshot needed). Returns [] gracefully if the key is absent or the call fails.
+    """
+    if not available():
+        return []
+    today = date.today().isoformat()
+    horizon = (date.today() + timedelta(days=14)).isoformat()
+    data = _get("/v3/reference/options/contracts", {
+        "underlying_ticker": underlying,
+        "expiration_date.gte": today,
+        "expiration_date.lte": horizon,
+        "expired": "false",
+        "limit": 1000,
+        "sort": "expiration_date",
+        "order": "asc",
+    })
+    if not data or not data.get("results"):
+        return []
+    exps = sorted({r.get("expiration_date") for r in data["results"] if r.get("expiration_date")})
+    return [e for e in exps if e]
+
+
 def get_options_chain(underlying: str = "SPXW", expiration: str | None = None) -> dict | None:
     """Full options chain with real Greeks. Returns {calls:[], puts:[], expiration:str}"""
     if not available():
