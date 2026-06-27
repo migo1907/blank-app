@@ -2722,8 +2722,8 @@
     "id": 101
   },
   {
-    "symbol": "SPY",
-    "pool": "STOCKS_INDEX_30M",
+    "symbol": "QQQ",
+    "pool": "STOCKS_QQQ_30M",
     "direction": "NEUTRAL",
     "confidence": 0.0,
     "tier": "LOW",
@@ -2737,8 +2737,8 @@
     "regime_label": "NORMAL",
     "reasoning": "Weekend \u2014 market closed",
     "status": "NEUTRAL",
-    "expires_at": "2026-06-27T03:14:55.509071+00:00",
-    "created_at": "2026-06-27T02:44:55.509114+00:00",
+    "expires_at": "2026-06-27T03:14:57.192534+00:00",
+    "created_at": "2026-06-27T02:44:57.192573+00:00",
     "id": 101
   }
 ]
