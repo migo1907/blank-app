@@ -110,6 +110,87 @@ def fetch_intraday(ticker: str, interval: str = "1h", period: str = "60d"):
     return pd.DataFrame()
 
 
+# ── Alpha Vantage OVERVIEW — cloud-reliable fundamentals incl. analyst target ──
+# Free tier is rate-limited (~25/day, shared budget with intraday), but company
+# fundamentals + analyst targets move slowly, so the result is cached on the data
+# branch for 7 days per ticker. Over a few nightly scans the whole universe fills
+# in. This replaces the swing valuation gate's dependence on yfinance analyst
+# targets (which silently fail from Railway cloud IPs).
+_AV_OVERVIEW_CACHE_PATH = "data/av_overview_cache.json"
+_av_overview_cache: dict | None = None
+
+
+def _load_av_overview_cache() -> dict:
+    global _av_overview_cache
+    if _av_overview_cache is None:
+        try:
+            from db import _get_file
+            d, _ = _get_file(_AV_OVERVIEW_CACHE_PATH)
+            _av_overview_cache = d if isinstance(d, dict) else {}
+        except Exception:
+            _av_overview_cache = {}
+    return _av_overview_cache
+
+
+def alphavantage_overview(ticker: str, max_age_days: int = 7) -> dict:
+    """AV OVERVIEW fundamentals (incl. AnalystTargetPrice). Cached 7d on data branch.
+    Returns {} when key absent / over budget / rate-limited (graceful)."""
+    from datetime import timedelta
+    sym = ticker.upper()
+    cache = _load_av_overview_cache()
+    ent = cache.get(sym)
+    now = datetime.now(timezone.utc)
+    if ent:
+        try:
+            if now - datetime.fromisoformat(ent["fetched_at"]) < timedelta(days=max_age_days):
+                return ent.get("data") or {}
+        except Exception:
+            pass
+    if not ALPHAVANTAGE_KEY or not _av_budget_ok():
+        return (ent.get("data") if ent else {}) or {}
+    try:
+        _av_calls["count"] += 1
+        with httpx.Client(timeout=15) as client:
+            r = client.get("https://www.alphavantage.co/query", params={
+                "function": "OVERVIEW", "symbol": sym, "apikey": ALPHAVANTAGE_KEY})
+            r.raise_for_status()
+            data = r.json()
+    except Exception as e:
+        print(f"[mktdata] AV OVERVIEW {sym} failed: {e}")
+        _health("alphavantage_overview", False, "fundamentals", str(e))
+        return (ent.get("data") if ent else {}) or {}
+    if not isinstance(data, dict) or "Symbol" not in data:
+        # rate-limit / Note / Information response
+        _health("alphavantage_overview", False, "fundamentals", str(data)[:80])
+        return (ent.get("data") if ent else {}) or {}
+    cache[sym] = {"fetched_at": now.isoformat(), "data": data}
+    try:
+        from db import _get_file, _put_file
+        _, sha = _get_file(_AV_OVERVIEW_CACHE_PATH)
+        _put_file(_AV_OVERVIEW_CACHE_PATH, cache, sha, f"chore: AV overview cache {sym}")
+    except Exception as e:
+        print(f"[mktdata] AV overview cache persist skipped: {e}")
+    _health("alphavantage_overview", True, "fundamentals")
+    return data
+
+
+def alphavantage_target_upside(ticker: str, current_price: float | None):
+    """(upside_pct, target_price) from AV AnalystTargetPrice vs current price, or (None, None)."""
+    if not current_price or current_price <= 0:
+        return None, None
+    ov = alphavantage_overview(ticker)
+    raw = ov.get("AnalystTargetPrice")
+    if not raw or raw in ("None", "-"):
+        return None, None
+    try:
+        target = float(raw)
+        if target <= 0:
+            return None, None
+        return round((target - current_price) / current_price * 100, 1), round(target, 2)
+    except Exception:
+        return None, None
+
+
 def _stooq_daily(stooq_symbol: str):
     """Daily OHLC CSV from Stooq → yfinance-shaped DataFrame (or empty)."""
     import pandas as pd

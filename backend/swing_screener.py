@@ -273,9 +273,10 @@ def screen_one(ticker: str) -> dict:
     """Full swing read for one ticker: fundamental + technical + valuation upside.
 
     Upside source priority:
-      1. yfinance analyst consensus target (already in fund["analyst"]["target_upside_pct"])
-      2. Self-computed from FCF yield + PEG (fallback when analyst target unavailable)
-    No extra HTTP calls — all data already fetched by fetch_fundamentals().
+      1. yfinance analyst consensus target (fund["analyst"]["target_upside_pct"])
+      2. Alpha Vantage OVERVIEW AnalystTargetPrice (cloud-reliable — keeps the
+         valuation gate alive when yfinance silently fails from Railway cloud IPs)
+      3. Self-computed from FCF yield + PEG (Finnhub metrics)
     """
     from fundamental_data import fetch_fundamentals
 
@@ -287,10 +288,21 @@ def screen_one(ticker: str) -> dict:
     # Primary: yfinance consensus target (targetMedianPrice)
     upside_pct     = fund["analyst"].get("target_upside_pct")
     analyst_target = None
-    current_price  = fund["analyst"].get("current_price")
+    # Current price: yfinance first, else the Stooq-backed technical entry (cloud-reliable)
+    current_price  = fund["analyst"].get("current_price") or tech.get("entry")
     upside_source  = "analyst"
 
-    # Fallback: self-computed from FCF yield + PEG
+    # Fallback 1: Alpha Vantage analyst target (cloud-reliable; cached 7d)
+    if upside_pct is None and current_price:
+        try:
+            from market_data import alphavantage_target_upside
+            av_up, av_target = alphavantage_target_upside(ticker, current_price)
+            if av_up is not None:
+                upside_pct, analyst_target, upside_source = av_up, av_target, "av_analyst"
+        except Exception as e:
+            print(f"[swing] AV upside {ticker} failed: {e}")
+
+    # Fallback 2: self-computed from FCF yield + PEG (Finnhub metrics)
     if upside_pct is None:
         upside_pct    = _self_computed_upside(fund)
         upside_source = "computed" if upside_pct is not None else None
