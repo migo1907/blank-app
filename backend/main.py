@@ -2408,7 +2408,13 @@ def data_health_report(secret: str = ""):
     degrading the signals/brief."""
     _validate_secret(secret)
     import data_health
-    return data_health.report()
+    rep = data_health.report()
+    try:
+        import memory_guard
+        rep["memory"] = memory_guard.memory_status()
+    except Exception:
+        pass
+    return rep
 
 
 @app.get("/options/flow")

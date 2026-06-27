@@ -671,6 +671,25 @@ async def _hourly_system_check() -> None:
     except Exception as e:
         issues.append(f"Data-flow health error: {e} ❌")
 
+    # ── Memory pressure — early warning before an OOM restart (esp. Hobby plan) ─
+    try:
+        import memory_guard
+        mline = memory_guard.status_line()
+        if mline:
+            if memory_guard.is_pressured():
+                issues.append(mline)
+                critical_alerts.append((
+                    "Memory pressure high",
+                    mline,
+                    "Process RSS is near the container limit — an OOM restart is likely. "
+                    "On the Hobby plan, consider upgrading to Pro for more RAM, or reduce "
+                    "in-process retraining frequency.",
+                ))
+            else:
+                ok.append(mline)
+    except Exception as e:
+        issues.append(f"Memory guard error: {e} ❌")
+
     try:
         from db import _get_file
         signals, _ = await asyncio.to_thread(_get_file, "data/signals.json")
