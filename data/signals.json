@@ -1,39 +1,5 @@
 [
   {
-    "symbol": "XAUUSD",
-    "pool": "XAUUSD_2M",
-    "direction": "NEUTRAL",
-    "lean_direction": "SHORT",
-    "lean_pct": 62,
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.625,
-    "rf_score": 0.2778,
-    "gbm_score": 0.2766,
-    "ml_interval": [
-      0.0,
-      1.0
-    ],
-    "ml_interval_width": 1.0,
-    "ml_certainty": "LOW",
-    "news_score": -0.0,
-    "macro_bias": 0.0101,
-    "macro_label": "NEUTRAL",
-    "combined_score": -0.2544,
-    "session": "NY_LATE",
-    "regime": "NORMAL",
-    "regime_label": "NORMAL",
-    "hmm_regime": "hmm:na",
-    "intermarket": "imkt:na",
-    "mtf_confluence": "mtf:na",
-    "post_event": "evt:na",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:na\u00d71.00 | imkt:na\u00d71.00 | mtf:na\u00d71.00 | evt:na\u00d71.00 | sess:NY_LATE\u00d70.90 | confluence\u00d70.90 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:neutral(-0.000) | macro:NEUTRAL(+0.010) | combined:-0.254 \u2192 conf:0.210 \u26a1 GEOPOLITICAL",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-26T20:57:05.831772+00:00",
-    "created_at": "2026-06-26T20:27:07.606860+00:00",
-    "id": 101
-  },
-  {
     "symbol": "SPY",
     "pool": "STOCKS_INDEX_30M",
     "direction": "LONG",
@@ -3033,6 +2999,26 @@
     "status": "NEUTRAL",
     "expires_at": "2026-06-27T01:59:57.691749+00:00",
     "created_at": "2026-06-27T01:29:57.691787+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "SPX500",
+    "pool": "STOCKS_SPX500_30M",
+    "direction": "NEUTRAL",
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "news_score": -0.0552,
+    "combined_score": 0.0,
+    "session": "CLOSED",
+    "regime": "NORMAL",
+    "regime_label": "NORMAL",
+    "reasoning": "Weekend \u2014 market closed",
+    "status": "NEUTRAL",
+    "expires_at": "2026-06-27T01:59:59.870169+00:00",
+    "created_at": "2026-06-27T01:29:59.870210+00:00",
     "id": 101
   }
 ]
