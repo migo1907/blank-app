@@ -16,15 +16,10 @@ MIN_TRADES = 30  # minimum history before models will train
 
 
 def _win_label(row: dict) -> int:
-    """Binary training label. PARTIAL is only a win when pnl_pct > 0.
-    43% of PARTIAL trades across all pools have negative PnL (SL hit after
-    TP1 breakeven move) — labeling them WIN corrupts RF/GBM training."""
-    outcome = row.get("ml_outcome") or row.get("outcome", "LOSS")
-    if outcome == "WIN":
-        return 1
-    if outcome == "PARTIAL":
-        return 1 if float(row.get("pnl_pct") or 0.0) > 0 else 0
-    return 0
+    """Binary training label — delegates to the canonical is_win() so gates and
+    models share one win definition (PARTIAL counts only when pnl_pct > 0)."""
+    from ml_model import is_win
+    return 1 if is_win(row) else 0
 
 try:
     from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier

@@ -44,6 +44,23 @@ FEATURE_NAMES = [
 N_FEATURES = 26
 
 
+def is_win(trade: dict) -> bool:
+    """Canonical win definition, shared by gates AND ML labels.
+
+    WIN  → win. LOSS → loss. PARTIAL → win ONLY when it actually closed
+    positive (pnl_pct > 0). ~43% of PARTIALs across all pools close negative
+    (SL hit after a TP1 breakeven move), so counting every PARTIAL as a win
+    flatters gate win-rates and corrupts training labels. Honest by money,
+    not by partial-fill status.
+    """
+    outcome = trade.get("ml_outcome") or trade.get("outcome", "LOSS")
+    if outcome == "WIN":
+        return True
+    if outcome == "PARTIAL":
+        return float(trade.get("pnl_pct") or 0.0) > 0
+    return False
+
+
 def row_to_vector(row: dict) -> list[float]:
     """
     Build a 26-element feature vector from a trade-history row.
@@ -202,10 +219,15 @@ class AdaptiveKNN:
             outcome   = row.get("ml_outcome") or row.get("outcome", "LOSS")
             direction = row.get("direction", "LONG")
             pnl       = float(row.get("pnl_pct", 0.0))
+            # A PARTIAL that closed flat/negative is a loss in direction terms —
+            # mirror update_on_outcome's reclassification so KNN learns the truth.
+            effective = outcome
+            if outcome == "PARTIAL" and pnl <= 0.0:
+                effective = "LOSS"
             # +1 = price moved UP, -1 = price moved DOWN
-            if outcome in ("WIN", "PARTIAL"):
+            if effective in ("WIN", "PARTIAL"):
                 label = 1 if direction == "LONG" else -1
-            elif outcome == "LOSS":
+            elif effective == "LOSS":
                 label = 1 if direction == "SHORT" else -1
             else:
                 label = 1 if pnl > 0 else -1

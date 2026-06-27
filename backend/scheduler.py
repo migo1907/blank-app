@@ -1281,7 +1281,7 @@ async def _weekly_model_comparison() -> None:
         from sklearn.metrics import f1_score as _f1
         from sklearn.model_selection import TimeSeriesSplit
         from db import recent_outcomes
-        from ml_model import row_to_vector, FEATURE_NAMES
+        from ml_model import row_to_vector, FEATURE_NAMES, is_win
         from ml_ensemble import get_rf, get_gbm, get_joint_gold, get_joint_stocks, GOLD_TF_IDS, STOCK_POOL_IDS
 
         results: list[str] = ["📊 *Weekly Model Comparison*\n"]
@@ -1292,7 +1292,7 @@ async def _weekly_model_comparison() -> None:
             if len(hist) < 40:
                 continue
             X = _np.array([row_to_vector(r) for r in hist], dtype=_np.float32)
-            y = _np.array([1 if r.get("outcome") in ("WIN","PARTIAL") else 0 for r in hist])
+            y = _np.array([1 if is_win(r) else 0 for r in hist])
 
             tscv = TimeSeriesSplit(n_splits=3, gap=5)
             model_scores: dict[str, list[float]] = {"rf": [], "gbm": [], "joint": []}
@@ -1566,11 +1566,10 @@ async def _full_system_inspection():
         if n < REGIME_SHIFT_WINDOW * 2:
             continue
         try:
+            from ml_model import is_win
             hist = await asyncio.to_thread(recent_outcomes, pool, 500)
-            wins_recent = sum(1 for r in hist[:REGIME_SHIFT_WINDOW]
-                              if r.get("outcome") in ("WIN", "PARTIAL"))
-            wins_prior  = sum(1 for r in hist[REGIME_SHIFT_WINDOW:REGIME_SHIFT_WINDOW*2]
-                              if r.get("outcome") in ("WIN", "PARTIAL"))
+            wins_recent = sum(1 for r in hist[:REGIME_SHIFT_WINDOW] if is_win(r))
+            wins_prior  = sum(1 for r in hist[REGIME_SHIFT_WINDOW:REGIME_SHIFT_WINDOW*2] if is_win(r))
             wr_recent = wins_recent / REGIME_SHIFT_WINDOW * 100
             wr_prior  = wins_prior  / REGIME_SHIFT_WINDOW * 100
             drop = wr_prior - wr_recent

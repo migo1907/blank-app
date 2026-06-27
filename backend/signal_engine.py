@@ -17,7 +17,7 @@ Scoring pipeline:
  12. Dynamic weight adjustment based on recent win rates per component
 """
 from datetime import datetime, timezone, timedelta
-from ml_model import get_model, Features
+from ml_model import get_model, Features, is_win
 from ml_ensemble import (
     get_rf, get_gbm, get_joint_gold, get_joint_stocks, get_tabpfn,
     GOLD_TF_IDS, STOCK_POOL_IDS, explain_prediction,
@@ -169,9 +169,8 @@ def should_retrigger_retrain(pool: str, history: list[dict], window: int = 20,
     """
     if len(history) < window * 2:
         return False
-    wins = ("WIN", "PARTIAL")
-    recent_wr = sum(1 for r in history[:window] if r.get("outcome") in wins) / window
-    prev_wr   = sum(1 for r in history[window:window * 2] if r.get("outcome") in wins) / window
+    recent_wr = sum(1 for r in history[:window] if is_win(r)) / window
+    prev_wr   = sum(1 for r in history[window:window * 2] if is_win(r)) / window
     drop = (prev_wr - recent_wr) * 100
     if drop > drop_pp:
         print(f"[regime] Pool '{pool}' regime shift detected — WR dropped {drop:.1f}pp "
@@ -208,7 +207,7 @@ def compute_fbeta_threshold(pool: str, history: list[dict], beta: float | None =
     # Build OOS probability predictions using a simple 3-fold time-series split
     from sklearn.model_selection import TimeSeriesSplit
     X = _np.array([row_to_vector(r) for r in closed], dtype=_np.float32)
-    y = _np.array([1 if r["outcome"] in ("WIN", "PARTIAL") else 0 for r in closed])
+    y = _np.array([1 if is_win(r) else 0 for r in closed])
 
     all_proba, all_true = [], []
     tscv = TimeSeriesSplit(n_splits=3, gap=5)
@@ -401,7 +400,7 @@ def _memory_features(history: list[dict], direction: str, n: int = 10) -> list[f
     recent = list(reversed(history[:n]))
 
     def _rate(filt):
-        sub = [1 if r.get("outcome") in ("WIN", "PARTIAL") else 0
+        sub = [1 if is_win(r) else 0
                for r in recent if filt(r)]
         return sum(sub) / len(sub) if sub else 0.5
 
@@ -537,7 +536,7 @@ def score_entry_gate(pool: str, direction: str, trigger: str = "") -> dict:
                     if abs(t.get("f15_sess", -9) - 0.5) < 0.05
                     and t.get("outcome") in ("WIN", "PARTIAL", "LOSS")]
         if len(f15_rows) >= 30:
-            f15_wr = sum(1 for t in f15_rows if t["outcome"] in ("WIN", "PARTIAL")) / len(f15_rows)
+            f15_wr = sum(1 for t in f15_rows if is_win(t)) / len(f15_rows)
             if f15_wr < 0.27:
                 return {
                     "pass": False, "score": round(score * 0.5, 4),
@@ -558,7 +557,7 @@ def score_entry_gate(pool: str, direction: str, trigger: str = "") -> dict:
     sess_rows = [t for t in history if t.get("session") == cur_session
                  and t.get("outcome") in ("WIN", "PARTIAL", "LOSS")]
     if len(sess_rows) >= 30:
-        sess_wr = sum(1 for t in sess_rows if t["outcome"] in ("WIN", "PARTIAL")) / len(sess_rows)
+        sess_wr = sum(1 for t in sess_rows if is_win(t)) / len(sess_rows)
         if sess_wr < 0.23 and not _thin_pool:
             components["session_guard"] = round(sess_wr, 3)
             return {

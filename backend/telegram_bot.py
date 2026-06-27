@@ -266,8 +266,9 @@ async def send_stocks_session_report() -> bool:
         print("[session_report] No stock trades today — skipping report.")
         return False
 
-    wins   = [t for t in trades_today if t["outcome"] in ("WIN", "PARTIAL")]
-    losses = [t for t in trades_today if t["outcome"] == "LOSS"]
+    from ml_model import is_win
+    wins   = [t for t in trades_today if is_win(t)]
+    losses = [t for t in trades_today if not is_win(t)]
     total  = len(trades_today)
     wr     = len(wins) / total * 100
 
