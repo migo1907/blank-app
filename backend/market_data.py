@@ -1,10 +1,12 @@
 """
 Unified market-data fetch for the Phase 2 context layers.
 
-Primary source: yfinance (intraday + daily). Fallback: Stooq daily CSV — free,
-no API key, no login — used when yfinance drops/rate-limits on a DAILY fetch
-(Stooq's free tier has no intraday, so intraday stays yfinance-only with the
-existing graceful-neutral fallback in each layer).
+Daily OHLCV: Stooq (primary, free, no key, works from Railway cloud IPs)
+             → Alpha Vantage (secondary for stocks, budget-limited)
+Intraday:    Alpha Vantage (stocks only) — no reliable free intraday source.
+
+yfinance removed — it silently breaks from cloud IPs and requires no-auth
+Yahoo scraping which is increasingly unreliable.
 
 Every function returns a pandas DataFrame shaped like yfinance's `.history()`
 (Open/High/Low/Close columns, tz-aware DatetimeIndex) or an EMPTY DataFrame on
@@ -44,11 +46,6 @@ STOOQ_SYMBOLS = {
 
 _STOOQ_UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
              "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
-
-
-def _yf_history(ticker: str, period: str, interval: str):
-    import yfinance as yf
-    return yf.Ticker(ticker).history(period=period, interval=interval)
 
 
 def _av_budget_ok() -> bool:
@@ -104,17 +101,11 @@ def _alphavantage_intraday(ticker: str, interval: str = "60min"):
 
 
 def fetch_intraday(ticker: str, interval: str = "1h", period: str = "60d"):
-    """Intraday OHLC — yfinance primary, Alpha Vantage fallback (stocks, budgeted)."""
+    """Intraday OHLC — Alpha Vantage for mapped equities (SPY/QQQ), budget-guarded."""
     import pandas as pd
-    try:
-        df = _yf_history(ticker, period, interval)
-        if len(df):
-            return df
-    except Exception as e:
-        print(f"[mktdata] yfinance intraday {ticker} failed: {e}")
-    # Tertiary: Alpha Vantage for mapped equities (SPY/QQQ), budget-guarded.
     av = _alphavantage_intraday(ticker, interval="60min")
     if len(av):
+        _health("alphavantage_intraday", True, "price")
         return av
     return pd.DataFrame()
 
@@ -140,23 +131,27 @@ def _stooq_daily(stooq_symbol: str):
     return df[keep]
 
 
-def fetch_daily(ticker: str, period: str = "1y"):
-    """Daily OHLC — yfinance primary, Stooq fallback. Empty DataFrame if both fail."""
-    import pandas as pd
+def _health(source: str, ok: bool, category: str = "", detail: str = "") -> None:
+    """Report a fetch outcome to the data-flow health registry (never raises)."""
     try:
-        df = _yf_history(ticker, period, "1d")
-        if len(df):
-            return df
-    except Exception as e:
-        print(f"[mktdata] yfinance daily {ticker} failed: {e}")
+        import data_health
+        data_health.record(source, ok, category, detail)
+    except Exception:
+        pass
 
+
+def fetch_daily(ticker: str, period: str = "1y"):
+    """Daily OHLC — Stooq primary (free, cloud-reliable). Empty DataFrame if unavailable."""
+    import pandas as pd
     sym = STOOQ_SYMBOLS.get(ticker)
     if sym:
         try:
             df = _stooq_daily(sym)
             if len(df):
-                print(f"[mktdata] {ticker} served via Stooq fallback ({len(df)} daily bars)")
+                _health("stooq_daily", True, "price")
                 return df
+            _health("stooq_daily", False, "price", f"empty for {sym}")
         except Exception as e:
-            print(f"[mktdata] Stooq fallback {sym} failed: {e}")
+            print(f"[mktdata] Stooq {sym} failed: {e}")
+            _health("stooq_daily", False, "price", str(e))
     return pd.DataFrame()

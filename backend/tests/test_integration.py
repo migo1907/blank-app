@@ -12,6 +12,7 @@ Integration tests for ML pipeline additions:
 """
 import sys
 import os
+from datetime import datetime, timezone, timedelta
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 os.environ.setdefault("GITHUB_TOKEN",  "test")
@@ -36,21 +37,41 @@ def assert_range(label, val, lo, hi):
 
 
 def _make_history(n_win: int, n_loss: int, pnl_win=1.5, pnl_loss=1.0) -> list[dict]:
-    """Build synthetic trade history with consistent feature vectors."""
+    """Build synthetic trade history with consistent feature vectors.
+
+    Wins and losses are INTERLEAVED (not all-wins-then-all-losses) so that any
+    walk-forward OOS split (e.g. the last 20%) contains both classes — otherwise
+    a single-class fold makes RF/GBM predict_proba degenerate to one column."""
     from ml_model import FEATURE_NAMES
-    rows = []
-    for i in range(n_win):
+
+    # Monotonically increasing timestamps — the models sort history by created_at,
+    # so a shared timestamp would re-segregate wins/losses and undo the interleave.
+    base = datetime(2026, 1, 1, 9, 0, 0, tzinfo=timezone.utc)
+
+    def _ts(seq):
+        return (base + timedelta(minutes=seq)).isoformat()
+
+    def _win(i, seq):
         row = {name: float((i % 10 + 1) * 0.1) for name in FEATURE_NAMES}
         row.update({"outcome": "WIN", "ml_outcome": "WIN",
-                    "pnl_pct": pnl_win, "created_at": "2026-01-01T09:00:00+00:00",
+                    "pnl_pct": pnl_win, "created_at": _ts(seq),
                     "direction": "LONG", "session": "london", "trigger": "BOS"})
-        rows.append(row)
-    for i in range(n_loss):
+        return row
+
+    def _loss(i, seq):
         row = {name: float((i % 10 + 1) * 0.05) for name in FEATURE_NAMES}
         row.update({"outcome": "LOSS", "ml_outcome": "LOSS",
-                    "pnl_pct": -pnl_loss, "created_at": "2026-01-01T14:00:00+00:00",
+                    "pnl_pct": -pnl_loss, "created_at": _ts(seq),
                     "direction": "SHORT", "session": "ny", "trigger": "FVG"})
-        rows.append(row)
+        return row
+
+    rows = []
+    wi = li = seq = 0
+    while wi < n_win or li < n_loss:
+        if wi < n_win:
+            rows.append(_win(wi, seq)); wi += 1; seq += 1
+        if li < n_loss:
+            rows.append(_loss(li, seq)); li += 1; seq += 1
     return rows
 
 

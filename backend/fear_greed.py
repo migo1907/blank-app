@@ -49,11 +49,14 @@ def fetch_fear_greed() -> dict:
             r = c.get(_URL)
             if r.status_code != 200:
                 print(f"[fear_greed] HTTP {r.status_code} — keeping cached value")
+                _fg_health(False, f"HTTP {r.status_code}")
                 return dict(_cache)
             fg = (r.json() or {}).get("fear_and_greed", {})
             score = fg.get("score")
             if score is None:
+                _fg_health(False, "no score in payload")
                 return dict(_cache)
+            _fg_health(True)
             score = round(float(score), 1)
             _cache = {
                 "score":          score,
@@ -71,7 +74,16 @@ def fetch_fear_greed() -> dict:
                 print(f"[fear_greed] persist failed (non-fatal): {_pe}")
     except Exception as e:
         print(f"[fear_greed] fetch failed: {e}")
+        _fg_health(False, str(e))
     return dict(_cache)
+
+
+def _fg_health(ok: bool, detail: str = "") -> None:
+    try:
+        import data_health
+        data_health.record("cnn_fear_greed", ok, "macro", detail)
+    except Exception:
+        pass
 
 
 def get_fear_greed() -> dict:

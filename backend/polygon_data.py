@@ -45,6 +45,31 @@ def get_spot(symbol: str = "I:SPX") -> float | None:
     return None
 
 
+def get_expirations(underlying: str = "SPXW") -> list[str]:
+    """Sorted upcoming expiration dates (YYYY-MM-DD) for the underlying.
+
+    Uses the free-tier /v3/reference/options/contracts endpoint (no real-time
+    snapshot needed). Returns [] gracefully if the key is absent or the call fails.
+    """
+    if not available():
+        return []
+    today = date.today().isoformat()
+    horizon = (date.today() + timedelta(days=14)).isoformat()
+    data = _get("/v3/reference/options/contracts", {
+        "underlying_ticker": underlying,
+        "expiration_date.gte": today,
+        "expiration_date.lte": horizon,
+        "expired": "false",
+        "limit": 1000,
+        "sort": "expiration_date",
+        "order": "asc",
+    })
+    if not data or not data.get("results"):
+        return []
+    exps = sorted({r.get("expiration_date") for r in data["results"] if r.get("expiration_date")})
+    return [e for e in exps if e]
+
+
 def get_options_chain(underlying: str = "SPXW", expiration: str | None = None) -> dict | None:
     """Full options chain with real Greeks. Returns {calls:[], puts:[], expiration:str}"""
     if not available():
@@ -162,27 +187,5 @@ def get_put_call_ratio(underlying: str = "SPXW") -> dict | None:
                     "source":         "polygon",
                 }
 
-    # Fallback: yfinance SPX options chain (nearest expiry)
-    try:
-        import yfinance as yf
-        tk  = yf.Ticker("^SPX")
-        exp = tk.options[0] if tk.options else None
-        if not exp:
-            return None
-        chain = tk.option_chain(exp)
-        call_vol = int(chain.calls["volume"].fillna(0).sum())
-        put_vol  = int(chain.puts["volume"].fillna(0).sum())
-        total    = call_vol + put_vol
-        if not total:
-            return None
-        return {
-            "call_volume":    call_vol,
-            "put_volume":     put_vol,
-            "total_volume":   total,
-            "put_call_ratio": round(put_vol / call_vol, 3) if call_vol else None,
-            "sentiment":      "bullish" if call_vol > put_vol else "bearish",
-            "source":         "yfinance",
-        }
-    except Exception as e:
-        print(f"[polygon] put_call_ratio yfinance fallback failed: {e}")
+    # No free fallback available for P/C ratio without paid options chain access
     return None

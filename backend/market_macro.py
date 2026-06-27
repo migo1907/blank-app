@@ -172,29 +172,27 @@ def _gld_holdings() -> dict | None:
             except Exception as e:
                 print(f"[macro] SPDR CSV fetch failed ({url.split('/')[2]}): {e}")
 
-    # Fallback: use yfinance GLD ETF price change as a flow proxy
+    # Fallback: Stooq GLD ETF price change as a flow proxy
     # Not tonnes, but direction is the same: rising GLD price = rising demand
     try:
-        import yfinance as yf
-        tk   = yf.Ticker("GLD")
-        hist = tk.history(period="5d", interval="1d", auto_adjust=True)
+        from market_data import _stooq_daily
+        hist = _stooq_daily("gld.us")
         if hist is not None and len(hist) >= 2:
             cur  = float(hist["Close"].iloc[-1])
             prev = float(hist["Close"].iloc[-2])
             pct_chg = (cur - prev) / prev * 100.0
-            # Express as a pseudo-tonnes change (directional signal only)
-            print(f"[macro] GLD yfinance fallback: price {prev:.2f}→{cur:.2f} ({pct_chg:+.2f}%)")
+            print(f"[macro] GLD Stooq fallback: price {prev:.2f}→{cur:.2f} ({pct_chg:+.2f}%)")
             return {
                 "date":           str(hist.index[-1].date()),
                 "price":          round(cur, 2),
                 "price_prev":     round(prev, 2),
                 "price_change":   round(cur - prev, 4),
                 "tonnes":         None,
-                "tonnes_change":  round(cur - prev, 4),  # directional proxy only
-                "source":         "yfinance_proxy",
+                "tonnes_change":  round(cur - prev, 4),
+                "source":         "stooq_proxy",
             }
     except Exception as e:
-        print(f"[macro] GLD yfinance fallback failed: {e}")
+        print(f"[macro] GLD Stooq fallback failed: {e}")
 
     return None
 
@@ -260,30 +258,18 @@ def _fetch_vix_level() -> float | None:
     """
     import pandas as pd
 
-    # 1 — yfinance
-    try:
-        from market_data import fetch_daily
-        df = fetch_daily("^VIX", period="5d")
-        if len(df):
-            v = float(df["Close"].iloc[-1])
-            if v == v and v > 0:  # not NaN, not zero
-                return v
-    except Exception:
-        pass
-
-    # 2 — Stooq direct (fetch_daily already tries this but only when df is empty)
+    # 1 — Stooq (reliable from Railway cloud IPs)
     try:
         from market_data import _stooq_daily
         df = _stooq_daily("^vix")
         if len(df):
             v = float(df["Close"].iloc[-1])
             if v == v and v > 0:
-                print("[macro] VIX served via Stooq direct")
                 return v
     except Exception:
         pass
 
-    # 3 — CBOE CDN (authoritative, no auth, CDN-served)
+    # 2 — CBOE CDN (authoritative, no auth, CDN-served)
     try:
         import io as _io
         _cboe_url = "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv"
@@ -331,6 +317,30 @@ def _vix_context() -> dict:
                     v3 = _v3
         except Exception:
             pass
+        # VIX3M: try Stooq (^vix3m), then CBOE CDN
+        if v3 is None:
+            try:
+                from market_data import _stooq_daily
+                df3 = _stooq_daily("^vix3m")
+                if len(df3):
+                    _v3 = float(df3["Close"].iloc[-1])
+                    if _v3 == _v3 and _v3 > 0:
+                        v3 = _v3
+            except Exception:
+                pass
+        if v3 is None:
+            try:
+                import io as _io
+                _r3 = httpx.get(
+                    "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX3M_History.csv",
+                    headers={"User-Agent": "Mozilla/5.0"}, timeout=10, follow_redirects=True)
+                _r3.raise_for_status()
+                import pandas as _pd
+                _df3 = _pd.read_csv(_io.StringIO(_r3.text))
+                if not _df3.empty and "CLOSE" in _df3.columns:
+                    v3 = float(_df3["CLOSE"].iloc[-1])
+            except Exception:
+                pass
         if v3:
             out["vix3m"] = round(v3, 2)
             out["ratio"] = round(v / v3, 3)
@@ -509,6 +519,15 @@ def refresh_macro_bias() -> dict:
         f"equity bias={_cached_equity_macro['bias']:+.3f} ({_cached_equity_macro['label']}) "
         f"components={macro['components']} live={macro['sources_live']}"
     )
+    # Data-flow health: FRED/COT/GLD are live when sources_live is non-empty.
+    try:
+        import data_health
+        live = macro.get("sources_live")
+        ok = bool(live) if live is not None else True
+        data_health.record("macro_fred_cot_gld", ok, "macro",
+                           "" if ok else "no live macro sources")
+    except Exception:
+        pass
     return macro
 
 

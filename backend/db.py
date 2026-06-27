@@ -277,8 +277,10 @@ def resync_pool_counters(pool: str) -> tuple[int, int]:
     hist, _ = _get_file(_pool_history_file(pool))
     if not isinstance(hist, list):
         return 0, 0
-    wins   = sum(1 for t in hist if t.get("outcome") in ("WIN", "PARTIAL"))
-    losses = sum(1 for t in hist if t.get("outcome") == "LOSS")
+    from ml_model import is_win   # deferred: ml_model imports from db (avoid cycle)
+    _closed = [t for t in hist if t.get("outcome") in ("WIN", "PARTIAL", "LOSS")]
+    wins   = sum(1 for t in _closed if is_win(t))
+    losses = len(_closed) - wins
     weights, sha = _get_file(_pool_weights_file(pool))
     if isinstance(weights, dict):
         old_w = weights.get("total_wins", 0)

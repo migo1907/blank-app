@@ -17,7 +17,7 @@ Scoring pipeline:
  12. Dynamic weight adjustment based on recent win rates per component
 """
 from datetime import datetime, timezone, timedelta
-from ml_model import get_model, Features
+from ml_model import get_model, Features, is_win
 from ml_ensemble import (
     get_rf, get_gbm, get_joint_gold, get_joint_stocks, get_tabpfn,
     GOLD_TF_IDS, STOCK_POOL_IDS, explain_prediction,
@@ -169,9 +169,8 @@ def should_retrigger_retrain(pool: str, history: list[dict], window: int = 20,
     """
     if len(history) < window * 2:
         return False
-    wins = ("WIN", "PARTIAL")
-    recent_wr = sum(1 for r in history[:window] if r.get("outcome") in wins) / window
-    prev_wr   = sum(1 for r in history[window:window * 2] if r.get("outcome") in wins) / window
+    recent_wr = sum(1 for r in history[:window] if is_win(r)) / window
+    prev_wr   = sum(1 for r in history[window:window * 2] if is_win(r)) / window
     drop = (prev_wr - recent_wr) * 100
     if drop > drop_pp:
         print(f"[regime] Pool '{pool}' regime shift detected — WR dropped {drop:.1f}pp "
@@ -208,7 +207,7 @@ def compute_fbeta_threshold(pool: str, history: list[dict], beta: float | None =
     # Build OOS probability predictions using a simple 3-fold time-series split
     from sklearn.model_selection import TimeSeriesSplit
     X = _np.array([row_to_vector(r) for r in closed], dtype=_np.float32)
-    y = _np.array([1 if r["outcome"] in ("WIN", "PARTIAL") else 0 for r in closed])
+    y = _np.array([1 if is_win(r) else 0 for r in closed])
 
     all_proba, all_true = [], []
     tscv = TimeSeriesSplit(n_splits=3, gap=5)
@@ -401,7 +400,7 @@ def _memory_features(history: list[dict], direction: str, n: int = 10) -> list[f
     recent = list(reversed(history[:n]))
 
     def _rate(filt):
-        sub = [1 if r.get("outcome") in ("WIN", "PARTIAL") else 0
+        sub = [1 if is_win(r) else 0
                for r in recent if filt(r)]
         return sum(sub) / len(sub) if sub else 0.5
 
@@ -518,16 +517,61 @@ def score_entry_gate(pool: str, direction: str, trigger: str = "") -> dict:
 
     score     = sum(components.values()) / len(components)
 
-    # Session bleed guard — data-driven, self-healing. If the current session's
-    # historical WR in this pool is <30% over n>=30 trades, scale the score down.
-    # (June 11 audit: OVERLAP session ran 21% WR over 42 trades on XAUUSD_2M.)
+    # Rule 8 (thin-pool deadlock) safety: the hard-block gates below can return
+    # pass=False, which would starve a cold-start pool of the entries it needs to
+    # mature. They are individually n>=30-in-bucket gated, but enforce the 50-trade
+    # floor explicitly here so no per-bucket concentration can ever hard-block a
+    # thin pool. Soft de-weights still apply; only the hard blocks are suppressed.
+    _thin_pool = len(history) < 50
+
+    # f15 session-bucket gate — data-driven, self-validating. The Pine f15 feature
+    # is a quantized time-of-day bucket; the f15==0.5 bucket is a structural
+    # money-loser (audit: XAUUSD_2M 22.6% over 93, XAUUSD_5M 19.7% over 33). Block
+    # an entry whenever the CURRENT bar sits in that bucket AND this pool's own
+    # history confirms it loses (<27% WR over n>=30). Per-pool + n-gated so it never
+    # blind-blocks a pool where that session is actually fine, and never fires on
+    # thin/cold-start pools.
+    if not _thin_pool and abs(getattr(features, "f15", 0.0) - 0.5) < 0.05:
+        f15_rows = [t for t in history
+                    if abs(t.get("f15_sess", -9) - 0.5) < 0.05
+                    and t.get("outcome") in ("WIN", "PARTIAL", "LOSS")]
+        if len(f15_rows) >= 30:
+            f15_wr = sum(1 for t in f15_rows if is_win(t)) / len(f15_rows)
+            if f15_wr < 0.27:
+                return {
+                    "pass": False, "score": round(score * 0.5, 4),
+                    "reason": "rejected_losing_f15_session",
+                    "components": {**components, "f15_guard": round(f15_wr, 3)},
+                    "threshold": _pool_thresholds.get(pool, ML_GATE_THRESHOLD),
+                    "shap_drivers": [],
+                }
+
+    # Session bleed guard — data-driven, self-healing, tiered. Uses the current
+    # session's realized hit-rate in this pool over n>=30 trades.
+    #   <23% WR  → hard block (these sessions lose money; June audit: the worst
+    #              session bucket ran ~20-23% WR across both gold pools).
+    #   <30% WR  → strong de-weight (×0.75).
+    #   <35% WR  → mild de-weight (×0.88).
+    # Self-deactivates as a session's WR recovers; needs n>=30 to engage at all.
     _, cur_session = _session_multiplier(datetime.now(timezone.utc), pool in STOCK_POOL_IDS)
     sess_rows = [t for t in history if t.get("session") == cur_session
                  and t.get("outcome") in ("WIN", "PARTIAL", "LOSS")]
     if len(sess_rows) >= 30:
-        sess_wr = sum(1 for t in sess_rows if t["outcome"] in ("WIN", "PARTIAL")) / len(sess_rows)
-        if sess_wr < 0.30:
-            score *= 0.85
+        sess_wr = sum(1 for t in sess_rows if is_win(t)) / len(sess_rows)
+        if sess_wr < 0.23 and not _thin_pool:
+            components["session_guard"] = round(sess_wr, 3)
+            return {
+                "pass": False, "score": round(score * 0.5, 4),
+                "reason": "rejected_losing_session",
+                "components": components,
+                "threshold": _pool_thresholds.get(pool, ML_GATE_THRESHOLD),
+                "shap_drivers": [],
+            }
+        elif sess_wr < 0.30:
+            score *= 0.75
+            components["session_guard"] = round(sess_wr, 3)
+        elif sess_wr < 0.35:
+            score *= 0.88
             components["session_guard"] = round(sess_wr, 3)
 
     threshold = _pool_thresholds.get(pool, ML_GATE_THRESHOLD)

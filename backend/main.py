@@ -1774,32 +1774,73 @@ _OVERVIEW_SYMBOLS = {
 }
 _overview_cache = {"ts": 0, "data": None}
 
+_OVERVIEW_STOOQ = {
+    "^GSPC": "^spx", "^IXIC": "^ndq", "^DJI": "^dji", "^RUT": "^rut",
+    "^VIX": "^vix", "GC=F": "xauusd", "CL=F": "cl.f", "SI=F": "si.f",
+    "NG=F": "ng.f", "BTC-USD": "btcusd", "ETH-USD": "ethusd",
+    "^TNX": "^tnx", "^IRX": "^irx",
+}
+
+def _stooq_quote(sym: str) -> dict | None:
+    """Last close from Stooq daily data — used for indices/commodities/crypto."""
+    from market_data import _stooq_daily
+    stooq_sym = _OVERVIEW_STOOQ.get(sym)
+    if not stooq_sym:
+        return None
+    try:
+        df = _stooq_daily(stooq_sym)
+        if len(df) < 2:
+            return None
+        price = float(df["Close"].iloc[-1])
+        prev  = float(df["Close"].iloc[-2])
+        hi    = float(df["High"].iloc[-1]) if "High" in df.columns else None
+        lo    = float(df["Low"].iloc[-1])  if "Low"  in df.columns else None
+        chg   = price - prev
+        return {"price": round(price, 4), "change": round(chg, 4),
+                "change_pct": round(chg / prev * 100 if prev else 0, 2),
+                "day_high": hi, "day_low": lo}
+    except Exception:
+        return None
+
+
+def _finnhub_quote(sym: str) -> dict | None:
+    """Live quote from Finnhub for US equities."""
+    import httpx, os
+    fk = os.environ.get("FINNHUB_KEY", "")
+    if not fk:
+        return None
+    try:
+        r = httpx.get("https://finnhub.io/api/v1/quote",
+                      params={"symbol": sym, "token": fk}, timeout=8)
+        if r.status_code != 200:
+            return None
+        d = r.json()
+        price = d.get("c")
+        prev  = d.get("pc")
+        if not price:
+            return None
+        chg = price - (prev or price)
+        return {"price": round(price, 4), "change": round(chg, 4),
+                "change_pct": round(chg / prev * 100 if prev else 0, 2),
+                "day_high": d.get("h"), "day_low": d.get("l")}
+    except Exception:
+        return None
+
+
 @app.get("/market/overview")
 def market_overview(secret: str = ""):
     _validate_secret(secret)
-    import time, yfinance as yf
+    import time
     if time.time() - _overview_cache["ts"] < 60 and _overview_cache["data"]:
         return _overview_cache["data"]
     out = {}
     all_syms = [(grp, name, sym) for grp, items in _OVERVIEW_SYMBOLS.items() for name, sym in items.items()]
-    tickers = yf.Tickers(" ".join(s for _,_,s in all_syms))
     for grp, name, sym in all_syms:
-        try:
-            fi = tickers.tickers[sym].fast_info
-            price = fi.last_price
-            prev  = fi.previous_close or price
-            chg   = price - prev
-            chg_pct = (chg / prev * 100) if prev else 0
-            out.setdefault(grp, []).append({
-                "name": name, "symbol": sym,
-                "price": round(price, 4),
-                "change": round(chg, 4),
-                "change_pct": round(chg_pct, 2),
-                "day_high": fi.day_high,
-                "day_low":  fi.day_low,
-            })
-        except Exception as e:
-            out.setdefault(grp, []).append({"name": name, "symbol": sym, "error": str(e)})
+        q = _stooq_quote(sym) or _finnhub_quote(sym)
+        if q:
+            out.setdefault(grp, []).append({"name": name, "symbol": sym, **q})
+        else:
+            out.setdefault(grp, []).append({"name": name, "symbol": sym, "error": "no data"})
     _overview_cache.update({"ts": time.time(), "data": out})
     return out
 
@@ -1807,120 +1848,149 @@ def market_overview(secret: str = ""):
 @app.get("/market/quotes")
 async def market_quotes(symbols: str = "", secret: str = ""):
     _validate_secret(secret)
-    import yfinance as yf
     syms = [s.strip().upper() for s in symbols.split(",") if s.strip()]
     if not syms:
         return {}
     result = {}
-    try:
-        tickers = yf.Tickers(" ".join(syms))
-        for sym in syms:
-            try:
-                fi = tickers.tickers[sym].fast_info
-                price = fi.last_price
-                prev  = fi.previous_close or price
-                chg   = price - prev
-                result[sym] = {
-                    "price": round(price, 4),
-                    "change": round(chg, 4),
-                    "change_pct": round((chg/prev*100) if prev else 0, 2),
-                    "name": getattr(fi, 'company_name', sym),
-                }
-            except Exception as e:
-                result[sym] = {"error": str(e)}
-    except Exception as e:
-        return {"error": str(e)}
+    for sym in syms:
+        q = _stooq_quote(sym) or _finnhub_quote(sym)
+        if q:
+            result[sym] = {**q, "name": sym}
+        else:
+            result[sym] = {"error": "no data"}
     return result
 
 
 @app.get("/market/ticker/{symbol}")
 def market_ticker(symbol: str, secret: str = ""):
     _validate_secret(secret)
-    import yfinance as yf, os
+    import httpx, os, datetime as _dtt
     sym = symbol.upper()
-    tk  = yf.Ticker(sym)
-    info = {}
-    try:
-        info = tk.info or {}
-    except Exception:
-        pass
-    fi = {}
-    try:
-        raw = tk.fast_info
-        fi = {
-            "price":        raw.last_price,
-            "change_pct":   round(((raw.last_price - raw.previous_close) / raw.previous_close * 100) if raw.previous_close else 0, 2),
-            "day_high":     raw.day_high,
-            "day_low":      raw.day_low,
-            "week52_high":  raw.fifty_two_week_high,
-            "week52_low":   raw.fifty_two_week_low,
-            "market_cap":   raw.market_cap,
-            "volume":       raw.three_month_average_volume,
-        }
-    except Exception:
-        pass
+    fk = os.environ.get("FINNHUB_KEY", "")
+
+    profile, metrics, quote_raw = {}, {}, {}
+    if fk:
+        try:
+            r = httpx.get("https://finnhub.io/api/v1/stock/profile2",
+                          params={"symbol": sym, "token": fk}, timeout=8)
+            if r.status_code == 200:
+                profile = r.json() or {}
+        except Exception:
+            pass
+        try:
+            r = httpx.get("https://finnhub.io/api/v1/stock/metric",
+                          params={"symbol": sym, "metric": "all", "token": fk}, timeout=8)
+            if r.status_code == 200:
+                metrics = (r.json() or {}).get("metric", {})
+        except Exception:
+            pass
+        try:
+            r = httpx.get("https://finnhub.io/api/v1/quote",
+                          params={"symbol": sym, "token": fk}, timeout=8)
+            if r.status_code == 200:
+                quote_raw = r.json() or {}
+        except Exception:
+            pass
+
+    price  = quote_raw.get("c") or 0.0
+    prev   = quote_raw.get("pc") or price
+    fi = {
+        "price":       round(price, 4),
+        "change_pct":  round((price - prev) / prev * 100 if prev else 0, 2),
+        "day_high":    quote_raw.get("h"),
+        "day_low":     quote_raw.get("l"),
+        "week52_high": metrics.get("52WeekHigh"),
+        "week52_low":  metrics.get("52WeekLow"),
+        "market_cap":  (profile.get("marketCapitalization") or 0) * 1e6 or None,
+        "volume":      metrics.get("3MonthADTV"),
+    }
     fundamentals = {
-        "pe":           info.get("trailingPE"),
-        "forward_pe":   info.get("forwardPE"),
-        "pb":           info.get("priceToBook"),
-        "ps":           info.get("priceToSalesTrailing12Months"),
-        "ev_ebitda":    info.get("enterpriseToEbitda"),
-        "roe":          info.get("returnOnEquity"),
-        "revenue_growth": info.get("revenueGrowth"),
-        "gross_margin": info.get("grossMargins"),
-        "profit_margin":info.get("profitMargins"),
-        "debt_to_equity": info.get("debtToEquity"),
-        "dividend_yield": info.get("dividendYield"),
-        "beta":         info.get("beta"),
-        "sector":       info.get("sector"),
-        "industry":     info.get("industry"),
-        "description":  (info.get("longBusinessSummary") or "")[:500],
+        "pe":             metrics.get("peBasicExclExtraTTM"),
+        "forward_pe":     metrics.get("peNormalizedAnnual"),
+        "pb":             metrics.get("pbAnnual"),
+        "ps":             metrics.get("psTTM"),
+        "ev_ebitda":      metrics.get("evEbitdaTTM"),
+        "roe":            metrics.get("roeTTM"),
+        "revenue_growth": metrics.get("revenueGrowthTTMYoy"),
+        "gross_margin":   metrics.get("grossMarginTTM"),
+        "profit_margin":  metrics.get("netProfitMarginTTM"),
+        "debt_to_equity": metrics.get("totalDebt/totalEquityAnnual"),
+        "dividend_yield": metrics.get("dividendYieldIndicatedAnnual"),
+        "beta":           metrics.get("beta"),
+        "sector":         profile.get("finnhubIndustry"),
+        "industry":       profile.get("finnhubIndustry"),
+        "description":    (profile.get("description") or "")[:500],
     }
     news = []
-    try:
-        import httpx, datetime as _dtt
-        fk = os.environ.get("FINNHUB_KEY", "")
-        if fk:
-            r = httpx.get(f"https://finnhub.io/api/v1/company-news?symbol={sym}&from={((_dtt.date.today() - _dtt.timedelta(days=7)).isoformat())}&to={_dtt.date.today().isoformat()}&token={fk}", timeout=8)
+    if fk:
+        try:
+            r = httpx.get("https://finnhub.io/api/v1/company-news",
+                          params={"symbol": sym,
+                                  "from": (_dtt.date.today() - _dtt.timedelta(days=7)).isoformat(),
+                                  "to": _dtt.date.today().isoformat(),
+                                  "token": fk}, timeout=8)
             if r.status_code == 200:
-                news = [{"headline": n["headline"], "url": n["url"], "datetime": n["datetime"]} for n in r.json()[:8]]
-    except Exception:
-        pass
-    return {"symbol": sym, "name": info.get("shortName", sym), "price_data": fi, "fundamentals": fundamentals, "news": news}
+                news = [{"headline": n["headline"], "url": n["url"], "datetime": n["datetime"]}
+                        for n in r.json()[:8]]
+        except Exception:
+            pass
+    return {"symbol": sym, "name": profile.get("name", sym), "price_data": fi,
+            "fundamentals": fundamentals, "news": news}
 
 
 @app.get("/market/compare")
 def market_compare(symbols: str = "", secret: str = ""):
     _validate_secret(secret)
-    import yfinance as yf
+    import httpx, os
+    fk = os.environ.get("FINNHUB_KEY", "")
     syms = [s.strip().upper() for s in symbols.split(",") if s.strip()][:6]
     if not syms:
         return []
     result = []
     for sym in syms:
         try:
-            tk   = yf.Ticker(sym)
-            info = tk.info or {}
-            fi   = tk.fast_info
-            price = fi.last_price
-            prev  = fi.previous_close or price
+            profile, metrics, q = {}, {}, {}
+            if fk:
+                try:
+                    r = httpx.get("https://finnhub.io/api/v1/stock/profile2",
+                                  params={"symbol": sym, "token": fk}, timeout=8)
+                    if r.status_code == 200:
+                        profile = r.json() or {}
+                except Exception:
+                    pass
+                try:
+                    r = httpx.get("https://finnhub.io/api/v1/stock/metric",
+                                  params={"symbol": sym, "metric": "all", "token": fk}, timeout=8)
+                    if r.status_code == 200:
+                        metrics = (r.json() or {}).get("metric", {})
+                except Exception:
+                    pass
+                try:
+                    r = httpx.get("https://finnhub.io/api/v1/quote",
+                                  params={"symbol": sym, "token": fk}, timeout=8)
+                    if r.status_code == 200:
+                        q = r.json() or {}
+                except Exception:
+                    pass
+            price = q.get("c") or 0.0
+            prev  = q.get("pc") or price
             result.append({
-                "symbol": sym,
-                "name":   info.get("shortName", sym),
-                "price":  round(price, 2),
-                "change_pct": round((price-prev)/prev*100 if prev else 0, 2),
-                "market_cap": fi.market_cap,
-                "pe":         info.get("trailingPE"),
-                "forward_pe": info.get("forwardPE"),
-                "pb":         info.get("priceToBook"),
-                "roe":        info.get("returnOnEquity"),
-                "revenue_growth": info.get("revenueGrowth"),
-                "gross_margin": info.get("grossMargins"),
-                "beta":       info.get("beta"),
-                "dividend_yield": info.get("dividendYield"),
-                "sector":     info.get("sector"),
-                "week52_high": fi.fifty_two_week_high,
-                "week52_low":  fi.fifty_two_week_low,
+                "symbol":       sym,
+                "name":         profile.get("name", sym),
+                "price":        round(price, 2),
+                "change_pct":   round((price - prev) / prev * 100 if prev else 0, 2),
+                "market_cap":   (profile.get("marketCapitalization") or 0) * 1e6 or None,
+                "pe":           metrics.get("peBasicExclExtraTTM"),
+                "forward_pe":   metrics.get("peNormalizedAnnual"),
+                "pb":           metrics.get("pbAnnual"),
+                "roe":          metrics.get("roeTTM"),
+                "revenue_growth": metrics.get("revenueGrowthTTMYoy"),
+                "gross_margin": metrics.get("grossMarginTTM"),
+                "beta":         metrics.get("beta"),
+                "dividend_yield": metrics.get("dividendYieldIndicatedAnnual"),
+                "sector":       profile.get("finnhubIndustry"),
+                "week52_high":  metrics.get("52WeekHigh"),
+                "week52_low":   metrics.get("52WeekLow"),
             })
         except Exception as e:
             result.append({"symbol": sym, "error": str(e)})
@@ -2100,26 +2170,24 @@ _sparkline_cache = {"ts": 0, "data": None}
 def market_sparklines(secret: str = ""):
     """~1 month of daily closes per overview instrument, for inline sparklines."""
     _validate_secret(secret)
-    import time, math, yfinance as yf
+    import time, math
+    from market_data import _stooq_daily
     if time.time() - _sparkline_cache["ts"] < 900 and _sparkline_cache["data"]:
         return _sparkline_cache["data"]
     syms = [s for items in _OVERVIEW_SYMBOLS.values() for s in items.values()]
     out = {}
-    try:
-        df = yf.download(" ".join(syms), period="1mo", interval="1d",
-                         progress=False, group_by="ticker", threads=True)
-        for s in syms:
-            closes = []
+    for s in syms:
+        stooq_sym = _OVERVIEW_STOOQ.get(s)
+        closes = []
+        if stooq_sym:
             try:
-                col = df[s]["Close"] if s in df.columns.get_level_values(0) else None
-                if col is not None:
-                    closes = [round(float(c), 4) for c in col.tolist()
+                df = _stooq_daily(stooq_sym)
+                if len(df) and "Close" in df.columns:
+                    closes = [round(float(c), 4) for c in df["Close"].tolist()
                               if c is not None and not math.isnan(float(c))]
             except Exception:
-                closes = []
-            out[s] = closes[-22:]
-    except Exception as e:
-        return {"series": {}, "error": str(e)}
+                pass
+        out[s] = closes[-22:]
     res = {"series": out}
     _sparkline_cache.update({"ts": time.time(), "data": res})
     return res
@@ -2253,21 +2321,32 @@ _EARNINGS_MAJORS = {
 }
 
 
-def _yf_eps_surprise(sym: str):
-    """Return last-quarter EPS surprise % and beat/miss for a symbol via yfinance."""
+def _finnhub_eps_surprise(sym: str):
+    """Return last-quarter EPS surprise % and beat/miss via Finnhub earnings calendar."""
+    import httpx, os
+    from datetime import date, timedelta
+    fk = os.environ.get("FINNHUB_KEY", "")
+    if not fk:
+        return None, None
     try:
-        import yfinance as yf
-        tk = yf.Ticker(sym)
-        hist = tk.earnings_history
-        if hist is None or hist.empty:
+        to = date.today().isoformat()
+        frm = (date.today() - timedelta(days=120)).isoformat()
+        r = httpx.get("https://finnhub.io/api/v1/calendar/earnings",
+                      params={"from": frm, "to": to, "symbol": sym, "token": fk}, timeout=8)
+        if r.status_code != 200:
             return None, None
-        # earnings_history cols: epsActual, epsEstimate, epsDifference, surprisePercent
-        row = hist.iloc[-1]
-        surprise_pct = float(row.get("surprisePercent", 0) or 0) * 100
-        eps_actual   = float(row.get("epsActual", 0) or 0)
-        eps_estimate = float(row.get("epsEstimate", 0) or 0)
+        evs = r.json().get("earningsCalendar", []) or []
+        reported = [e for e in evs if e.get("epsActual") is not None]
+        if not reported:
+            return None, None
+        latest = sorted(reported, key=lambda e: e.get("date", ""), reverse=True)[0]
+        actual = latest.get("epsActual")
+        est    = latest.get("epsEstimate")
+        if actual is None or est is None or est == 0:
+            return None, None
+        surprise_pct = round((actual - est) / abs(est) * 100, 1)
         beat = "BEAT" if surprise_pct > 1 else ("MISS" if surprise_pct < -1 else "IN-LINE")
-        return round(surprise_pct, 1), beat
+        return surprise_pct, beat
     except Exception:
         return None, None
 
@@ -2296,40 +2375,13 @@ def calendar_earnings(secret: str = ""):
         except Exception as e:
             source_err = str(e)
 
-    # Fallback: yfinance upcoming earnings dates for curated list
-    if not data:
-        import yfinance as yf
-        for sym in _EARNINGS_MAJORS:
-            try:
-                tk = yf.Ticker(sym)
-                dates = tk.get_earnings_dates(limit=4)
-                if dates is None or dates.empty:
-                    continue
-                for idx_dt, row in dates.iterrows():
-                    # Only future dates within our window
-                    try:
-                        ev_date = idx_dt.date() if hasattr(idx_dt, "date") else None
-                    except Exception:
-                        continue
-                    if ev_date and today <= ev_date <= today + _td(days=7):
-                        data.append({
-                            "symbol": sym,
-                            "date": ev_date.isoformat(),
-                            "hour": "",
-                            "epsEstimate": row.get("EPS Estimate"),
-                            "epsActual": row.get("Reported EPS"),
-                            "revenueEstimate": None,
-                        })
-            except Exception:
-                continue
-
     _HR = {"bmo": "Pre-mkt", "amc": "After-close", "dmh": "Mid-day"}
     out = []
     for ev in data:
         sym = (ev.get("symbol") or "").upper()
         if sym not in _EARNINGS_MAJORS:
             continue
-        surprise_pct, beat_miss = _yf_eps_surprise(sym)
+        surprise_pct, beat_miss = _finnhub_eps_surprise(sym)
         out.append({
             "symbol":       sym,
             "name":         _EARNINGS_MAJORS[sym],
@@ -2344,10 +2396,19 @@ def calendar_earnings(secret: str = ""):
     out.sort(key=lambda x: (x["date"] or "", x["symbol"]))
     result = {"earnings": out, "from": frm, "to": to}
     if source_err and not out:
-        result["error"] = f"Finnhub failed ({source_err}); yfinance fallback also empty"
-    elif source_err:
-        result["source"] = "yfinance_fallback"
+        result["error"] = f"Finnhub failed ({source_err})"
     return result
+
+
+@app.get("/data/health")
+def data_health_report(secret: str = ""):
+    """Data-flow observability: per-source success/failure/freshness across every
+    external feed (price, options, VIX, news, calendar, macro). `degraded` lists
+    anything failing or stale so a broken source surfaces instead of silently
+    degrading the signals/brief."""
+    _validate_secret(secret)
+    import data_health
+    return data_health.report()
 
 
 @app.get("/options/flow")
@@ -2367,6 +2428,18 @@ async def options_flow(secret: str = ""):
         ledger = []
     open_trades   = [r for r in ledger if r.get("status") == "OPEN"]
     closed_trades = [r for r in ledger if r.get("status") == "CLOSED"][-10:]
+
+    # Backfill the two fields the dashboard reads (pool / outcome) for older rows
+    # written before they were stored at the source. pool is implied by dte;
+    # outcome is win iff the trade closed positive (loss_reason carries the detail).
+    def _enrich(r: dict) -> dict:
+        pool = r.get("pool") or ("SPX_0DTE" if r.get("dte") == 0 else "SPX_1DTE")
+        outcome = r.get("outcome") or ("WIN" if (r.get("pnl_pct") or 0) > 0 else "LOSS")
+        return {**r, "pool": pool, "outcome": outcome,
+                "loss_reason": r.get("loss_reason")}
+    closed_trades = [_enrich(r) for r in closed_trades]
+    open_trades   = [{**r, "pool": r.get("pool") or ("SPX_0DTE" if r.get("dte") == 0 else "SPX_1DTE")}
+                     for r in open_trades]
     from options_engine import last_options_check
     iv_sessions = 0
     try:

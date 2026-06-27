@@ -110,36 +110,6 @@ def _finnhub_recent(ticker: str) -> dict | None:
         return None
 
 
-def _yf_recent(tkr) -> dict | None:
-    """yfinance fallback: scan get_earnings_dates for a reported row in the window."""
-    try:
-        df = tkr.get_earnings_dates(limit=8)
-        if df is None or not len(df):
-            return None
-        now = datetime.now(timezone.utc)
-        for idx, row in df.iterrows():
-            try:
-                dt = idx.to_pydatetime()
-                if dt.tzinfo is None:
-                    dt = dt.replace(tzinfo=timezone.utc)
-            except Exception:
-                continue
-            days_ago = (now - dt).days
-            reported = row.get("Reported EPS")
-            if 0 <= days_ago <= _WINDOW_DAYS and reported is not None and reported == reported:
-                sp = row.get("Surprise(%)")
-                return {
-                    "date": dt.date().isoformat(), "days_ago": days_ago,
-                    "eps_actual": float(reported) if reported == reported else None,
-                    "eps_estimate": (float(row.get("EPS Estimate"))
-                                     if row.get("EPS Estimate") == row.get("EPS Estimate") else None),
-                    "rev_beat_pct": None,
-                    "surprise_pct": (round(float(sp), 1) if sp is not None and sp == sp else None),
-                    "source": "yfinance",
-                }
-    except Exception as e:
-        print(f"[earnings_call] yfinance recent failed: {e}")
-    return None
 
 
 # ── SEC EDGAR 8-K earnings press-release text ─────────────────────────────────
@@ -273,8 +243,6 @@ def earnings_update(ticker: str, tkr=None, cik: str | None = None) -> dict:
     }
 
     ev = _finnhub_recent(ticker)
-    if ev is None and tkr is not None:
-        ev = _yf_recent(tkr)
     if not ev:
         return out
 

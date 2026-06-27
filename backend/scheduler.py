@@ -19,13 +19,48 @@ _startup_cycle: bool = True  # suppress alert on first cycle after restart
 _webhook_errors:  int = 0   # count of failed trade webhooks since last hourly check
 _webhook_ok:      int = 0   # count of successful trade webhooks since last hourly check
 _intel_active:    bool = False  # True while market is in an elevated-activity regime (alert already sent)
-_shock_sent:      dict = {}     # headline_hash → monotonic time; suppresses duplicate shock alerts for 4h
+_shock_sent:      dict = {}     # normalized_headline_key → UTC ISO timestamp; suppresses duplicate shock alerts
+_shock_sent_dirty: bool = False  # set when _shock_sent changes → cycle persists it to the data branch
 _fj_expiry_alert_at: float = 0.0  # monotonic time of last FJ-session-expired alert; throttles to 1/12h
 _brief_sent_date:  object = None  # date the daily market brief was last sent (guards against double-fire)
 _report_sent_date: object = None  # date the daily performance report was last sent (guards against double-fire)
 
 _SEEN_HEADLINES_PATH = "data/seen_headlines.json"
 _SEEN_HEADLINES_MAX  = 500
+_SHOCK_SENT_PATH     = "data/shock_sent.json"
+
+
+def _normalize_headline(h: str) -> str:
+    """Lowercase, strip a trailing ' - Source' suffix and collapse whitespace so
+    trivial feed re-phrasings of the same story map to one dedup key."""
+    import re
+    h = (h or "").lower().strip()
+    h = re.sub(r"\s+[-–—]\s+[a-z0-9 .&']+$", "", h)   # drop "- reuters" / "— bloomberg"
+    h = re.sub(r"\s+", " ", h)
+    return h.strip()
+
+
+def _load_shock_sent() -> None:
+    """Restore the shock-alert dedup map from the data branch so duplicate
+    geopolitical/shock alerts stay suppressed across Railway restarts."""
+    global _shock_sent
+    try:
+        from db import _get_file
+        data, _ = _get_file(_SHOCK_SENT_PATH)
+        if isinstance(data, dict):
+            _shock_sent = data
+            print(f"[scheduler] Loaded {len(_shock_sent)} shock-dedup entries from GitHub.")
+    except Exception as e:
+        print(f"[scheduler] Could not load shock_sent (first run?): {e}")
+
+
+def _save_shock_sent() -> None:
+    try:
+        from db import _get_file, _put_file
+        _, sha = _get_file(_SHOCK_SENT_PATH)
+        _put_file(_SHOCK_SENT_PATH, _shock_sent, sha, "chore: update shock-alert dedup")
+    except Exception as e:
+        print(f"[scheduler] Could not save shock_sent: {e}")
 
 
 def _cached_macro_label() -> str:
@@ -94,23 +129,35 @@ def _evaluate_intel_triggers(velocity: dict, event: dict, gold_signal: dict, gol
     # 5. Geopolitical / market shock — single-headline reactive events that are
     # time-critical by nature (no calendar). Unlike CPI-style releases, these
     # warrant an immediate heads-up even when overall news flow is calm.
-    # Deduplication: same headline is suppressed for 4 hours to prevent repeat
-    # alerts on every 15-min cycle when the headline stays in the feed.
-    import time as _time
+    # Deduplication: same headline is suppressed for 24h. The dedup map is
+    # persisted to the data branch (wall-clock UTC timestamps) so a Railway
+    # restart can't wipe it and re-fire the same headline hours later.
+    global _shock_sent_dirty
+    from datetime import datetime as _dt, timezone as _tz
     _SHOCK_EVENTS = {"WAR/CONFLICT", "GEOPOLITICAL", "FLASH_CRASH"}
-    _SHOCK_TTL = 4 * 3600
+    _SHOCK_TTL = 24 * 3600
     if (event.get("detected") and event.get("event_type") in _SHOCK_EVENTS
             and event.get("urgency", 0.0) >= 0.9):
         heads = event.get("headlines") or []
         lead_text = heads[0][:90] if heads else ""
-        shock_key = f"{event['event_type']}|{lead_text}"
-        now_mono = _time.monotonic()
-        # evict stale entries
-        stale = [k for k, t in _shock_sent.items() if now_mono - t > _SHOCK_TTL]
+        shock_key = f"{event['event_type']}|{_normalize_headline(heads[0] if heads else '')}"
+        now = _dt.now(_tz.utc)
+        # evict stale entries (older than the TTL, by wall-clock age)
+        stale = []
+        for k, t in _shock_sent.items():
+            try:
+                age = (now - _dt.fromisoformat(t)).total_seconds()
+            except Exception:
+                age = _SHOCK_TTL + 1   # unparseable → treat as stale
+            if age > _SHOCK_TTL:
+                stale.append(k)
         for k in stale:
             del _shock_sent[k]
+        if stale:
+            _shock_sent_dirty = True
         if shock_key not in _shock_sent:
-            _shock_sent[shock_key] = now_mono
+            _shock_sent[shock_key] = now.isoformat()
+            _shock_sent_dirty = True
             lead = f' — “{lead_text}”' if lead_text else ""
             reasons.append(f"{event['event_type']} shock headline{lead}")
 
@@ -428,6 +475,11 @@ async def _news_signal_cycle() -> None:
             elif not intel_reasons and _intel_active:
                 _intel_active = False
                 print("[scheduler] Market Intelligence: conditions cleared — re-armed.")
+            # Persist the shock dedup map whenever it changed so it survives restarts.
+            global _shock_sent_dirty
+            if _shock_sent_dirty:
+                await asyncio.to_thread(_save_shock_sent)
+                _shock_sent_dirty = False
         except Exception as e:
             print(f"[scheduler] Market Intelligence alert error: {e}")
 
@@ -603,6 +655,21 @@ async def _hourly_system_check() -> None:
         ok.append(f"Breaking news dedup — {seen_count} headlines tracked ✅")
     except Exception as e:
         ok.append(f"Breaking news dedup — {len(_fj_seen_headlines)} in memory ✅")
+
+    # ── Data-flow health — every external source's live status ────────────────
+    try:
+        import data_health
+        deg = data_health.degraded()
+        tracked = data_health.snapshot()
+        if not tracked:
+            ok.append("Data flow — no sources probed yet (fresh start) ⚠️")
+        elif not deg:
+            ok.append(f"Data flow — all {len(tracked)} sources healthy ✅")
+        else:
+            names = ", ".join(f"{d['source']}({d['reason']})" for d in deg[:8])
+            issues.append(f"Data flow — {len(deg)}/{len(tracked)} source(s) degraded: {names} ⚠️")
+    except Exception as e:
+        issues.append(f"Data-flow health error: {e} ❌")
 
     try:
         from db import _get_file
@@ -958,11 +1025,22 @@ async def _hourly_system_check() -> None:
             fj = [i for i in news if "juice" in str(i.get("source", "")).lower()]
             fj_age = _age_min(fj)
             if (fj_age is None or fj_age > 360) and overall_age is not None and overall_age < 60:
+                # Proactively attempt re-login here — don't wait for the next breaking
+                # cycle to hit a 401. Empty-JSON sessions return 200 so auto-login
+                # never fires from the fetch path.
+                try:
+                    from news_fetcher import _fj_auto_login
+                    relogin_ok = await asyncio.to_thread(_fj_auto_login)
+                    relogin_note = "Re-login attempted: ✅ succeeded" if relogin_ok else "Re-login attempted: ❌ failed — check FJ_EMAIL/FJ_PASSWORD"
+                    print(f"[system_check] FJ silent — proactive re-login: {'ok' if relogin_ok else 'FAILED'}")
+                except Exception as _rle:
+                    relogin_note = f"Re-login error: {_rle}"
+                    print(f"[system_check] FJ re-login exception: {_rle}")
                 critical_alerts.append((
                     "FinancialJuice Feed Silent",
                     f"FJ has no fresh items ({'none in cache' if fj_age is None else f'{fj_age:.0f} min old'}) "
-                    f"while other sources are live — FJ session likely lapsed.",
-                    "Auto-relogin should recover it; if not, check FJ_EMAIL/FJ_PASSWORD in Railway."
+                    f"while other sources are live — FJ session likely lapsed.\n{relogin_note}",
+                    "If re-login failed, check FJ_EMAIL/FJ_PASSWORD in Railway env vars."
                 ))
                 issues.append("FJ feed silent ⚠️")
             elif fj_age is not None:
@@ -1083,6 +1161,11 @@ async def _daily_trade_count_report() -> None:
                 continue
             for t in hist:
                 if t.get("created_at", "").startswith(today):
+                    # Exclude the 2M gold scalper from the daily report only.
+                    # It still trades and trains; its partials just net ~breakeven
+                    # and were inflating the headline. 5M + all other TFs still count.
+                    if str(t.get("timeframe", "")) == "2":
+                        continue
                     today_all.append(t)
 
         now_utc = datetime.now(timezone.utc)
@@ -1111,13 +1194,10 @@ async def _daily_trade_count_report() -> None:
             # This is the honest hit-rate; the headline WIN count only counts full TP3.
             reached_tp1 = tp + par
             hit_rate = reached_tp1 / total * 100 if total else 0.0
-            line = (
-                f"Signals: <b>{total}</b>  |  "
-                f"✅ TP: {tp}  🔶 Partial: {par}  ❌ SL: {sl}\n"
-                f"Reached TP1+: <b>{hit_rate:.0f}%</b>"
-            )
-            # Net-positive rate + expectancy from realized price (catches SL_TP1 partials
-            # that actually closed red on the fast gold scalps).
+            # Lead with the money truth: net-positive rate + expectancy from realized
+            # price. Partials that closed red (SL_TP1) drag these down honestly, so they
+            # are the headline. "Reached TP1+" is kept as a secondary touch-rate only.
+            line = f"Signals: <b>{total}</b>  |  ✅ TP: {tp}  🔶 Partial: {par}  ❌ SL: {sl}"
             if trades:
                 moves = [m for m in (_realized_pct(t) for t in trades) if m is not None]
                 if moves:
@@ -1127,6 +1207,7 @@ async def _daily_trade_count_report() -> None:
                         f"\nNet positive: <b>{net_pos:.0f}%</b>  |  "
                         f"Expectancy: <b>{expectancy:+.2f}%</b>/trade"
                     )
+            line += f"\n<i>Touch-rate (reached TP1+): {hit_rate:.0f}%</i>"
             return line
 
         # ── Overall ──────────────────────────────────────────────────────────
@@ -1267,7 +1348,7 @@ async def _weekly_model_comparison() -> None:
         from sklearn.metrics import f1_score as _f1
         from sklearn.model_selection import TimeSeriesSplit
         from db import recent_outcomes
-        from ml_model import row_to_vector, FEATURE_NAMES
+        from ml_model import row_to_vector, FEATURE_NAMES, is_win
         from ml_ensemble import get_rf, get_gbm, get_joint_gold, get_joint_stocks, GOLD_TF_IDS, STOCK_POOL_IDS
 
         results: list[str] = ["📊 *Weekly Model Comparison*\n"]
@@ -1278,7 +1359,7 @@ async def _weekly_model_comparison() -> None:
             if len(hist) < 40:
                 continue
             X = _np.array([row_to_vector(r) for r in hist], dtype=_np.float32)
-            y = _np.array([1 if r.get("outcome") in ("WIN","PARTIAL") else 0 for r in hist])
+            y = _np.array([1 if is_win(r) else 0 for r in hist])
 
             tscv = TimeSeriesSplit(n_splits=3, gap=5)
             model_scores: dict[str, list[float]] = {"rf": [], "gbm": [], "joint": []}
@@ -1552,11 +1633,10 @@ async def _full_system_inspection():
         if n < REGIME_SHIFT_WINDOW * 2:
             continue
         try:
+            from ml_model import is_win
             hist = await asyncio.to_thread(recent_outcomes, pool, 500)
-            wins_recent = sum(1 for r in hist[:REGIME_SHIFT_WINDOW]
-                              if r.get("outcome") in ("WIN", "PARTIAL"))
-            wins_prior  = sum(1 for r in hist[REGIME_SHIFT_WINDOW:REGIME_SHIFT_WINDOW*2]
-                              if r.get("outcome") in ("WIN", "PARTIAL"))
+            wins_recent = sum(1 for r in hist[:REGIME_SHIFT_WINDOW] if is_win(r))
+            wins_prior  = sum(1 for r in hist[REGIME_SHIFT_WINDOW:REGIME_SHIFT_WINDOW*2] if is_win(r))
             wr_recent = wins_recent / REGIME_SHIFT_WINDOW * 100
             wr_prior  = wins_prior  / REGIME_SHIFT_WINDOW * 100
             drop = wr_prior - wr_recent
@@ -1850,6 +1930,7 @@ async def _swing_agents_cycle() -> None:
 def start_scheduler() -> AsyncIOScheduler:
     global _scheduler
     _load_seen_headlines()
+    _load_shock_sent()
     interval   = int(os.environ.get("SIGNAL_INTERVAL_MINUTES", "15"))
     _scheduler = AsyncIOScheduler(
         job_defaults={

@@ -86,11 +86,17 @@ def _recent_fired_event() -> dict | None:
 
 
 def _reaction(ticker: str, fired_at: datetime) -> dict | None:
-    """Measure the asset's 5-minute price reaction since the print."""
+    """Measure the asset's hourly price reaction since the print.
+
+    Uses fetch_intraday (Alpha Vantage 60-min bars, SPY/QQQ only). Gold (GC=F)
+    has no free intraday source, so it returns None → compute_post_event() then
+    degrades to the SETTLING/mild-de-risk branch, which is the safe default
+    during a high-impact event.
+    """
     try:
-        import yfinance as yf
-        df = yf.Ticker(ticker).history(period="1d", interval="5m")
-        if not len(df):
+        from market_data import fetch_intraday
+        df = fetch_intraday(ticker, interval="1h", period="60d")
+        if df is None or not len(df):
             return None
         idx = df.index
         closes = df["Close"].astype(float)

@@ -194,13 +194,62 @@ jobs:
           print(json.dumps(result, indent=2))
           EOF
 
+      - name: Fetch economic calendar (Forex Factory)
+        # GitHub runners have open internet, so they can reach Forex Factory even
+        # when the Railway backend's egress can't. Writes the whole week's
+        # high-impact USD events to data/economic_calendar.json in the exact shape
+        # daily_analysis._ff_week_from_disk() reads — the brief serves today's slice
+        # from this snapshot. Never fails the job (calendar is best-effort).
+        continue-on-error: true
+        run: |
+          python3 - <<'EOF'
+          import json, os, requests
+          from datetime import datetime, timezone
+
+          UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+          url = "https://nfs.faireconomy.media/ff_calendar_thisweek.json"
+          rows = []
+          try:
+              resp = requests.get(url, timeout=20, headers={
+                  "User-Agent": UA,
+                  "Accept": "application/json, text/plain, */*",
+                  "Referer": "https://www.forexfactory.com/",
+              })
+              resp.raise_for_status()
+              raw = resp.json() or []
+              for ev in raw:
+                  if (ev.get("impact") or "").lower() != "high":
+                      continue
+                  if (ev.get("country") or "").upper() not in ("USD", "US", "USA"):
+                      continue
+                  try:
+                      ts = datetime.fromisoformat(ev.get("date", "")).astimezone(timezone.utc)
+                  except Exception:
+                      continue
+                  name     = ev.get("title") or ev.get("event") or "Event"
+                  forecast = ev.get("forecast") or ""
+                  actual   = ev.get("actual") or ""
+                  detail   = f" · Actual: {actual}" if actual else (f" · Est: {forecast}" if forecast else "")
+                  rows.append({"ts": ts.isoformat(), "name": name, "detail": detail})
+          except Exception as e:
+              print(f"[action] Forex Factory calendar fetch failed: {e}")
+
+          if rows:
+              os.makedirs("data", exist_ok=True)
+              with open("data/economic_calendar.json", "w") as f:
+                  json.dump(rows, f, indent=2)
+              print(f"[action] Saved data/economic_calendar.json — {len(rows)} high-impact USD event(s) this week")
+          else:
+              print("[action] No events fetched — leaving existing economic_calendar.json untouched")
+          EOF
+
       - name: Commit and push levels
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/daily_levels.json
+          git add data/daily_levels.json data/economic_calendar.json 2>/dev/null || git add data/daily_levels.json
           git diff --cached --quiet && { echo "No changes to commit."; exit 0; }
-          git commit -m "chore: daily TradingView levels $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git commit -m "chore: daily levels + economic calendar $(date -u +'%Y-%m-%d %H:%M UTC')"
           # Railway writes to the data branch concurrently — rebase + retry on rejection.
           for attempt in 1 2 3 4 5; do
             if git push; then
