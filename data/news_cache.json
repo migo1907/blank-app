@@ -1,393 +1,5 @@
 [
   {
-    "source": "CNBC",
-    "headline": "JPMorgan Chase unveils $50 billion buyback, Goldman Sachs raises dividend after Fed stress test",
-    "url": "https://www.cnbc.com/2026/06/24/jpmorgan-goldman-sachs-fed-stress-test.html",
-    "sentiment_score": -0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "risk appetite",
-      "equity strength",
-      "dollar positive"
-    ],
-    "fetched_at": "2026-06-27T09:59:52.415663+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Trump asks Congress for more funds to fight Iran, defying rebuke on war powers - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMivAFBVV95cUxPaldwT2FHdExCakJadVBWOWNDMmppclg5Ri1mX2hoUkNibnFGbER2bVlES2wwRjBYbEQtM21SQmFxTVNiSVpCcDdlbXNHT0xXLXhQbGtCR0s4M0Rrdm0xRGY4dVlndl8yblFNNXNlQjMtOWV6ck5lMlpxMS1xUWo5QlJPZ3MtXzRsNXEtUTB1eFdGWmNsdndybS1YRnhhMGZCdUZpNWoxZEVDcjhVaWkyc1FNVXVkVnZScUlvdQ?oc=5",
-    "sentiment_score": 0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "geopolitical escalation",
-      "fiscal spending",
-      "policy uncertainty"
-    ],
-    "fetched_at": "2026-06-27T09:59:52.415663+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Italy rebukes NATO's Rutte over remarks on US use of bases in Iran war - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMiwAFBVV95cUxORDAtcFJlNU1BcXI3bU5hODkwa0p5UDJBaWZiRjhSbHRIZTB0SzhnSUhJWnZiQW0tVGxVUnNQa3NwVXBpdXFSUjFpSFR0bjhmMnNScERBVHRoRVhYdDUzUDNKTTIyQk5RenlNNU1XQ3QxcGRPcmRWYnRxZXI0ellwV0dscmtBVmk1ZU45UUVhYjIzV0tRZ0pZMU1ZOFBwWlBjTWxrMWFCLUlFRHZCMnM1WTI5SXFqZkVSRy1XWXFpdVc?oc=5",
-    "sentiment_score": 0.3,
-    "impact": "LOW",
-    "keywords": [
-      "geopolitical tension",
-      "NATO",
-      "Iran conflict"
-    ],
-    "fetched_at": "2026-06-27T09:59:52.415663+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Egypt, Iran face crunch World Cup game in shadow of geopolitics - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxOVjlLN1huaVZNampyOXJSV2I3dkdtUXVWNVhGMEZuZkMtRmJiZE9HbjRpTVdubDFTbEltNFdfMWxNSGFCbm03QjFwNkV6SlFvMGRNUHd1SGw1RWJpdE9jY2NxRk1zT0UzeURGTGdjOXB1akNDTE5RcWNrb0hfRWdRbUxRdHhuTXUzTmNCTW1JM3h1a0JfRHdQMEpNQWZQZjhmbGU4VHE3NHVUdw?oc=5",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "geopolitics",
-      "sports",
-      "regional tensions"
-    ],
-    "fetched_at": "2026-06-27T09:59:52.415663+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "US airline stocks rise as oil retreats to pre-Iran war levels - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxOcWlMZ1R5R3kwcFZ5aU1SNnlnYm0wNThQTXFLU2c4U0c2WFNWLVJXZVhJRVp4VTJHaW9OT184bWI5a3ozY3NPeVVSWW9sQlEwQ1pBNWEwYlk4cUhUY1hSVXZOdUJ5U2F1eTRyZEZlYXJRM2JkdUJTUXRacDNYTWNwUXJjOV9JTU9GN0g4NEQ5TlBXR0FNdEZ5ekZBVk5YejJ6cDdTOEFBdzQ5ekk?oc=5",
-    "sentiment_score": -0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "oil decline",
-      "risk-off reversal",
-      "Iran tensions easing"
-    ],
-    "fetched_at": "2026-06-27T09:59:52.415663+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Brent settles at lowest since before start of Iran war as more tankers exit Hormuz - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMivwFBVV95cUxNSjlBc1JxN0hPX3MwaDU1UDMyeEE1SG1tRS1ma1FpSENKVVdpVzY3eUNoeUJvdGtVVDZtRm84UG1jTjBwV0s0RTExRHZCczB3TnBYN05CSlJueGNLSU1zeUstS0U0NTBBa0NhUU00VE0wQWFWU0ZfWGtiT2tfeVBpdWV1NmZ3UlBvTmxwRXU3WlVPNGdDU3VWNXJMOWJfNWM1ZEtyNS1YV3JlY2xEeTZmczZsRmdrd1AzMVhZTEFVdw?oc=5",
-    "sentiment_score": -0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "oil retreat",
-      "Hormuz tankers",
-      "geopolitical risk premium declining"
-    ],
-    "fetched_at": "2026-06-27T09:59:52.415663+00:00"
-  },
-  {
-    "source": "CNBC",
-    "headline": "Qualcomm inks deal for AI startup Modular to bolster software stack, data center buildout",
-    "url": "https://www.cnbc.com/2026/06/24/qualcomm-ai-chip-modular-software.html",
-    "sentiment_score": -0.2,
-    "impact": "LOW",
-    "keywords": [
-      "tech acquisition",
-      "AI",
-      "growth optimism"
-    ],
-    "fetched_at": "2026-06-27T09:59:52.415663+00:00"
-  },
-  {
-    "source": "CNBC",
-    "headline": "Treasury Secretary Bessent says U.S. GDP growth can return to 3% before end of the year",
-    "url": "https://www.cnbc.com/2026/06/24/treasury-secretary-bessent-says-us-gdp-growth-can-return-to-3percent-before-end-of-the-year.html",
-    "sentiment_score": -0.6,
-    "impact": "MEDIUM",
-    "keywords": [
-      "strong GDP growth",
-      "dollar strength",
-      "lower safe-haven demand"
-    ],
-    "fetched_at": "2026-06-27T09:59:52.415663+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Rezaei, advisor to Iran\u2019s supreme leader: U.S. breaches peace memorandum by escalating tensions in Strait of Hormuz",
-    "url": "https://www.financialjuice.com/News/9654983/Rezaei-advisor-to-Irans-supreme-leader-US-breaches-peace-memorandum-by-escalating-tensions-in-Strait-of-Hormuz.aspx?xy=rss",
-    "sentiment_score": 0.7,
-    "impact": "HIGH",
-    "keywords": [
-      "geopolitical tension",
-      "Strait of Hormuz",
-      "U.S.-Iran"
-    ],
-    "fetched_at": "2026-06-27T10:14:56.886227+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Russian defence ministry: Russian troops seize control of Novoskeliuvate in eastern Ukraine - RIA",
-    "url": "https://www.financialjuice.com/News/9654962/Russian-defence-ministry-Russian-troops-seize-control-of-Novoskeliuvate-in-eastern-Ukraine---RIA.aspx?xy=rss",
-    "sentiment_score": 0.6,
-    "impact": "MEDIUM",
-    "keywords": [
-      "geopolitical risk",
-      "Ukraine conflict",
-      "supply disruption"
-    ],
-    "fetched_at": "2026-06-27T10:14:56.886227+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Bahrain: Iran accountable for sabotaging peace efforts by persisting with attacks amid de-escalation drive",
-    "url": "https://www.financialjuice.com/News/9654957/Bahrain-Iran-accountable-for-sabotaging-peace-efforts-by-persisting-with-attacks-amid-de-escalation-drive.aspx?xy=rss",
-    "sentiment_score": 0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "Middle East tension",
-      "de-escalation failure",
-      "risk premium"
-    ],
-    "fetched_at": "2026-06-27T10:14:56.886227+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Bahrain condemns Iranian drone strike on its territory Saturday - state news agency",
-    "url": "https://www.financialjuice.com/News/9654956/Bahrain-condemns-Iranian-drone-strike-on-its-territory-Saturday---state-news-agency.aspx?xy=rss",
-    "sentiment_score": 0.7,
-    "impact": "HIGH",
-    "keywords": [
-      "military escalation",
-      "drone attack",
-      "Middle East"
-    ],
-    "fetched_at": "2026-06-27T10:14:56.886227+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Beijing\u2019s Chaoyang district govt: crash wounds 13 people - statement",
-    "url": "https://www.financialjuice.com/News/9654954/Beijings-Chaoyang-district-govt-crash-wounds-13-people---statement.aspx?xy=rss",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "domestic accident",
-      "no market impact"
-    ],
-    "fetched_at": "2026-06-27T10:14:56.886227+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Beijing's Chaoyang district govt: light aircraft crash into Beijing building on Friday kills one - statement",
-    "url": "https://www.financialjuice.com/News/9654953/Beijings-Chaoyang-district-govt-light-aircraft-crash-into-Beijing-building-on-Friday-kills-one---statement.aspx?xy=rss",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "domestic incident",
-      "no market impact"
-    ],
-    "fetched_at": "2026-06-27T10:14:56.886227+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Explosive drone hits camp of Iranian Kurdish opposition group north of Iraq's Erbil: security sources",
-    "url": "https://www.financialjuice.com/News/9654948/Explosive-drone-hits-camp-of-Iranian-Kurdish-opposition-group-north-of-Iraqs-Erbil-security-sources.aspx?xy=rss",
-    "sentiment_score": 0.6,
-    "impact": "MEDIUM",
-    "keywords": [
-      "geopolitical risk",
-      "Iran proxy",
-      "regional conflict"
-    ],
-    "fetched_at": "2026-06-27T10:14:56.886227+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Head of Iran\u2019s national security committee: Any breach of Iran\u2019s shipping rules through Strait of Hormuz will be met decisively",
-    "url": "https://www.financialjuice.com/News/9654947/Head-of-Irans-national-security-committee-Any-breach-of-Irans-shipping-rules-through-Strait-of-Hormuz-will-be-met-decisively.aspx?xy=rss",
-    "sentiment_score": 0.7,
-    "impact": "HIGH",
-    "keywords": [
-      "Strait of Hormuz",
-      "shipping threat",
-      "oil risk"
-    ],
-    "fetched_at": "2026-06-27T10:14:56.886227+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Russia strikes Ukraine\u2019s Naftogaz production sites in Poltava, Kharkiv regions: Naftogaz says damage caused",
-    "url": "https://www.financialjuice.com/News/9654943/Russia-strikes-Ukraines-Naftogaz-production-sites-in-Poltava-Kharkiv-regions-Naftogaz-says-damage-caused.aspx?xy=rss",
-    "sentiment_score": 0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "supply disruption",
-      "energy security",
-      "conflict escalation"
-    ],
-    "fetched_at": "2026-06-27T10:14:56.886227+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Ukraine's flamingo missiles strike Russian arms manufacturing plant in Volgograd region: Zelenskiy",
-    "url": "https://www.financialjuice.com/News/9654933/Ukraines-flamingo-missiles-strike-Russian-arms-manufacturing-plant-in-Volgograd-region-Zelenskiy.aspx?xy=rss",
-    "sentiment_score": 0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "military escalation",
-      "energy assets",
-      "conflict"
-    ],
-    "fetched_at": "2026-06-27T10:14:56.886227+00:00"
-  },
-  {
-    "source": "MarketWatch Top",
-    "headline": "ServiceNow, Salesforce and other software stocks surge as the OpenAI threat weakens",
-    "url": "https://www.marketwatch.com/story/servicenow-salesforce-and-other-software-stocks-surge-as-the-openai-threat-weakens-bb1eacfb?mod=mw_rss_topstories",
-    "sentiment_score": -0.3,
-    "impact": "LOW",
-    "keywords": [
-      "tech sector",
-      "risk-off easing",
-      "equity strength"
-    ],
-    "fetched_at": "2026-06-27T10:14:56.886227+00:00"
-  },
-  {
-    "source": "MarketWatch Top",
-    "headline": "U.S. confirms retaliatory strike on Iran, pushing oil prices higher in after-hours trading",
-    "url": "https://www.marketwatch.com/story/oil-heads-for-another-losing-week-but-analyst-warns-sluggish-strait-of-hormuz-traffic-could-send-it-soaring-again-80ab9ba8?mod=mw_rss_topstories",
-    "sentiment_score": 0.75,
-    "impact": "HIGH",
-    "keywords": [
-      "U.S.-Iran conflict",
-      "oil spike",
-      "geopolitical premium"
-    ],
-    "fetched_at": "2026-06-27T10:14:56.886227+00:00"
-  },
-  {
-    "source": "MarketWatch Top",
-    "headline": "Iran\u2019s ship attack tests the shipping-insurance market just as war-risk premiums had plunged",
-    "url": "https://www.marketwatch.com/story/irans-ship-attack-tests-the-shipping-insurance-market-just-as-war-risk-premiums-had-plunged-8c4ef14d?mod=mw_rss_topstories",
-    "sentiment_score": 0.6,
-    "impact": "MEDIUM",
-    "keywords": [
-      "shipping risk",
-      "insurance premium",
-      "supply threat"
-    ],
-    "fetched_at": "2026-06-27T10:14:56.886227+00:00"
-  },
-  {
-    "source": "MarketWatch Top",
-    "headline": "SpaceX\u2019s new bonds are flashing a warning sign, as investors pump the brakes on AI frenzy",
-    "url": "https://www.marketwatch.com/story/spacexs-new-bonds-are-flashing-a-warning-sign-as-investors-pump-the-brakes-on-ai-frenzy-752ad44b?mod=mw_rss_topstories",
-    "sentiment_score": -0.2,
-    "impact": "LOW",
-    "keywords": [
-      "risk appetite",
-      "credit concern",
-      "AI pullback"
-    ],
-    "fetched_at": "2026-06-27T10:14:56.886227+00:00"
-  },
-  {
-    "source": "MarketWatch Top",
-    "headline": "Bond yields are falling as inflation pops. The Fed\u2019s tough talk under Warsh is helping.",
-    "url": "https://www.marketwatch.com/story/bond-yields-are-falling-as-inflation-pops-the-feds-tough-talk-under-warsh-is-helping-7d538b3b?mod=mw_rss_topstories",
-    "sentiment_score": -0.6,
-    "impact": "MEDIUM",
-    "keywords": [
-      "falling yields",
-      "inflation decline",
-      "rate cut expectations"
-    ],
-    "fetched_at": "2026-06-27T10:14:56.886227+00:00"
-  },
-  {
-    "source": "MarketWatch Top",
-    "headline": "Fed\u2019s Kashkari now projects one interest-rate hike this year. Here\u2019s what changed his mind.",
-    "url": "https://www.marketwatch.com/story/feds-kashkari-projects-one-interest-rate-hike-this-year-heres-what-changed-his-mind-3a6b428c?mod=mw_rss_topstories",
-    "sentiment_score": -0.65,
-    "impact": "HIGH",
-    "keywords": [
-      "dovish Fed",
-      "rate cut signal",
-      "lower yields"
-    ],
-    "fetched_at": "2026-06-27T10:14:56.886227+00:00"
-  },
-  {
-    "source": "Investing.com Comm",
-    "headline": "Trustpilot partners with Shopify to integrate customer reviews into stores",
-    "url": "https://www.investing.com/news/stock-market-news/trustpilot-partners-with-shopify-to-integrate-customer-reviews-into-stores-4763956",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "tech partnership",
-      "e-commerce",
-      "no macro impact"
-    ],
-    "fetched_at": "2026-06-27T10:14:56.886227+00:00"
-  },
-  {
-    "source": "Investing.com Comm",
-    "headline": "China Eastern Airlines to buy 25 Airbus A330neo jets for list price of $9.4 billion",
-    "url": "https://www.investing.com/news/stock-market-news/china-eastern-airlines-to-buy-25-airbus-a330-neo-jets-for-94-billion-4762263",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "aircraft order",
-      "corporate news",
-      "no commodity impact"
-    ],
-    "fetched_at": "2026-06-27T10:14:56.886227+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Dollar set for weekly gain on rate hike bets even as inflationary concerns recede",
-    "url": "https://www.investing.com/news/forex-news/yen-steadies-near-40year-low-as-dollar-pauses-regional-currencies-mixed-4761997",
-    "sentiment_score": -0.7,
-    "impact": "HIGH",
-    "keywords": [
-      "strong dollar",
-      "rate hike bets",
-      "dollar strength"
-    ],
-    "fetched_at": "2026-06-27T10:14:56.886227+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "IMF economist says dollar still dominates despite trade shifts",
-    "url": "https://www.investing.com/news/forex-news/imf-economist-says-dollar-still-dominates-despite-trade-shifts-93CH-4763240",
-    "sentiment_score": -0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "dollar dominance",
-      "currency strength",
-      "no gold benefit"
-    ],
-    "fetched_at": "2026-06-27T10:14:56.886227+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "UBS turns more bullish on U.S. dollar, sees euro and yen weakening further",
-    "url": "https://www.investing.com/news/forex-news/ubs-turns-more-bullish-on-us-dollar-sees-euro-and-yen-weakening-further-4763050",
-    "sentiment_score": -0.7,
-    "impact": "HIGH",
-    "keywords": [
-      "USD bullish",
-      "dollar strength",
-      "currency weakness"
-    ],
-    "fetched_at": "2026-06-27T10:14:56.886227+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Sterling today: Pound recovers as dollar rally loses steam",
-    "url": "https://www.investing.com/news/forex-news/sterling-today-pound-recovers-as-dollar-rally-loses-steam-4762736",
-    "sentiment_score": -0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "dollar rally loses steam",
-      "pound recovery",
-      "USD weakness"
-    ],
-    "fetched_at": "2026-06-27T10:14:56.886227+00:00"
-  },
-  {
     "source": "Investing.com Forex",
     "headline": "Taiwan dollar slips on foreign investor outflows",
     "url": "https://www.investing.com/news/forex-news/taiwan-dollar-slips-on-foreign-investor-outflows-93CH-4762211",
@@ -2568,5 +2180,395 @@
       "unrelated to gold"
     ],
     "fetched_at": "2026-06-27T10:59:51.236734+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Iranian state TV: more ships request permits to cross Strait of Hormuz after warning shots at unauthorized vessels",
+    "url": "https://www.financialjuice.com/News/9655002/Iranian-state-TV-more-ships-request-permits-to-cross-Strait-of-Hormuz-after-warning-shots-at-unauthorized-vessels.aspx?xy=rss",
+    "sentiment_score": 0.7,
+    "impact": "HIGH",
+    "keywords": [
+      "geopolitical tension",
+      "Strait of Hormuz",
+      "risk premium"
+    ],
+    "fetched_at": "2026-06-27T11:14:46.811209+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Tehran-Dubai flights to restart from July 1: Iran civil aviation",
+    "url": "https://www.financialjuice.com/News/9654998/Tehran-Dubai-flights-to-restart-from-July-1-Iran-civil-aviation.aspx?xy=rss",
+    "sentiment_score": -0.2,
+    "impact": "LOW",
+    "keywords": [
+      "de-escalation",
+      "Iran",
+      "normalization"
+    ],
+    "fetched_at": "2026-06-27T11:14:46.811209+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Israeli drone strikes target Nabatiyeh area in southern Lebanon: Lebanese state news agency",
+    "url": "https://www.financialjuice.com/News/9654985/Israeli-drone-strikes-target-Nabatiyeh-area-in-southern-Lebanon-Lebanese-state-news-agency.aspx?xy=rss",
+    "sentiment_score": 0.6,
+    "impact": "MEDIUM",
+    "keywords": [
+      "Middle East conflict",
+      "Israel-Lebanon",
+      "tensions"
+    ],
+    "fetched_at": "2026-06-27T11:14:46.811209+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Rezaei, advisor to Iran\u2019s supreme leader: U.S. breaches peace memorandum by escalating tensions in Strait of Hormuz",
+    "url": "https://www.financialjuice.com/News/9654983/Rezaei-advisor-to-Irans-supreme-leader-US-breaches-peace-memorandum-by-escalating-tensions-in-Strait-of-Hormuz.aspx?xy=rss",
+    "sentiment_score": 0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "geopolitical risk",
+      "US-Iran",
+      "escalation"
+    ],
+    "fetched_at": "2026-06-27T11:14:46.811209+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Russian defence ministry: Russian troops seize control of Novoskeliuvate in eastern Ukraine - RIA",
+    "url": "https://www.financialjuice.com/News/9654962/Russian-defence-ministry-Russian-troops-seize-control-of-Novoskeliuvate-in-eastern-Ukraine---RIA.aspx?xy=rss",
+    "sentiment_score": 0.3,
+    "impact": "MEDIUM",
+    "keywords": [
+      "Ukraine war",
+      "Russia",
+      "conflict"
+    ],
+    "fetched_at": "2026-06-27T11:14:46.811209+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Bahrain: Iran accountable for sabotaging peace efforts by persisting with attacks amid de-escalation drive",
+    "url": "https://www.financialjuice.com/News/9654957/Bahrain-Iran-accountable-for-sabotaging-peace-efforts-by-persisting-with-attacks-amid-de-escalation-drive.aspx?xy=rss",
+    "sentiment_score": -0.3,
+    "impact": "LOW",
+    "keywords": [
+      "de-escalation",
+      "peace efforts",
+      "regional tensions"
+    ],
+    "fetched_at": "2026-06-27T11:14:46.811209+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Bahrain condemns Iranian drone strike on its territory Saturday - state news agency",
+    "url": "https://www.financialjuice.com/News/9654956/Bahrain-condemns-Iranian-drone-strike-on-its-territory-Saturday---state-news-agency.aspx?xy=rss",
+    "sentiment_score": 0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "Iran attack",
+      "regional conflict",
+      "security"
+    ],
+    "fetched_at": "2026-06-27T11:14:46.811209+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Beijing\u2019s Chaoyang district govt: crash wounds 13 people - statement",
+    "url": "https://www.financialjuice.com/News/9654954/Beijings-Chaoyang-district-govt-crash-wounds-13-people---statement.aspx?xy=rss",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "accident",
+      "Beijing",
+      "local incident"
+    ],
+    "fetched_at": "2026-06-27T11:14:46.811209+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Beijing's Chaoyang district govt: light aircraft crash into Beijing building on Friday kills one - statement",
+    "url": "https://www.financialjuice.com/News/9654953/Beijings-Chaoyang-district-govt-light-aircraft-crash-into-Beijing-building-on-Friday-kills-one---statement.aspx?xy=rss",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "accident",
+      "Beijing",
+      "local incident"
+    ],
+    "fetched_at": "2026-06-27T11:14:46.811209+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Explosive drone hits camp of Iranian Kurdish opposition group north of Iraq's Erbil: security sources",
+    "url": "https://www.financialjuice.com/News/9654948/Explosive-drone-hits-camp-of-Iranian-Kurdish-opposition-group-north-of-Iraqs-Erbil-security-sources.aspx?xy=rss",
+    "sentiment_score": 0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "Iran operations",
+      "Middle East",
+      "tensions"
+    ],
+    "fetched_at": "2026-06-27T11:14:46.811209+00:00"
+  },
+  {
+    "source": "MarketWatch Top",
+    "headline": "ServiceNow, Salesforce and other software stocks surge as the OpenAI threat weakens",
+    "url": "https://www.marketwatch.com/story/servicenow-salesforce-and-other-software-stocks-surge-as-the-openai-threat-weakens-bb1eacfb?mod=mw_rss_topstories",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "tech stocks",
+      "software",
+      "AI"
+    ],
+    "fetched_at": "2026-06-27T11:14:46.811209+00:00"
+  },
+  {
+    "source": "MarketWatch Top",
+    "headline": "U.S. confirms retaliatory strike on Iran, pushing oil prices higher in after-hours trading",
+    "url": "https://www.marketwatch.com/story/oil-heads-for-another-losing-week-but-analyst-warns-sluggish-strait-of-hormuz-traffic-could-send-it-soaring-again-80ab9ba8?mod=mw_rss_topstories",
+    "sentiment_score": 0.8,
+    "impact": "HIGH",
+    "keywords": [
+      "oil prices",
+      "geopolitical risk",
+      "US-Iran"
+    ],
+    "fetched_at": "2026-06-27T11:14:46.811209+00:00"
+  },
+  {
+    "source": "MarketWatch Top",
+    "headline": "Iran\u2019s ship attack tests the shipping-insurance market just as war-risk premiums had plunged",
+    "url": "https://www.marketwatch.com/story/irans-ship-attack-tests-the-shipping-insurance-market-just-as-war-risk-premiums-had-plunged-8c4ef14d?mod=mw_rss_topstories",
+    "sentiment_score": 0.7,
+    "impact": "HIGH",
+    "keywords": [
+      "shipping risk",
+      "war premium",
+      "geopolitical"
+    ],
+    "fetched_at": "2026-06-27T11:14:46.811209+00:00"
+  },
+  {
+    "source": "MarketWatch Top",
+    "headline": "SpaceX\u2019s new bonds are flashing a warning sign, as investors pump the brakes on AI frenzy",
+    "url": "https://www.marketwatch.com/story/spacexs-new-bonds-are-flashing-a-warning-sign-as-investors-pump-the-brakes-on-ai-frenzy-752ad44b?mod=mw_rss_topstories",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "tech bonds",
+      "SpaceX",
+      "AI"
+    ],
+    "fetched_at": "2026-06-27T11:14:46.811209+00:00"
+  },
+  {
+    "source": "MarketWatch Top",
+    "headline": "Bond yields are falling as inflation pops. The Fed\u2019s tough talk under Warsh is helping.",
+    "url": "https://www.marketwatch.com/story/bond-yields-are-falling-as-inflation-pops-the-feds-tough-talk-under-warsh-is-helping-7d538b3b?mod=mw_rss_topstories",
+    "sentiment_score": -0.6,
+    "impact": "MEDIUM",
+    "keywords": [
+      "falling yields",
+      "inflation easing",
+      "deflation"
+    ],
+    "fetched_at": "2026-06-27T11:14:46.811209+00:00"
+  },
+  {
+    "source": "MarketWatch Top",
+    "headline": "Fed\u2019s Kashkari now projects one interest-rate hike this year. Here\u2019s what changed his mind.",
+    "url": "https://www.marketwatch.com/story/feds-kashkari-projects-one-interest-rate-hike-this-year-heres-what-changed-his-mind-3a6b428c?mod=mw_rss_topstories",
+    "sentiment_score": -0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "rate hike",
+      "Fed hawkish",
+      "stronger dollar"
+    ],
+    "fetched_at": "2026-06-27T11:14:46.811209+00:00"
+  },
+  {
+    "source": "Investing.com Comm",
+    "headline": "Trustpilot partners with Shopify to integrate customer reviews into stores",
+    "url": "https://www.investing.com/news/stock-market-news/trustpilot-partners-with-shopify-to-integrate-customer-reviews-into-stores-4763956",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "e-commerce",
+      "reviews",
+      "technology"
+    ],
+    "fetched_at": "2026-06-27T11:14:46.811209+00:00"
+  },
+  {
+    "source": "Investing.com Comm",
+    "headline": "China Eastern Airlines to buy 25 Airbus A330neo jets for list price of $9.4 billion",
+    "url": "https://www.investing.com/news/stock-market-news/china-eastern-airlines-to-buy-25-airbus-a330-neo-jets-for-94-billion-4762263",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "airline",
+      "aircraft purchase",
+      "aviation"
+    ],
+    "fetched_at": "2026-06-27T11:14:46.811209+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Dollar set for weekly gain on rate hike bets even as inflationary concerns recede",
+    "url": "https://www.investing.com/news/forex-news/yen-steadies-near-40year-low-as-dollar-pauses-regional-currencies-mixed-4761997",
+    "sentiment_score": -0.7,
+    "impact": "MEDIUM",
+    "keywords": [
+      "dollar strength",
+      "rate hikes",
+      "USD bullish"
+    ],
+    "fetched_at": "2026-06-27T11:14:46.811209+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "IMF economist says dollar still dominates despite trade shifts",
+    "url": "https://www.investing.com/news/forex-news/imf-economist-says-dollar-still-dominates-despite-trade-shifts-93CH-4763240",
+    "sentiment_score": -0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "dollar dominance",
+      "USD strength",
+      "currency"
+    ],
+    "fetched_at": "2026-06-27T11:14:46.811209+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "UBS turns more bullish on U.S. dollar, sees euro and yen weakening further",
+    "url": "https://www.investing.com/news/forex-news/ubs-turns-more-bullish-on-us-dollar-sees-euro-and-yen-weakening-further-4763050",
+    "sentiment_score": -0.7,
+    "impact": "HIGH",
+    "keywords": [
+      "USD bullish",
+      "dollar strength",
+      "EUR/JPY weakness"
+    ],
+    "fetched_at": "2026-06-27T11:14:46.811209+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Sterling today: Pound recovers as dollar rally loses steam",
+    "url": "https://www.investing.com/news/forex-news/sterling-today-pound-recovers-as-dollar-rally-loses-steam-4762736",
+    "sentiment_score": -0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "dollar rally",
+      "sterling recovery",
+      "USD weakness"
+    ],
+    "fetched_at": "2026-06-27T11:14:46.811209+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Taiwan dollar slips on foreign investor outflows",
+    "url": "https://www.investing.com/news/forex-news/taiwan-dollar-slips-on-foreign-investor-outflows-93CH-4762211",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "Taiwan dollar",
+      "regional currency",
+      "limited impact"
+    ],
+    "fetched_at": "2026-06-27T11:14:46.811209+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "BCA cuts USD outlook on stretched rally and Fed repricing",
+    "url": "https://www.investing.com/news/forex-news/bca-cuts-usd-outlook-on-stretched-rally-and-fed-repricing-93CH-4762151",
+    "sentiment_score": 0.6,
+    "impact": "MEDIUM",
+    "keywords": [
+      "USD downside",
+      "Fed repricing",
+      "stretched rally"
+    ],
+    "fetched_at": "2026-06-27T11:14:46.811209+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Eurozone yields hover at three-month lows as growth fears limit ECB hawkishness",
+    "url": "https://www.investing.com/news/forex-news/eurozone-yields-hover-at-threemonth-lows-as-growth-fears-limit-ecb-hawkishness-4762070",
+    "sentiment_score": 0.7,
+    "impact": "HIGH",
+    "keywords": [
+      "ECB dovish",
+      "growth fears",
+      "rate cut expectations"
+    ],
+    "fetched_at": "2026-06-27T11:14:46.811209+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Dollar slips as in-line to slightly soft inflation data cools rate hike jitters",
+    "url": "https://www.investing.com/news/forex-news/asian-fx-recover-as-dollar-eases-from-peak-aussie-steady-after-jobs-data-4759717",
+    "sentiment_score": 0.8,
+    "impact": "HIGH",
+    "keywords": [
+      "inflation soft",
+      "rate hike relief",
+      "USD weakness"
+    ],
+    "fetched_at": "2026-06-27T11:14:46.811209+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Integra grows reserve by 74% at Florida Canyon gold mine",
+    "url": "https://www.mining.com/integra-grows-reserve-74-at-florida-canyon-gold-mine/",
+    "sentiment_score": 0.3,
+    "impact": "MEDIUM",
+    "keywords": [
+      "mine expansion",
+      "gold reserves",
+      "production growth"
+    ],
+    "fetched_at": "2026-06-27T11:14:46.811209+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "i-80 Gold terminates Vox Royalty offtake with $4.8M payment",
+    "url": "https://www.mining.com/i-80-gold-terminates-vox-royalty-offtake-with-4-8m-payment/",
+    "sentiment_score": 0.2,
+    "impact": "LOW",
+    "keywords": [
+      "royalty termination",
+      "financing",
+      "minor impact"
+    ],
+    "fetched_at": "2026-06-27T11:14:46.811209+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Revival Gold extends Joss depth in Idaho high-grade push",
+    "url": "https://www.mining.com/revival-gold-extends-joss-depth-in-idaho-high-grade-push/",
+    "sentiment_score": 0.3,
+    "impact": "MEDIUM",
+    "keywords": [
+      "resource extension",
+      "grade improvement",
+      "mine development"
+    ],
+    "fetched_at": "2026-06-27T11:14:46.811209+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Goldsky closes Agnico deal to become sole owner of Swedish project",
+    "url": "https://www.mining.com/goldsky-closes-agnico-deal-to-become-sole-owner-of-swedish-project/",
+    "sentiment_score": 0.2,
+    "impact": "LOW",
+    "keywords": [
+      "M&A activity",
+      "ownership consolidation",
+      "neutral sentiment"
+    ],
+    "fetched_at": "2026-06-27T11:14:46.811209+00:00"
   }
 ]
