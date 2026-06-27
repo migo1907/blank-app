@@ -643,6 +643,7 @@ def repair_missing_trades() -> list[str]:
                 "outcome":      norm,
                 "ml_outcome":   p.get("ml_outcome") or norm,
                 "mfe":          float(p.get("mfe", 0) or 0),
+                "mae":          float(p.get("mae", 0) or 0),
                 "tp_stage":     p.get("tp_stage", "") or "",
                 "timeframe":    timeframe,
                 "pnl_pct":      round(pnl_pct, 4),

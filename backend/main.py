@@ -349,6 +349,7 @@ class TradeOutcomePayload(BaseModel):
     outcome:     str             = ""
     ml_outcome:  Optional[str]   = None
     mfe:         float           = 0.0
+    mae:         float           = 0.0   # max adverse excursion (Phase B — stop learning)
     timeframe:   Optional[str]   = None
     tp_stage:    str             = ""
     entry_price: float           = 0.0
@@ -374,7 +375,7 @@ class TradeOutcomePayload(BaseModel):
         if not isinstance(values, dict):
             return values
         float_fields = {
-            "ml_score", "mfe", "entry_price", "exit_price",
+            "ml_score", "mfe", "mae", "entry_price", "exit_price",
             "f1","f2","f3","f4","f5","f6","f7","f8","f9","f10",
             "f11","f12","f13","f14","f15","f16","f17","f18","f19","f20",
             "f21","f22","f23","f24","f25","f26",
@@ -716,6 +717,7 @@ async def trade_outcome(payload: TradeOutcomePayload):
         "outcome":       payload.outcome,
         "ml_outcome":    ml_label,
         "mfe":           payload.mfe,
+        "mae":           payload.mae,
         "tp_stage":      payload.tp_stage or "",
         "timeframe":     payload.timeframe or "",
         "pnl_pct":       round(pnl_pct, 4),
@@ -1102,6 +1104,7 @@ async def unified_webhook(payload: UnifiedPayload):
             "outcome":       payload.outcome,
             "ml_outcome":    ml_label,
             "mfe":           payload.mfe,
+            "mae":           payload.mae,
             "tp_stage":      payload.tp_stage or "",
             "timeframe":     payload.timeframe or "",
             "pnl_pct":       round(pnl_pct, 4),
@@ -2408,7 +2411,26 @@ def data_health_report(secret: str = ""):
     degrading the signals/brief."""
     _validate_secret(secret)
     import data_health
-    return data_health.report()
+    rep = data_health.report()
+    try:
+        import memory_guard
+        rep["memory"] = memory_guard.memory_status()
+    except Exception:
+        pass
+    return rep
+
+
+@app.get("/exit/optimization")
+def exit_optimization(secret: str = "", run: int = 0):
+    """Adaptive exit optimizer (SHADOW) — per-pool learned take-profit + projected
+    expectancy. `run=1` recomputes now; otherwise serves the last persisted result."""
+    _validate_secret(secret)
+    if run:
+        import exit_optimizer
+        return exit_optimizer.run_all()
+    from db import _get_file
+    data, _ = _get_file("data/exit_optimization.json")
+    return data if isinstance(data, dict) else {"pools": {}, "note": "not computed yet — call with run=1"}
 
 
 @app.get("/options/flow")

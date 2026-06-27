@@ -671,6 +671,25 @@ async def _hourly_system_check() -> None:
     except Exception as e:
         issues.append(f"Data-flow health error: {e} ❌")
 
+    # ── Memory pressure — early warning before an OOM restart (esp. Hobby plan) ─
+    try:
+        import memory_guard
+        mline = memory_guard.status_line()
+        if mline:
+            if memory_guard.is_pressured():
+                issues.append(mline)
+                critical_alerts.append((
+                    "Memory pressure high",
+                    mline,
+                    "Process RSS is near the container limit — an OOM restart is likely. "
+                    "On the Hobby plan, consider upgrading to Pro for more RAM, or reduce "
+                    "in-process retraining frequency.",
+                ))
+            else:
+                ok.append(mline)
+    except Exception as e:
+        issues.append(f"Memory guard error: {e} ❌")
+
     try:
         from db import _get_file
         signals, _ = await asyncio.to_thread(_get_file, "data/signals.json")
@@ -1332,6 +1351,32 @@ async def _weekly_mistake_autopsy() -> None:
         print(f"[autopsy] Error: {e}")
 
 
+async def _exit_optimizer_cycle() -> None:
+    """Weekly (Sun 21:00 UTC) — re-derive each pool's learned take-profit from its own
+    trade history (max-favorable-excursion). SHADOW: persists recommendations to
+    data/exit_optimization.json; does NOT change live exits. Alerts when a losing pool
+    flips to positive expectancy under its learned exit, so improvements surface."""
+    try:
+        import exit_optimizer
+        out = await asyncio.to_thread(exit_optimizer.run_all)
+        flips = [p for p, r in (out.get("pools") or {}).items() if r.get("flips_positive")]
+        if flips:
+            lines = []
+            for p in flips:
+                r = out["pools"][p]
+                lines.append(f"• {p}: exp {r['current_expectancy']:+.4f}% → "
+                             f"{r['projected_expectancy']:+.4f}% @ TP {r['recommended_tp_pct']}%")
+            from telegram_bot import send_critical_alert
+            await send_critical_alert(
+                "Adaptive Exit Optimizer — pools that flip positive",
+                "\n".join(lines),
+                "SHADOW only — review then seed into the Pine Script to apply. "
+                "Stop placement still pending MAE capture (Phase B).",
+            )
+    except Exception as e:
+        print(f"[exit_opt] cycle failed: {e}")
+
+
 async def _weekly_model_comparison() -> None:
     """
     Every Sunday 20:00 UTC — walk-forward backtest all models on the last 100 trades
@@ -1982,6 +2027,8 @@ def start_scheduler() -> AsyncIOScheduler:
     _scheduler.add_job(_weekly_mistake_autopsy, trigger="cron", day_of_week="mon", hour=9, minute=0, id="weekly_autopsy", replace_existing=True, misfire_grace_time=3600)
     # Weekly model comparison — every Sunday 20:00 UTC
     _scheduler.add_job(_weekly_model_comparison, trigger="cron", day_of_week="sun", hour=20, minute=0, id="weekly_model_compare", replace_existing=True, misfire_grace_time=3600)
+    # Adaptive exit optimizer (SHADOW) — re-derive learned take-profits weekly, Sun 21:00 UTC
+    _scheduler.add_job(_exit_optimizer_cycle, trigger="cron", day_of_week="sun", hour=21, minute=0, id="exit_optimizer", replace_existing=True, misfire_grace_time=3600)
     # Phase 2C — SPX options: record ATM IV once per session (15:45 ET, after the
     # bulk of the day's IV is realized) + manage open paper positions hourly.
     _scheduler.add_job(_options_iv_record_cycle, trigger="cron", day_of_week="mon-fri", hour=15, minute=45,
