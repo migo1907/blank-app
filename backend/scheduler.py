@@ -19,13 +19,48 @@ _startup_cycle: bool = True  # suppress alert on first cycle after restart
 _webhook_errors:  int = 0   # count of failed trade webhooks since last hourly check
 _webhook_ok:      int = 0   # count of successful trade webhooks since last hourly check
 _intel_active:    bool = False  # True while market is in an elevated-activity regime (alert already sent)
-_shock_sent:      dict = {}     # headline_hash → monotonic time; suppresses duplicate shock alerts for 4h
+_shock_sent:      dict = {}     # normalized_headline_key → UTC ISO timestamp; suppresses duplicate shock alerts
+_shock_sent_dirty: bool = False  # set when _shock_sent changes → cycle persists it to the data branch
 _fj_expiry_alert_at: float = 0.0  # monotonic time of last FJ-session-expired alert; throttles to 1/12h
 _brief_sent_date:  object = None  # date the daily market brief was last sent (guards against double-fire)
 _report_sent_date: object = None  # date the daily performance report was last sent (guards against double-fire)
 
 _SEEN_HEADLINES_PATH = "data/seen_headlines.json"
 _SEEN_HEADLINES_MAX  = 500
+_SHOCK_SENT_PATH     = "data/shock_sent.json"
+
+
+def _normalize_headline(h: str) -> str:
+    """Lowercase, strip a trailing ' - Source' suffix and collapse whitespace so
+    trivial feed re-phrasings of the same story map to one dedup key."""
+    import re
+    h = (h or "").lower().strip()
+    h = re.sub(r"\s+[-–—]\s+[a-z0-9 .&']+$", "", h)   # drop "- reuters" / "— bloomberg"
+    h = re.sub(r"\s+", " ", h)
+    return h.strip()
+
+
+def _load_shock_sent() -> None:
+    """Restore the shock-alert dedup map from the data branch so duplicate
+    geopolitical/shock alerts stay suppressed across Railway restarts."""
+    global _shock_sent
+    try:
+        from db import _get_file
+        data, _ = _get_file(_SHOCK_SENT_PATH)
+        if isinstance(data, dict):
+            _shock_sent = data
+            print(f"[scheduler] Loaded {len(_shock_sent)} shock-dedup entries from GitHub.")
+    except Exception as e:
+        print(f"[scheduler] Could not load shock_sent (first run?): {e}")
+
+
+def _save_shock_sent() -> None:
+    try:
+        from db import _get_file, _put_file
+        _, sha = _get_file(_SHOCK_SENT_PATH)
+        _put_file(_SHOCK_SENT_PATH, _shock_sent, sha, "chore: update shock-alert dedup")
+    except Exception as e:
+        print(f"[scheduler] Could not save shock_sent: {e}")
 
 
 def _cached_macro_label() -> str:
@@ -94,23 +129,35 @@ def _evaluate_intel_triggers(velocity: dict, event: dict, gold_signal: dict, gol
     # 5. Geopolitical / market shock — single-headline reactive events that are
     # time-critical by nature (no calendar). Unlike CPI-style releases, these
     # warrant an immediate heads-up even when overall news flow is calm.
-    # Deduplication: same headline is suppressed for 4 hours to prevent repeat
-    # alerts on every 15-min cycle when the headline stays in the feed.
-    import time as _time
+    # Deduplication: same headline is suppressed for 24h. The dedup map is
+    # persisted to the data branch (wall-clock UTC timestamps) so a Railway
+    # restart can't wipe it and re-fire the same headline hours later.
+    global _shock_sent_dirty
+    from datetime import datetime as _dt, timezone as _tz
     _SHOCK_EVENTS = {"WAR/CONFLICT", "GEOPOLITICAL", "FLASH_CRASH"}
-    _SHOCK_TTL = 4 * 3600
+    _SHOCK_TTL = 24 * 3600
     if (event.get("detected") and event.get("event_type") in _SHOCK_EVENTS
             and event.get("urgency", 0.0) >= 0.9):
         heads = event.get("headlines") or []
         lead_text = heads[0][:90] if heads else ""
-        shock_key = f"{event['event_type']}|{lead_text}"
-        now_mono = _time.monotonic()
-        # evict stale entries
-        stale = [k for k, t in _shock_sent.items() if now_mono - t > _SHOCK_TTL]
+        shock_key = f"{event['event_type']}|{_normalize_headline(heads[0] if heads else '')}"
+        now = _dt.now(_tz.utc)
+        # evict stale entries (older than the TTL, by wall-clock age)
+        stale = []
+        for k, t in _shock_sent.items():
+            try:
+                age = (now - _dt.fromisoformat(t)).total_seconds()
+            except Exception:
+                age = _SHOCK_TTL + 1   # unparseable → treat as stale
+            if age > _SHOCK_TTL:
+                stale.append(k)
         for k in stale:
             del _shock_sent[k]
+        if stale:
+            _shock_sent_dirty = True
         if shock_key not in _shock_sent:
-            _shock_sent[shock_key] = now_mono
+            _shock_sent[shock_key] = now.isoformat()
+            _shock_sent_dirty = True
             lead = f' — “{lead_text}”' if lead_text else ""
             reasons.append(f"{event['event_type']} shock headline{lead}")
 
@@ -428,6 +475,11 @@ async def _news_signal_cycle() -> None:
             elif not intel_reasons and _intel_active:
                 _intel_active = False
                 print("[scheduler] Market Intelligence: conditions cleared — re-armed.")
+            # Persist the shock dedup map whenever it changed so it survives restarts.
+            global _shock_sent_dirty
+            if _shock_sent_dirty:
+                await asyncio.to_thread(_save_shock_sent)
+                _shock_sent_dirty = False
         except Exception as e:
             print(f"[scheduler] Market Intelligence alert error: {e}")
 
@@ -1863,6 +1915,7 @@ async def _swing_agents_cycle() -> None:
 def start_scheduler() -> AsyncIOScheduler:
     global _scheduler
     _load_seen_headlines()
+    _load_shock_sent()
     interval   = int(os.environ.get("SIGNAL_INTERVAL_MINUTES", "15"))
     _scheduler = AsyncIOScheduler(
         job_defaults={
