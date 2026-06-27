@@ -2807,7 +2807,7 @@
   },
   {
     "symbol": "SPX500",
-    "pool": "STOCKS_SPX500_30M",
+    "pool": "STOCKS_SPX500_15M",
     "direction": "NEUTRAL",
     "confidence": 0.0,
     "tier": "LOW",
@@ -2817,12 +2817,12 @@
     "news_score": 0.0166,
     "combined_score": 0.0,
     "session": "CLOSED",
-    "regime": "NORMAL",
-    "regime_label": "NORMAL",
+    "regime": "TRENDING_BEAR",
+    "regime_label": "TRENDING_BEAR",
     "reasoning": "Weekend \u2014 market closed",
     "status": "NEUTRAL",
-    "expires_at": "2026-06-27T02:44:58.978986+00:00",
-    "created_at": "2026-06-27T02:14:58.979029+00:00",
+    "expires_at": "2026-06-27T02:45:00.520045+00:00",
+    "created_at": "2026-06-27T02:15:00.520093+00:00",
     "id": 101
   }
 ]
