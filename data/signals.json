@@ -1980,8 +1980,8 @@
     "id": 101
   },
   {
-    "symbol": "XAUUSD",
-    "pool": "XAUUSD_2M",
+    "symbol": "SPY",
+    "pool": "STOCKS_INDEX_30M",
     "direction": "NEUTRAL",
     "confidence": 0.0,
     "tier": "LOW",
@@ -1990,13 +1990,13 @@
     "gbm_score": 0.5,
     "news_score": 0.1374,
     "combined_score": 0.0,
-    "session": "LONDON",
-    "regime": "TRENDING_BEAR",
-    "regime_label": "TRENDING_BEAR",
+    "session": "PRE_MARKET",
+    "regime": "NORMAL",
+    "regime_label": "NORMAL",
     "reasoning": "Weekend \u2014 market closed",
     "status": "NEUTRAL",
-    "expires_at": "2026-06-27T12:14:53.245276+00:00",
-    "created_at": "2026-06-27T11:44:53.245324+00:00",
+    "expires_at": "2026-06-27T12:14:54.879820+00:00",
+    "created_at": "2026-06-27T11:44:54.879864+00:00",
     "id": 101
   }
 ]
