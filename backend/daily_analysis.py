@@ -472,6 +472,30 @@ def _format_levels_for_prompt(name: str, levels: dict, live_price: float | None,
 
 
 _ff_cache: dict = {"data": None, "fetched_date": None}
+_FF_WEEK_FILE = "data/economic_calendar.json"   # persisted weekly snapshot (data branch)
+
+
+def _ff_week_from_disk(now: datetime) -> list[tuple]:
+    """Today's high-impact events filtered out of the last good weekly snapshot
+    persisted on the data branch. Survives restarts and live-fetch egress blocks."""
+    try:
+        from db import _get_file
+        week, _ = _get_file(_FF_WEEK_FILE)
+        if not isinstance(week, list):
+            return []
+        out = []
+        for e in week:
+            try:
+                ts = datetime.fromisoformat(e["ts"]).astimezone(timezone.utc)
+            except Exception:
+                continue
+            if ts.date() == now.date():
+                out.append((ts, e.get("name", "Event"), e.get("detail", "")))
+        if out:
+            print(f"[daily_brief] Forex Factory: served {len(out)} event(s) from persisted weekly snapshot")
+        return out
+    except Exception:
+        return []
 
 
 def _ff_calendar_events(now: datetime) -> list[tuple]:
@@ -479,7 +503,9 @@ def _ff_calendar_events(now: datetime) -> list[tuple]:
     Today's high-impact USD events from the free Forex Factory weekly JSON feed.
     Returns list of (ts_utc, name, detail) tuples. Empty on any failure.
     Cached for the calendar day — FF returns a weekly JSON that never changes
-    mid-day, and repeated fetches from cloud IPs trigger 429 rate-limits.
+    mid-day, and repeated fetches from cloud IPs trigger 429 rate-limits. On a
+    fetch failure (e.g. the host blocked at egress) it falls back to the last
+    good weekly snapshot persisted on the data branch.
     """
     today_str = now.strftime("%Y-%m-%d")
     if _ff_cache["fetched_date"] == today_str and _ff_cache["data"] is not None:
@@ -499,9 +525,11 @@ def _ff_calendar_events(now: datetime) -> list[tuple]:
             raw = resp.json() or []
     except Exception as e:
         print(f"[daily_brief] Forex Factory calendar fetch failed: {e}")
-        return _ff_cache["data"] or []  # return stale cache rather than empty on failure
+        # In-memory cache first, then the persisted weekly snapshot (survives restart).
+        return _ff_cache["data"] or _ff_week_from_disk(now)
 
-    out = []
+    # Parse the WHOLE week (not just today) so one good pull serves every day.
+    week_rows, out = [], []
     for ev in raw:
         if (ev.get("impact") or "").lower() != "high":
             continue
@@ -511,18 +539,27 @@ def _ff_calendar_events(now: datetime) -> list[tuple]:
             ts_utc = datetime.fromisoformat(ev.get("date", "")).astimezone(timezone.utc)
         except Exception:
             continue
-        if ts_utc.date() != now.date():
-            continue
         # FF JSON uses "title" for event name; fall back to "event" key
         name     = ev.get("title") or ev.get("event") or "Event"
         forecast = ev.get("forecast") or ""
         actual   = ev.get("actual") or ""
         detail   = f" · Actual: {actual}" if actual else (f" · Est: {forecast}" if forecast else "")
-        out.append((ts_utc, name, detail))
+        week_rows.append({"ts": ts_utc.isoformat(), "name": name, "detail": detail})
+        if ts_utc.date() == now.date():
+            out.append((ts_utc, name, detail))
+
+    # Persist the weekly snapshot so a later restart / egress block still has data.
+    if week_rows:
+        try:
+            from db import _put_file, _get_file
+            _, sha = _get_file(_FF_WEEK_FILE)
+            _put_file(_FF_WEEK_FILE, week_rows, sha, "daily_brief: persist FF weekly calendar")
+        except Exception as _pe:
+            print(f"[daily_brief] FF weekly snapshot persist skipped: {_pe}")
 
     _ff_cache["data"] = out
     _ff_cache["fetched_date"] = today_str
-    print(f"[daily_brief] Forex Factory: {len(out)} high-impact USD event(s) today (cached)")
+    print(f"[daily_brief] Forex Factory: {len(out)} high-impact USD event(s) today (cached, {len(week_rows)} this week)")
     return out
 
 

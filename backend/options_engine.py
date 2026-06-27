@@ -259,6 +259,15 @@ def _atm_snapshot() -> tuple[float | None, float | None, float | None]:
         return atm_iv, straddle, spot
     except Exception as e:
         print(f"[options] ATM snapshot failed: {e}")
+        # No chain source (Tradier/Polygon) → ATM IV / expected move need a chain,
+        # but SPX SPOT can still be shown via the Stooq SPY×10 proxy (no yfinance).
+        try:
+            from market_data import _stooq_daily
+            _spy = _stooq_daily("spy.us")
+            if len(_spy):
+                return None, None, round(float(_spy["Close"].iloc[-1]) * 10, 1)
+        except Exception:
+            pass
         return None, None, None
 
 
@@ -478,6 +487,7 @@ def build_spx_recommendation(direction: str, confidence: float,
         "delta":         best["delta"],
         "expiry":        expiry,
         "dte":           dte,
+        "pool":          "SPX_0DTE" if dte == 0 else "SPX_1DTE",
         "entry_premium": best["mid"],
         "tp_premium":    round(best["mid"] * TP_PREMIUM_MULT, 2),
         "sl_premium":    round(best["mid"] * SL_PREMIUM_MULT, 2),
@@ -867,6 +877,8 @@ def manage_paper_positions() -> list[str]:
                     if mid is not None and entry:
                         rec["pnl_pct"] = round((mid - entry) / entry * 100, 1)
                     rec["loss_reason"] = categorize_outcome(rec)
+                    # Plain WIN/LOSS verdict the dashboard reads (loss_reason has detail)
+                    rec["outcome"] = "WIN" if (rec.get("pnl_pct") or 0) > 0 else "LOSS"
                     dirty = True
                     closed.append(f"{rec['tv_symbol']} → {reason} ({rec.get('pnl_pct','?')}%) [{rec['loss_reason']}]")
             if not dirty:

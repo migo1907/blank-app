@@ -2417,6 +2417,18 @@ async def options_flow(secret: str = ""):
         ledger = []
     open_trades   = [r for r in ledger if r.get("status") == "OPEN"]
     closed_trades = [r for r in ledger if r.get("status") == "CLOSED"][-10:]
+
+    # Backfill the two fields the dashboard reads (pool / outcome) for older rows
+    # written before they were stored at the source. pool is implied by dte;
+    # outcome is win iff the trade closed positive (loss_reason carries the detail).
+    def _enrich(r: dict) -> dict:
+        pool = r.get("pool") or ("SPX_0DTE" if r.get("dte") == 0 else "SPX_1DTE")
+        outcome = r.get("outcome") or ("WIN" if (r.get("pnl_pct") or 0) > 0 else "LOSS")
+        return {**r, "pool": pool, "outcome": outcome,
+                "loss_reason": r.get("loss_reason")}
+    closed_trades = [_enrich(r) for r in closed_trades]
+    open_trades   = [{**r, "pool": r.get("pool") or ("SPX_0DTE" if r.get("dte") == 0 else "SPX_1DTE")}
+                     for r in open_trades]
     from options_engine import last_options_check
     iv_sessions = 0
     try:
