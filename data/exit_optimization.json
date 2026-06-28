@@ -1,0 +1,2022 @@
+{
+  "updated_at": "2026-06-28T21:00:04.566412+00:00",
+  "mode": "shadow",
+  "pools": {
+    "XAUUSD_5M": {
+      "n": 405,
+      "current_expectancy": -0.05223,
+      "current_net": -21.16,
+      "recommended_tp_pct": 0.0806,
+      "projected_expectancy": -0.03645,
+      "expectancy_gain": 0.01579,
+      "flips_positive": false,
+      "scratched_sl_tp1": 80,
+      "median_favorable_move_pct": 0.0,
+      "stop_learning": {
+        "status": "pending_mae_capture",
+        "trades_with_mae": 0,
+        "note": "Stop learning activates once the Pine Script sends MAE (\u226530 trades). Until then, take-profit optimization only."
+      },
+      "grid": [
+        {
+          "tp_pct": 0.02,
+          "expectancy": -0.03762,
+          "reach_rate": 0.415
+        },
+        {
+          "tp_pct": 0.0276,
+          "expectancy": -0.0398,
+          "reach_rate": 0.393
+        },
+        {
+          "tp_pct": 0.0352,
+          "expectancy": -0.03791,
+          "reach_rate": 0.388
+        },
+        {
+          "tp_pct": 0.0427,
+          "expectancy": -0.03842,
+          "reach_rate": 0.375
+        },
+        {
+          "tp_pct": 0.0503,
+          "expectancy": -0.0393,
+          "reach_rate": 0.365
+        },
+        {
+          "tp_pct": 0.0579,
+          "expectancy": -0.03931,
+          "reach_rate": 0.358
+        },
+        {
+          "tp_pct": 0.0655,
+          "expectancy": -0.03965,
+          "reach_rate": 0.348
+        },
+        {
+          "tp_pct": 0.073,
+          "expectancy": -0.03759,
+          "reach_rate": 0.346
+        },
+        {
+          "tp_pct": 0.0806,
+          "expectancy": -0.03645,
+          "reach_rate": 0.341
+        },
+        {
+          "tp_pct": 0.0882,
+          "expectancy": -0.041,
+          "reach_rate": 0.326
+        },
+        {
+          "tp_pct": 0.0958,
+          "expectancy": -0.04266,
+          "reach_rate": 0.311
+        },
+        {
+          "tp_pct": 0.1034,
+          "expectancy": -0.04205,
+          "reach_rate": 0.306
+        },
+        {
+          "tp_pct": 0.1109,
+          "expectancy": -0.04046,
+          "reach_rate": 0.304
+        },
+        {
+          "tp_pct": 0.1185,
+          "expectancy": -0.0398,
+          "reach_rate": 0.299
+        },
+        {
+          "tp_pct": 0.1261,
+          "expectancy": -0.04136,
+          "reach_rate": 0.289
+        },
+        {
+          "tp_pct": 0.1337,
+          "expectancy": -0.04019,
+          "reach_rate": 0.286
+        },
+        {
+          "tp_pct": 0.1413,
+          "expectancy": -0.03984,
+          "reach_rate": 0.281
+        },
+        {
+          "tp_pct": 0.1488,
+          "expectancy": -0.03907,
+          "reach_rate": 0.277
+        },
+        {
+          "tp_pct": 0.1564,
+          "expectancy": -0.04251,
+          "reach_rate": 0.262
+        },
+        {
+          "tp_pct": 0.164,
+          "expectancy": -0.04609,
+          "reach_rate": 0.249
+        },
+        {
+          "tp_pct": 0.1716,
+          "expectancy": -0.04583,
+          "reach_rate": 0.24
+        },
+        {
+          "tp_pct": 0.1791,
+          "expectancy": -0.04625,
+          "reach_rate": 0.235
+        },
+        {
+          "tp_pct": 0.1867,
+          "expectancy": -0.04506,
+          "reach_rate": 0.227
+        },
+        {
+          "tp_pct": 0.1943,
+          "expectancy": -0.047,
+          "reach_rate": 0.215
+        },
+        {
+          "tp_pct": 0.2019,
+          "expectancy": -0.04587,
+          "reach_rate": 0.212
+        },
+        {
+          "tp_pct": 0.2095,
+          "expectancy": -0.04453,
+          "reach_rate": 0.205
+        },
+        {
+          "tp_pct": 0.217,
+          "expectancy": -0.04704,
+          "reach_rate": 0.185
+        },
+        {
+          "tp_pct": 0.2246,
+          "expectancy": -0.04571,
+          "reach_rate": 0.183
+        },
+        {
+          "tp_pct": 0.2322,
+          "expectancy": -0.04493,
+          "reach_rate": 0.178
+        },
+        {
+          "tp_pct": 0.2398,
+          "expectancy": -0.04438,
+          "reach_rate": 0.168
+        },
+        {
+          "tp_pct": 0.2473,
+          "expectancy": -0.04438,
+          "reach_rate": 0.163
+        },
+        {
+          "tp_pct": 0.2549,
+          "expectancy": -0.04393,
+          "reach_rate": 0.158
+        },
+        {
+          "tp_pct": 0.2625,
+          "expectancy": -0.04417,
+          "reach_rate": 0.151
+        },
+        {
+          "tp_pct": 0.2701,
+          "expectancy": -0.0446,
+          "reach_rate": 0.138
+        },
+        {
+          "tp_pct": 0.2777,
+          "expectancy": -0.04357,
+          "reach_rate": 0.136
+        },
+        {
+          "tp_pct": 0.2852,
+          "expectancy": -0.043,
+          "reach_rate": 0.133
+        },
+        {
+          "tp_pct": 0.2928,
+          "expectancy": -0.04377,
+          "reach_rate": 0.121
+        },
+        {
+          "tp_pct": 0.3004,
+          "expectancy": -0.04447,
+          "reach_rate": 0.111
+        },
+        {
+          "tp_pct": 0.308,
+          "expectancy": -0.04377,
+          "reach_rate": 0.109
+        },
+        {
+          "tp_pct": 0.3155,
+          "expectancy": -0.04367,
+          "reach_rate": 0.106
+        },
+        {
+          "tp_pct": 0.3231,
+          "expectancy": -0.04429,
+          "reach_rate": 0.101
+        }
+      ],
+      "note": "SHADOW: not applied to live trades. Take-profit learned from MFE; stop learned from MAE once the Pine Script sends it (Phase B)."
+    },
+    "XAUUSD_15M": {
+      "n": 67,
+      "current_expectancy": -0.15564,
+      "current_net": -10.43,
+      "recommended_tp_pct": 0.02,
+      "projected_expectancy": -0.1179,
+      "expectancy_gain": 0.03774,
+      "flips_positive": false,
+      "scratched_sl_tp1": 15,
+      "median_favorable_move_pct": 0.0,
+      "stop_learning": {
+        "status": "pending_mae_capture",
+        "trades_with_mae": 0,
+        "note": "Stop learning activates once the Pine Script sends MAE (\u226530 trades). Until then, take-profit optimization only."
+      },
+      "grid": [
+        {
+          "tp_pct": 0.02,
+          "expectancy": -0.1179,
+          "reach_rate": 0.373
+        },
+        {
+          "tp_pct": 0.0332,
+          "expectancy": -0.11928,
+          "reach_rate": 0.358
+        },
+        {
+          "tp_pct": 0.0464,
+          "expectancy": -0.14142,
+          "reach_rate": 0.313
+        },
+        {
+          "tp_pct": 0.0596,
+          "expectancy": -0.16509,
+          "reach_rate": 0.269
+        },
+        {
+          "tp_pct": 0.0728,
+          "expectancy": -0.16154,
+          "reach_rate": 0.269
+        },
+        {
+          "tp_pct": 0.086,
+          "expectancy": -0.15799,
+          "reach_rate": 0.269
+        },
+        {
+          "tp_pct": 0.0992,
+          "expectancy": -0.16547,
+          "reach_rate": 0.254
+        },
+        {
+          "tp_pct": 0.1124,
+          "expectancy": -0.16212,
+          "reach_rate": 0.254
+        },
+        {
+          "tp_pct": 0.1256,
+          "expectancy": -0.15877,
+          "reach_rate": 0.254
+        },
+        {
+          "tp_pct": 0.1388,
+          "expectancy": -0.17047,
+          "reach_rate": 0.239
+        },
+        {
+          "tp_pct": 0.152,
+          "expectancy": -0.17967,
+          "reach_rate": 0.224
+        },
+        {
+          "tp_pct": 0.1652,
+          "expectancy": -0.17672,
+          "reach_rate": 0.224
+        },
+        {
+          "tp_pct": 0.1784,
+          "expectancy": -0.17376,
+          "reach_rate": 0.224
+        },
+        {
+          "tp_pct": 0.1917,
+          "expectancy": -0.17081,
+          "reach_rate": 0.224
+        },
+        {
+          "tp_pct": 0.2049,
+          "expectancy": -0.16785,
+          "reach_rate": 0.224
+        },
+        {
+          "tp_pct": 0.2181,
+          "expectancy": -0.17837,
+          "reach_rate": 0.209
+        },
+        {
+          "tp_pct": 0.2313,
+          "expectancy": -0.17561,
+          "reach_rate": 0.209
+        },
+        {
+          "tp_pct": 0.2445,
+          "expectancy": -0.17285,
+          "reach_rate": 0.209
+        },
+        {
+          "tp_pct": 0.2577,
+          "expectancy": -0.17009,
+          "reach_rate": 0.209
+        },
+        {
+          "tp_pct": 0.2709,
+          "expectancy": -0.16733,
+          "reach_rate": 0.209
+        },
+        {
+          "tp_pct": 0.2841,
+          "expectancy": -0.16457,
+          "reach_rate": 0.209
+        },
+        {
+          "tp_pct": 0.2973,
+          "expectancy": -0.16181,
+          "reach_rate": 0.209
+        },
+        {
+          "tp_pct": 0.3105,
+          "expectancy": -0.15905,
+          "reach_rate": 0.209
+        },
+        {
+          "tp_pct": 0.3237,
+          "expectancy": -0.1563,
+          "reach_rate": 0.209
+        },
+        {
+          "tp_pct": 0.3369,
+          "expectancy": -0.15778,
+          "reach_rate": 0.179
+        },
+        {
+          "tp_pct": 0.3501,
+          "expectancy": -0.15541,
+          "reach_rate": 0.179
+        },
+        {
+          "tp_pct": 0.3633,
+          "expectancy": -0.15305,
+          "reach_rate": 0.179
+        },
+        {
+          "tp_pct": 0.3765,
+          "expectancy": -0.15068,
+          "reach_rate": 0.179
+        },
+        {
+          "tp_pct": 0.3897,
+          "expectancy": -0.14832,
+          "reach_rate": 0.179
+        },
+        {
+          "tp_pct": 0.4029,
+          "expectancy": -0.14595,
+          "reach_rate": 0.179
+        },
+        {
+          "tp_pct": 0.4161,
+          "expectancy": -0.14359,
+          "reach_rate": 0.179
+        },
+        {
+          "tp_pct": 0.4293,
+          "expectancy": -0.14122,
+          "reach_rate": 0.179
+        },
+        {
+          "tp_pct": 0.4425,
+          "expectancy": -0.13886,
+          "reach_rate": 0.179
+        },
+        {
+          "tp_pct": 0.4557,
+          "expectancy": -0.13649,
+          "reach_rate": 0.179
+        },
+        {
+          "tp_pct": 0.4689,
+          "expectancy": -0.13413,
+          "reach_rate": 0.179
+        },
+        {
+          "tp_pct": 0.4821,
+          "expectancy": -0.13176,
+          "reach_rate": 0.179
+        },
+        {
+          "tp_pct": 0.4953,
+          "expectancy": -0.1294,
+          "reach_rate": 0.179
+        },
+        {
+          "tp_pct": 0.5085,
+          "expectancy": -0.12703,
+          "reach_rate": 0.179
+        },
+        {
+          "tp_pct": 0.5218,
+          "expectancy": -0.12467,
+          "reach_rate": 0.179
+        },
+        {
+          "tp_pct": 0.535,
+          "expectancy": -0.13565,
+          "reach_rate": 0.119
+        },
+        {
+          "tp_pct": 0.5482,
+          "expectancy": -0.13638,
+          "reach_rate": 0.104
+        }
+      ],
+      "note": "SHADOW: not applied to live trades. Take-profit learned from MFE; stop learned from MAE once the Pine Script sends it (Phase B)."
+    },
+    "XAUUSD_30M": {
+      "n": 54,
+      "current_expectancy": -0.05788,
+      "current_net": -3.13,
+      "recommended_tp_pct": 1.2146,
+      "projected_expectancy": 0.0044,
+      "expectancy_gain": 0.06228,
+      "flips_positive": true,
+      "scratched_sl_tp1": 18,
+      "median_favorable_move_pct": 0.0,
+      "stop_learning": {
+        "status": "pending_mae_capture",
+        "trades_with_mae": 0,
+        "note": "Stop learning activates once the Pine Script sends MAE (\u226530 trades). Until then, take-profit optimization only."
+      },
+      "grid": [
+        {
+          "tp_pct": 0.02,
+          "expectancy": -0.02128,
+          "reach_rate": 0.463
+        },
+        {
+          "tp_pct": 0.0514,
+          "expectancy": -0.02576,
+          "reach_rate": 0.444
+        },
+        {
+          "tp_pct": 0.0829,
+          "expectancy": -0.04519,
+          "reach_rate": 0.407
+        },
+        {
+          "tp_pct": 0.1143,
+          "expectancy": -0.04634,
+          "reach_rate": 0.389
+        },
+        {
+          "tp_pct": 0.1457,
+          "expectancy": -0.03412,
+          "reach_rate": 0.389
+        },
+        {
+          "tp_pct": 0.1772,
+          "expectancy": -0.03964,
+          "reach_rate": 0.37
+        },
+        {
+          "tp_pct": 0.2086,
+          "expectancy": -0.05737,
+          "reach_rate": 0.352
+        },
+        {
+          "tp_pct": 0.2401,
+          "expectancy": -0.08816,
+          "reach_rate": 0.315
+        },
+        {
+          "tp_pct": 0.2715,
+          "expectancy": -0.10077,
+          "reach_rate": 0.296
+        },
+        {
+          "tp_pct": 0.3029,
+          "expectancy": -0.09146,
+          "reach_rate": 0.296
+        },
+        {
+          "tp_pct": 0.3344,
+          "expectancy": -0.08214,
+          "reach_rate": 0.296
+        },
+        {
+          "tp_pct": 0.3658,
+          "expectancy": -0.07283,
+          "reach_rate": 0.296
+        },
+        {
+          "tp_pct": 0.3972,
+          "expectancy": -0.06351,
+          "reach_rate": 0.296
+        },
+        {
+          "tp_pct": 0.4287,
+          "expectancy": -0.08258,
+          "reach_rate": 0.278
+        },
+        {
+          "tp_pct": 0.4601,
+          "expectancy": -0.07385,
+          "reach_rate": 0.278
+        },
+        {
+          "tp_pct": 0.4916,
+          "expectancy": -0.06512,
+          "reach_rate": 0.278
+        },
+        {
+          "tp_pct": 0.523,
+          "expectancy": -0.05639,
+          "reach_rate": 0.278
+        },
+        {
+          "tp_pct": 0.5544,
+          "expectancy": -0.04765,
+          "reach_rate": 0.278
+        },
+        {
+          "tp_pct": 0.5859,
+          "expectancy": -0.06976,
+          "reach_rate": 0.222
+        },
+        {
+          "tp_pct": 0.6173,
+          "expectancy": -0.06278,
+          "reach_rate": 0.222
+        },
+        {
+          "tp_pct": 0.6487,
+          "expectancy": -0.05579,
+          "reach_rate": 0.222
+        },
+        {
+          "tp_pct": 0.6802,
+          "expectancy": -0.04881,
+          "reach_rate": 0.222
+        },
+        {
+          "tp_pct": 0.7116,
+          "expectancy": -0.04182,
+          "reach_rate": 0.222
+        },
+        {
+          "tp_pct": 0.7431,
+          "expectancy": -0.03483,
+          "reach_rate": 0.222
+        },
+        {
+          "tp_pct": 0.7745,
+          "expectancy": -0.02785,
+          "reach_rate": 0.222
+        },
+        {
+          "tp_pct": 0.8059,
+          "expectancy": -0.03512,
+          "reach_rate": 0.204
+        },
+        {
+          "tp_pct": 0.8374,
+          "expectancy": -0.02871,
+          "reach_rate": 0.204
+        },
+        {
+          "tp_pct": 0.8688,
+          "expectancy": -0.03642,
+          "reach_rate": 0.185
+        },
+        {
+          "tp_pct": 0.9002,
+          "expectancy": -0.03386,
+          "reach_rate": 0.167
+        },
+        {
+          "tp_pct": 0.9317,
+          "expectancy": -0.02863,
+          "reach_rate": 0.167
+        },
+        {
+          "tp_pct": 0.9631,
+          "expectancy": -0.03019,
+          "reach_rate": 0.148
+        },
+        {
+          "tp_pct": 0.9946,
+          "expectancy": -0.02553,
+          "reach_rate": 0.148
+        },
+        {
+          "tp_pct": 1.026,
+          "expectancy": -0.02087,
+          "reach_rate": 0.148
+        },
+        {
+          "tp_pct": 1.0574,
+          "expectancy": -0.01622,
+          "reach_rate": 0.148
+        },
+        {
+          "tp_pct": 1.0889,
+          "expectancy": -0.01156,
+          "reach_rate": 0.148
+        },
+        {
+          "tp_pct": 1.1203,
+          "expectancy": -0.0069,
+          "reach_rate": 0.148
+        },
+        {
+          "tp_pct": 1.1517,
+          "expectancy": -0.00224,
+          "reach_rate": 0.148
+        },
+        {
+          "tp_pct": 1.1832,
+          "expectancy": 0.00033,
+          "reach_rate": 0.13
+        },
+        {
+          "tp_pct": 1.2146,
+          "expectancy": 0.0044,
+          "reach_rate": 0.13
+        },
+        {
+          "tp_pct": 1.2461,
+          "expectancy": -0.00351,
+          "reach_rate": 0.111
+        },
+        {
+          "tp_pct": 1.2775,
+          "expectancy": -1e-05,
+          "reach_rate": 0.111
+        }
+      ],
+      "note": "SHADOW: not applied to live trades. Take-profit learned from MFE; stop learned from MAE once the Pine Script sends it (Phase B)."
+    },
+    "STOCKS_MOMENTUM_15M": {
+      "n": 342,
+      "current_expectancy": -0.79039,
+      "current_net": -270.31,
+      "recommended_tp_pct": 0.02,
+      "projected_expectancy": -0.62362,
+      "expectancy_gain": 0.16677,
+      "flips_positive": false,
+      "scratched_sl_tp1": 83,
+      "median_favorable_move_pct": 0.0,
+      "stop_learning": {
+        "status": "pending_mae_capture",
+        "trades_with_mae": 0,
+        "note": "Stop learning activates once the Pine Script sends MAE (\u226530 trades). Until then, take-profit optimization only."
+      },
+      "grid": [
+        {
+          "tp_pct": 0.02,
+          "expectancy": -0.62362,
+          "reach_rate": 0.442
+        },
+        {
+          "tp_pct": 0.1093,
+          "expectancy": -0.65891,
+          "reach_rate": 0.418
+        },
+        {
+          "tp_pct": 0.1987,
+          "expectancy": -0.70175,
+          "reach_rate": 0.392
+        },
+        {
+          "tp_pct": 0.288,
+          "expectancy": -0.72917,
+          "reach_rate": 0.368
+        },
+        {
+          "tp_pct": 0.3774,
+          "expectancy": -0.75623,
+          "reach_rate": 0.351
+        },
+        {
+          "tp_pct": 0.4667,
+          "expectancy": -0.74892,
+          "reach_rate": 0.342
+        },
+        {
+          "tp_pct": 0.556,
+          "expectancy": -0.78772,
+          "reach_rate": 0.327
+        },
+        {
+          "tp_pct": 0.6454,
+          "expectancy": -0.76632,
+          "reach_rate": 0.325
+        },
+        {
+          "tp_pct": 0.7347,
+          "expectancy": -0.76568,
+          "reach_rate": 0.316
+        },
+        {
+          "tp_pct": 0.8241,
+          "expectancy": -0.79145,
+          "reach_rate": 0.301
+        },
+        {
+          "tp_pct": 0.9134,
+          "expectancy": -0.81021,
+          "reach_rate": 0.289
+        },
+        {
+          "tp_pct": 1.0027,
+          "expectancy": -0.82224,
+          "reach_rate": 0.284
+        },
+        {
+          "tp_pct": 1.0921,
+          "expectancy": -0.80756,
+          "reach_rate": 0.281
+        },
+        {
+          "tp_pct": 1.1814,
+          "expectancy": -0.81231,
+          "reach_rate": 0.275
+        },
+        {
+          "tp_pct": 1.2707,
+          "expectancy": -0.81224,
+          "reach_rate": 0.269
+        },
+        {
+          "tp_pct": 1.3601,
+          "expectancy": -0.82872,
+          "reach_rate": 0.26
+        },
+        {
+          "tp_pct": 1.4494,
+          "expectancy": -0.817,
+          "reach_rate": 0.257
+        },
+        {
+          "tp_pct": 1.5388,
+          "expectancy": -0.82429,
+          "reach_rate": 0.249
+        },
+        {
+          "tp_pct": 1.6281,
+          "expectancy": -0.80786,
+          "reach_rate": 0.24
+        },
+        {
+          "tp_pct": 1.7174,
+          "expectancy": -0.7944,
+          "reach_rate": 0.237
+        },
+        {
+          "tp_pct": 1.8068,
+          "expectancy": -0.78905,
+          "reach_rate": 0.234
+        },
+        {
+          "tp_pct": 1.8961,
+          "expectancy": -0.79199,
+          "reach_rate": 0.222
+        },
+        {
+          "tp_pct": 1.9855,
+          "expectancy": -0.78281,
+          "reach_rate": 0.216
+        },
+        {
+          "tp_pct": 2.0748,
+          "expectancy": -0.77729,
+          "reach_rate": 0.205
+        },
+        {
+          "tp_pct": 2.1641,
+          "expectancy": -0.759,
+          "reach_rate": 0.205
+        },
+        {
+          "tp_pct": 2.2535,
+          "expectancy": -0.74071,
+          "reach_rate": 0.205
+        },
+        {
+          "tp_pct": 2.3428,
+          "expectancy": -0.72925,
+          "reach_rate": 0.202
+        },
+        {
+          "tp_pct": 2.4322,
+          "expectancy": -0.71123,
+          "reach_rate": 0.202
+        },
+        {
+          "tp_pct": 2.5215,
+          "expectancy": -0.71224,
+          "reach_rate": 0.184
+        },
+        {
+          "tp_pct": 2.6108,
+          "expectancy": -0.69622,
+          "reach_rate": 0.178
+        },
+        {
+          "tp_pct": 2.7002,
+          "expectancy": -0.71485,
+          "reach_rate": 0.167
+        },
+        {
+          "tp_pct": 2.7895,
+          "expectancy": -0.71562,
+          "reach_rate": 0.158
+        },
+        {
+          "tp_pct": 2.8788,
+          "expectancy": -0.70934,
+          "reach_rate": 0.152
+        },
+        {
+          "tp_pct": 2.9682,
+          "expectancy": -0.69575,
+          "reach_rate": 0.152
+        },
+        {
+          "tp_pct": 3.0575,
+          "expectancy": -0.69172,
+          "reach_rate": 0.146
+        },
+        {
+          "tp_pct": 3.1469,
+          "expectancy": -0.68902,
+          "reach_rate": 0.14
+        },
+        {
+          "tp_pct": 3.2362,
+          "expectancy": -0.68098,
+          "reach_rate": 0.137
+        },
+        {
+          "tp_pct": 3.3255,
+          "expectancy": -0.70957,
+          "reach_rate": 0.114
+        },
+        {
+          "tp_pct": 3.4149,
+          "expectancy": -0.7115,
+          "reach_rate": 0.105
+        },
+        {
+          "tp_pct": 3.5042,
+          "expectancy": -0.7021,
+          "reach_rate": 0.105
+        },
+        {
+          "tp_pct": 3.5936,
+          "expectancy": -0.70477,
+          "reach_rate": 0.102
+        }
+      ],
+      "note": "SHADOW: not applied to live trades. Take-profit learned from MFE; stop learned from MAE once the Pine Script sends it (Phase B)."
+    },
+    "STOCKS_MOMENTUM_30M": {
+      "n": 172,
+      "current_expectancy": -1.47865,
+      "current_net": -254.33,
+      "recommended_tp_pct": 0.1398,
+      "projected_expectancy": -1.11206,
+      "expectancy_gain": 0.36658,
+      "flips_positive": false,
+      "scratched_sl_tp1": 42,
+      "median_favorable_move_pct": 0.0,
+      "stop_learning": {
+        "status": "pending_mae_capture",
+        "trades_with_mae": 0,
+        "note": "Stop learning activates once the Pine Script sends MAE (\u226530 trades). Until then, take-profit optimization only."
+      },
+      "grid": [
+        {
+          "tp_pct": 0.02,
+          "expectancy": -1.11874,
+          "reach_rate": 0.413
+        },
+        {
+          "tp_pct": 0.1398,
+          "expectancy": -1.11206,
+          "reach_rate": 0.401
+        },
+        {
+          "tp_pct": 0.2596,
+          "expectancy": -1.24729,
+          "reach_rate": 0.355
+        },
+        {
+          "tp_pct": 0.3794,
+          "expectancy": -1.30205,
+          "reach_rate": 0.331
+        },
+        {
+          "tp_pct": 0.4992,
+          "expectancy": -1.32669,
+          "reach_rate": 0.314
+        },
+        {
+          "tp_pct": 0.619,
+          "expectancy": -1.35063,
+          "reach_rate": 0.302
+        },
+        {
+          "tp_pct": 0.7388,
+          "expectancy": -1.31441,
+          "reach_rate": 0.302
+        },
+        {
+          "tp_pct": 0.8586,
+          "expectancy": -1.35131,
+          "reach_rate": 0.297
+        },
+        {
+          "tp_pct": 0.9784,
+          "expectancy": -1.31579,
+          "reach_rate": 0.297
+        },
+        {
+          "tp_pct": 1.0982,
+          "expectancy": -1.29882,
+          "reach_rate": 0.291
+        },
+        {
+          "tp_pct": 1.218,
+          "expectancy": -1.264,
+          "reach_rate": 0.291
+        },
+        {
+          "tp_pct": 1.3378,
+          "expectancy": -1.31994,
+          "reach_rate": 0.273
+        },
+        {
+          "tp_pct": 1.4576,
+          "expectancy": -1.2872,
+          "reach_rate": 0.273
+        },
+        {
+          "tp_pct": 1.5774,
+          "expectancy": -1.25447,
+          "reach_rate": 0.273
+        },
+        {
+          "tp_pct": 1.6972,
+          "expectancy": -1.28925,
+          "reach_rate": 0.262
+        },
+        {
+          "tp_pct": 1.817,
+          "expectancy": -1.31154,
+          "reach_rate": 0.256
+        },
+        {
+          "tp_pct": 1.9368,
+          "expectancy": -1.28089,
+          "reach_rate": 0.256
+        },
+        {
+          "tp_pct": 2.0566,
+          "expectancy": -1.25025,
+          "reach_rate": 0.256
+        },
+        {
+          "tp_pct": 2.1764,
+          "expectancy": -1.2196,
+          "reach_rate": 0.256
+        },
+        {
+          "tp_pct": 2.2962,
+          "expectancy": -1.18896,
+          "reach_rate": 0.256
+        },
+        {
+          "tp_pct": 2.4159,
+          "expectancy": -1.16211,
+          "reach_rate": 0.25
+        },
+        {
+          "tp_pct": 2.5357,
+          "expectancy": -1.23109,
+          "reach_rate": 0.227
+        },
+        {
+          "tp_pct": 2.6555,
+          "expectancy": -1.20393,
+          "reach_rate": 0.227
+        },
+        {
+          "tp_pct": 2.7753,
+          "expectancy": -1.30263,
+          "reach_rate": 0.215
+        },
+        {
+          "tp_pct": 2.8951,
+          "expectancy": -1.29805,
+          "reach_rate": 0.203
+        },
+        {
+          "tp_pct": 3.0149,
+          "expectancy": -1.27367,
+          "reach_rate": 0.203
+        },
+        {
+          "tp_pct": 3.1347,
+          "expectancy": -1.33612,
+          "reach_rate": 0.192
+        },
+        {
+          "tp_pct": 3.2545,
+          "expectancy": -1.31313,
+          "reach_rate": 0.192
+        },
+        {
+          "tp_pct": 3.3743,
+          "expectancy": -1.29015,
+          "reach_rate": 0.192
+        },
+        {
+          "tp_pct": 3.4941,
+          "expectancy": -1.2924,
+          "reach_rate": 0.18
+        },
+        {
+          "tp_pct": 3.6139,
+          "expectancy": -1.29008,
+          "reach_rate": 0.169
+        },
+        {
+          "tp_pct": 3.7337,
+          "expectancy": -1.26988,
+          "reach_rate": 0.169
+        },
+        {
+          "tp_pct": 3.8535,
+          "expectancy": -1.34105,
+          "reach_rate": 0.157
+        },
+        {
+          "tp_pct": 3.9733,
+          "expectancy": -1.32805,
+          "reach_rate": 0.151
+        },
+        {
+          "tp_pct": 4.0931,
+          "expectancy": -1.30994,
+          "reach_rate": 0.151
+        },
+        {
+          "tp_pct": 4.2129,
+          "expectancy": -1.29183,
+          "reach_rate": 0.151
+        },
+        {
+          "tp_pct": 4.3327,
+          "expectancy": -1.27372,
+          "reach_rate": 0.151
+        },
+        {
+          "tp_pct": 4.4525,
+          "expectancy": -1.28978,
+          "reach_rate": 0.14
+        },
+        {
+          "tp_pct": 4.5723,
+          "expectancy": -1.30307,
+          "reach_rate": 0.128
+        },
+        {
+          "tp_pct": 4.6921,
+          "expectancy": -1.31414,
+          "reach_rate": 0.116
+        },
+        {
+          "tp_pct": 4.8119,
+          "expectancy": -1.32813,
+          "reach_rate": 0.11
+        }
+      ],
+      "note": "SHADOW: not applied to live trades. Take-profit learned from MFE; stop learned from MAE once the Pine Script sends it (Phase B)."
+    },
+    "STOCKS_QUALITY_15M": {
+      "n": 197,
+      "current_expectancy": -0.1939,
+      "current_net": -38.2,
+      "recommended_tp_pct": 0.02,
+      "projected_expectancy": -0.03505,
+      "expectancy_gain": 0.15885,
+      "flips_positive": false,
+      "scratched_sl_tp1": 44,
+      "median_favorable_move_pct": 0.0,
+      "stop_learning": {
+        "status": "pending_mae_capture",
+        "trades_with_mae": 0,
+        "note": "Stop learning activates once the Pine Script sends MAE (\u226530 trades). Until then, take-profit optimization only."
+      },
+      "grid": [
+        {
+          "tp_pct": 0.02,
+          "expectancy": -0.03505,
+          "reach_rate": 0.365
+        },
+        {
+          "tp_pct": 0.0594,
+          "expectancy": -0.05437,
+          "reach_rate": 0.34
+        },
+        {
+          "tp_pct": 0.0988,
+          "expectancy": -0.0561,
+          "reach_rate": 0.335
+        },
+        {
+          "tp_pct": 0.1382,
+          "expectancy": -0.06102,
+          "reach_rate": 0.33
+        },
+        {
+          "tp_pct": 0.1776,
+          "expectancy": -0.08394,
+          "reach_rate": 0.31
+        },
+        {
+          "tp_pct": 0.217,
+          "expectancy": -0.11417,
+          "reach_rate": 0.289
+        },
+        {
+          "tp_pct": 0.2564,
+          "expectancy": -0.11921,
+          "reach_rate": 0.279
+        },
+        {
+          "tp_pct": 0.2958,
+          "expectancy": -0.15216,
+          "reach_rate": 0.264
+        },
+        {
+          "tp_pct": 0.3352,
+          "expectancy": -0.17993,
+          "reach_rate": 0.249
+        },
+        {
+          "tp_pct": 0.3746,
+          "expectancy": -0.17807,
+          "reach_rate": 0.244
+        },
+        {
+          "tp_pct": 0.414,
+          "expectancy": -0.20242,
+          "reach_rate": 0.234
+        },
+        {
+          "tp_pct": 0.4534,
+          "expectancy": -0.19322,
+          "reach_rate": 0.234
+        },
+        {
+          "tp_pct": 0.4928,
+          "expectancy": -0.21225,
+          "reach_rate": 0.218
+        },
+        {
+          "tp_pct": 0.5322,
+          "expectancy": -0.22504,
+          "reach_rate": 0.208
+        },
+        {
+          "tp_pct": 0.5716,
+          "expectancy": -0.22589,
+          "reach_rate": 0.203
+        },
+        {
+          "tp_pct": 0.6111,
+          "expectancy": -0.24467,
+          "reach_rate": 0.193
+        },
+        {
+          "tp_pct": 0.6505,
+          "expectancy": -0.23707,
+          "reach_rate": 0.193
+        },
+        {
+          "tp_pct": 0.6899,
+          "expectancy": -0.25519,
+          "reach_rate": 0.183
+        },
+        {
+          "tp_pct": 0.7293,
+          "expectancy": -0.24799,
+          "reach_rate": 0.183
+        },
+        {
+          "tp_pct": 0.7687,
+          "expectancy": -0.24079,
+          "reach_rate": 0.183
+        },
+        {
+          "tp_pct": 0.8081,
+          "expectancy": -0.23359,
+          "reach_rate": 0.183
+        },
+        {
+          "tp_pct": 0.8475,
+          "expectancy": -0.24186,
+          "reach_rate": 0.178
+        },
+        {
+          "tp_pct": 0.8869,
+          "expectancy": -0.23624,
+          "reach_rate": 0.173
+        },
+        {
+          "tp_pct": 0.9263,
+          "expectancy": -0.22947,
+          "reach_rate": 0.168
+        },
+        {
+          "tp_pct": 0.9657,
+          "expectancy": -0.22649,
+          "reach_rate": 0.152
+        },
+        {
+          "tp_pct": 1.0051,
+          "expectancy": -0.22049,
+          "reach_rate": 0.152
+        },
+        {
+          "tp_pct": 1.0445,
+          "expectancy": -0.21449,
+          "reach_rate": 0.152
+        },
+        {
+          "tp_pct": 1.0839,
+          "expectancy": -0.20849,
+          "reach_rate": 0.152
+        },
+        {
+          "tp_pct": 1.1233,
+          "expectancy": -0.20287,
+          "reach_rate": 0.147
+        },
+        {
+          "tp_pct": 1.1627,
+          "expectancy": -0.19707,
+          "reach_rate": 0.147
+        },
+        {
+          "tp_pct": 1.2021,
+          "expectancy": -0.19127,
+          "reach_rate": 0.147
+        },
+        {
+          "tp_pct": 1.2415,
+          "expectancy": -0.20053,
+          "reach_rate": 0.132
+        },
+        {
+          "tp_pct": 1.2809,
+          "expectancy": -0.19533,
+          "reach_rate": 0.132
+        },
+        {
+          "tp_pct": 1.3203,
+          "expectancy": -0.20003,
+          "reach_rate": 0.122
+        },
+        {
+          "tp_pct": 1.3597,
+          "expectancy": -0.19523,
+          "reach_rate": 0.122
+        },
+        {
+          "tp_pct": 1.3991,
+          "expectancy": -0.2077,
+          "reach_rate": 0.117
+        },
+        {
+          "tp_pct": 1.4385,
+          "expectancy": -0.2031,
+          "reach_rate": 0.117
+        },
+        {
+          "tp_pct": 1.4779,
+          "expectancy": -0.1985,
+          "reach_rate": 0.117
+        },
+        {
+          "tp_pct": 1.5173,
+          "expectancy": -0.20301,
+          "reach_rate": 0.107
+        },
+        {
+          "tp_pct": 1.5567,
+          "expectancy": -0.19881,
+          "reach_rate": 0.107
+        },
+        {
+          "tp_pct": 1.5961,
+          "expectancy": -0.19634,
+          "reach_rate": 0.102
+        }
+      ],
+      "note": "SHADOW: not applied to live trades. Take-profit learned from MFE; stop learned from MAE once the Pine Script sends it (Phase B)."
+    },
+    "STOCKS_QUALITY_30M": {
+      "n": 123,
+      "current_expectancy": -0.76745,
+      "current_net": -94.4,
+      "recommended_tp_pct": 0.072,
+      "projected_expectancy": -0.30906,
+      "expectancy_gain": 0.45839,
+      "flips_positive": false,
+      "scratched_sl_tp1": 26,
+      "median_favorable_move_pct": 0.0,
+      "stop_learning": {
+        "status": "pending_mae_capture",
+        "trades_with_mae": 0,
+        "note": "Stop learning activates once the Pine Script sends MAE (\u226530 trades). Until then, take-profit optimization only."
+      },
+      "grid": [
+        {
+          "tp_pct": 0.02,
+          "expectancy": -0.32935,
+          "reach_rate": 0.39
+        },
+        {
+          "tp_pct": 0.072,
+          "expectancy": -0.30906,
+          "reach_rate": 0.39
+        },
+        {
+          "tp_pct": 0.124,
+          "expectancy": -0.38864,
+          "reach_rate": 0.358
+        },
+        {
+          "tp_pct": 0.176,
+          "expectancy": -0.38588,
+          "reach_rate": 0.35
+        },
+        {
+          "tp_pct": 0.228,
+          "expectancy": -0.38676,
+          "reach_rate": 0.341
+        },
+        {
+          "tp_pct": 0.28,
+          "expectancy": -0.41096,
+          "reach_rate": 0.325
+        },
+        {
+          "tp_pct": 0.3321,
+          "expectancy": -0.4549,
+          "reach_rate": 0.301
+        },
+        {
+          "tp_pct": 0.3841,
+          "expectancy": -0.48671,
+          "reach_rate": 0.285
+        },
+        {
+          "tp_pct": 0.4361,
+          "expectancy": -0.47192,
+          "reach_rate": 0.285
+        },
+        {
+          "tp_pct": 0.4881,
+          "expectancy": -0.47642,
+          "reach_rate": 0.276
+        },
+        {
+          "tp_pct": 0.5401,
+          "expectancy": -0.46204,
+          "reach_rate": 0.276
+        },
+        {
+          "tp_pct": 0.5921,
+          "expectancy": -0.44767,
+          "reach_rate": 0.276
+        },
+        {
+          "tp_pct": 0.6441,
+          "expectancy": -0.43329,
+          "reach_rate": 0.276
+        },
+        {
+          "tp_pct": 0.6961,
+          "expectancy": -0.51456,
+          "reach_rate": 0.244
+        },
+        {
+          "tp_pct": 0.7481,
+          "expectancy": -0.54534,
+          "reach_rate": 0.236
+        },
+        {
+          "tp_pct": 0.8001,
+          "expectancy": -0.53308,
+          "reach_rate": 0.236
+        },
+        {
+          "tp_pct": 0.8521,
+          "expectancy": -0.58155,
+          "reach_rate": 0.211
+        },
+        {
+          "tp_pct": 0.9041,
+          "expectancy": -0.63079,
+          "reach_rate": 0.195
+        },
+        {
+          "tp_pct": 0.9562,
+          "expectancy": -0.6403,
+          "reach_rate": 0.187
+        },
+        {
+          "tp_pct": 1.0082,
+          "expectancy": -0.6622,
+          "reach_rate": 0.179
+        },
+        {
+          "tp_pct": 1.0602,
+          "expectancy": -0.65289,
+          "reach_rate": 0.179
+        },
+        {
+          "tp_pct": 1.1122,
+          "expectancy": -0.64359,
+          "reach_rate": 0.179
+        },
+        {
+          "tp_pct": 1.1642,
+          "expectancy": -0.63429,
+          "reach_rate": 0.179
+        },
+        {
+          "tp_pct": 1.2162,
+          "expectancy": -0.66175,
+          "reach_rate": 0.171
+        },
+        {
+          "tp_pct": 1.2682,
+          "expectancy": -0.74312,
+          "reach_rate": 0.154
+        },
+        {
+          "tp_pct": 1.3202,
+          "expectancy": -0.73509,
+          "reach_rate": 0.154
+        },
+        {
+          "tp_pct": 1.3722,
+          "expectancy": -0.72705,
+          "reach_rate": 0.154
+        },
+        {
+          "tp_pct": 1.4242,
+          "expectancy": -0.71902,
+          "reach_rate": 0.154
+        },
+        {
+          "tp_pct": 1.4762,
+          "expectancy": -0.71099,
+          "reach_rate": 0.154
+        },
+        {
+          "tp_pct": 1.5283,
+          "expectancy": -0.70295,
+          "reach_rate": 0.154
+        },
+        {
+          "tp_pct": 1.5803,
+          "expectancy": -0.72856,
+          "reach_rate": 0.146
+        },
+        {
+          "tp_pct": 1.6323,
+          "expectancy": -0.72131,
+          "reach_rate": 0.138
+        },
+        {
+          "tp_pct": 1.6843,
+          "expectancy": -0.71412,
+          "reach_rate": 0.138
+        },
+        {
+          "tp_pct": 1.7363,
+          "expectancy": -0.70693,
+          "reach_rate": 0.138
+        },
+        {
+          "tp_pct": 1.7883,
+          "expectancy": -0.69974,
+          "reach_rate": 0.138
+        },
+        {
+          "tp_pct": 1.8403,
+          "expectancy": -0.74031,
+          "reach_rate": 0.13
+        },
+        {
+          "tp_pct": 1.8923,
+          "expectancy": -0.73355,
+          "reach_rate": 0.13
+        },
+        {
+          "tp_pct": 1.9443,
+          "expectancy": -0.72678,
+          "reach_rate": 0.13
+        },
+        {
+          "tp_pct": 1.9963,
+          "expectancy": -0.72002,
+          "reach_rate": 0.13
+        },
+        {
+          "tp_pct": 2.0483,
+          "expectancy": -0.71325,
+          "reach_rate": 0.13
+        },
+        {
+          "tp_pct": 2.1004,
+          "expectancy": -0.7312,
+          "reach_rate": 0.106
+        }
+      ],
+      "note": "SHADOW: not applied to live trades. Take-profit learned from MFE; stop learned from MAE once the Pine Script sends it (Phase B)."
+    },
+    "STOCKS_SPX500_15M": {
+      "n": 56,
+      "current_expectancy": -0.09746,
+      "current_net": -5.46,
+      "recommended_tp_pct": 0.069,
+      "projected_expectancy": -0.07054,
+      "expectancy_gain": 0.02692,
+      "flips_positive": false,
+      "scratched_sl_tp1": 12,
+      "median_favorable_move_pct": 0.0,
+      "stop_learning": {
+        "status": "pending_mae_capture",
+        "trades_with_mae": 0,
+        "note": "Stop learning activates once the Pine Script sends MAE (\u226530 trades). Until then, take-profit optimization only."
+      },
+      "grid": [
+        {
+          "tp_pct": 0.02,
+          "expectancy": -0.07466,
+          "reach_rate": 0.304
+        },
+        {
+          "tp_pct": 0.027,
+          "expectancy": -0.07694,
+          "reach_rate": 0.286
+        },
+        {
+          "tp_pct": 0.034,
+          "expectancy": -0.0799,
+          "reach_rate": 0.268
+        },
+        {
+          "tp_pct": 0.041,
+          "expectancy": -0.07803,
+          "reach_rate": 0.268
+        },
+        {
+          "tp_pct": 0.048,
+          "expectancy": -0.07616,
+          "reach_rate": 0.268
+        },
+        {
+          "tp_pct": 0.055,
+          "expectancy": -0.07428,
+          "reach_rate": 0.268
+        },
+        {
+          "tp_pct": 0.062,
+          "expectancy": -0.07241,
+          "reach_rate": 0.268
+        },
+        {
+          "tp_pct": 0.069,
+          "expectancy": -0.07054,
+          "reach_rate": 0.268
+        },
+        {
+          "tp_pct": 0.076,
+          "expectancy": -0.07504,
+          "reach_rate": 0.25
+        },
+        {
+          "tp_pct": 0.0829,
+          "expectancy": -0.0733,
+          "reach_rate": 0.25
+        },
+        {
+          "tp_pct": 0.0899,
+          "expectancy": -0.07155,
+          "reach_rate": 0.25
+        },
+        {
+          "tp_pct": 0.0969,
+          "expectancy": -0.08008,
+          "reach_rate": 0.232
+        },
+        {
+          "tp_pct": 0.1039,
+          "expectancy": -0.08815,
+          "reach_rate": 0.214
+        },
+        {
+          "tp_pct": 0.1109,
+          "expectancy": -0.08665,
+          "reach_rate": 0.214
+        },
+        {
+          "tp_pct": 0.1179,
+          "expectancy": -0.09307,
+          "reach_rate": 0.196
+        },
+        {
+          "tp_pct": 0.1249,
+          "expectancy": -0.0917,
+          "reach_rate": 0.196
+        },
+        {
+          "tp_pct": 0.1319,
+          "expectancy": -0.09032,
+          "reach_rate": 0.196
+        },
+        {
+          "tp_pct": 0.1389,
+          "expectancy": -0.08895,
+          "reach_rate": 0.196
+        },
+        {
+          "tp_pct": 0.1459,
+          "expectancy": -0.08758,
+          "reach_rate": 0.196
+        },
+        {
+          "tp_pct": 0.1529,
+          "expectancy": -0.0862,
+          "reach_rate": 0.196
+        },
+        {
+          "tp_pct": 0.1599,
+          "expectancy": -0.08483,
+          "reach_rate": 0.196
+        },
+        {
+          "tp_pct": 0.1669,
+          "expectancy": -0.08346,
+          "reach_rate": 0.196
+        },
+        {
+          "tp_pct": 0.1739,
+          "expectancy": -0.08208,
+          "reach_rate": 0.196
+        },
+        {
+          "tp_pct": 0.1809,
+          "expectancy": -0.09496,
+          "reach_rate": 0.179
+        },
+        {
+          "tp_pct": 0.1879,
+          "expectancy": -0.09371,
+          "reach_rate": 0.179
+        },
+        {
+          "tp_pct": 0.1949,
+          "expectancy": -0.09247,
+          "reach_rate": 0.179
+        },
+        {
+          "tp_pct": 0.2018,
+          "expectancy": -0.09122,
+          "reach_rate": 0.179
+        },
+        {
+          "tp_pct": 0.2088,
+          "expectancy": -0.09014,
+          "reach_rate": 0.161
+        },
+        {
+          "tp_pct": 0.2158,
+          "expectancy": -0.08902,
+          "reach_rate": 0.161
+        },
+        {
+          "tp_pct": 0.2228,
+          "expectancy": -0.0879,
+          "reach_rate": 0.161
+        },
+        {
+          "tp_pct": 0.2298,
+          "expectancy": -0.08677,
+          "reach_rate": 0.161
+        },
+        {
+          "tp_pct": 0.2368,
+          "expectancy": -0.08565,
+          "reach_rate": 0.161
+        },
+        {
+          "tp_pct": 0.2438,
+          "expectancy": -0.08452,
+          "reach_rate": 0.161
+        },
+        {
+          "tp_pct": 0.2508,
+          "expectancy": -0.0834,
+          "reach_rate": 0.161
+        },
+        {
+          "tp_pct": 0.2578,
+          "expectancy": -0.08228,
+          "reach_rate": 0.161
+        },
+        {
+          "tp_pct": 0.2648,
+          "expectancy": -0.08115,
+          "reach_rate": 0.161
+        },
+        {
+          "tp_pct": 0.2718,
+          "expectancy": -0.08003,
+          "reach_rate": 0.161
+        },
+        {
+          "tp_pct": 0.2788,
+          "expectancy": -0.0789,
+          "reach_rate": 0.161
+        },
+        {
+          "tp_pct": 0.2858,
+          "expectancy": -0.07778,
+          "reach_rate": 0.161
+        },
+        {
+          "tp_pct": 0.2928,
+          "expectancy": -0.08285,
+          "reach_rate": 0.143
+        },
+        {
+          "tp_pct": 0.2998,
+          "expectancy": -0.08786,
+          "reach_rate": 0.107
+        }
+      ],
+      "note": "SHADOW: not applied to live trades. Take-profit learned from MFE; stop learned from MAE once the Pine Script sends it (Phase B)."
+    },
+    "STOCKS_SPX500_30M": {
+      "n": 32,
+      "current_expectancy": -0.18225,
+      "current_net": -5.83,
+      "recommended_tp_pct": 0.3931,
+      "projected_expectancy": -0.08122,
+      "expectancy_gain": 0.10103,
+      "flips_positive": false,
+      "scratched_sl_tp1": 7,
+      "median_favorable_move_pct": 0.0,
+      "stop_learning": {
+        "status": "pending_mae_capture",
+        "trades_with_mae": 0,
+        "note": "Stop learning activates once the Pine Script sends MAE (\u226530 trades). Until then, take-profit optimization only."
+      },
+      "grid": [
+        {
+          "tp_pct": 0.02,
+          "expectancy": -0.1373,
+          "reach_rate": 0.406
+        },
+        {
+          "tp_pct": 0.0329,
+          "expectancy": -0.13208,
+          "reach_rate": 0.406
+        },
+        {
+          "tp_pct": 0.0457,
+          "expectancy": -0.12685,
+          "reach_rate": 0.406
+        },
+        {
+          "tp_pct": 0.0586,
+          "expectancy": -0.13027,
+          "reach_rate": 0.375
+        },
+        {
+          "tp_pct": 0.0715,
+          "expectancy": -0.13551,
+          "reach_rate": 0.344
+        },
+        {
+          "tp_pct": 0.0843,
+          "expectancy": -0.13109,
+          "reach_rate": 0.344
+        },
+        {
+          "tp_pct": 0.0972,
+          "expectancy": -0.15044,
+          "reach_rate": 0.312
+        },
+        {
+          "tp_pct": 0.1101,
+          "expectancy": -0.16083,
+          "reach_rate": 0.281
+        },
+        {
+          "tp_pct": 0.1229,
+          "expectancy": -0.15721,
+          "reach_rate": 0.281
+        },
+        {
+          "tp_pct": 0.1358,
+          "expectancy": -0.15359,
+          "reach_rate": 0.281
+        },
+        {
+          "tp_pct": 0.1487,
+          "expectancy": -0.14997,
+          "reach_rate": 0.281
+        },
+        {
+          "tp_pct": 0.1615,
+          "expectancy": -0.14635,
+          "reach_rate": 0.281
+        },
+        {
+          "tp_pct": 0.1744,
+          "expectancy": -0.14273,
+          "reach_rate": 0.281
+        },
+        {
+          "tp_pct": 0.1873,
+          "expectancy": -0.13911,
+          "reach_rate": 0.281
+        },
+        {
+          "tp_pct": 0.2001,
+          "expectancy": -0.1355,
+          "reach_rate": 0.281
+        },
+        {
+          "tp_pct": 0.213,
+          "expectancy": -0.13188,
+          "reach_rate": 0.281
+        },
+        {
+          "tp_pct": 0.2259,
+          "expectancy": -0.12826,
+          "reach_rate": 0.281
+        },
+        {
+          "tp_pct": 0.2387,
+          "expectancy": -0.12464,
+          "reach_rate": 0.281
+        },
+        {
+          "tp_pct": 0.2516,
+          "expectancy": -0.12102,
+          "reach_rate": 0.281
+        },
+        {
+          "tp_pct": 0.2645,
+          "expectancy": -0.1174,
+          "reach_rate": 0.281
+        },
+        {
+          "tp_pct": 0.2773,
+          "expectancy": -0.11378,
+          "reach_rate": 0.281
+        },
+        {
+          "tp_pct": 0.2902,
+          "expectancy": -0.11017,
+          "reach_rate": 0.281
+        },
+        {
+          "tp_pct": 0.3031,
+          "expectancy": -0.10655,
+          "reach_rate": 0.281
+        },
+        {
+          "tp_pct": 0.3159,
+          "expectancy": -0.10293,
+          "reach_rate": 0.281
+        },
+        {
+          "tp_pct": 0.3288,
+          "expectancy": -0.09931,
+          "reach_rate": 0.281
+        },
+        {
+          "tp_pct": 0.3417,
+          "expectancy": -0.09569,
+          "reach_rate": 0.281
+        },
+        {
+          "tp_pct": 0.3545,
+          "expectancy": -0.09207,
+          "reach_rate": 0.281
+        },
+        {
+          "tp_pct": 0.3674,
+          "expectancy": -0.08845,
+          "reach_rate": 0.281
+        },
+        {
+          "tp_pct": 0.3803,
+          "expectancy": -0.08484,
+          "reach_rate": 0.281
+        },
+        {
+          "tp_pct": 0.3931,
+          "expectancy": -0.08122,
+          "reach_rate": 0.281
+        },
+        {
+          "tp_pct": 0.406,
+          "expectancy": -0.11585,
+          "reach_rate": 0.219
+        },
+        {
+          "tp_pct": 0.4188,
+          "expectancy": -0.15006,
+          "reach_rate": 0.188
+        },
+        {
+          "tp_pct": 0.4317,
+          "expectancy": -0.14764,
+          "reach_rate": 0.188
+        },
+        {
+          "tp_pct": 0.4446,
+          "expectancy": -0.14523,
+          "reach_rate": 0.188
+        },
+        {
+          "tp_pct": 0.4574,
+          "expectancy": -0.14947,
+          "reach_rate": 0.156
+        },
+        {
+          "tp_pct": 0.4703,
+          "expectancy": -0.14746,
+          "reach_rate": 0.156
+        },
+        {
+          "tp_pct": 0.4832,
+          "expectancy": -0.14545,
+          "reach_rate": 0.156
+        },
+        {
+          "tp_pct": 0.496,
+          "expectancy": -0.14344,
+          "reach_rate": 0.156
+        },
+        {
+          "tp_pct": 0.5089,
+          "expectancy": -0.14143,
+          "reach_rate": 0.156
+        },
+        {
+          "tp_pct": 0.5218,
+          "expectancy": -0.13942,
+          "reach_rate": 0.156
+        },
+        {
+          "tp_pct": 0.5346,
+          "expectancy": -0.13741,
+          "reach_rate": 0.156
+        }
+      ],
+      "note": "SHADOW: not applied to live trades. Take-profit learned from MFE; stop learned from MAE once the Pine Script sends it (Phase B)."
+    }
+  }
+}
