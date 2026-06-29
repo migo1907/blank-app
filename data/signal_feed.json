@@ -1,37 +1,6 @@
 {
   "signals": [
     {
-      "direction": "SHORT",
-      "timeframe": "60",
-      "trigger": "BOS",
-      "symbol": "MSFT",
-      "entry_price": 365.47,
-      "tp1": 357.31,
-      "tp2": 350.79,
-      "tp3": 342.64,
-      "sl": 373.62,
-      "ml_score": 0.75,
-      "tier": "\u2b50 HIGH",
-      "quality_score": 0.5754,
-      "quality_reason": "approved",
-      "news_score": -0.2344,
-      "velocity": "ELEVATED",
-      "event": "WAR/CONFLICT",
-      "htf_bias": {
-        "direction": "SHORT",
-        "timeframe": "60",
-        "symbol": "MSFT",
-        "trigger": "BOS",
-        "ml_score": 0.75,
-        "stored_at": "2026-06-24T20:00:14.463086+00:00",
-        "expires_at": "2026-06-25T00:00:14.463106+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "htf_direct",
-      "session": "NYSE Afternoon",
-      "fired_at": "2026-06-24T20:00:14.786032+00:00"
-    },
-    {
       "direction": "LONG",
       "timeframe": "15",
       "trigger": "FVG",
@@ -2851,6 +2820,37 @@
       "htf_context": "htf_direct",
       "session": "NYSE Afternoon",
       "fired_at": "2026-06-29T19:30:03.102289+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "240",
+      "trigger": "FVG",
+      "symbol": "TSLA",
+      "entry_price": 411.59,
+      "tp1": 445.95,
+      "tp2": 474.58,
+      "tp3": 514.67,
+      "sl": 377.23,
+      "ml_score": 0.625,
+      "tier": "\u2705 MED",
+      "quality_score": 0.4166,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.0649,
+      "velocity": "CONFLICTED",
+      "event": "NFP",
+      "htf_bias": {
+        "direction": "LONG",
+        "timeframe": "240",
+        "symbol": "TSLA",
+        "trigger": "FVG",
+        "ml_score": 0.625,
+        "stored_at": "2026-06-29T20:00:02.813292+00:00",
+        "expires_at": "2026-06-30T04:00:02.813308+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "htf_direct",
+      "session": "NYSE Afternoon",
+      "fired_at": "2026-06-29T20:00:03.389785+00:00"
     }
   ]
 }
