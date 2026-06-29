@@ -7250,7 +7250,7 @@
     }
   },
   {
-    "received_at": "2026-06-29T17:30:13.124479+00:00",
+    "received_at": "2026-06-29T17:30:13.489115+00:00",
     "pool": "STOCKS_MOMENTUM_30M",
     "payload": {
       "secret": "gold2026",
@@ -7265,12 +7265,12 @@
       "sl": null,
       "ml_score": 0.25,
       "tier": null,
-      "trade_id": "TSLL_1782754201595",
-      "outcome": "WIN",
-      "ml_outcome": "TP1_HIT",
+      "trade_id": "TSLL_1782754201596",
+      "outcome": "PARTIAL",
+      "ml_outcome": "WIN",
       "mfe": 0.814,
-      "tp_stage": "TP1",
-      "exit_price": 13.2045,
+      "tp_stage": "SL_TP1",
+      "exit_price": 13.09,
       "f1": 0.4183,
       "f2": 0.5341,
       "f3": 0.4832,
