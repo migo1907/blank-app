@@ -1,447 +1,5 @@
 [
   {
-    "source": "Mining.com",
-    "headline": "Goldsky closes Agnico deal to become sole owner of Swedish project",
-    "url": "https://www.mining.com/goldsky-closes-agnico-deal-to-become-sole-owner-of-swedish-project/",
-    "sentiment_score": 0.1,
-    "impact": "LOW",
-    "keywords": [
-      "M&A",
-      "mining consolidation",
-      "project ownership"
-    ],
-    "fetched_at": "2026-06-29T10:01:40.761802+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Gold falls as Gulf tensions fuel inflation fears, Fed rate-hike bets - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMitgFBVV95cUxPSTVKRTRyZTc4cndMX2E0Mzd3UlROU1FJMWFsaWpkbDVuSUFiVldPeE1GRVFLbDVYeTZ5RTFXd08wUkYwU205amR5a1BIOTFTNGE1T01qMjNGSkJ2OXpjQVhWQ1JXSTdOeDBGb3I5czNDQ1VYck9ENEZJNVZMQk5Rc19tTWgzM3hGaC1uSlltSktpNWtyM3AtTTk3RkZJaFNpNjVFRXJUSWhuWEJGcnNUb1ZGVWstUQ?oc=5",
-    "sentiment_score": -0.7,
-    "impact": "HIGH",
-    "keywords": [
-      "Fed rate hike",
-      "inflation fears",
-      "stronger dollar"
-    ],
-    "fetched_at": "2026-06-29T10:01:40.761802+00:00"
-  },
-  {
-    "source": "CNBC",
-    "headline": "Trading in these two ETFs suggests inflation fears are overblown",
-    "url": "https://www.cnbc.com/2026/06/27/trading-in-these-two-etfs-suggests-inflation-fears-are-overblown.html",
-    "sentiment_score": -0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "inflation deflated",
-      "ETF positioning",
-      "risk sentiment"
-    ],
-    "fetched_at": "2026-06-29T10:01:40.761802+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "US diesel refining economics remain firm despite Iran war truce - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMitgFBVV95cUxQaktNajNVTlRkTm1nVkRyMHNDc3FBTk5BRjRVVy16cjRNbFdhSFhYWkYtcy1wNlJkMzRjTWhnakNiUmJjZ3V1c2luUG9lNVcyaG1Semg3UkhQOHEtY2tFS1lQbkkwZll4U3MzU2J3QmJuQnRKUzFuVVJPQXpJNzRjNmd2Rzc2aC1XRDMxck1OcXlxd3dNM1pJQnFHb3Z1S2U5VmVMYWtNY190WmdtNmtKd29fQm8zZw?oc=5",
-    "sentiment_score": -0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "energy prices",
-      "refining economics",
-      "inflation pressure"
-    ],
-    "fetched_at": "2026-06-29T10:01:40.761802+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "UAE stresses Hormuz security in rare call with Iran after war tensions - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMivgFBVV95cUxOTFhOWjA0b0NFVmItV25IVHhmdUw2WmtfeGU1SXZ1ZjFsaHF4bnJrTVVVR0M5QlFfS3Z1Vk5Scm5CTjFCaXB3SVREeXctT1h4QlhwaDJKc2dQNGhTbTV2U243Q0kwUjhzUEJnak5RdzdLNkpyMUNVcjNOdWFsRXFYVUFlZFpzMm9fMmR3dXJpem1wMWhOWm5OVDJfd3NzX1hhOFlnYjJZMzNId2UyOUxMS3VrdmJCWmxsVnlpZ3NB?oc=5",
-    "sentiment_score": 0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "geopolitical tension",
-      "Middle East",
-      "risk premium"
-    ],
-    "fetched_at": "2026-06-29T10:01:40.761802+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "UAE says false public warning caused by technical malfunction - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMitwFBVV95cUxQYTA4WmxkQjRfQjJKWUlDVzZuU0p0Sm8wS2g5c3JXay1qSXdTVHpsdVdDN3NwVEV3TnJZQ0RaV0htWm5xcnZ6LU96bXAza1RXeEhJUEN5UzNYN1IzTWZCeEFrUVdYNzRmdTNzaFAzNW9LWGQ1akpXOFlOdXI2NjA0UjVaSVJnenlsa2xmQ1lSTGZ3LTNVbWRJTG40aERIMjF4TGloTVcxRGFYMUhrMjdVdWExZHQyVW8?oc=5",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "technical malfunction",
-      "false alarm",
-      "non-event"
-    ],
-    "fetched_at": "2026-06-29T10:01:40.761802+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Russian hawks urge Putin to escalate war, drop US talks as Ukraine strikes deep - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMivgFBVV95cUxNMUI1WXppMHlidTBsSzZGOGZxZ1Y2RVBEaDh6anBxYk1lTU1KRkR3ZDllV2E1OVp2c1lvMjkyOUtzMm9sNld2U3pwSkg2NlZLdG1sSmRsdkhpUzRnSmxWQzZQUzRXMXFwdlE0V0NPRldOd09BcWYzRWFkeWlhZDFGY2QwaGxxZ1pmQ3lmVzlYUGtCdUtkUXJmeTNxWkZoQ0hBYkdHbDNEcGd0YkpXX0tHandlRU9tYzk4TWRGQzRB?oc=5",
-    "sentiment_score": 0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "geopolitical risk",
-      "Ukraine",
-      "escalation"
-    ],
-    "fetched_at": "2026-06-29T10:01:40.761802+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Germany joins opponents of EU methane law, warns it could up-end jet fuel supply - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMixwFBVV95cUxNQ2UtQWdoSktYaXhLaU5hcjY4eTZ3ajdNQXlDX1JOb3hSYWtxcHFtVGUzNVBpMW41aE5kYzFtS3JGelh3Zm1sWi13RWhiU0Mwbi1YVU1rZzJGSmlKZ2h1SzAxTi1RNWFiM0FqOEZVczB4bHQtbTJTd3FFajdlOUhOU1hHM1JMam1rZDlxWWZEUEZvUmdGeHZTTV85WkF6eGx5VWxVVE9EUkFOaTdMMTdPbmF5RFdSM2ZTNEQ5Q183OGRjaVRhZUtF?oc=5",
-    "sentiment_score": -0.2,
-    "impact": "LOW",
-    "keywords": [
-      "energy supply",
-      "regulatory",
-      "inflation offset"
-    ],
-    "fetched_at": "2026-06-29T10:01:40.761802+00:00"
-  },
-  {
-    "source": "CNBC",
-    "headline": "Judge blocks Trump's rule limiting federal student loans for certain grad school borrowers",
-    "url": "https://www.cnbc.com/2026/06/25/judge-blocks-trumps-rule-limiting-student-loans-for-grad-students-.html",
-    "sentiment_score": 0.1,
-    "impact": "LOW",
-    "keywords": [
-      "fiscal policy",
-      "student debt",
-      "economic stimulus"
-    ],
-    "fetched_at": "2026-06-29T10:01:40.761802+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Iran: No technical talks with the US planned this week - Tasnim",
-    "url": "https://www.financialjuice.com/News/9656232/Iran-No-technical-talks-with-the-US-planned-this-week---Tasnim.aspx?xy=feed",
-    "sentiment_score": 0.3,
-    "impact": "LOW",
-    "keywords": [
-      "Iran",
-      "US tensions",
-      "geopolitical risk"
-    ],
-    "fetched_at": "2026-06-29T10:16:41.261739+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "China grounds light aircraft after Beijing tower crash - FT",
-    "url": "https://www.financialjuice.com/News/9656231/China-grounds-light-aircraft-after-Beijing-tower-crash---FT.aspx?xy=feed",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "China",
-      "aircraft",
-      "domestic incident"
-    ],
-    "fetched_at": "2026-06-29T10:16:41.261739+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "ECB: banks placed \u20ac2.0 trillion in deposits overnight",
-    "url": "https://www.financialjuice.com/News/9656192/ECB-banks-placed-20-trillion-in-deposits-overnight.aspx?xy=feed",
-    "sentiment_score": -0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "ECB",
-      "liquidity",
-      "deposit inflows"
-    ],
-    "fetched_at": "2026-06-29T10:16:41.261739+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "ECB: Banks borrowed \u20ac966 million at marginal rate",
-    "url": "https://www.financialjuice.com/News/9656191/ECB-Banks-borrowed-966-million-at-marginal-rate.aspx?xy=feed",
-    "sentiment_score": -0.3,
-    "impact": "LOW",
-    "keywords": [
-      "ECB",
-      "borrowing",
-      "monetary conditions"
-    ],
-    "fetched_at": "2026-06-29T10:16:41.261739+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Fed's Chair Warsh to announce more task force details in coming weeks - NYT",
-    "url": "https://www.financialjuice.com/News/9656160/Feds-Chair-Warsh-to-announce-more-task-force-details-in-coming-weeks---NYT.aspx?xy=feed",
-    "sentiment_score": -0.2,
-    "impact": "LOW",
-    "keywords": [
-      "Fed",
-      "task force",
-      "policy uncertainty"
-    ],
-    "fetched_at": "2026-06-29T10:16:41.261739+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Iran President: $6b held in Qatar to be returned - ISNA",
-    "url": "https://www.financialjuice.com/News/9656070/Iran-President-6b-held-in-Qatar-to-be-returned---ISNA.aspx?xy=feed",
-    "sentiment_score": 0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "Iran",
-      "assets released",
-      "geopolitical easing"
-    ],
-    "fetched_at": "2026-06-29T10:16:41.261739+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Iran's President Pezeshkian says $6 billion out of $12 billion of Iranian assets in Qatar should be released - IRNA.",
-    "url": "https://www.financialjuice.com/News/9656043/Irans-President-Pezeshkian-says-6-billion-out-of-12-billion-of-Iranian-assets-in-Qatar-should-be-released---IRNA.aspx?xy=feed",
-    "sentiment_score": 0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "Iran",
-      "frozen assets",
-      "geopolitical easing"
-    ],
-    "fetched_at": "2026-06-29T10:16:41.261739+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Japan's Chief Cabinet Secretary Kihara: Japan demanded that China withdraw the decision on the export control list",
-    "url": "https://www.financialjuice.com/News/9655994/Japans-Chief-Cabinet-Secretary-Kihara-Japan-demanded-that-China-withdraw-the-decision-on-the-export-control-list.aspx?xy=feed",
-    "sentiment_score": 0.2,
-    "impact": "LOW",
-    "keywords": [
-      "China",
-      "Japan",
-      "trade tension"
-    ],
-    "fetched_at": "2026-06-29T10:16:41.261739+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Spanish HICP YoY Flash  Actual 3.6% (Forecast 3.4%, Previous 3.6%)",
-    "url": "https://www.financialjuice.com/News/9655962/Spanish-HICP-YoY-Flash--Actual-36-Forecast-34-Previous-36.aspx?xy=feed",
-    "sentiment_score": -0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "inflation",
-      "CPI surprise",
-      "rate expectations"
-    ],
-    "fetched_at": "2026-06-29T10:16:41.261739+00:00"
-  },
-  {
-    "source": "FinancialJuice",
-    "headline": "Spanish CPI MoM Flash Actual 0.6% (Forecast 0.4%, Previous 0.10%)",
-    "url": "https://www.financialjuice.com/News/9655961/Spanish-CPI-MoM-Flash-Actual-06-Forecast-04-Previous-010.aspx?xy=feed",
-    "sentiment_score": -0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "inflation",
-      "CPI higher",
-      "rate expectations"
-    ],
-    "fetched_at": "2026-06-29T10:16:41.261739+00:00"
-  },
-  {
-    "source": "MarketWatch Top",
-    "headline": "The central bank of central  banks warns AI frenzy could trigger stock-market slump and jeopardize economy",
-    "url": "https://www.marketwatch.com/story/the-central-bank-of-central-banks-warns-ai-frenzy-could-trigger-stock-market-slump-and-jeopardize-economy-4d24b0a1?mod=mw_rss_topstories",
-    "sentiment_score": 0.6,
-    "impact": "HIGH",
-    "keywords": [
-      "AI risk",
-      "financial stability",
-      "risk-off"
-    ],
-    "fetched_at": "2026-06-29T10:16:41.261739+00:00"
-  },
-  {
-    "source": "MarketWatch Top",
-    "headline": "Oil prices, stock futures inch higher as U.S. and Iran reportedly agree to halt attacks",
-    "url": "https://www.marketwatch.com/story/oil-prices-rise-stock-futures-inch-higher-as-u-s-and-iran-trade-more-airstrikes-3fc66beb?mod=mw_rss_topstories",
-    "sentiment_score": -0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "risk sentiment",
-      "Middle East peace",
-      "dollar strength"
-    ],
-    "fetched_at": "2026-06-29T10:16:41.261739+00:00"
-  },
-  {
-    "source": "Investing.com Comm",
-    "headline": "Nasdaq futures lead Wall St higher as Middle East tensions ease",
-    "url": "https://www.investing.com/news/stock-market-news/nasdaq-futures-lead-wall-st-higher-as-middle-east-tensions-ease-4764565",
-    "sentiment_score": -0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "risk-on",
-      "equity rally",
-      "dollar strength"
-    ],
-    "fetched_at": "2026-06-29T10:16:41.261739+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Asia FX muted as dollar heads for biggest monthly gain in nearly a year",
-    "url": "https://www.investing.com/news/forex-news/asia-fx-steady-as-traders-weigh-fragile-iran-ceasefire-busy-data-week-4764221",
-    "sentiment_score": -0.6,
-    "impact": "HIGH",
-    "keywords": [
-      "dollar strength",
-      "monthly gain",
-      "rate expectations"
-    ],
-    "fetched_at": "2026-06-29T10:16:41.261739+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Euro yields edge up as Middle East tension fuels oil, inflation fears",
-    "url": "https://www.investing.com/news/forex-news/euro-yields-edge-up-as-middle-east-tension-fuels-oil-inflation-fears-4764282",
-    "sentiment_score": -0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "oil rally",
-      "inflation fears",
-      "euro yields"
-    ],
-    "fetched_at": "2026-06-29T10:16:41.261739+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Sovereign investors with $29 trillion pivot to energy assets, flag dollar fears",
-    "url": "https://www.investing.com/news/forex-news/sovereign-investors-with-29-trillion-pivot-to-energy-assets-flag-dollar-fears-4764177",
-    "sentiment_score": 0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "sovereign wealth",
-      "energy pivot",
-      "dollar concerns"
-    ],
-    "fetched_at": "2026-06-29T10:16:41.261739+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Dollar set for weekly gain on rate hike bets even as inflationary concerns recede",
-    "url": "https://www.investing.com/news/forex-news/yen-steadies-near-40year-low-as-dollar-pauses-regional-currencies-mixed-4761997",
-    "sentiment_score": -0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "dollar strength",
-      "rate hikes",
-      "weekly gain"
-    ],
-    "fetched_at": "2026-06-29T10:16:41.261739+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "IMF economist says dollar still dominates despite trade shifts",
-    "url": "https://www.investing.com/news/forex-news/imf-economist-says-dollar-still-dominates-despite-trade-shifts-93CH-4763240",
-    "sentiment_score": -0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "dollar dominance",
-      "currency stability",
-      "trade shifts"
-    ],
-    "fetched_at": "2026-06-29T10:16:41.261739+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "UBS turns more bullish on U.S. dollar, sees euro and yen weakening further",
-    "url": "https://www.investing.com/news/forex-news/ubs-turns-more-bullish-on-us-dollar-sees-euro-and-yen-weakening-further-4763050",
-    "sentiment_score": -0.6,
-    "impact": "HIGH",
-    "keywords": [
-      "dollar bullish",
-      "euro weakness",
-      "currency outlook"
-    ],
-    "fetched_at": "2026-06-29T10:16:41.261739+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Sterling today: Pound recovers as dollar rally loses steam",
-    "url": "https://www.investing.com/news/forex-news/sterling-today-pound-recovers-as-dollar-rally-loses-steam-4762736",
-    "sentiment_score": -0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "dollar weakening",
-      "pound strength",
-      "momentum shift"
-    ],
-    "fetched_at": "2026-06-29T10:16:41.261739+00:00"
-  },
-  {
-    "source": "Mining.com",
-    "headline": "Integra grows reserve by 74% at Florida Canyon gold mine",
-    "url": "https://www.mining.com/integra-grows-reserve-74-at-florida-canyon-gold-mine/",
-    "sentiment_score": 0.7,
-    "impact": "MEDIUM",
-    "keywords": [
-      "reserve growth",
-      "production expansion",
-      "mine development"
-    ],
-    "fetched_at": "2026-06-29T10:16:41.261739+00:00"
-  },
-  {
-    "source": "Mining.com",
-    "headline": "i-80 Gold terminates Vox Royalty offtake with $4.8M payment",
-    "url": "https://www.mining.com/i-80-gold-terminates-vox-royalty-offtake-with-4-8m-payment/",
-    "sentiment_score": 0.3,
-    "impact": "LOW",
-    "keywords": [
-      "offtake agreement",
-      "corporate restructuring",
-      "financing"
-    ],
-    "fetched_at": "2026-06-29T10:16:41.261739+00:00"
-  },
-  {
-    "source": "Mining.com",
-    "headline": "Revival Gold extends Joss depth in Idaho high-grade push",
-    "url": "https://www.mining.com/revival-gold-extends-joss-depth-in-idaho-high-grade-push/",
-    "sentiment_score": 0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "reserve extension",
-      "exploration success",
-      "high-grade"
-    ],
-    "fetched_at": "2026-06-29T10:16:41.261739+00:00"
-  },
-  {
-    "source": "Mining.com",
-    "headline": "Goldsky closes Agnico deal to become sole owner of Swedish project",
-    "url": "https://www.mining.com/goldsky-closes-agnico-deal-to-become-sole-owner-of-swedish-project/",
-    "sentiment_score": 0.2,
-    "impact": "LOW",
-    "keywords": [
-      "M&A",
-      "ownership consolidation",
-      "project control"
-    ],
-    "fetched_at": "2026-06-29T10:16:41.261739+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Gold falls as Gulf tensions fuel inflation fears, Fed rate-hike bets - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMitgFBVV95cUxPSTVKRTRyZTc4cndMX2E0Mzd3UlROU1FJMWFsaWpkbDVuSUFiVldPeE1GRVFLbDVYeTZ5RTFXd08wUkYwU205amR5a1BIOTFTNGE1T01qMjNGSkJ2OXpjQVhWQ1JXSTdOeDBGb3I5czNDQ1VYck9ENEZJNVZMQk5Rc19tTWgzM3hGaC1uSlltSktpNWtyM3AtTTk3RkZJaFNpNjVFRXJUSWhuWEJGcnNUb1ZGVWstUQ?oc=5",
-    "sentiment_score": 0.6,
-    "impact": "MEDIUM",
-    "keywords": [
-      "inflation fears",
-      "Fed rate hikes",
-      "safe-haven demand"
-    ],
-    "fetched_at": "2026-06-29T10:16:41.261739+00:00"
-  },
-  {
     "source": "CNBC",
     "headline": "Trading in these two ETFs suggests inflation fears are overblown",
     "url": "https://www.cnbc.com/2026/06/27/trading-in-these-two-etfs-suggests-inflation-fears-are-overblown.html",
@@ -2598,5 +2156,447 @@
       "inflation debate"
     ],
     "fetched_at": "2026-06-29T11:31:40.839841+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Trump: Iran has requested a meeting. It will take place tomorrow in Doha",
+    "url": "https://www.financialjuice.com/News/9656341/Trump-Iran-has-requested-a-meeting-It-will-take-place-tomorrow-in-Doha.aspx?xy=rss",
+    "sentiment_score": 0.7,
+    "impact": "HIGH",
+    "keywords": [
+      "geopolitical risk",
+      "Iran-US talks",
+      "safe-haven"
+    ],
+    "fetched_at": "2026-06-29T11:46:41.518251+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "China Cabinet meeting: Should improve support measures for AI development - CCTV",
+    "url": "https://www.financialjuice.com/News/9656326/China-Cabinet-meeting-Should-improve-support-measures-for-AI-development---CCTV.aspx?xy=rss",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "China",
+      "AI policy",
+      "domestic"
+    ],
+    "fetched_at": "2026-06-29T11:46:41.518251+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Iran: Venue of talks with the US in Doha not confirmed - Doha",
+    "url": "https://www.financialjuice.com/News/9655629/Iran-Venue-of-talks-with-the-US-in-Doha-not-confirmed---Doha.aspx?xy=rss",
+    "sentiment_score": -0.3,
+    "impact": "MEDIUM",
+    "keywords": [
+      "Iran talks uncertainty",
+      "risk-off reversal",
+      "negotiations"
+    ],
+    "fetched_at": "2026-06-29T11:46:41.518251+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Iran: No technical talks with the US planned this week - Tasnim",
+    "url": "https://www.financialjuice.com/News/9656232/Iran-No-technical-talks-with-the-US-planned-this-week---Tasnim.aspx?xy=rss",
+    "sentiment_score": -0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "Iran diplomacy stalled",
+      "reduced tensions",
+      "de-escalation"
+    ],
+    "fetched_at": "2026-06-29T11:46:41.518251+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "China grounds light aircraft after Beijing tower crash - FT",
+    "url": "https://www.financialjuice.com/News/9656231/China-grounds-light-aircraft-after-Beijing-tower-crash---FT.aspx?xy=rss",
+    "sentiment_score": 0.1,
+    "impact": "LOW",
+    "keywords": [
+      "China accident",
+      "isolated incident",
+      "minimal impact"
+    ],
+    "fetched_at": "2026-06-29T11:46:41.518251+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "ECB: banks placed \u20ac2.0 trillion in deposits overnight",
+    "url": "https://www.financialjuice.com/News/9656192/ECB-banks-placed-20-trillion-in-deposits-overnight.aspx?xy=rss",
+    "sentiment_score": -0.2,
+    "impact": "MEDIUM",
+    "keywords": [
+      "EUR strength",
+      "liquidity",
+      "risk appetite"
+    ],
+    "fetched_at": "2026-06-29T11:46:41.518251+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "ECB: Banks borrowed \u20ac966 million at marginal rate",
+    "url": "https://www.financialjuice.com/News/9656191/ECB-Banks-borrowed-966-million-at-marginal-rate.aspx?xy=rss",
+    "sentiment_score": -0.2,
+    "impact": "MEDIUM",
+    "keywords": [
+      "EUR strength",
+      "liquidity",
+      "rate expectations"
+    ],
+    "fetched_at": "2026-06-29T11:46:41.518251+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Fed's Chair Warsh to announce more task force details in coming weeks - NYT",
+    "url": "https://www.financialjuice.com/News/9656160/Feds-Chair-Warsh-to-announce-more-task-force-details-in-coming-weeks---NYT.aspx?xy=rss",
+    "sentiment_score": -0.3,
+    "impact": "MEDIUM",
+    "keywords": [
+      "Fed policy uncertainty",
+      "dollar pressure",
+      "task force"
+    ],
+    "fetched_at": "2026-06-29T11:46:41.518251+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Iran President: $6b held in Qatar to be returned - ISNA",
+    "url": "https://www.financialjuice.com/News/9656070/Iran-President-6b-held-in-Qatar-to-be-returned---ISNA.aspx?xy=rss",
+    "sentiment_score": 0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "Iran asset release",
+      "de-escalation",
+      "safe-haven demand"
+    ],
+    "fetched_at": "2026-06-29T11:46:41.518251+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Iran's President Pezeshkian says $6 billion out of $12 billion of Iranian assets in Qatar should be released - IRNA.",
+    "url": "https://www.financialjuice.com/News/9656043/Irans-President-Pezeshkian-says-6-billion-out-of-12-billion-of-Iranian-assets-in-Qatar-should-be-released---IRNA.aspx?xy=rss",
+    "sentiment_score": 0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "Iran asset unfreezing",
+      "tensions easing",
+      "geopolitical relief"
+    ],
+    "fetched_at": "2026-06-29T11:46:41.518251+00:00"
+  },
+  {
+    "source": "MarketWatch Top",
+    "headline": "How the chip trade has come to resemble silver \u2014 a warning from Morgan Stanley\u2019s Wilson",
+    "url": "https://www.marketwatch.com/story/silver-and-the-semiconductor-climax-a-warning-from-morgan-stanleys-wilson-833e06e1?mod=mw_rss_topstories",
+    "sentiment_score": 0.2,
+    "impact": "LOW",
+    "keywords": [
+      "chip trade risks",
+      "tech sector",
+      "macro uncertainty"
+    ],
+    "fetched_at": "2026-06-29T11:46:41.518251+00:00"
+  },
+  {
+    "source": "MarketWatch Top",
+    "headline": "Why Apple pivoting to China for memory may not solve big tech\u2019s microchip crisis",
+    "url": "https://www.marketwatch.com/story/why-apple-pivoting-to-china-for-memory-may-not-solve-big-techs-microchip-crisis-51f3438d?mod=mw_rss_topstories",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "Apple supply chain",
+      "China pivot",
+      "sector specific"
+    ],
+    "fetched_at": "2026-06-29T11:46:41.518251+00:00"
+  },
+  {
+    "source": "MarketWatch Top",
+    "headline": "The central bank of central  banks warns AI frenzy could trigger stock-market slump and jeopardize economy",
+    "url": "https://www.marketwatch.com/story/the-central-bank-of-central-banks-warns-ai-frenzy-could-trigger-stock-market-slump-and-jeopardize-economy-4d24b0a1?mod=mw_rss_topstories",
+    "sentiment_score": 0.6,
+    "impact": "HIGH",
+    "keywords": [
+      "AI risk",
+      "financial stability",
+      "recession fears"
+    ],
+    "fetched_at": "2026-06-29T11:46:41.518251+00:00"
+  },
+  {
+    "source": "Investing.com Comm",
+    "headline": "NN stock surges 68% on new NVIDIA data center product awards",
+    "url": "https://www.investing.com/news/stock-market-news/nn-stock-surges-68-on-new-nvidia-data-center-product-awards-93CH-4765085",
+    "sentiment_score": -0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "tech rally",
+      "risk-on sentiment",
+      "dollar strength"
+    ],
+    "fetched_at": "2026-06-29T11:46:41.518251+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Euro yields edge up as Middle East tension fuels oil, inflation fears",
+    "url": "https://www.investing.com/news/forex-news/euro-yields-edge-up-as-middle-east-tension-fuels-oil-inflation-fears-4764282",
+    "sentiment_score": -0.5,
+    "impact": "HIGH",
+    "keywords": [
+      "dollar strength",
+      "inflation concerns",
+      "risk-off"
+    ],
+    "fetched_at": "2026-06-29T11:46:41.518251+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Dollar heads for biggest monthly gain in nearly a year; ECB forum in focus",
+    "url": "https://www.investing.com/news/forex-news/asia-fx-steady-as-traders-weigh-fragile-iran-ceasefire-busy-data-week-4764221",
+    "sentiment_score": -0.7,
+    "impact": "HIGH",
+    "keywords": [
+      "dollar rally",
+      "rate hike bets",
+      "EUR weakness"
+    ],
+    "fetched_at": "2026-06-29T11:46:41.518251+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Sovereign investors with $29 trillion pivot to energy assets, flag dollar fears",
+    "url": "https://www.investing.com/news/forex-news/sovereign-investors-with-29-trillion-pivot-to-energy-assets-flag-dollar-fears-4764177",
+    "sentiment_score": -0.6,
+    "impact": "HIGH",
+    "keywords": [
+      "dollar strength",
+      "EM outflows",
+      "currency diversification"
+    ],
+    "fetched_at": "2026-06-29T11:46:41.518251+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Dollar set for weekly gain on rate hike bets even as inflationary concerns recede",
+    "url": "https://www.investing.com/news/forex-news/yen-steadies-near-40year-low-as-dollar-pauses-regional-currencies-mixed-4761997",
+    "sentiment_score": -0.6,
+    "impact": "HIGH",
+    "keywords": [
+      "dollar strength",
+      "rate expectations",
+      "USD dominance"
+    ],
+    "fetched_at": "2026-06-29T11:46:41.518251+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "IMF economist says dollar still dominates despite trade shifts",
+    "url": "https://www.investing.com/news/forex-news/imf-economist-says-dollar-still-dominates-despite-trade-shifts-93CH-4763240",
+    "sentiment_score": -0.6,
+    "impact": "HIGH",
+    "keywords": [
+      "dollar bullish",
+      "EUR weakness",
+      "yen decline"
+    ],
+    "fetched_at": "2026-06-29T11:46:41.518251+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "UBS turns more bullish on U.S. dollar, sees euro and yen weakening further",
+    "url": "https://www.investing.com/news/forex-news/ubs-turns-more-bullish-on-us-dollar-sees-euro-and-yen-weakening-further-4763050",
+    "sentiment_score": -0.7,
+    "impact": "HIGH",
+    "keywords": [
+      "UBS bullish dollar",
+      "EUR weakness",
+      "capital flows"
+    ],
+    "fetched_at": "2026-06-29T11:46:41.518251+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Sterling today: Pound recovers as dollar rally loses steam",
+    "url": "https://www.investing.com/news/forex-news/sterling-today-pound-recovers-as-dollar-rally-loses-steam-4762736",
+    "sentiment_score": -0.3,
+    "impact": "MEDIUM",
+    "keywords": [
+      "dollar strength",
+      "pound recovery",
+      "USD weakness"
+    ],
+    "fetched_at": "2026-06-29T11:46:41.518251+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Integra grows reserve by 74% at Florida Canyon gold mine",
+    "url": "https://www.mining.com/integra-grows-reserve-74-at-florida-canyon-gold-mine/",
+    "sentiment_score": 0.2,
+    "impact": "LOW",
+    "keywords": [
+      "gold production",
+      "reserve growth",
+      "supply"
+    ],
+    "fetched_at": "2026-06-29T11:46:41.518251+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "i-80 Gold terminates Vox Royalty offtake with $4.8M payment",
+    "url": "https://www.mining.com/i-80-gold-terminates-vox-royalty-offtake-with-4-8m-payment/",
+    "sentiment_score": 0.1,
+    "impact": "LOW",
+    "keywords": [
+      "offtake agreement",
+      "royalty",
+      "financing"
+    ],
+    "fetched_at": "2026-06-29T11:46:41.518251+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Revival Gold extends Joss depth in Idaho high-grade push",
+    "url": "https://www.mining.com/revival-gold-extends-joss-depth-in-idaho-high-grade-push/",
+    "sentiment_score": 0.1,
+    "impact": "LOW",
+    "keywords": [
+      "gold exploration",
+      "mine development",
+      "reserves"
+    ],
+    "fetched_at": "2026-06-29T11:46:41.518251+00:00"
+  },
+  {
+    "source": "Reuters",
+    "headline": "How 5 weeks of war shattered some of Iran\u2019s cherished monuments - Reuters",
+    "url": "https://news.google.com/rss/articles/CBMiigFBVV95cUxQZDF2cmU1OXB5Q1VfV0ZUM1VhZE51WVlXTnlrS2VUaC1oMldhNUYzUkFpRGdTNDg3b1RRSEZtYUVHamtJODBvMUFkMnpwZkhGS1NPMFp3TUlkdWs1VUhzN1Z4dEpybndfNDJEN1YtUnJXYXVlMDlkdVQ4d0JxRUxtdEx5QXE1NTN5OHc?oc=5",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "geopolitical",
+      "Iran conflict",
+      "war"
+    ],
+    "fetched_at": "2026-06-29T11:46:41.518251+00:00"
+  },
+  {
+    "source": "Reuters",
+    "headline": "Senior Lebanese official slams US-brokered deal with Israel, warns of divisions - Reuters",
+    "url": "https://news.google.com/rss/articles/CBMiyAFBVV95cUxNdEcxa2lmSEt3VTljemt3NzlwaGdLWVZCTHdjYUJEVjlzZkNSTDUzUXRaQThvc1d1MTJBVVdERzF2Qno3YWthLWRDVGtKbHZxQ2xuVmNkWG43Ri1mWHM0TGJrX3F4TXlyaTdwYXBxQzRDaHNSOFhSZDhtS04tRGRIejNOZTdLSHBaS293OWNIMC12bV83anZQdDRra204aU0wSFI4NGZ1LTdHRHBfM1pSYWdXOHpZMUZzUnlwd0tGS3p6N3dsYzRxYQ?oc=5",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "geopolitical",
+      "Middle East",
+      "tensions"
+    ],
+    "fetched_at": "2026-06-29T11:46:41.518251+00:00"
+  },
+  {
+    "source": "Reuters",
+    "headline": "Gold falls as Gulf tensions fuel inflation fears, Fed rate-hike bets - Reuters",
+    "url": "https://news.google.com/rss/articles/CBMitgFBVV95cUxPSTVKRTRyZTc4cndMX2E0Mzd3UlROU1FJMWFsaWpkbDVuSUFiVldPeE1GRVFLbDVYeTZ5RTFXd08wUkYwU205amR5a1BIOTFTNGE1T01qMjNGSkJ2OXpjQVhWQ1JXSTdOeDBGb3I5czNDQ1VYck9ENEZJNVZMQk5Rc19tTWgzM3hGaC1uSlltSktpNWtyM3AtTTk3RkZJaFNpNjVFRXJUSWhuWEJGcnNUb1ZGVWstUQ?oc=5",
+    "sentiment_score": -0.6,
+    "impact": "MEDIUM",
+    "keywords": [
+      "inflation fears",
+      "Fed rate hike",
+      "risk-off"
+    ],
+    "fetched_at": "2026-06-29T11:46:41.518251+00:00"
+  },
+  {
+    "source": "Reuters",
+    "headline": "Iran war developments, Fed rate path cues in focus for Indian rupee and bonds - Reuters",
+    "url": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxNU0tnYmloaHpIVTVmYUZHSUljRy1XNHN2VU8wSDVxSk5DRmJFUkNDWjNzOXJ6ejd0a0hGWmoxMWJncnZOQm5taGpMU09TMjBTMEFkUWlTZXVDMXRoUkhoZGRTWVdUTnVzaXhoRHlQUmloSnpPUTVBYU9rbFV0ZE1VTUFnZGZ2RkRTTWRjQ1dqVE9Telg2c285TlBTRFYyVDNFc1pxcUExa0lkZ3ZUTy1MZEp0N2pOTzg4ZFo4?oc=5",
+    "sentiment_score": 0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "geopolitical risk",
+      "inflation expectations",
+      "safe haven"
+    ],
+    "fetched_at": "2026-06-29T11:46:41.518251+00:00"
+  },
+  {
+    "source": "CNBC",
+    "headline": "Trading in these two ETFs suggests inflation fears are overblown",
+    "url": "https://www.cnbc.com/2026/06/27/trading-in-these-two-etfs-suggests-inflation-fears-are-overblown.html",
+    "sentiment_score": -0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "inflation deflation",
+      "market sentiment",
+      "risk assets"
+    ],
+    "fetched_at": "2026-06-29T11:46:41.518251+00:00"
+  },
+  {
+    "source": "Reuters",
+    "headline": "US diesel refining economics remain firm despite Iran war truce - Reuters",
+    "url": "https://news.google.com/rss/articles/CBMitgFBVV95cUxQaktNajNVTlRkTm1nVkRyMHNDc3FBTk5BRjRVVy16cjRNbFdhSFhYWkYtcy1wNlJkMzRjTWhnakNiUmJjZ3V1c2luUG9lNVcyaG1Semg3UkhQOHEtY2tFS1lQbkkwZll4U3MzU2J3QmJuQnRKUzFuVVJPQXpJNzRjNmd2Rzc2aC1XRDMxck1OcXlxd3dNM1pJQnFHb3Z1S2U5VmVMYWtNY190WmdtNmtKd29fQm8zZw?oc=5",
+    "sentiment_score": -0.2,
+    "impact": "LOW",
+    "keywords": [
+      "energy prices",
+      "inflation pressure",
+      "economic impact"
+    ],
+    "fetched_at": "2026-06-29T11:46:41.518251+00:00"
+  },
+  {
+    "source": "Reuters",
+    "headline": "UAE stresses Hormuz security in rare call with Iran after war tensions - Reuters",
+    "url": "https://news.google.com/rss/articles/CBMivgFBVV95cUxOTFhOWjA0b0NFVmItV25IVHhmdUw2WmtfeGU1SXZ1ZjFsaHF4bnJrTVVVR0M5QlFfS3Z1Vk5Scm5CTjFCaXB3SVREeXctT1h4QlhwaDJKc2dQNGhTbTV2U243Q0kwUjhzUEJnak5RdzdLNkpyMUNVcjNOdWFsRXFYVUFlZFpzMm9fMmR3dXJpem1wMWhOWm5OVDJfd3NzX1hhOFlnYjJZMzNId2UyOUxMS3VrdmJCWmxsVnlpZ3NB?oc=5",
+    "sentiment_score": 0.3,
+    "impact": "MEDIUM",
+    "keywords": [
+      "geopolitical risk",
+      "Hormuz security",
+      "safe haven"
+    ],
+    "fetched_at": "2026-06-29T11:46:41.518251+00:00"
+  },
+  {
+    "source": "Reuters",
+    "headline": "UAE says false public warning caused by technical malfunction - Reuters",
+    "url": "https://news.google.com/rss/articles/CBMitwFBVV95cUxQYTA4WmxkQjRfQjJKWUlDVzZuU0p0Sm8wS2g5c3JXay1qSXdTVHpsdVdDN3NwVEV3TnJZQ0RaV0htWm5xcnZ6LU96bXAza1RXeEhJUEN5UzNYN1IzTWZCeEFrUVdYNzRmdTNzaFAzNW9LWGQ1akpXOFlOdXI2NjA0UjVaSVJnenlsa2xmQ1lSTGZ3LTNVbWRJTG40aERIMjF4TGloTVcxRGFYMUhrMjdVdWExZHQyVW8?oc=5",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "technical issue",
+      "false alarm",
+      "regional tension"
+    ],
+    "fetched_at": "2026-06-29T11:46:41.518251+00:00"
+  },
+  {
+    "source": "Reuters",
+    "headline": "Russian hawks urge Putin to escalate war, drop US talks as Ukraine strikes deep - Reuters",
+    "url": "https://news.google.com/rss/articles/CBMivgFBVV95cUxNMUI1WXppMHlidTBsSzZGOGZxZ1Y2RVBEaDh6anBxYk1lTU1KRkR3ZDllV2E1OVp2c1lvMjkyOUtzMm9sNld2U3pwSkg2NlZLdG1sSmRsdkhpUzRnSmxWQzZQUzRXMXFwdlE0V0NPRldOd09BcWYzRWFkeWlhZDFGY2QwaGxxZ1pmQ3lmVzlYUGtCdUtkUXJmeTNxWkZoQ0hBYkdHbDNEcGd0YkpXX0tHandlRU9tYzk4TWRGQzRB?oc=5",
+    "sentiment_score": 0.2,
+    "impact": "LOW",
+    "keywords": [
+      "geopolitical risk",
+      "escalation risk",
+      "safe haven"
+    ],
+    "fetched_at": "2026-06-29T11:46:41.518251+00:00"
+  },
+  {
+    "source": "Reuters",
+    "headline": "Germany joins opponents of EU methane law, warns it could up-end jet fuel supply - Reuters",
+    "url": "https://news.google.com/rss/articles/CBMixwFBVV95cUxNQ2UtQWdoSktYaXhLaU5hcjY4eTZ3ajdNQXlDX1JOb3hSYWtxcHFtVGUzNVBpMW41aE5kYzFtS3JGelh3Zm1sWi13RWhiU0Mwbi1YVU1rZzJGSmlKZ2h1SzAxTi1RNWFiM0FqOEZVczB4bHQtbTJTd3FFajdlOUhOU1hHM1JMam1rZDlxWWZEUEZvUmdGeHZTTV85WkF6eGx5VWxVVE9EUkFOaTdMMTdPbmF5RFdSM2ZTNEQ5Q183OGRjaVRhZUtF?oc=5",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "energy policy",
+      "EU regulation",
+      "supply chain"
+    ],
+    "fetched_at": "2026-06-29T11:46:41.518251+00:00"
   }
 ]
