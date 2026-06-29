@@ -2,37 +2,6 @@
   "signals": [
     {
       "direction": "SHORT",
-      "timeframe": "60",
-      "trigger": "BOS",
-      "symbol": "HTZ",
-      "entry_price": 3.37,
-      "tp1": 2.93,
-      "tp2": 2.58,
-      "tp3": 2.14,
-      "sl": 3.8,
-      "ml_score": 0.5,
-      "tier": "\u26a1 LOW",
-      "quality_score": 0.4759,
-      "quality_reason": "approved",
-      "news_score": -0.2403,
-      "velocity": "NORMAL",
-      "event": "WAR/CONFLICT",
-      "htf_bias": {
-        "direction": "SHORT",
-        "timeframe": "240",
-        "symbol": "HTZ",
-        "trigger": "BOS",
-        "ml_score": 0.5,
-        "stored_at": "2026-06-24T17:30:26.435229+00:00",
-        "expires_at": "2026-06-25T01:30:26.435235+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "htf_direct",
-      "session": "NYSE Afternoon",
-      "fired_at": "2026-06-24T17:30:26.440473+00:00"
-    },
-    {
-      "direction": "SHORT",
       "timeframe": "240",
       "trigger": "BOS",
       "symbol": "HTZ",
@@ -2835,6 +2804,37 @@
       "htf_context": "htf_direct",
       "session": "NYSE Afternoon",
       "fired_at": "2026-06-29T17:30:49.026779+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "60",
+      "trigger": "FVG",
+      "symbol": "RR",
+      "entry_price": 2.01,
+      "tp1": 2.16,
+      "tp2": 2.27,
+      "tp3": 2.42,
+      "sl": 1.86,
+      "ml_score": 0.375,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.4133,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.0103,
+      "velocity": "CONFLICTED",
+      "event": "GEOPOLITICAL",
+      "htf_bias": {
+        "direction": "LONG",
+        "timeframe": "60",
+        "symbol": "RR",
+        "trigger": "FVG",
+        "ml_score": 0.375,
+        "stored_at": "2026-06-29T17:30:58.438310+00:00",
+        "expires_at": "2026-06-29T21:30:58.438336+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "htf_direct",
+      "session": "NYSE Afternoon",
+      "fired_at": "2026-06-29T17:30:58.463358+00:00"
     }
   ]
 }
