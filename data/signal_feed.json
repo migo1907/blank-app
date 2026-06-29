@@ -2,37 +2,6 @@
   "signals": [
     {
       "direction": "SHORT",
-      "timeframe": "15",
-      "trigger": "BOS",
-      "symbol": "HTZ",
-      "entry_price": 2.99,
-      "tp1": 2.78,
-      "tp2": 2.63,
-      "tp3": 2.42,
-      "sl": 3.2,
-      "ml_score": 0.75,
-      "tier": "\u2b50 HIGH",
-      "quality_score": 0.4732,
-      "quality_reason": "approved",
-      "news_score": -0.2344,
-      "velocity": "ELEVATED",
-      "event": "WAR/CONFLICT",
-      "htf_bias": {
-        "direction": "SHORT",
-        "timeframe": "240",
-        "symbol": "HTZ",
-        "trigger": "BOS",
-        "ml_score": 0.5,
-        "stored_at": "2026-06-24T17:30:26.435229+00:00",
-        "expires_at": "2026-06-25T01:30:26.435235+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "with_bias",
-      "session": "NYSE Afternoon",
-      "fired_at": "2026-06-24T20:00:14.206556+00:00"
-    },
-    {
-      "direction": "SHORT",
       "timeframe": "60",
       "trigger": "BOS",
       "symbol": "MSFT",
@@ -2851,6 +2820,37 @@
       "htf_context": "htf_direct",
       "session": "NYSE Afternoon",
       "fired_at": "2026-06-29T19:00:14.956588+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "30",
+      "trigger": "FVG",
+      "symbol": "SPCX",
+      "entry_price": 164.28,
+      "tp1": 170.24,
+      "tp2": 174.58,
+      "tp3": 180.54,
+      "sl": 158.32,
+      "ml_score": 0.5,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.5858,
+      "quality_reason": "approved",
+      "news_score": 0.2248,
+      "velocity": "NORMAL",
+      "event": "NFP",
+      "htf_bias": {
+        "direction": "LONG",
+        "timeframe": "30",
+        "symbol": "SPCX",
+        "trigger": "FVG",
+        "ml_score": 0.5,
+        "stored_at": "2026-06-29T19:30:02.689554+00:00",
+        "expires_at": "2026-06-29T21:30:02.689574+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "htf_direct",
+      "session": "NYSE Afternoon",
+      "fired_at": "2026-06-29T19:30:03.102289+00:00"
     }
   ]
 }
