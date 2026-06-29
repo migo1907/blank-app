@@ -72,13 +72,13 @@
     "expires_at": "2026-06-29T16:00:04.584377+00:00"
   },
   "MSTR_30": {
-    "direction": "SHORT",
+    "direction": "LONG",
     "timeframe": "30",
     "symbol": "MSTR",
-    "trigger": "LIQ",
-    "ml_score": 0.625,
-    "stored_at": "2026-06-29T14:00:05.400882+00:00",
-    "expires_at": "2026-06-29T16:00:05.400894+00:00"
+    "trigger": "RSI",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-29T14:30:08.582824+00:00",
+    "expires_at": "2026-06-29T16:30:08.582857+00:00"
   },
   "MU_30": {
     "direction": "SHORT",
