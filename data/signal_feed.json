@@ -2,37 +2,6 @@
   "signals": [
     {
       "direction": "SHORT",
-      "timeframe": "30",
-      "trigger": "FVG",
-      "symbol": "IBKR",
-      "entry_price": 93.11,
-      "tp1": 91.34,
-      "tp2": 90.05,
-      "tp3": 88.28,
-      "sl": 94.88,
-      "ml_score": 0.375,
-      "tier": "\u26a1 LOW",
-      "quality_score": 0.4421,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.2587,
-      "velocity": "LOW",
-      "event": "WAR/CONFLICT",
-      "htf_bias": {
-        "direction": "SHORT",
-        "timeframe": "30",
-        "symbol": "IBKR",
-        "trigger": "FVG",
-        "ml_score": 0.375,
-        "stored_at": "2026-06-24T18:00:26.162524+00:00",
-        "expires_at": "2026-06-24T20:00:26.162530+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "htf_direct",
-      "session": "NYSE Afternoon",
-      "fired_at": "2026-06-24T18:00:26.565101+00:00"
-    },
-    {
-      "direction": "SHORT",
       "timeframe": "15",
       "trigger": "BOS",
       "symbol": "TSLL",
@@ -2835,6 +2804,37 @@
       "htf_context": "htf_direct",
       "session": "NYSE Afternoon",
       "fired_at": "2026-06-29T18:00:06.870497+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "30",
+      "trigger": "FVG",
+      "symbol": "TSLA",
+      "entry_price": 408.95,
+      "tp1": 417.92,
+      "tp2": 424.45,
+      "tp3": 433.42,
+      "sl": 399.98,
+      "ml_score": 0.375,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.4767,
+      "quality_reason": "approved",
+      "news_score": -0.0098,
+      "velocity": "CONFLICTED",
+      "event": "GEOPOLITICAL",
+      "htf_bias": {
+        "direction": "LONG",
+        "timeframe": "30",
+        "symbol": "TSLA",
+        "trigger": "FVG",
+        "ml_score": 0.375,
+        "stored_at": "2026-06-29T18:00:13.240466+00:00",
+        "expires_at": "2026-06-29T20:00:13.240487+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "htf_direct",
+      "session": "NYSE Afternoon",
+      "fired_at": "2026-06-29T18:00:13.490291+00:00"
     }
   ]
 }
