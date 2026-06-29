@@ -2,37 +2,6 @@
   "signals": [
     {
       "direction": "SHORT",
-      "timeframe": "15",
-      "trigger": "BOS",
-      "symbol": "SMCI",
-      "entry_price": 32.16,
-      "tp1": 31.25,
-      "tp2": 30.56,
-      "tp3": 29.65,
-      "sl": 33.07,
-      "ml_score": 0.75,
-      "tier": "\u2b50 HIGH",
-      "quality_score": 0.4544,
-      "quality_reason": "approved",
-      "news_score": -0.3329,
-      "velocity": "NORMAL",
-      "event": "WAR/CONFLICT",
-      "htf_bias": null,
-      "contra_bias": {
-        "direction": "LONG",
-        "timeframe": "60",
-        "symbol": "SMCI",
-        "trigger": "LIQ",
-        "ml_score": 0.375,
-        "stored_at": "2026-06-24T14:30:05.551161+00:00",
-        "expires_at": "2026-06-24T18:30:05.551178+00:00"
-      },
-      "htf_context": "counter_trend",
-      "session": "NYSE Afternoon",
-      "fired_at": "2026-06-24T17:00:27.091544+00:00"
-    },
-    {
-      "direction": "SHORT",
       "timeframe": "30",
       "trigger": "FVG",
       "symbol": "SPY",
@@ -2827,6 +2796,29 @@
       "htf_context": "scalp",
       "session": "NYSE Open",
       "fired_at": "2026-06-29T13:45:02.450015+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "15",
+      "trigger": "RSI",
+      "symbol": "SMCI",
+      "entry_price": 30.99,
+      "tp1": 31.55,
+      "tp2": 31.97,
+      "tp3": 32.53,
+      "sl": 30.43,
+      "ml_score": 0.125,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.5067,
+      "quality_reason": "approved",
+      "news_score": -0.113,
+      "velocity": "CONFLICTED",
+      "event": "FLASH_CRASH",
+      "htf_bias": null,
+      "contra_bias": null,
+      "htf_context": "scalp",
+      "session": "NYSE Open",
+      "fired_at": "2026-06-29T13:45:22.089512+00:00"
     }
   ]
 }
