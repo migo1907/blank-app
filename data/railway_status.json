@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-06-29T20:58:28.326093+00:00",
+  "checked_at": "2026-06-29T23:12:26.597859+00:00",
   "health": {
     "status_code": 200,
     "data": {
@@ -239,7 +239,7 @@
           "transition_prob": 0.0,
           "probs": {},
           "method": "none",
-          "updated_at": "2026-06-29T20:19:16.871191+00:00"
+          "updated_at": "2026-06-29T22:38:34.683511+00:00"
         },
         "SPY": {
           "regime": "UNKNOWN",
@@ -247,7 +247,7 @@
           "transition_prob": 0.0,
           "probs": {},
           "method": "none",
-          "updated_at": "2026-06-29T20:19:17.417609+00:00"
+          "updated_at": "2026-06-29T22:38:35.220242+00:00"
         },
         "QQQ": {
           "regime": "UNKNOWN",
@@ -255,7 +255,7 @@
           "transition_prob": 0.0,
           "probs": {},
           "method": "none",
-          "updated_at": "2026-06-29T20:19:17.965768+00:00"
+          "updated_at": "2026-06-29T22:38:35.778119+00:00"
         }
       },
       "mtf": {
@@ -268,7 +268,7 @@
           },
           "weighted": 0.0,
           "bias": "NEUTRAL",
-          "updated_at": "2026-06-29T20:19:19.491484+00:00",
+          "updated_at": "2026-06-29T22:38:38.639753+00:00",
           "method": "yfinance"
         },
         "SPY": {
@@ -280,7 +280,7 @@
           },
           "weighted": 0.0,
           "bias": "NEUTRAL",
-          "updated_at": "2026-06-29T20:19:20.015645+00:00",
+          "updated_at": "2026-06-29T22:38:39.164613+00:00",
           "method": "yfinance"
         },
         "QQQ": {
@@ -292,7 +292,7 @@
           },
           "weighted": 0.0,
           "bias": "NEUTRAL",
-          "updated_at": "2026-06-29T20:19:20.574817+00:00",
+          "updated_at": "2026-06-29T22:38:39.688520+00:00",
           "method": "yfinance"
         }
       },
@@ -300,8 +300,8 @@
       "intermarket": {
         "vix": {
           "vix": 18.41,
-          "vix3m": 20.13,
-          "ratio": 0.915,
+          "vix3m": 19.53,
+          "ratio": 0.943,
           "regime": "NORMAL",
           "size_factor": 0.97,
           "backwardation": false
