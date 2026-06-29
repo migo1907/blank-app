@@ -159,9 +159,7 @@ float f14       = useSMC ? f14_raw : 0.0
 //               NY late / close (17–22) = 0.3, Asian = -0.5
 // ═══════════════════════════════════════════════════════
 int   utcHour  = hour(time, "UTC")
-float f15_raw  = (utcHour >= 13 and utcHour < 17) ? 1.0 :
-                 (utcHour >= 8  and utcHour < 13) ? 0.8 :
-                 (utcHour >= 17 and utcHour < 22) ? 0.3 : -0.5
+float f15_raw  = (utcHour >= 13 and utcHour < 17) ? 1.0 : (utcHour >= 8 and utcHour < 13) ? 0.8 : (utcHour >= 17 and utcHour < 22) ? 0.3 : -0.5
 float f15      = useSession ? f15_raw : 0.0
 
 bool  bullAlign = ma50_1h > ma200_1h and close > ma50_4h
