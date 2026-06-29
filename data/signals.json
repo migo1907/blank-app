@@ -1,25 +1,5 @@
 [
   {
-    "symbol": "SPX500",
-    "pool": "STOCKS_SPX500_15M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "news_score": -0.006,
-    "combined_score": 0.0,
-    "session": "NYSE_AFTERNOON",
-    "regime": "TRENDING_BEAR",
-    "regime_label": "TRENDING_BEAR",
-    "reasoning": "Weekend \u2014 market closed",
-    "status": "NEUTRAL",
-    "expires_at": "2026-06-28T20:46:52.152387+00:00",
-    "created_at": "2026-06-28T20:16:52.152431+00:00",
-    "id": 101
-  },
-  {
     "symbol": "XAUUSD",
     "pool": "XAUUSD_2M",
     "direction": "NEUTRAL",
@@ -2641,6 +2621,40 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-29T02:46:48.181992+00:00",
     "created_at": "2026-06-29T02:16:48.577796+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "SPX500",
+    "pool": "STOCKS_SPX500_30M",
+    "direction": "SHORT",
+    "lean_direction": "SHORT",
+    "lean_pct": 75,
+    "confidence": 0.3,
+    "tier": "LOW",
+    "ml_score": 0.75,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "ml_interval": [
+      0.3,
+      0.7
+    ],
+    "ml_interval_width": 0.4,
+    "ml_certainty": "MODERATE",
+    "news_score": -0.1037,
+    "macro_bias": 0.0545,
+    "macro_label": "NEUTRAL",
+    "combined_score": -0.3786,
+    "session": "CLOSED",
+    "regime": "NORMAL",
+    "regime_label": "NORMAL",
+    "hmm_regime": "hmm:na",
+    "intermarket": "imkt:VIX-NORMAL(18.41)",
+    "mtf_confluence": "mtf:na",
+    "post_event": "evt:na",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:na\u00d71.00 | imkt:VIX-NORMAL(18.41)\u00d70.97 | mtf:na\u00d71.00 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.89 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.07) | news:neutral(-0.104) | macro:NEUTRAL(+0.054) | combined:-0.379 \u2192 conf:0.300 \u26a1 WAR/CONFLICT",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-29T02:46:51.656427+00:00",
+    "created_at": "2026-06-29T02:16:52.096942+00:00",
     "id": 101
   }
 ]
