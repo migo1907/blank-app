@@ -115,5 +115,41 @@
     "ml_score": 0.25,
     "stored_at": "2026-06-29T14:00:09.890657+00:00",
     "expires_at": "2026-06-29T16:00:09.890681+00:00"
+  },
+  "PLUG_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "PLUG",
+    "trigger": "FVG",
+    "ml_score": 0.25,
+    "stored_at": "2026-06-29T14:00:11.772453+00:00",
+    "expires_at": "2026-06-29T16:00:11.772474+00:00"
+  },
+  "MSFT_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "MSFT",
+    "trigger": "FVG",
+    "ml_score": 0.25,
+    "stored_at": "2026-06-29T14:00:12.400371+00:00",
+    "expires_at": "2026-06-29T16:00:12.400386+00:00"
+  },
+  "SMCI_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "SMCI",
+    "trigger": "BOS",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-29T14:00:12.940796+00:00",
+    "expires_at": "2026-06-29T16:00:12.940817+00:00"
+  },
+  "AMD_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "AMD",
+    "trigger": "LIQ",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-29T14:00:16.192756+00:00",
+    "expires_at": "2026-06-29T16:00:16.192772+00:00"
   }
 }
