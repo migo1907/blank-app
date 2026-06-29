@@ -3,29 +3,6 @@
     {
       "direction": "SHORT",
       "timeframe": "15",
-      "trigger": "FVG",
-      "symbol": "SOXL",
-      "entry_price": 217.45,
-      "tp1": 205.73,
-      "tp2": 196.94,
-      "tp3": 185.22,
-      "sl": 229.17,
-      "ml_score": 0.5,
-      "tier": "\u26a1 LOW",
-      "quality_score": 0.4077,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.2403,
-      "velocity": "NORMAL",
-      "event": "WAR/CONFLICT",
-      "htf_bias": null,
-      "contra_bias": null,
-      "htf_context": "scalp",
-      "session": "NYSE Afternoon",
-      "fired_at": "2026-06-24T17:30:04.826118+00:00"
-    },
-    {
-      "direction": "SHORT",
-      "timeframe": "15",
       "trigger": "BOS",
       "symbol": "US500",
       "entry_price": 7350.1,
@@ -2811,6 +2788,37 @@
       "htf_context": "with_bias",
       "session": "NYSE Open",
       "fired_at": "2026-06-29T14:30:23.423484+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "30",
+      "trigger": "FVG",
+      "symbol": "QQQ",
+      "entry_price": 718.92,
+      "tp1": 729.61,
+      "tp2": 737.38,
+      "tp3": 748.07,
+      "sl": 708.23,
+      "ml_score": 0.75,
+      "tier": "\u2b50 HIGH",
+      "quality_score": 0.4197,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": 0.0263,
+      "velocity": "CONFLICTED",
+      "event": "NFP",
+      "htf_bias": {
+        "direction": "LONG",
+        "timeframe": "30",
+        "symbol": "QQQ",
+        "trigger": "FVG",
+        "ml_score": 0.75,
+        "stored_at": "2026-06-29T16:00:02.354453+00:00",
+        "expires_at": "2026-06-29T18:00:02.354482+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "htf_direct",
+      "session": "NYSE Afternoon",
+      "fired_at": "2026-06-29T16:00:02.840151+00:00"
     }
   ]
 }
