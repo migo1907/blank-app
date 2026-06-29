@@ -120,10 +120,10 @@
     "direction": "SHORT",
     "timeframe": "30",
     "symbol": "SMCI",
-    "trigger": "FVG",
-    "ml_score": 0.625,
-    "stored_at": "2026-06-29T14:30:14.588426+00:00",
-    "expires_at": "2026-06-29T16:30:14.588453+00:00"
+    "trigger": "BOS",
+    "ml_score": 0.875,
+    "stored_at": "2026-06-29T18:30:09.218006+00:00",
+    "expires_at": "2026-06-29T20:30:09.218031+00:00"
   },
   "AMD_30": {
     "direction": "LONG",
