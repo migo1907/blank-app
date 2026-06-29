@@ -43,5 +43,68 @@
     "ml_score": 0.625,
     "stored_at": "2026-06-29T14:00:03.000880+00:00",
     "expires_at": "2026-06-29T16:00:03.000899+00:00"
+  },
+  "META_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "META",
+    "trigger": "FVG",
+    "ml_score": 0.25,
+    "stored_at": "2026-06-29T14:00:03.580174+00:00",
+    "expires_at": "2026-06-29T16:00:03.580194+00:00"
+  },
+  "UPST_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "UPST",
+    "trigger": "BOS",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-29T14:00:03.728715+00:00",
+    "expires_at": "2026-06-29T16:00:03.728738+00:00"
+  },
+  "PLTR_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "PLTR",
+    "trigger": "FVG",
+    "ml_score": 0.5,
+    "stored_at": "2026-06-29T14:00:04.372473+00:00",
+    "expires_at": "2026-06-29T16:00:04.372491+00:00"
+  },
+  "ADBE_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "ADBE",
+    "trigger": "FVG",
+    "ml_score": 0.75,
+    "stored_at": "2026-06-29T14:00:04.584354+00:00",
+    "expires_at": "2026-06-29T16:00:04.584377+00:00"
+  },
+  "MSTR_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "MSTR",
+    "trigger": "LIQ",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-29T14:00:05.400882+00:00",
+    "expires_at": "2026-06-29T16:00:05.400894+00:00"
+  },
+  "MU_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "MU",
+    "trigger": "FVG",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-29T14:00:05.795186+00:00",
+    "expires_at": "2026-06-29T16:00:05.795201+00:00"
+  },
+  "SPY_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "SPY",
+    "trigger": "FVG",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-29T14:00:09.226107+00:00",
+    "expires_at": "2026-06-29T16:00:09.226126+00:00"
   }
 }
