@@ -1,13 +1,4 @@
 {
-  "XAUUSD_60": {
-    "direction": "SHORT",
-    "timeframe": "60",
-    "symbol": "XAUUSD",
-    "trigger": "BOS",
-    "ml_score": 0.5,
-    "stored_at": "2026-06-29T10:02:06.117344+00:00",
-    "expires_at": "2026-06-29T14:02:06.117383+00:00"
-  },
   "XAUUSD_30": {
     "direction": "SHORT",
     "timeframe": "30",
@@ -160,5 +151,14 @@
     "ml_score": 0.375,
     "stored_at": "2026-06-29T14:00:40.793266+00:00",
     "expires_at": "2026-06-29T16:00:40.793276+00:00"
+  },
+  "GOOGL_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "GOOGL",
+    "trigger": "FVG",
+    "ml_score": 0.375,
+    "stored_at": "2026-06-29T14:30:03.066620+00:00",
+    "expires_at": "2026-06-29T16:30:03.066642+00:00"
   }
 }
