@@ -14,6 +14,7 @@ _fj_seen_headlines:  set   = set()
 _last_sent_direction: str     = "NEUTRAL"
 _last_sent_direction_spy: str = "NEUTRAL"
 _last_sent_direction_qqq: str = "NEUTRAL"
+_last_sent_direction_spx: str = "NEUTRAL"          # SPX directional alert flip tracker
 _last_sent_direction_spx_options: str = "NEUTRAL"  # options layer flip tracker
 _startup_cycle: bool = True  # suppress alert on first cycle after restart
 _webhook_errors:  int = 0   # count of failed trade webhooks since last hourly check
@@ -183,7 +184,7 @@ def record_webhook_error() -> None:
 
 
 def _load_seen_headlines() -> set:
-    global _fj_seen_headlines, _last_sent_direction, _last_sent_direction_spy, _last_sent_direction_qqq, _last_sent_direction_spx_options
+    global _fj_seen_headlines, _last_sent_direction, _last_sent_direction_spy, _last_sent_direction_qqq, _last_sent_direction_spx, _last_sent_direction_spx_options
     try:
         from db import _get_file
         data, _ = _get_file(_SEEN_HEADLINES_PATH)
@@ -209,14 +210,18 @@ def _load_seen_headlines() -> set:
                     elif sym == "QQQ" and _last_sent_direction_qqq == "NEUTRAL":
                         _last_sent_direction_qqq = d
                         print(f"[scheduler] QQQ last sent direction restored: {d}")
-                    elif sym not in ("SPY", "QQQ") and _last_sent_direction == "NEUTRAL":
+                    elif sym == "SPX" and _last_sent_direction_spx == "NEUTRAL":
+                        _last_sent_direction_spx = d
+                        print(f"[scheduler] SPX last sent direction restored: {d}")
+                    elif sym not in ("SPY", "QQQ", "SPX") and _last_sent_direction == "NEUTRAL":
                         _last_sent_direction = d
                         print(f"[scheduler] XAUUSD last sent direction restored: {d}")
 
                 all_restored = (
                     _last_sent_direction     != "NEUTRAL" and
                     _last_sent_direction_spy != "NEUTRAL" and
-                    _last_sent_direction_qqq != "NEUTRAL"
+                    _last_sent_direction_qqq != "NEUTRAL" and
+                    _last_sent_direction_spx != "NEUTRAL"
                 )
                 if all_restored:
                     break
@@ -309,7 +314,7 @@ async def _breaking_news_cycle() -> None:
 
 
 async def _news_signal_cycle() -> None:
-    global _latest_news_agg, _latest_velocity, _latest_event, _fj_seen_headlines, _last_sent_direction, _last_sent_direction_spy, _last_sent_direction_qqq, _last_sent_direction_spx_options, _startup_cycle
+    global _latest_news_agg, _latest_velocity, _latest_event, _fj_seen_headlines, _last_sent_direction, _last_sent_direction_spy, _last_sent_direction_qqq, _last_sent_direction_spx, _last_sent_direction_spx_options, _startup_cycle
     # Re-entrancy guard: cron, startup bootstrap and /signal/now all invoke this.
     # Overlapping runs race on the _last_sent_direction* globals and can double-send.
     if _news_cycle_lock.locked():
@@ -454,6 +459,37 @@ async def _news_signal_cycle() -> None:
                 print(f"[scheduler] QQQ: {qqq_dir} conf={qqq_conf:.2f} — no flip, not sending.")
         except Exception as e:
             print(f"[scheduler] QQQ signal error: {e}")
+
+        # ── SPX directional alert — same format as SPY/QQQ (separate from the options layer) ──
+        try:
+            spx_signal = await asyncio.to_thread(
+                generate_signal,
+                current_features=get_latest_features("STOCKS_SPX500_30M"),
+                news_agg=_latest_news_agg,
+                news_velocity=_latest_velocity,
+                high_impact_event=_latest_event,
+                symbol="SPX",
+                pool="STOCKS_SPX500_30M",
+                macro_bias=_equity_macro,
+            )
+            spx_dir  = spx_signal["direction"]
+            spx_conf = spx_signal.get("confidence", 0.0)
+            print(f"[scheduler] SPX: {spx_dir} conf={spx_conf:.2f} sess={spx_signal['session']}")
+
+            spx_changed = (
+                spx_dir not in ("NEUTRAL", "") and
+                spx_conf >= 0.50 and
+                spx_dir != _last_sent_direction_spx and
+                not _startup_cycle
+            )
+            if spx_changed:
+                if await send_signal(spx_signal):
+                    _last_sent_direction_spx = spx_dir
+                    print(f"[scheduler] SPX direction → {spx_dir} conf={spx_conf:.2f} — signal sent.")
+            else:
+                print(f"[scheduler] SPX: {spx_dir} conf={spx_conf:.2f} — no flip, not sending.")
+        except Exception as e:
+            print(f"[scheduler] SPX signal error: {e}")
 
         # ── Market Intelligence alert — fires on STATE CHANGE into an elevated regime ──
         # (velocity spike / imminent event / ML flip on flow / fast acceleration).
