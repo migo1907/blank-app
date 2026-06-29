@@ -71,15 +71,6 @@
     "stored_at": "2026-06-29T14:00:04.584354+00:00",
     "expires_at": "2026-06-29T16:00:04.584377+00:00"
   },
-  "MSTR_30": {
-    "direction": "LONG",
-    "timeframe": "30",
-    "symbol": "MSTR",
-    "trigger": "RSI",
-    "ml_score": 0.375,
-    "stored_at": "2026-06-29T14:30:08.582824+00:00",
-    "expires_at": "2026-06-29T16:30:08.582857+00:00"
-  },
   "MU_30": {
     "direction": "SHORT",
     "timeframe": "30",
@@ -232,5 +223,14 @@
     "ml_score": 0.625,
     "stored_at": "2026-06-29T17:30:04.393004+00:00",
     "expires_at": "2026-06-29T21:30:04.393025+00:00"
+  },
+  "MSTR_60": {
+    "direction": "LONG",
+    "timeframe": "60",
+    "symbol": "MSTR",
+    "trigger": "FVG",
+    "ml_score": 0.125,
+    "stored_at": "2026-06-29T17:30:07.536812+00:00",
+    "expires_at": "2026-06-29T21:30:07.536837+00:00"
   }
 }
