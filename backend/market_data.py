@@ -100,6 +100,54 @@ def _alphavantage_intraday(ticker: str, interval: str = "60min"):
     return df
 
 
+_av_4h_cache: dict = {}   # ticker -> (epoch_fetched, df)
+
+
+def alphavantage_4h(ticker: str, max_age_min: int = 90):
+    """4-hour bars for ANY US equity, for swing entry confirmation. Pulls AV 60-min
+    and resamples to 4H. Budget-guarded (shares the ~25/day AV pool) + cached in
+    memory for max_age_min. Returns an EMPTY DataFrame when key absent / over budget
+    / rate-limited, so callers degrade to daily-only gracefully."""
+    import pandas as pd, time as _t
+    sym = ticker.upper()
+    ent = _av_4h_cache.get(sym)
+    if ent and (_t.time() - ent[0]) < max_age_min * 60:
+        return ent[1]
+    if not ALPHAVANTAGE_KEY or not _av_budget_ok():
+        return ent[1] if ent else pd.DataFrame()
+    url = "https://www.alphavantage.co/query"
+    params = {"function": "TIME_SERIES_INTRADAY", "symbol": sym,
+              "interval": "60min", "outputsize": "compact", "apikey": ALPHAVANTAGE_KEY}
+    try:
+        _av_calls["count"] += 1
+        with httpx.Client(timeout=15) as client:
+            r = client.get(url, params=params); r.raise_for_status()
+            data = r.json()
+    except Exception as e:
+        print(f"[mktdata] AV 4H {sym} failed: {e}")
+        _health("alphavantage_4h", False, "price", str(e))
+        return ent[1] if ent else pd.DataFrame()
+    series = data.get("Time Series (60min)")
+    if not series:
+        _health("alphavantage_4h", False, "price",
+                str(data.get("Note") or data.get("Information") or "no series")[:80])
+        return ent[1] if ent else pd.DataFrame()
+    rows = [{"Open": float(v["1. open"]), "High": float(v["2. high"]),
+             "Low": float(v["3. low"]), "Close": float(v["4. close"]),
+             "Volume": float(v.get("5. volume", 0)), "_ts": ts}
+            for ts, v in series.items()]
+    df = pd.DataFrame(rows)
+    df["_ts"] = pd.to_datetime(df["_ts"], utc=True)
+    df = df.set_index("_ts").sort_index()
+    # Resample 60-min → 4-hour bars
+    df4 = df.resample("4h").agg({"Open": "first", "High": "max", "Low": "min",
+                                 "Close": "last", "Volume": "sum"}).dropna()
+    df4.index.name = "Date"
+    _av_4h_cache[sym] = (_t.time(), df4)
+    _health("alphavantage_4h", True, "price")
+    return df4
+
+
 def fetch_intraday(ticker: str, interval: str = "1h", period: str = "60d"):
     """Intraday OHLC — Alpha Vantage for mapped equities (SPY/QQQ), budget-guarded."""
     import pandas as pd

@@ -140,23 +140,24 @@ float f25 = math.sin((todMins / 1440.0) * 2.0 * math.pi)
 float f26 = math.max(-1.0, math.min(1.0, (stochK - stochD) / 20.0))
 
 // ═══════════════════════════════════════════════════════════════════
-// WEIGHTS — seeded from backend weights_XAUUSD_2M.json (2026-06-19)
+// WEIGHTS — seeded from backend weights_XAUUSD_2M.json (2026-06-27)
 // Adaptive loop refines these on current chart data.
-// Seed: 378W / 467L (845 trades) — XAUUSD_2M pool, isotonic-calibrated.
-// Top learned features: F6 Williams%R (3.0), F13 Range (2.89),
-//   F12 Swing rejection (2.02), F19 RSI divergence (1.91),
-//   F24 FVG/Smart Money (1.44), F14 HL pattern (1.39), F15 Session (1.38).
+// Seed: 280W / 720L (1000 trades) — XAUUSD_2M pool, isotonic-calibrated.
+// Win count is HONEST (a PARTIAL only counts as a win when it closed positive).
+// Top learned features: F6 Williams%R (3.0), F13 Premium/Discount (3.0),
+//   F12 Liquidity sweep (2.60), F19 RSI divergence (2.40), F24 FVG quality (1.77),
+//   F15 Session (1.57), F14 CHoCH (1.50).
 // ═══════════════════════════════════════════════════════════════════
 var float[] weights = array.from(
-    0.200, 0.200, 1.249, 0.200, 0.200,   // F1  F2  F3  F4  F5
-    3.000, 0.200, 0.200, 0.200, 0.381,   // F6  F7  F8  F9  F10
-    0.200, 2.019, 2.893, 1.393, 1.383,   // F11 F12 F13 F14 F15
-    0.241, 0.222, 0.200, 1.909, 0.200,   // F16 F17 F18 F19 F20
-    0.220, 0.200, 0.200, 1.435, 0.988,   // F21 F22 F23 F24 F25
+    0.200, 0.200, 0.944, 0.200, 0.200,   // F1  F2  F3  F4  F5
+    3.000, 0.200, 0.231, 0.200, 0.257,   // F6  F7  F8  F9  F10
+    0.200, 2.601, 3.000, 1.501, 1.568,   // F11 F12 F13 F14 F15
+    0.220, 0.221, 0.200, 2.402, 0.200,   // F16 F17 F18 F19 F20
+    0.291, 0.200, 0.200, 1.773, 0.641,   // F21 F22 F23 F24 F25
     0.200)                                // F26 Stochastic
 
-var int totalWins   = 378
-var int totalLosses = 467
+var int totalWins   = 280
+var int totalLosses = 720
 
 clampW(w) => math.max(0.2, math.min(3.0, w))
 
@@ -416,7 +417,7 @@ if sigLong or sigShort
 
 color regClr = isSideways ? colWarn : (mainTrend == "UPTREND" ? colBull : mainTrend == "DOWNTREND" ? colBear : colNeu)
 
-// Top feature by current weight (F6=Williams %R seed=3.000, F13=Range 2.893)
+// Top feature by current weight (F6=Williams %R 3.000, F13=Premium/Discount 3.000)
 int   topFIdx  = 0
 float topFW    = array.get(weights, 0)
 for _i = 1 to 25

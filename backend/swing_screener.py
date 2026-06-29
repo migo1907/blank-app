@@ -144,6 +144,36 @@ def _self_computed_upside(fund: dict) -> float | None:
     return round(min(signals), 1)  # conservative: take the lower signal
 
 
+def _fourh_confirm(ticker: str):
+    """4-hour LEADING read — the lower timeframe turns up faster than the daily, so
+    it signals an entry forming one step ahead.
+
+    Returns True  → 4H is turning up (price > 4H-EMA20, 4H-RSI rising, not overbought)
+            False → 4H not turning up yet
+            None  → no 4H data available (free AV budget/key) → caller uses daily-only
+
+    This is an EARLY indicator, never a gate: it adds a faster heads-up but never
+    blocks a daily entry. Best-effort and budget-guarded; lights up fully once a paid
+    intraday source is added.
+    """
+    try:
+        from market_data import alphavantage_4h
+        d4 = alphavantage_4h(ticker)
+        if d4 is None or len(d4) < 25:
+            return None
+        c4 = d4["Close"].to_numpy(dtype=float)
+        ema20_4 = _ema(c4, 20)
+        rsi4      = _rsi(c4)
+        rsi4_prev = _rsi(c4[:-1]) if len(c4) > 16 else rsi4
+        price_above_4h_ema = c4[-1] > ema20_4[-1]
+        rsi_rising         = rsi4 > rsi4_prev
+        not_overbought     = rsi4 < 75
+        return bool(price_above_4h_ema and rsi_rising and not_overbought)
+    except Exception as e:
+        print(f"[swing] 4H confirm {ticker} failed: {e}")
+        return None
+
+
 def _technical_score(ticker: str) -> dict:
     """
     Daily-bar timing read → score ∈ [-1, +1].
@@ -153,7 +183,8 @@ def _technical_score(ticker: str) -> dict:
     """
     out = {"score": 0.0, "rsi": None, "trend": "NEUTRAL", "rel_strength_pct": None,
            "entry": None, "atr": None, "stop": None, "t1": None, "t2": None, "t3": None,
-           "entry_quality": "WAIT", "entry_now": False, "rel_volume": None}
+           "entry_quality": "WAIT", "entry_now": False, "rel_volume": None,
+           "entry_4h": "n/a", "early_4h": False}
     try:
         from market_data import fetch_daily
 
@@ -231,10 +262,12 @@ def _technical_score(ticker: str) -> dict:
         out["trend"] = "BULL" if trend_score > 0.15 else "BEAR" if trend_score < -0.15 else "NEUTRAL"
 
         # ── Entry quality assessment ─────────────────────────────────
-        # STRONG: uptrend (price > EMA20 > EMA50 > EMA200) + RSI pullback 40-58
-        # FAIR:   uptrend + RSI 58-65 (a bit stretched but ok)
+        # STRONG: full bull stack (price > EMA20 > EMA50 > EMA200) + RSI 40-58 pullback
+        # GOOD:   full bull stack + RSI 58-65 (strong trend, mildly extended)
+        # FAIR:   above 50/200 EMA + RSI <= 65 (uptrend-ish, looser)
         # WAIT:   mixed trend or RSI overbought
-        # AVOID:  downtrend or RSI > 70
+        # AVOID:  downtrend or RSI > 70 or below 200 EMA
+        # 4H confirmation then times the actual entry within these daily setups.
         price_above_200 = c[-1] > el200[-1]
         price_above_50  = c[-1] > es50[-1]
         ema_stack_bull  = ef20[-1] > es50[-1] > el200[-1]
@@ -242,16 +275,36 @@ def _technical_score(ticker: str) -> dict:
 
         if rsi > 70 or trend_score < -0.1 or not price_above_200:
             entry_quality = "AVOID"
-            entry_now = False
+            daily_ready = False
         elif ema_stack_bull and 40 <= rsi <= 58:
-            entry_quality = "STRONG"
-            entry_now = True
+            entry_quality = "STRONG"            # ideal: strong trend + healthy pullback
+            daily_ready = True
+        elif ema_stack_bull and 58 < rsi <= 65:
+            entry_quality = "GOOD"              # strong trend, mildly extended — enter on a small dip
+            daily_ready = near_ema20
         elif (price_above_50 or price_above_200) and rsi <= 65:
-            entry_quality = "FAIR"
-            entry_now = (rsi <= 60 and near_ema20)
+            entry_quality = "FAIR"              # uptrend-ish, looser
+            daily_ready = (rsi <= 60 and near_ema20)
         else:
             entry_quality = "WAIT"
-            entry_now = False
+            daily_ready = False
+
+        # ── 4H early indication (LEADING signal, NOT a gate) ───────────────────
+        # The daily defines the setup. The 4H is the lower timeframe, so it turns up
+        # FASTER — it flags an entry forming one step ahead of the daily. It never
+        # blocks a daily entry; it only adds an earlier heads-up. Best-effort: no 4H
+        # data → just the daily read.
+        entry_now = daily_ready          # daily-confirmed entry — unaffected by 4H
+        if entry_quality != "AVOID":     # only meaningful inside a valid uptrend context
+            conf = _fourh_confirm(ticker)
+            if conf is None:
+                out["entry_4h"] = "n/a"
+            elif conf:
+                # 4H turning up. If the daily hasn't fired yet, this is the EARLY signal.
+                out["entry_4h"] = "▲ early" if not daily_ready else "▲ aligned"
+                out["early_4h"] = not daily_ready
+            else:
+                out["entry_4h"] = "—"
 
         out["entry_quality"] = entry_quality
         out["entry_now"]     = entry_now
@@ -316,6 +369,8 @@ def screen_one(ticker: str) -> dict:
         "upside_source":  upside_source,
         "entry_quality":  tech.get("entry_quality", "WAIT"),
         "entry_now":      tech.get("entry_now", False),
+        "entry_4h":       tech.get("entry_4h", "n/a"),
+        "early_4h":       tech.get("early_4h", False),
         "fundamental":    fund,
         "technical":      tech,
         "updated_at":     _now(),
@@ -348,8 +403,8 @@ def run_screen(top_n: int = 15) -> dict:
               small score nudge (+0–0.05) so 30%+ upside outranks 15% upside naturally.
               Skipped gracefully when no target is available (not penalised).
 
-    Gate 2 — Technical entry: STRONG or FAIR → active candidates.
-              WAIT (good value, not timed) → watchlist only.
+    Gate 2 — Technical entry: STRONG / GOOD / FAIR → active candidates
+              (4H-confirmed timing). WAIT (good value, not timed) → watchlist only.
               AVOID → rejected entirely.
     """
     global _cached
@@ -382,7 +437,7 @@ def run_screen(top_n: int = 15) -> dict:
 
             # Gate 2: active entry vs watch-only vs reject
             eq = r.get("entry_quality") or r["technical"].get("entry_quality", "WAIT")
-            if eq in ("STRONG", "FAIR"):
+            if eq in ("STRONG", "GOOD", "FAIR"):
                 rows.append(r)
             elif eq == "WAIT":
                 watchlist.append(r)

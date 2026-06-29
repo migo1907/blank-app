@@ -1077,18 +1077,27 @@ async def _hourly_system_check() -> None:
             if lvl_ts.tzinfo is None:
                 lvl_ts = lvl_ts.replace(tzinfo=timezone.utc)
             lvl_age_h = (now_utc - lvl_ts).total_seconds() / 3600
-            # Refreshed every weekday at ~11:50 UTC; on Monday before noon the weekend gap
-            # is expected (~65h from Fri afternoon), so use a 90h threshold that day.
-            stale_threshold = 90 if now_utc.weekday() == 0 and now_utc.hour < 12 else 30
-            if now_utc.weekday() < 5 and lvl_age_h > stale_threshold:
+            fresh_today = lvl_ts.date() == now_utc.date()
+            # The GitHub fetch Action is nominally 07:50 UTC, but GitHub routinely
+            # delays scheduled runs by up to ~4h (they land ~10:30-12:30 UTC). And a
+            # stale file has NO trading impact: intraday signals don't read it, and the
+            # daily brief self-heals (recomputes pivots from Stooq when not today's date).
+            # So only flag a GENUINE miss: a weekday, not refreshed today, and past the
+            # 14:00 UTC grace window that lets the habitually-late run land.
+            genuine_miss = (now_utc.weekday() < 5) and (not fresh_today) and (now_utc.hour >= 14)
+            if genuine_miss:
                 critical_alerts.append((
-                    "Daily Levels Stale",
-                    f"daily_levels.json is {lvl_age_h:.0f}h old — the pivot-fetch GitHub Action may have failed.",
-                    "Signals are using stale pivot levels. Check the fetch_daily_levels workflow run."
+                    "Daily Levels — not refreshed today",
+                    f"daily_levels.json is {lvl_age_h:.0f}h old and not today's — the fetch_daily_levels "
+                    f"GitHub Action likely didn't run this morning.",
+                    "No trading impact: signals don't use this file and the morning brief self-heals "
+                    "pivots from Stooq. Check the fetch_daily_levels workflow only if it persists across days."
                 ))
-                issues.append(f"Daily levels stale ({lvl_age_h:.0f}h) ⚠️")
+                issues.append(f"Daily levels not refreshed today ({lvl_age_h:.0f}h) ⚠️")
+            elif fresh_today:
+                ok.append(f"Daily levels fresh (today, {lvl_age_h:.0f}h ago) ✅")
             else:
-                ok.append(f"Daily levels fresh ({lvl_age_h:.0f}h ago) ✅")
+                ok.append(f"Daily levels {lvl_age_h:.0f}h old — within GitHub-delay/weekend grace ✅")
     except Exception as e:
         print(f"[system_check] Daily levels staleness check failed: {e}")
 
