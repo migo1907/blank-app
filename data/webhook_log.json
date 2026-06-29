@@ -8300,7 +8300,7 @@
     }
   },
   {
-    "received_at": "2026-06-29T18:30:34.028809+00:00",
+    "received_at": "2026-06-29T18:30:34.026069+00:00",
     "pool": "STOCKS_MOMENTUM_1H",
     "payload": {
       "secret": "gold2026",
@@ -8316,11 +8316,11 @@
       "ml_score": 0.75,
       "tier": null,
       "trade_id": "UPST_1782757802461",
-      "outcome": "PARTIAL",
-      "ml_outcome": "WIN",
+      "outcome": "WIN",
+      "ml_outcome": "TP1_HIT",
       "mfe": 2.07,
-      "tp_stage": "SL_TP1",
-      "exit_price": 34.36,
+      "tp_stage": "TP1",
+      "exit_price": 35.073,
       "f1": 0.2435,
       "f2": 0.2915,
       "f3": 0.0029,
