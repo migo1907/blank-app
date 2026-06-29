@@ -1,499 +1,5 @@
 [
   {
-    "source": "Investing.com Forex",
-    "headline": "Sovereign investors with $29 trillion pivot to energy assets, flag dollar fears",
-    "url": "https://www.investing.com/news/forex-news/sovereign-investors-with-29-trillion-pivot-to-energy-assets-flag-dollar-fears-4764177",
-    "sentiment_score": 0.6,
-    "impact": "MEDIUM",
-    "keywords": [
-      "dollar weakness",
-      "sovereign pivot",
-      "asset diversification"
-    ],
-    "fetched_at": "2026-06-29T20:03:54.004197+00:00"
-  },
-  {
-    "source": "Mining.com",
-    "headline": "Gold price falls nearly 2% as rebound proves short-lived",
-    "url": "https://www.mining.com/gold-price-falls-back-to-4000-on-renewed-mideast-tensions/",
-    "sentiment_score": -0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "price weakness",
-      "momentum reversal",
-      "technical"
-    ],
-    "fetched_at": "2026-06-29T20:03:54.004197+00:00"
-  },
-  {
-    "source": "Mining.com",
-    "headline": "Bunker Hill\u00a0rebuild\u00a0ships first Idaho ore,\u00a0eyes silver",
-    "url": "https://www.mining.com/bunker-hill-rebuild-ships-first-idaho-ore-eyes-silver/",
-    "sentiment_score": 0.2,
-    "impact": "LOW",
-    "keywords": [
-      "mining production",
-      "silver sector",
-      "supply"
-    ],
-    "fetched_at": "2026-06-29T20:03:54.004197+00:00"
-  },
-  {
-    "source": "Mining.com",
-    "headline": "Freeman Gold triples Lemhi project value, builds 1Moz reserve",
-    "url": "https://www.mining.com/freeman-gold-triples-lemhi-project-value-builds-1moz-reserve/",
-    "sentiment_score": 0.1,
-    "impact": "LOW",
-    "keywords": [
-      "reserve growth",
-      "mining development",
-      "supply"
-    ],
-    "fetched_at": "2026-06-29T20:03:54.004197+00:00"
-  },
-  {
-    "source": "Mining.com",
-    "headline": "Integra grows reserve by 74% at Florida Canyon gold mine",
-    "url": "https://www.mining.com/integra-grows-reserve-74-at-florida-canyon-gold-mine/",
-    "sentiment_score": 0.1,
-    "impact": "LOW",
-    "keywords": [
-      "reserve expansion",
-      "production growth",
-      "supply"
-    ],
-    "fetched_at": "2026-06-29T20:03:54.004197+00:00"
-  },
-  {
-    "source": "Mining.com",
-    "headline": "i-80 Gold terminates Vox Royalty offtake with $4.8M payment",
-    "url": "https://www.mining.com/i-80-gold-terminates-vox-royalty-offtake-with-4-8m-payment/",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "corporate restructuring",
-      "mining deal",
-      "neutral"
-    ],
-    "fetched_at": "2026-06-29T20:03:54.004197+00:00"
-  },
-  {
-    "source": "CNBC",
-    "headline": "Chip stocks rebound, and Goldman racks up a series of M&A wins",
-    "url": "https://www.cnbc.com/2026/06/29/chip-stocks-rebound-and-goldman-racks-up-a-series-of-ma-wins-.html",
-    "sentiment_score": -0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "equity strength",
-      "risk sentiment",
-      "USD strength"
-    ],
-    "fetched_at": "2026-06-29T20:03:54.004197+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Senior Lebanese official slams US-brokered deal with Israel, warns of divisions - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMiyAFBVV95cUxNdEcxa2lmSEt3VTljemt3NzlwaGdLWVZCTHdjYUJEVjlzZkNSTDUzUXRaQThvc1d1MTJBVVdERzF2Qno3YWthLWRDVGtKbHZxQ2xuVmNkWG43Ri1mWHM0TGJrX3F4TXlyaTdwYXBxQzRDaHNSOFhSZDhtS04tRGRIejNOZTdLSHBaS293OWNIMC12bV83anZQdDRra204aU0wSFI4NGZ1LTdHRHBfM1pSYWdXOHpZMUZzUnlwd0tGS3p6N3dsYzRxYQ?oc=5",
-    "sentiment_score": 0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "geopolitical risk",
-      "Middle East tension",
-      "safe-haven"
-    ],
-    "fetched_at": "2026-06-29T20:03:54.004197+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "How 5 weeks of war shattered some of Iran\u2019s cherished monuments - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMiigFBVV95cUxQZDF2cmU1OXB5Q1VfV0ZUM1VhZE51WVlXTnlrS2VUaC1oMldhNUYzUkFpRGdTNDg3b1RRSEZtYUVHamtJODBvMUFkMnpwZkhGS1NPMFp3TUlkdWs1VUhzN1Z4dEpybndfNDJEN1YtUnJXYXVlMDlkdVQ4d0JxRUxtdEx5QXE1NTN5OHc?oc=5",
-    "sentiment_score": 0.6,
-    "impact": "MEDIUM",
-    "keywords": [
-      "conflict escalation",
-      "geopolitical stress",
-      "safe-haven"
-    ],
-    "fetched_at": "2026-06-29T20:03:54.004197+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Gold slips as US-Iran tensions spark inflation, rate hike fears - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMitgFBVV95cUxPSTVKRTRyZTc4cndMX2E0Mzd3UlROU1FJMWFsaWpkbDVuSUFiVldPeE1GRVFLbDVYeTZ5RTFXd08wUkYwU205amR5a1BIOTFTNGE1T01qMjNGSkJ2OXpjQVhWQ1JXSTdOeDBGb3I5czNDQ1VYck9ENEZJNVZMQk5Rc19tTWgzM3hGaC1uSlltSktpNWtyM3AtTTk3RkZJaFNpNjVFRXJUSWhuWEJGcnNUb1ZGVWstUQ?oc=5",
-    "sentiment_score": -0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "rate hike fears",
-      "inflation expectations",
-      "USD strength"
-    ],
-    "fetched_at": "2026-06-29T20:03:54.004197+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Stocks and oil prices edge up with eyes on Iran; yen touches 40-year low vs dollar - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMigAFBVV95cUxPYUFwVXVYYUk3ZXZGYUhac1BmQjhYN1JiSHM5SlhvWW9taHVTRkFZeVlrNFVfTl8wQVY0VTc3ekNEd1EyX2NMYjdNZXFwWi1WMFJWTHVIaE8yNTNNVWR4NkFHelBmSFlwYWdjRTZQREo4elhtYnNhZ3RMMjg2ckttSw?oc=5",
-    "sentiment_score": 0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "geopolitical uncertainty",
-      "risk premium",
-      "safe-haven"
-    ],
-    "fetched_at": "2026-06-29T20:03:54.004197+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Iran war developments, Fed rate path cues in focus for Indian rupee and bonds - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxNU0tnYmloaHpIVTVmYUZHSUljRy1XNHN2VU8wSDVxSk5DRmJFUkNDWjNzOXJ6ejd0a0hGWmoxMWJncnZOQm5taGpMU09TMjBTMEFkUWlTZXVDMXRoUkhoZGRTWVdUTnVzaXhoRHlQUmloSnpPUTVBYU9rbFV0ZE1VTUFnZGZ2RkRTTWRjQ1dqVE9Telg2c285TlBTRFYyVDNFc1pxcUExa0lkZ3ZUTy1MZEp0N2pOTzg4ZFo4?oc=5",
-    "sentiment_score": 0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "central bank focus",
-      "monetary policy",
-      "emerging markets"
-    ],
-    "fetched_at": "2026-06-29T20:03:54.004197+00:00"
-  },
-  {
-    "source": "CNBC",
-    "headline": "Trading in these two ETFs suggests inflation fears are overblown",
-    "url": "https://www.cnbc.com/2026/06/27/trading-in-these-two-etfs-suggests-inflation-fears-are-overblown.html",
-    "sentiment_score": -0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "inflation fears overblown",
-      "rate expectations",
-      "USD strength"
-    ],
-    "fetched_at": "2026-06-29T20:03:54.004197+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "US diesel refining economics remain firm despite Iran war truce - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMitgFBVV95cUxQaktNajNVTlRkTm1nVkRyMHNDc3FBTk5BRjRVVy16cjRNbFdhSFhYWkYtcy1wNlJkMzRjTWhnakNiUmJjZ3V1c2luUG9lNVcyaG1Semg3UkhQOHEtY2tFS1lQbkkwZll4U3MzU2J3QmJuQnRKUzFuVVJPQXpJNzRjNmd2Rzc2aC1XRDMxck1OcXlxd3dNM1pJQnFHb3Z1S2U5VmVMYWtNY190WmdtNmtKd29fQm8zZw?oc=5",
-    "sentiment_score": -0.2,
-    "impact": "LOW",
-    "keywords": [
-      "supply normalization",
-      "inflation pressure easing",
-      "energy"
-    ],
-    "fetched_at": "2026-06-29T20:03:54.004197+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "UAE stresses Hormuz security in rare call with Iran after war tensions - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMivgFBVV95cUxOTFhOWjA0b0NFVmItV25IVHhmdUw2WmtfeGU1SXZ1ZjFsaHF4bnJrTVVVR0M5QlFfS3Z1Vk5Scm5CTjFCaXB3SVREeXctT1h4QlhwaDJKc2dQNGhTbTV2U243Q0kwUjhzUEJnak5RdzdLNkpyMUNVcjNOdWFsRXFYVUFlZFpzMm9fMmR3dXJpem1wMWhOWm5OVDJfd3NzX1hhOFlnYjJZMzNId2UyOUxMS3VrdmJCWmxsVnlpZ3NB?oc=5",
-    "sentiment_score": 0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "geopolitical risk",
-      "regional stability",
-      "safe-haven"
-    ],
-    "fetched_at": "2026-06-29T20:03:54.004197+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "UAE says false public warning caused by technical malfunction - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMitwFBVV95cUxQYTA4WmxkQjRfQjJKWUlDVzZuU0p0Sm8wS2g5c3JXay1qSXdTVHpsdVdDN3NwVEV3TnJZQ0RaV0htWm5xcnZ6LU96bXAza1RXeEhJUEN5UzNYN1IzTWZCeEFrUVdYNzRmdTNzaFAzNW9LWGQ1akpXOFlOdXI2NjA0UjVaSVJnenlsa2xmQ1lSTGZ3LTNVbWRJTG40aERIMjF4TGloTVcxRGFYMUhrMjdVdWExZHQyVW8?oc=5",
-    "sentiment_score": -0.1,
-    "impact": "LOW",
-    "keywords": [
-      "risk sentiment",
-      "technical relief",
-      "neutral"
-    ],
-    "fetched_at": "2026-06-29T20:03:54.004197+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Russian hawks urge Putin to escalate war, drop US talks as Ukraine strikes deep - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMivgFBVV95cUxNMUI1WXppMHlidTBsSzZGOGZxZ1Y2RVBEaDh6anBxYk1lTU1KRkR3ZDllV2E1OVp2c1lvMjkyOUtzMm9sNld2U3pwSkg2NlZLdG1sSmRsdkhpUzRnSmxWQzZQUzRXMXFwdlE0V0NPRldOd09BcWYzRWFkeWlhZDFGY2QwaGxxZ1pmQ3lmVzlYUGtCdUtkUXJmeTNxWkZoQ0hBYkdHbDNEcGd0YkpXX0tHandlRU9tYzk4TWRGQzRB?oc=5",
-    "sentiment_score": 0.3,
-    "impact": "MEDIUM",
-    "keywords": [
-      "geopolitical escalation",
-      "conflict risk",
-      "safe-haven"
-    ],
-    "fetched_at": "2026-06-29T20:03:54.004197+00:00"
-  },
-  {
-    "source": "Reuters",
-    "headline": "Germany joins opponents of EU methane law, warns it could up-end jet fuel supply - Reuters",
-    "url": "https://news.google.com/rss/articles/CBMixwFBVV95cUxNQ2UtQWdoSktYaXhLaU5hcjY4eTZ3ajdNQXlDX1JOb3hSYWtxcHFtVGUzNVBpMW41aE5kYzFtS3JGelh3Zm1sWi13RWhiU0Mwbi1YVU1rZzJGSmlKZ2h1SzAxTi1RNWFiM0FqOEZVczB4bHQtbTJTd3FFajdlOUhOU1hHM1JMam1rZDlxWWZEUEZvUmdGeHZTTV85WkF6eGx5VWxVVE9EUkFOaTdMMTdPbmF5RFdSM2ZTNEQ5Q183OGRjaVRhZUtF?oc=5",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "energy policy",
-      "supply chain",
-      "neutral to gold"
-    ],
-    "fetched_at": "2026-06-29T20:03:54.004197+00:00"
-  },
-  {
-    "source": "ForexLive",
-    "headline": "Economic and event calendar in Asia Tuesday, June 30, 2026 - RBA minutes, China PMIs",
-    "url": "https://investinglive.com/centralbank/economic-and-event-calendar-in-asia-tuesday-june-30-2026-rba-minutes-china-pmis-20260629/",
-    "sentiment_score": 0.6,
-    "impact": "MEDIUM",
-    "keywords": [
-      "RBA minutes",
-      "China PMI",
-      "economic data"
-    ],
-    "fetched_at": "2026-06-29T20:18:52.176990+00:00"
-  },
-  {
-    "source": "ForexLive",
-    "headline": "The AUDUSD finds willing sellers against the 100 hour MA and moves toward recent lows",
-    "url": "https://investinglive.com/technical-analysis/the-audusd-finds-willing-sellers-against-the-100-hour-ma-and-moves-toward-recent-lows-20260629/",
-    "sentiment_score": -0.3,
-    "impact": "LOW",
-    "keywords": [
-      "AUD weakness",
-      "dollar strength",
-      "technical"
-    ],
-    "fetched_at": "2026-06-29T20:18:52.176990+00:00"
-  },
-  {
-    "source": "ForexLive",
-    "headline": "The share price of Nvidia and Micron are both testing/breaking key support targets",
-    "url": "https://investinglive.com/technical-analysis/the-share-price-of-nvidia-and-micron-are-both-testingbreaking-key-support-targets-20260629/",
-    "sentiment_score": -0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "risk-off",
-      "tech weakness",
-      "market correction"
-    ],
-    "fetched_at": "2026-06-29T20:18:52.176990+00:00"
-  },
-  {
-    "source": "ForexLive",
-    "headline": "Supreme Court blocks Trump from removing Lisa Cook from the Federal Reserve",
-    "url": "https://investinglive.com/centralbank/supreme-court-blocks-trump-from-removing-lisa-cook-from-the-federal-reserve-20260629/",
-    "sentiment_score": 0.2,
-    "impact": "LOW",
-    "keywords": [
-      "political",
-      "Fed independence",
-      "uncertainty"
-    ],
-    "fetched_at": "2026-06-29T20:18:52.176990+00:00"
-  },
-  {
-    "source": "ForexLive",
-    "headline": "Oil prices hover around pre-war levels as focus turns to the US data and the Fed",
-    "url": "https://investinglive.com/commodities/oil-prices-hover-around-pre-war-levels-as-focus-turns-to-the-us-data-and-the-fed-20260629/",
-    "sentiment_score": -0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "dollar strength",
-      "Fed focus",
-      "US data"
-    ],
-    "fetched_at": "2026-06-29T20:18:52.176990+00:00"
-  },
-  {
-    "source": "ForexLive",
-    "headline": "Deutsche says to fade any dollar strength going into month-end",
-    "url": "https://investinglive.com/Orders/deutsche-says-to-fade-any-dollar-strength-going-into-month-end-20260629/",
-    "sentiment_score": 0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "dollar weakness",
-      "month-end flows",
-      "fade strength"
-    ],
-    "fetched_at": "2026-06-29T20:18:52.176990+00:00"
-  },
-  {
-    "source": "ForexLive",
-    "headline": "Precious metals struggle to find much comfort, gold down by over 1% on the day",
-    "url": "https://investinglive.com/commodities/precious-metals-struggle-to-find-much-comfort-gold-down-by-over-1-on-the-day-20260629/",
-    "sentiment_score": -0.8,
-    "impact": "HIGH",
-    "keywords": [
-      "gold selloff",
-      "risk-on",
-      "momentum"
-    ],
-    "fetched_at": "2026-06-29T20:18:52.176990+00:00"
-  },
-  {
-    "source": "MarketWatch Top",
-    "headline": "This rare, widening gap between Big Tech and semiconductor stocks is flashing a warning for the broader market",
-    "url": "https://www.marketwatch.com/story/semiconductor-stocks-are-surging-while-the-magnificent-seven-is-struggling-this-divergence-of-fortunes-could-be-bad-news-for-the-market-9e8fd416?mod=mw_rss_topstories",
-    "sentiment_score": -0.6,
-    "impact": "MEDIUM",
-    "keywords": [
-      "risk-off",
-      "market warning",
-      "tech divergence"
-    ],
-    "fetched_at": "2026-06-29T20:18:52.176990+00:00"
-  },
-  {
-    "source": "MarketWatch Top",
-    "headline": "Inflation fears are overblown. What the rate-hike camp gets wrong about the stock market.",
-    "url": "https://www.marketwatch.com/story/wall-street-is-bracing-for-a-wave-of-fed-rate-hikes-that-may-never-come-these-sectors-stand-to-gain-63229922?mod=mw_rss_topstories",
-    "sentiment_score": -0.4,
-    "impact": "MEDIUM",
-    "keywords": [
-      "inflation concerns easing",
-      "rate hikes unlikely",
-      "risk-on"
-    ],
-    "fetched_at": "2026-06-29T20:18:52.176990+00:00"
-  },
-  {
-    "source": "MarketWatch Top",
-    "headline": "\u2018I claimed Social Security at 62\u2019: At 76, I\u2019m working at Walmart. Why do I still owe payroll taxes?",
-    "url": "https://www.marketwatch.com/story/i-claimed-social-security-at-62-at-76-im-working-at-walmart-why-do-i-still-owe-payroll-taxes-8e22a97c?mod=mw_rss_topstories",
-    "sentiment_score": 0.0,
-    "impact": "LOW",
-    "keywords": [
-      "social security",
-      "unrelated",
-      "off-topic"
-    ],
-    "fetched_at": "2026-06-29T20:18:52.176990+00:00"
-  },
-  {
-    "source": "MarketWatch Top",
-    "headline": "Fed\u2019s Lisa Cook can stay on at central bank while challenging Trump\u2019s attempt to fire her, Supreme Court rules",
-    "url": "https://www.marketwatch.com/story/supreme-court-allows-lisa-cook-to-stay-on-at-fed-for-now-whats-next-as-trump-tries-to-fire-her-06bfb9ee?mod=mw_rss_topstories",
-    "sentiment_score": 0.2,
-    "impact": "LOW",
-    "keywords": [
-      "Fed stability",
-      "political",
-      "institutional"
-    ],
-    "fetched_at": "2026-06-29T20:18:52.176990+00:00"
-  },
-  {
-    "source": "Investing.com Comm",
-    "headline": "JPMorgan struggles to sell Sable Offshore loan despite 15% rate - Bloomberg",
-    "url": "https://www.investing.com/news/stock-market-news/jpmorgan-struggles-to-sell-sable-offshore-loan-despite-15-rate--bloomberg-93CH-4766070",
-    "sentiment_score": -0.3,
-    "impact": "LOW",
-    "keywords": [
-      "credit stress",
-      "dollar strength",
-      "risk-off"
-    ],
-    "fetched_at": "2026-06-29T20:18:52.176990+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Dollar snaps two-week win streak as traders eye labor market data for rate cues",
-    "url": "https://www.investing.com/news/forex-news/asia-fx-steady-as-traders-weigh-fragile-iran-ceasefire-busy-data-week-4764221",
-    "sentiment_score": 0.7,
-    "impact": "HIGH",
-    "keywords": [
-      "dollar weakness",
-      "rate cut hopes",
-      "momentum shift"
-    ],
-    "fetched_at": "2026-06-29T20:18:52.176990+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Natixis says dollar rally has peaked, recommends selling greenback",
-    "url": "https://www.investing.com/news/forex-news/natixis-says-dollar-rally-has-peaked-recommends-selling-greenback-93CH-4766005",
-    "sentiment_score": 0.8,
-    "impact": "HIGH",
-    "keywords": [
-      "dollar peak",
-      "sell greenback",
-      "reversal"
-    ],
-    "fetched_at": "2026-06-29T20:18:52.176990+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Canadian dollar falls as speculators increase bearish bets",
-    "url": "https://www.investing.com/news/forex-news/canadian-dollar-falls-as-speculators-increase-bearish-bets-93CH-4765929",
-    "sentiment_score": 0.5,
-    "impact": "MEDIUM",
-    "keywords": [
-      "CAD weakness",
-      "dollar strength",
-      "commodity"
-    ],
-    "fetched_at": "2026-06-29T20:18:52.176990+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Japanese Yen falls to 40-year low against dollar",
-    "url": "https://www.investing.com/news/forex-news/japanese-yen-falls-to-40year-low-against-dollar-4765727",
-    "sentiment_score": 0.9,
-    "impact": "HIGH",
-    "keywords": [
-      "yen weakness",
-      "BOJ divergence",
-      "currency shift"
-    ],
-    "fetched_at": "2026-06-29T20:18:52.176990+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Yen falls to weakest level versus dollar since December 1986",
-    "url": "https://www.investing.com/news/forex-news/yen-falls-to-weakest-level-versus-dollar-since-december-1986-93CH-4765678",
-    "sentiment_score": 0.9,
-    "impact": "HIGH",
-    "keywords": [
-      "yen weakness",
-      "40-year low",
-      "safe-haven divergence"
-    ],
-    "fetched_at": "2026-06-29T20:18:52.176990+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Sterling today: Pound gains as dollar weakness persists",
-    "url": "https://www.investing.com/news/forex-news/sterling-today-pound-gains-as-dollar-weakness-persists-4765416",
-    "sentiment_score": 0.7,
-    "impact": "MEDIUM",
-    "keywords": [
-      "dollar weakness",
-      "GBP strength",
-      "currency flows"
-    ],
-    "fetched_at": "2026-06-29T20:18:52.176990+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Euro yields edge up as Middle East tension fuels oil, inflation fears",
-    "url": "https://www.investing.com/news/forex-news/euro-yields-edge-up-as-middle-east-tension-fuels-oil-inflation-fears-4764282",
-    "sentiment_score": 0.6,
-    "impact": "MEDIUM",
-    "keywords": [
-      "inflation fears",
-      "geopolitical risk",
-      "oil rally"
-    ],
-    "fetched_at": "2026-06-29T20:18:52.176990+00:00"
-  },
-  {
-    "source": "Investing.com Forex",
-    "headline": "Sovereign investors with $29 trillion pivot to energy assets, flag dollar fears",
-    "url": "https://www.investing.com/news/forex-news/sovereign-investors-with-29-trillion-pivot-to-energy-assets-flag-dollar-fears-4764177",
-    "sentiment_score": 0.8,
-    "impact": "HIGH",
-    "keywords": [
-      "dollar pivot",
-      "sovereign rotation",
-      "safe-haven demand"
-    ],
-    "fetched_at": "2026-06-29T20:18:52.176990+00:00"
-  },
-  {
     "source": "Mining.com",
     "headline": "Gold price falls nearly 2% as rebound proves short-lived",
     "url": "https://www.mining.com/gold-price-falls-back-to-4000-on-renewed-mideast-tensions/",
@@ -2597,5 +2103,499 @@
       "inflation-concern"
     ],
     "fetched_at": "2026-06-29T21:18:51.345373+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "World Bank: will persist and finalize transition from lending input goals to prioritizing lending outcomes to maximize development impact",
+    "url": "https://www.financialjuice.com/News/9657089/World-Bank-will-persist-and-finalize-transition-from-lending-input-goals-to-prioritizing-lending-outcomes-to-maximize-development-impact.aspx?xy=rss",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "World Bank",
+      "lending",
+      "development"
+    ],
+    "fetched_at": "2026-06-29T21:33:52.225341+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "World Bank Group: will abandon goal to allocate 45% of lending to projects with climate co-benefits - statement",
+    "url": "https://www.financialjuice.com/News/9657088/World-Bank-Group-will-abandon-goal-to-allocate-45-of-lending-to-projects-with-climate-co-benefits---statement.aspx?xy=rss",
+    "sentiment_score": -0.3,
+    "impact": "MEDIUM",
+    "keywords": [
+      "climate",
+      "lending",
+      "policy shift"
+    ],
+    "fetched_at": "2026-06-29T21:33:52.225341+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "World Bank: will prolong climate change action plan but retire 35% climate co-benefits lending target from prior plan",
+    "url": "https://www.financialjuice.com/News/9657087/World-Bank-will-prolong-climate-change-action-plan-but-retire-35-climate-co-benefits-lending-target-from-prior-plan.aspx?xy=rss",
+    "sentiment_score": -0.2,
+    "impact": "LOW",
+    "keywords": [
+      "climate",
+      "target reduction",
+      "strategy"
+    ],
+    "fetched_at": "2026-06-29T21:33:52.225341+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "World Bank: climate change strategy has been effective in integrating smart development into client countries' priorities",
+    "url": "https://www.financialjuice.com/News/9657086/World-Bank-climate-change-strategy-has-been-effective-in-integrating-smart-development-into-client-countries-priorities.aspx?xy=rss",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "climate",
+      "effectiveness",
+      "development"
+    ],
+    "fetched_at": "2026-06-29T21:33:52.225341+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "World Bank: Independent Evaluation Group to assess climate change action plan",
+    "url": "https://www.financialjuice.com/News/9657085/World-Bank-Independent-Evaluation-Group-to-assess-climate-change-action-plan.aspx?xy=rss",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "evaluation",
+      "assessment",
+      "review"
+    ],
+    "fetched_at": "2026-06-29T21:33:52.225341+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Iran's President Pezeshkian: If the American side adheres to the agreement, we will also fulfill our commitments - Post on X",
+    "url": "https://www.financialjuice.com/News/9657048/Irans-President-Pezeshkian-If-the-American-side-adheres-to-the-agreement-we-will-also-fulfill-our-commitments---Post-on-X.aspx?xy=rss",
+    "sentiment_score": 0.2,
+    "impact": "MEDIUM",
+    "keywords": [
+      "Iran",
+      "US agreement",
+      "geopolitical risk"
+    ],
+    "fetched_at": "2026-06-29T21:33:52.225341+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "ECB's President Lagarde: We are more likely to face shocks in the coming years that push inflation away from the target.",
+    "url": "https://www.financialjuice.com/News/9656957/ECBs-President-Lagarde-We-are-more-likely-to-face-shocks-in-the-coming-years-that-push-inflation-away-from-the-target.aspx?xy=rss",
+    "sentiment_score": 0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "ECB",
+      "inflation",
+      "dovish concern"
+    ],
+    "fetched_at": "2026-06-29T21:33:52.225341+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "ECB's President Lagarde: The durability of the US-Iran peace deal is far from assured.",
+    "url": "https://www.financialjuice.com/News/9656956/ECBs-President-Lagarde-The-durability-of-the-US-Iran-peace-deal-is-far-from-assured.aspx?xy=rss",
+    "sentiment_score": 0.3,
+    "impact": "MEDIUM",
+    "keywords": [
+      "Iran",
+      "geopolitical",
+      "uncertainty"
+    ],
+    "fetched_at": "2026-06-29T21:33:52.225341+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "ECB's President Lagarde: The war has generated significant inflationary pressures.",
+    "url": "https://www.financialjuice.com/News/9656954/ECBs-President-Lagarde-The-war-has-generated-significant-inflationary-pressures.aspx?xy=rss",
+    "sentiment_score": 0.6,
+    "impact": "MEDIUM",
+    "keywords": [
+      "war",
+      "inflation",
+      "hawkish"
+    ],
+    "fetched_at": "2026-06-29T21:33:52.225341+00:00"
+  },
+  {
+    "source": "FinancialJuice",
+    "headline": "Russia\u2019s Deputy PM Novak: Russia still continues to consider a diesel export ban - IFX.",
+    "url": "https://www.financialjuice.com/News/9656919/Russias-Deputy-PM-Novak-Russia-still-continues-to-consider-a-diesel-export-ban---IFX.aspx?xy=rss",
+    "sentiment_score": -0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "Russia",
+      "diesel",
+      "energy supply"
+    ],
+    "fetched_at": "2026-06-29T21:33:52.225341+00:00"
+  },
+  {
+    "source": "MarketWatch Top",
+    "headline": "Value stocks beat growth when inflation is high. Here are 13 stocks top newsletters are betting on now.",
+    "url": "https://www.marketwatch.com/story/value-stocks-beat-growth-when-inflation-is-high-here-are-13-stocks-top-newsletters-are-betting-on-now-f6f4a265?mod=mw_rss_topstories",
+    "sentiment_score": 0.0,
+    "impact": "LOW",
+    "keywords": [
+      "stocks",
+      "value",
+      "inflation"
+    ],
+    "fetched_at": "2026-06-29T21:33:52.225341+00:00"
+  },
+  {
+    "source": "MarketWatch Top",
+    "headline": "This rare, widening gap between Big Tech and semiconductor stocks is flashing a warning for the broader market",
+    "url": "https://www.marketwatch.com/story/semiconductor-stocks-are-surging-while-the-magnificent-seven-is-struggling-this-divergence-of-fortunes-could-be-bad-news-for-the-market-9e8fd416?mod=mw_rss_topstories",
+    "sentiment_score": -0.2,
+    "impact": "LOW",
+    "keywords": [
+      "tech",
+      "market warning",
+      "risk sentiment"
+    ],
+    "fetched_at": "2026-06-29T21:33:52.225341+00:00"
+  },
+  {
+    "source": "Investing.com Comm",
+    "headline": "Russia stocks higher at close of trade; MOEX Russia Index up 2.90%",
+    "url": "https://www.investing.com/news/stock-market-news/russia-stocks-higher-at-close-of-trade-moex-russia-index-up-290-4766467",
+    "sentiment_score": -0.3,
+    "impact": "MEDIUM",
+    "keywords": [
+      "Russia",
+      "stocks",
+      "risk on"
+    ],
+    "fetched_at": "2026-06-29T21:33:52.225341+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Dollar snaps two-week win streak as traders eye labor market data for rate cues",
+    "url": "https://www.investing.com/news/forex-news/asia-fx-steady-as-traders-weigh-fragile-iran-ceasefire-busy-data-week-4764221",
+    "sentiment_score": 0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "dollar weakness",
+      "labor market",
+      "rate expectations"
+    ],
+    "fetched_at": "2026-06-29T21:33:52.225341+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Natixis says dollar rally has peaked, recommends selling greenback",
+    "url": "https://www.investing.com/news/forex-news/natixis-says-dollar-rally-has-peaked-recommends-selling-greenback-93CH-4766005",
+    "sentiment_score": 0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "dollar peak",
+      "bearish",
+      "currency"
+    ],
+    "fetched_at": "2026-06-29T21:33:52.225341+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Canadian dollar falls as speculators increase bearish bets",
+    "url": "https://www.investing.com/news/forex-news/canadian-dollar-falls-as-speculators-increase-bearish-bets-93CH-4765929",
+    "sentiment_score": 0.3,
+    "impact": "MEDIUM",
+    "keywords": [
+      "CAD weakness",
+      "dollar strength",
+      "currency"
+    ],
+    "fetched_at": "2026-06-29T21:33:52.225341+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Japanese Yen falls to 40-year low against dollar",
+    "url": "https://www.investing.com/news/forex-news/japanese-yen-falls-to-40year-low-against-dollar-4765727",
+    "sentiment_score": 0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "yen weakness",
+      "dollar strength",
+      "currency"
+    ],
+    "fetched_at": "2026-06-29T21:33:52.225341+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Yen falls to weakest level versus dollar since December 1986",
+    "url": "https://www.investing.com/news/forex-news/yen-falls-to-weakest-level-versus-dollar-since-december-1986-93CH-4765678",
+    "sentiment_score": 0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "yen weakness",
+      "dollar strength",
+      "40-year low"
+    ],
+    "fetched_at": "2026-06-29T21:33:52.225341+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Sterling today: Pound gains as dollar weakness persists",
+    "url": "https://www.investing.com/news/forex-news/sterling-today-pound-gains-as-dollar-weakness-persists-4765416",
+    "sentiment_score": 0.3,
+    "impact": "MEDIUM",
+    "keywords": [
+      "sterling",
+      "dollar weakness",
+      "currency"
+    ],
+    "fetched_at": "2026-06-29T21:33:52.225341+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Euro yields edge up as Middle East tension fuels oil, inflation fears",
+    "url": "https://www.investing.com/news/forex-news/euro-yields-edge-up-as-middle-east-tension-fuels-oil-inflation-fears-4764282",
+    "sentiment_score": 0.6,
+    "impact": "HIGH",
+    "keywords": [
+      "inflation",
+      "geopolitical",
+      "oil risk"
+    ],
+    "fetched_at": "2026-06-29T21:33:52.225341+00:00"
+  },
+  {
+    "source": "Investing.com Forex",
+    "headline": "Sovereign investors with $29 trillion pivot to energy assets, flag dollar fears",
+    "url": "https://www.investing.com/news/forex-news/sovereign-investors-with-29-trillion-pivot-to-energy-assets-flag-dollar-fears-4764177",
+    "sentiment_score": 0.75,
+    "impact": "HIGH",
+    "keywords": [
+      "sovereign wealth",
+      "dollar concerns",
+      "asset pivot"
+    ],
+    "fetched_at": "2026-06-29T21:33:52.225341+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Gold price falls nearly 2% as rebound proves short-lived",
+    "url": "https://www.mining.com/gold-price-falls-back-to-4000-on-renewed-mideast-tensions/",
+    "sentiment_score": -0.6,
+    "impact": "MEDIUM",
+    "keywords": [
+      "price decline",
+      "momentum loss",
+      "technical weakness"
+    ],
+    "fetched_at": "2026-06-29T21:33:52.225341+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Bunker Hill\u00a0rebuild\u00a0ships first Idaho ore,\u00a0eyes silver",
+    "url": "https://www.mining.com/bunker-hill-rebuild-ships-first-idaho-ore-eyes-silver/",
+    "sentiment_score": 0.1,
+    "impact": "LOW",
+    "keywords": [
+      "mining production",
+      "silver focus",
+      "supply"
+    ],
+    "fetched_at": "2026-06-29T21:33:52.225341+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Freeman Gold triples Lemhi project value, builds 1Moz reserve",
+    "url": "https://www.mining.com/freeman-gold-triples-lemhi-project-value-builds-1moz-reserve/",
+    "sentiment_score": 0.2,
+    "impact": "LOW",
+    "keywords": [
+      "reserve growth",
+      "mining expansion",
+      "production"
+    ],
+    "fetched_at": "2026-06-29T21:33:52.225341+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "Integra grows reserve by 74% at Florida Canyon gold mine",
+    "url": "https://www.mining.com/integra-grows-reserve-74-at-florida-canyon-gold-mine/",
+    "sentiment_score": 0.15,
+    "impact": "LOW",
+    "keywords": [
+      "reserve increase",
+      "mining reserves",
+      "production growth"
+    ],
+    "fetched_at": "2026-06-29T21:33:52.225341+00:00"
+  },
+  {
+    "source": "Mining.com",
+    "headline": "i-80 Gold terminates Vox Royalty offtake with $4.8M payment",
+    "url": "https://www.mining.com/i-80-gold-terminates-vox-royalty-offtake-with-4-8m-payment/",
+    "sentiment_score": -0.2,
+    "impact": "LOW",
+    "keywords": [
+      "mining deal",
+      "royalty termination",
+      "capex"
+    ],
+    "fetched_at": "2026-06-29T21:33:52.225341+00:00"
+  },
+  {
+    "source": "CNBC",
+    "headline": "Chip stocks rebound, and Goldman racks up a series of M&A wins",
+    "url": "https://www.cnbc.com/2026/06/29/chip-stocks-rebound-and-goldman-racks-up-a-series-of-ma-wins-.html",
+    "sentiment_score": -0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "risk-on sentiment",
+      "equities strength",
+      "M&A activity"
+    ],
+    "fetched_at": "2026-06-29T21:33:52.225341+00:00"
+  },
+  {
+    "source": "Reuters",
+    "headline": "Senior Lebanese official slams US-brokered deal with Israel, warns of divisions - Reuters",
+    "url": "https://news.google.com/rss/articles/CBMiyAFBVV95cUxNdEcxa2lmSEt3VTljemt3NzlwaGdLWVZCTHdjYUJEVjlzZkNSTDUzUXRaQThvc1d1MTJBVVdERzF2Qno3YWthLWRDVGtKbHZxQ2xuVmNkWG43Ri1mWHM0TGJrX3F4TXlyaTdwYXBxQzRDaHNSOFhSZDhtS04tRGRIejNOZTdLSHBaS293OWNIMC12bV83anZQdDRra204aU0wSFI4NGZ1LTdHRHBfM1pSYWdXOHpZMUZzUnlwd0tGS3p6N3dsYzRxYQ?oc=5",
+    "sentiment_score": 0.3,
+    "impact": "LOW",
+    "keywords": [
+      "Middle East tensions",
+      "geopolitical risk",
+      "Israel"
+    ],
+    "fetched_at": "2026-06-29T21:33:52.225341+00:00"
+  },
+  {
+    "source": "Reuters",
+    "headline": "How 5 weeks of war shattered some of Iran\u2019s cherished monuments - Reuters",
+    "url": "https://news.google.com/rss/articles/CBMiigFBVV95cUxQZDF2cmU1OXB5Q1VfV0ZUM1VhZE51WVlXTnlrS2VUaC1oMldhNUYzUkFpRGdTNDg3b1RRSEZtYUVHamtJODBvMUFkMnpwZkhGS1NPMFp3TUlkdWs1VUhzN1Z4dEpybndfNDJEN1YtUnJXYXVlMDlkdVQ4d0JxRUxtdEx5QXE1NTN5OHc?oc=5",
+    "sentiment_score": 0.4,
+    "impact": "MEDIUM",
+    "keywords": [
+      "geopolitical risk",
+      "conflict escalation",
+      "safe haven"
+    ],
+    "fetched_at": "2026-06-29T21:33:52.225341+00:00"
+  },
+  {
+    "source": "Reuters",
+    "headline": "Gold slips as US-Iran tensions spark inflation, rate hike fears - Reuters",
+    "url": "https://news.google.com/rss/articles/CBMitgFBVV95cUxPSTVKRTRyZTc4cndMX2E0Mzd3UlROU1FJMWFsaWpkbDVuSUFiVldPeE1GRVFLbDVYeTZ5RTFXd08wUkYwU205amR5a1BIOTFTNGE1T01qMjNGSkJ2OXpjQVhWQ1JXSTdOeDBGb3I5czNDQ1VYck9ENEZJNVZMQk5Rc19tTWgzM3hGaC1uSlltSktpNWtyM3AtTTk3RkZJaFNpNjVFRXJUSWhuWEJGcnNUb1ZGVWstUQ?oc=5",
+    "sentiment_score": -0.55,
+    "impact": "MEDIUM",
+    "keywords": [
+      "inflation expectations",
+      "rate hikes",
+      "monetary tightening"
+    ],
+    "fetched_at": "2026-06-29T21:33:52.225341+00:00"
+  },
+  {
+    "source": "Reuters",
+    "headline": "Stocks and oil prices rise with eyes on Iran; yen touches 40-year low vs dollar - Reuters",
+    "url": "https://news.google.com/rss/articles/CBMigAFBVV95cUxPYUFwVXVYYUk3ZXZGYUhac1BmQjhYN1JiSHM5SlhvWW9taHVTRkFZeVlrNFVfTl8wQVY0VTc3ekNEd1EyX2NMYjdNZXFwWi1WMFJWTHVIaE8yNTNNVWR4NkFHelBmSFlwYWdjRTZQREo4elhtYnNhZ3RMMjg2ckttSw?oc=5",
+    "sentiment_score": -0.6,
+    "impact": "MEDIUM",
+    "keywords": [
+      "risk-on",
+      "oil rally",
+      "equity strength"
+    ],
+    "fetched_at": "2026-06-29T21:33:52.225341+00:00"
+  },
+  {
+    "source": "Reuters",
+    "headline": "Iran war developments, Fed rate path cues in focus for Indian rupee and bonds - Reuters",
+    "url": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxNU0tnYmloaHpIVTVmYUZHSUljRy1XNHN2VU8wSDVxSk5DRmJFUkNDWjNzOXJ6ejd0a0hGWmoxMWJncnZOQm5taGpMU09TMjBTMEFkUWlTZXVDMXRoUkhoZGRTWVdUTnVzaXhoRHlQUmloSnpPUTVBYU9rbFV0ZE1VTUFnZGZ2RkRTTWRjQ1dqVE9Telg2c285TlBTRFYyVDNFc1pxcUExa0lkZ3ZUTy1MZEp0N2pOTzg4ZFo4?oc=5",
+    "sentiment_score": 0.3,
+    "impact": "MEDIUM",
+    "keywords": [
+      "geopolitical uncertainty",
+      "monetary policy",
+      "rupee volatility"
+    ],
+    "fetched_at": "2026-06-29T21:33:52.225341+00:00"
+  },
+  {
+    "source": "CNBC",
+    "headline": "Trading in these two ETFs suggests inflation fears are overblown",
+    "url": "https://www.cnbc.com/2026/06/27/trading-in-these-two-etfs-suggests-inflation-fears-are-overblown.html",
+    "sentiment_score": -0.5,
+    "impact": "MEDIUM",
+    "keywords": [
+      "inflation concerns overblown",
+      "deflation risk",
+      "rate cut odds"
+    ],
+    "fetched_at": "2026-06-29T21:33:52.225341+00:00"
+  },
+  {
+    "source": "Reuters",
+    "headline": "US diesel refining economics remain firm despite Iran war truce - Reuters",
+    "url": "https://news.google.com/rss/articles/CBMitgFBVV95cUxQaktNajNVTlRkTm1nVkRyMHNDc3FBTk5BRjRVVy16cjRNbFdhSFhYWkYtcy1wNlJkMzRjTWhnakNiUmJjZ3V1c2luUG9lNVcyaG1Semg3UkhQOHEtY2tFS1lQbkkwZll4U3MzU2J3QmJuQnRKUzFuVVJPQXpJNzRjNmd2Rzc2aC1XRDMxck1OcXlxd3dNM1pJQnFHb3Z1S2U5VmVMYWtNY190WmdtNmtKd29fQm8zZw?oc=5",
+    "sentiment_score": -0.35,
+    "impact": "LOW",
+    "keywords": [
+      "oil prices stable",
+      "inflation contained",
+      "energy normalization"
+    ],
+    "fetched_at": "2026-06-29T21:33:52.225341+00:00"
+  },
+  {
+    "source": "Reuters",
+    "headline": "UAE stresses Hormuz security in rare call with Iran after war tensions - Reuters",
+    "url": "https://news.google.com/rss/articles/CBMivgFBVV95cUxOTFhOWjA0b0NFVmItV25IVHhmdUw2WmtfeGU1SXZ1ZjFsaHF4bnJrTVVVR0M5QlFfS3Z1Vk5Scm5CTjFCaXB3SVREeXctT1h4QlhwaDJKc2dQNGhTbTV2U243Q0kwUjhzUEJnak5RdzdLNkpyMUNVcjNOdWFsRXFYVUFlZFpzMm9fMmR3dXJpem1wMWhOWm5OVDJfd3NzX1hhOFlnYjJZMzNId2UyOUxMS3VrdmJCWmxsVnlpZ3NB?oc=5",
+    "sentiment_score": 0.25,
+    "impact": "LOW",
+    "keywords": [
+      "geopolitical risk",
+      "Hormuz security",
+      "Middle East"
+    ],
+    "fetched_at": "2026-06-29T21:33:52.225341+00:00"
+  },
+  {
+    "source": "Reuters",
+    "headline": "UAE says false public warning caused by technical malfunction - Reuters",
+    "url": "https://news.google.com/rss/articles/CBMitwFBVV95cUxQYTA4WmxkQjRfQjJKWUlDVzZuU0p0Sm8wS2g5c3JXay1qSXdTVHpsdVdDN3NwVEV3TnJZQ0RaV0htWm5xcnZ6LU96bXAza1RXeEhJUEN5UzNYN1IzTWZCeEFrUVdYNzRmdTNzaFAzNW9LWGQ1akpXOFlOdXI2NjA0UjVaSVJnenlsa2xmQ1lSTGZ3LTNVbWRJTG40aERIMjF4TGloTVcxRGFYMUhrMjdVdWExZHQyVW8?oc=5",
+    "sentiment_score": -0.3,
+    "impact": "LOW",
+    "keywords": [
+      "false alarm",
+      "risk-off unwind",
+      "volatility reversal"
+    ],
+    "fetched_at": "2026-06-29T21:33:52.225341+00:00"
+  },
+  {
+    "source": "Reuters",
+    "headline": "Russian hawks urge Putin to escalate war, drop US talks as Ukraine strikes deep - Reuters",
+    "url": "https://news.google.com/rss/articles/CBMivgFBVV95cUxNMUI1WXppMHlidTBsSzZGOGZxZ1Y2RVBEaDh6anBxYk1lTU1KRkR3ZDllV2E1OVp2c1lvMjkyOUtzMm9sNld2U3pwSkg2NlZLdG1sSmRsdkhpUzRnSmxWQzZQUzRXMXFwdlE0V0NPRldOd09BcWYzRWFkeWlhZDFGY2QwaGxxZ1pmQ3lmVzlYUGtCdUtkUXJmeTNxWkZoQ0hBYkdHbDNEcGd0YkpXX0tHandlRU9tYzk4TWRGQzRB?oc=5",
+    "sentiment_score": 0.35,
+    "impact": "MEDIUM",
+    "keywords": [
+      "geopolitical escalation",
+      "conflict risk",
+      "safe haven"
+    ],
+    "fetched_at": "2026-06-29T21:33:52.225341+00:00"
+  },
+  {
+    "source": "Reuters",
+    "headline": "Germany joins opponents of EU methane law, warns it could up-end jet fuel supply - Reuters",
+    "url": "https://news.google.com/rss/articles/CBMixwFBVV95cUxNQ2UtQWdoSktYaXhLaU5hcjY4eTZ3ajdNQXlDX1JOb3hSYWtxcHFtVGUzNVBpMW41aE5kYzFtS3JGelh3Zm1sWi13RWhiU0Mwbi1YVU1rZzJGSmlKZ2h1SzAxTi1RNWFiM0FqOEZVczB4bHQtbTJTd3FFajdlOUhOU1hHM1JMam1rZDlxWWZEUEZvUmdGeHZTTV85WkF6eGx5VWxVVE9EUkFOaTdMMTdPbmF5RFdSM2ZTNEQ5Q183OGRjaVRhZUtF?oc=5",
+    "sentiment_score": -0.25,
+    "impact": "LOW",
+    "keywords": [
+      "supply chain concerns",
+      "fuel costs",
+      "energy disruption"
+    ],
+    "fetched_at": "2026-06-29T21:33:52.225341+00:00"
   }
 ]
