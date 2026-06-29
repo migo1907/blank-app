@@ -1,8 +1,8 @@
 {
-  "fetched_at": "2026-06-27T13:03:30.288265+00:00",
+  "fetched_at": "2026-06-29T12:18:57.948877+00:00",
   "assets": {
     "XAUUSD": {
-      "current": 4088.89,
+      "current": 4045.93,
       "prev_high": 4078.7,
       "prev_low": 4078.7,
       "prev_close": 4078.7,
@@ -13,12 +13,12 @@
       "s1": 4078.7,
       "s2": 4078.7,
       "s3": 4078.7,
-      "expected_range_low": 4078.7,
-      "expected_range_high": 4088.89,
+      "expected_range_low": 4045.93,
+      "expected_range_high": 4078.7,
       "price_source": "TVC:GOLD close"
     },
     "SPY": {
-      "current": 728.92,
+      "current": 737.25,
       "prev_high": 736.53,
       "prev_low": 716.58,
       "prev_close": 728.99,
@@ -30,11 +30,11 @@
       "s2": 707.42,
       "s3": 698.25,
       "expected_range_low": 707.42,
-      "expected_range_high": 747.32,
+      "expected_range_high": 748.04,
       "price_source": "AMEX:SPY premarket_close"
     },
     "QQQ": {
-      "current": 707.22,
+      "current": 715.25,
       "prev_high": 715.56,
       "prev_low": 702.81,
       "prev_close": 706.52,
