@@ -1400,7 +1400,7 @@
     }
   },
   {
-    "received_at": "2026-06-29T14:08:08.775210+00:00",
+    "received_at": "2026-06-29T14:08:09.038721+00:00",
     "pool": "XAUUSD_2M",
     "payload": {
       "secret": "gold2026",
@@ -1416,11 +1416,11 @@
       "ml_score": 0.75,
       "tier": null,
       "trade_id": "XAUUSD_1782742081139",
-      "outcome": "PARTIAL",
-      "ml_outcome": "WIN",
+      "outcome": "WIN",
+      "ml_outcome": "TP1_HIT",
       "mfe": 0.0,
-      "tp_stage": "SL_TP1",
-      "exit_price": 4024.37,
+      "tp_stage": "TP1",
+      "exit_price": 4018.5009,
       "f1": -0.4861,
       "f2": -0.423,
       "f3": 0.3219,
@@ -1450,7 +1450,7 @@
     }
   },
   {
-    "received_at": "2026-06-29T14:08:14.185669+00:00",
+    "received_at": "2026-06-29T14:08:13.897765+00:00",
     "pool": "XAUUSD_2M",
     "payload": {
       "secret": "gold2026",
@@ -1466,11 +1466,11 @@
       "ml_score": 0.75,
       "tier": null,
       "trade_id": "XAUUSD_1782742081139",
-      "outcome": "WIN",
-      "ml_outcome": "TP1_HIT",
+      "outcome": "PARTIAL",
+      "ml_outcome": "WIN",
       "mfe": 0.0,
-      "tp_stage": "TP1",
-      "exit_price": 4018.5009,
+      "tp_stage": "SL_TP1",
+      "exit_price": 4024.37,
       "f1": -0.4861,
       "f2": -0.423,
       "f3": 0.3219,
