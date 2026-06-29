@@ -668,8 +668,8 @@ function SwingTab() {
   const all = cands.data?.candidates || []
   const meta = cands.data || {}
 
-  const eqClr = q => q==='STRONG'?'var(--green)':q==='FAIR'?'var(--gold)':q==='AVOID'?'var(--red)':'var(--muted)'
-  const eqBg  = q => q==='STRONG'?'rgba(34,197,94,.1)':q==='FAIR'?'rgba(245,158,11,.1)':q==='AVOID'?'rgba(239,68,68,.1)':'rgba(100,116,139,.08)'
+  const eqClr = q => q==='STRONG'?'var(--green)':q==='GOOD'?'#14b8a6':q==='FAIR'?'var(--gold)':q==='AVOID'?'var(--red)':'var(--muted)'
+  const eqBg  = q => q==='STRONG'?'rgba(34,197,94,.1)':q==='GOOD'?'rgba(20,184,166,.1)':q==='FAIR'?'rgba(245,158,11,.1)':q==='AVOID'?'rgba(239,68,68,.1)':'rgba(100,116,139,.08)'
 
   if(cands.load && !all.length) return <Spinner/>
 
@@ -687,7 +687,7 @@ function SwingTab() {
         </div>
         <div style={{textAlign:'right',fontSize:11,color:'var(--muted)'}}>
           <div>Gate 1: valuation upside ≥ 15%</div>
-          <div style={{color:'var(--gold)'}}>Gate 2: entry STRONG or FAIR</div>
+          <div style={{color:'var(--gold)'}}>Gate 2: entry STRONG / GOOD / FAIR</div>
         </div>
       </div>
 
@@ -696,7 +696,7 @@ function SwingTab() {
         <div style={{padding:'40px 20px',textAlign:'center',color:'var(--muted)'}}>
           <div style={{fontSize:32,marginBottom:10}}>📈</div>
           <div style={{fontSize:14,fontWeight:600,marginBottom:6}}>No candidates yet</div>
-          <div style={{fontSize:13}}>Screen runs at 09:45 ET and 16:30 ET on trading days. 70 stocks scanned — top 15 with ≥15% valuation upside (Gate 1) and STRONG/FAIR technical entry (Gate 2) shown here. WAIT-quality names appear below as watching.</div>
+          <div style={{fontSize:13}}>Screen runs at 09:45 ET and 16:30 ET on trading days. 70 stocks scanned — top 15 with ≥15% valuation upside (Gate 1) and STRONG/GOOD/FAIR technical entry (Gate 2) shown here, with a 4H early-turn flag. WAIT-quality names appear below as watching.</div>
         </div>
       ) : (
         <div style={{padding:'0 10px',display:'flex',flexDirection:'column',gap:10}}>
@@ -736,6 +736,9 @@ function SwingTab() {
                     </div>
                     <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
                       <span style={{fontSize:11,fontWeight:700,color:eqClr(eq),background:eqBg(eq),border:`1px solid ${eqClr(eq)}40`,borderRadius:3,padding:'2px 7px'}}>{eq}</span>
+                      {(c.early_4h||tech.early_4h)&&(
+                        <span style={{fontSize:11,fontWeight:700,color:'#14b8a6',background:'rgba(20,184,166,.12)',border:'1px solid rgba(20,184,166,.3)',borderRadius:3,padding:'2px 6px'}}>4H ▲ early</span>
+                      )}
                       <span style={{fontSize:11,color:'var(--muted)',fontWeight:600}}>{tech.trend||'—'}</span>
                       {tech.rsi!=null&&<span style={{fontSize:11,color:'var(--muted)'}}>RSI {tech.rsi}</span>}
                     </div>
