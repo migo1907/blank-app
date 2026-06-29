@@ -1,4 +1,4 @@
-const CACHE = 'migo-v1'
+const CACHE = 'migo-v2'
 const PRECACHE = ['/app/', '/app/manifest.json']
 
 self.addEventListener('install', e => {
