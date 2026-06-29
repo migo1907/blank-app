@@ -2,37 +2,6 @@
   "signals": [
     {
       "direction": "SHORT",
-      "timeframe": "30",
-      "trigger": "FVG",
-      "symbol": "SPY",
-      "entry_price": 732.16,
-      "tp1": 726.65,
-      "tp2": 722.64,
-      "tp3": 717.13,
-      "sl": 737.67,
-      "ml_score": 0.5,
-      "tier": "\u26a1 LOW",
-      "quality_score": 0.4976,
-      "quality_reason": "approved",
-      "news_score": -0.2403,
-      "velocity": "NORMAL",
-      "event": "WAR/CONFLICT",
-      "htf_bias": {
-        "direction": "SHORT",
-        "timeframe": "30",
-        "symbol": "SPY",
-        "trigger": "FVG",
-        "ml_score": 0.5,
-        "stored_at": "2026-06-24T17:30:01.815134+00:00",
-        "expires_at": "2026-06-24T19:30:01.815142+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "htf_direct",
-      "session": "NYSE Afternoon",
-      "fired_at": "2026-06-24T17:30:02.097784+00:00"
-    },
-    {
-      "direction": "SHORT",
       "timeframe": "15",
       "trigger": "FVG",
       "symbol": "QQQ",
@@ -2819,6 +2788,29 @@
       "htf_context": "scalp",
       "session": "NYSE Open",
       "fired_at": "2026-06-29T13:45:22.089512+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "15",
+      "trigger": "FVG",
+      "symbol": "RR",
+      "entry_price": 2.05,
+      "tp1": 2.11,
+      "tp2": 2.16,
+      "tp3": 2.22,
+      "sl": 1.99,
+      "ml_score": 0.125,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.4026,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.113,
+      "velocity": "CONFLICTED",
+      "event": "FLASH_CRASH",
+      "htf_bias": null,
+      "contra_bias": null,
+      "htf_context": "scalp",
+      "session": "NYSE Open",
+      "fired_at": "2026-06-29T13:45:23.608095+00:00"
     }
   ]
 }
