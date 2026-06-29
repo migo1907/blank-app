@@ -145,15 +145,16 @@ def _self_computed_upside(fund: dict) -> float | None:
 
 
 def _fourh_confirm(ticker: str):
-    """4-hour entry confirmation — a faster turn inside the daily setup.
+    """4-hour LEADING read — the lower timeframe turns up faster than the daily, so
+    it signals an entry forming one step ahead.
 
     Returns True  → 4H is turning up (price > 4H-EMA20, 4H-RSI rising, not overbought)
-            False → 4H not confirming yet (wait for the turn)
+            False → 4H not turning up yet
             None  → no 4H data available (free AV budget/key) → caller uses daily-only
 
-    The daily read defines the SETUP (trend + tier); this times the ENTRY one notch
-    earlier. Best-effort and budget-guarded — never blocks a candidate when 4H is
-    unavailable. Lights up fully once a paid intraday source is added.
+    This is an EARLY indicator, never a gate: it adds a faster heads-up but never
+    blocks a daily entry. Best-effort and budget-guarded; lights up fully once a paid
+    intraday source is added.
     """
     try:
         from market_data import alphavantage_4h
@@ -182,7 +183,8 @@ def _technical_score(ticker: str) -> dict:
     """
     out = {"score": 0.0, "rsi": None, "trend": "NEUTRAL", "rel_strength_pct": None,
            "entry": None, "atr": None, "stop": None, "t1": None, "t2": None, "t3": None,
-           "entry_quality": "WAIT", "entry_now": False, "rel_volume": None, "entry_4h": "n/a"}
+           "entry_quality": "WAIT", "entry_now": False, "rel_volume": None,
+           "entry_4h": "n/a", "early_4h": False}
     try:
         from market_data import fetch_daily
 
@@ -287,18 +289,22 @@ def _technical_score(ticker: str) -> dict:
             entry_quality = "WAIT"
             daily_ready = False
 
-        # ── 4H entry confirmation (faster turn within the daily setup) ──────────
-        # Refines the timing of entry_now for candidate tiers. Best-effort: when no
-        # 4H data is available (free Alpha Vantage budget exhausted / no key), it
-        # falls back to the daily-only read so candidates are never starved.
-        entry_now = daily_ready
-        if entry_quality in ("STRONG", "GOOD", "FAIR"):
+        # ── 4H early indication (LEADING signal, NOT a gate) ───────────────────
+        # The daily defines the setup. The 4H is the lower timeframe, so it turns up
+        # FASTER — it flags an entry forming one step ahead of the daily. It never
+        # blocks a daily entry; it only adds an earlier heads-up. Best-effort: no 4H
+        # data → just the daily read.
+        entry_now = daily_ready          # daily-confirmed entry — unaffected by 4H
+        if entry_quality != "AVOID":     # only meaningful inside a valid uptrend context
             conf = _fourh_confirm(ticker)
             if conf is None:
-                out["entry_4h"] = "n/a"          # no 4H data → daily-only
+                out["entry_4h"] = "n/a"
+            elif conf:
+                # 4H turning up. If the daily hasn't fired yet, this is the EARLY signal.
+                out["entry_4h"] = "▲ early" if not daily_ready else "▲ aligned"
+                out["early_4h"] = not daily_ready
             else:
-                out["entry_4h"] = "✓" if conf else "✗"
-                entry_now = daily_ready and conf  # require the 4H to be turning up
+                out["entry_4h"] = "—"
 
         out["entry_quality"] = entry_quality
         out["entry_now"]     = entry_now
@@ -363,6 +369,8 @@ def screen_one(ticker: str) -> dict:
         "upside_source":  upside_source,
         "entry_quality":  tech.get("entry_quality", "WAIT"),
         "entry_now":      tech.get("entry_now", False),
+        "entry_4h":       tech.get("entry_4h", "n/a"),
+        "early_4h":       tech.get("early_4h", False),
         "fundamental":    fund,
         "technical":      tech,
         "updated_at":     _now(),
