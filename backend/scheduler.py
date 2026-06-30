@@ -1442,6 +1442,21 @@ async def _self_diagnosis_cycle() -> None:
                 )
             except Exception as e:
                 print(f"[self_diag] alert failed: {e}")
+            # If any worst pool's fix lives in the Pine, message the owner directly
+            # (the "Mohamed —" convention) so it reads as an action request.
+            pine_pools = [w["pool"] for w in worst if w.get("pine_change_required")]
+            if pine_pools:
+                try:
+                    from telegram_bot import send_owner_message
+                    await send_owner_message(
+                        f"this week's diagnosis flags a Pine-level fix for: "
+                        f"{', '.join(pine_pools)}. I'll prepare the exact change, "
+                        f"backtest it against the current version, and send you the "
+                        f"paste only if it beats current.",
+                        action="no action yet — wait for my validated paste.",
+                    )
+                except Exception as e:
+                    print(f"[self_diag] owner message failed: {e}")
     except Exception as e:
         print(f"[self_diag] cycle failed: {e}")
 

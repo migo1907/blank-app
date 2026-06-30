@@ -477,6 +477,44 @@ async def send_critical_alert(title: str, detail: str, action: str = "") -> bool
     return False
 
 
+async def send_owner_message(body: str, action: str = "") -> bool:
+    """
+    Direct communication to the owner (Mohamed) on the personal chat — NOT a system
+    alert. By agreement, a message that opens with "Mohamed —" is the system/Claude
+    talking to you (usually because something needs a manual action: paste a Pine
+    update, allow-list a host, run an endpoint), not an automated stat line.
+    """
+    if not TOKEN or not PERSONAL_CHAT_ID:
+        print(f"[owner] Mohamed — {body}")
+        return False
+    now = datetime.now(timezone.utc).strftime("%H:%M UTC — %d %b %Y")
+    msg = (
+        f"💬 <b>Mohamed —</b> {html.escape(str(body))}\n"
+    )
+    if action:
+        msg += f"\n👉 <b>Action:</b> {html.escape(str(action))}\n"
+    msg += f"\n<i>(direct message — manual action may be needed, not a system alert)</i>"
+    msg += f"\n⏰ {now}"
+    import asyncio as _asyncio
+    url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
+    for attempt in range(3):
+        try:
+            async with httpx.AsyncClient(timeout=10) as client:
+                resp = await client.post(url, json={
+                    "chat_id":    PERSONAL_CHAT_ID,
+                    "text":       msg,
+                    "parse_mode": "HTML",
+                })
+                resp.raise_for_status()
+                return True
+        except Exception as e:
+            if attempt < 2:
+                await _asyncio.sleep(1 if attempt == 0 else 3)
+            else:
+                print(f"[owner] Owner message failed after 3 attempts: {e}")
+    return False
+
+
 async def _send_to(chat_id: str, text: str) -> bool:
     """Generic send to an arbitrary chat id with retry (used by the swing brief)."""
     if not TOKEN or not chat_id:

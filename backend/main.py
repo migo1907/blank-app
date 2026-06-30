@@ -1284,6 +1284,18 @@ async def errors_log(secret: str = "", limit: int = 50):
     return {"errors": list(reversed(log[-limit:])), "count": len(log)}
 
 
+@app.get("/owner/test")
+async def owner_test(secret: str = "", message: str = ""):
+    """Send a test 'Mohamed —' direct message to the personal Telegram to confirm
+    the owner-communication channel + format work."""
+    _validate_secret(secret)
+    from telegram_bot import send_owner_message
+    body = message or ("channel test — this is how I'll reach you when something "
+                       "needs a manual step (paste Pine, allow-list a host, run an endpoint).")
+    ok = await send_owner_message(body, action="reply here or in chat if you got this.")
+    return {"sent": ok}
+
+
 # Strong refs to detached background tasks so the event loop doesn't GC them mid-run.
 _BACKGROUND_TASKS: set = set()
 
