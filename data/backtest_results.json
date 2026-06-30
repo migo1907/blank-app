@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-06-30T16:01:57.815412+00:00",
+  "updated_at": "2026-06-30T16:01:59.579218+00:00",
   "status": "running",
-  "progress": "4/15",
+  "progress": "5/15",
   "params": {
     "symbols": [
       "QQQ",
@@ -515,6 +515,12 @@
     "QQQ_15": {
       "symbol": "QQQ",
       "timeframe": "15",
+      "n_trades": 0,
+      "note": "insufficient bars (0)"
+    },
+    "QQQ_5": {
+      "symbol": "QQQ",
+      "timeframe": "5",
       "n_trades": 0,
       "note": "insufficient bars (0)"
     }
