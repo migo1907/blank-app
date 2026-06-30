@@ -35548,7 +35548,7 @@
     }
   },
   {
-    "received_at": "2026-06-30T20:00:37.702203+00:00",
+    "received_at": "2026-06-30T20:00:37.715330+00:00",
     "pool": "STOCKS_MOMENTUM_15M",
     "payload": {
       "secret": "gold2026",
@@ -35564,12 +35564,12 @@
       "ml_score": 0.5,
       "tier": null,
       "trade_id": "NVDA_1782849601394",
-      "outcome": "WIN",
-      "ml_outcome": "TP1_HIT",
+      "outcome": "PARTIAL",
+      "ml_outcome": "WIN",
       "mfe": 2.77,
       "mae": 1.43,
-      "tp_stage": "TP1",
-      "exit_price": 200.2038,
+      "tp_stage": "SL_TP1",
+      "exit_price": 198.06,
       "f1": 0.4098,
       "f2": 0.288,
       "f3": 0.0109,
