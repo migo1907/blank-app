@@ -32350,7 +32350,7 @@
     }
   },
   {
-    "received_at": "2026-06-30T14:00:08.409027+00:00",
+    "received_at": "2026-06-30T14:00:04.489211+00:00",
     "pool": "STOCKS_QQQ_30M",
     "payload": {
       "secret": "gold2026",
@@ -32366,11 +32366,11 @@
       "ml_score": 0.375,
       "tier": null,
       "trade_id": "QQQ_1782828000707",
-      "outcome": "WIN",
-      "ml_outcome": "TP1_HIT",
+      "outcome": "PARTIAL",
+      "ml_outcome": "WIN",
       "mfe": 13.01,
-      "tp_stage": "TP1",
-      "exit_price": 729.6081,
+      "tp_stage": "SL_TP1",
+      "exit_price": 723.89,
       "f1": 0.1833,
       "f2": 0.2416,
       "f3": -0.0164,
