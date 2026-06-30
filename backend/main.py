@@ -727,6 +727,19 @@ async def trade_outcome(payload: TradeOutcomePayload):
     }
     outcome_row.update(features.as_db_dict())
 
+    # Forward audit instrumentation: store the backend ensemble's P(win) on this
+    # trade's own features alongside the Pine KNN `ml_bull_score`. The Pine score
+    # is anti-predictive on gold; the backend ensemble is what the live gate uses,
+    # but it was never persisted, so the gate could not be audited from history.
+    # Recording it per close lets future autopsies compare the real gate vs outcome.
+    try:
+        from signal_engine import backend_ensemble_prob
+        outcome_row["ensemble_prob"] = await asyncio.to_thread(
+            backend_ensemble_prob, pool, features, payload.direction
+        )
+    except Exception as _ep_err:
+        print(f"[trade-outcome] ensemble_prob annotate failed (non-fatal): {_ep_err}")
+
     async def _persist():
         try:
             for _save_attempt in range(3):
@@ -953,17 +966,27 @@ async def unified_webhook(payload: UnifiedPayload):
         print(f"[webhook] ML QUALITY {payload.direction} {sym} TF={tf} "
               f"score={_gate['score']} ({_gate['reason']}) components={_gate['components']}")
 
-        # Higher-quality-only gate: suppress confidently-WEAK signals from Telegram.
-        # "similar setups mostly stopped out" = backend quality < 0.40 backed by real
-        # model scores. Never suppress while models are warming up (cold-start / no
-        # features / gate error) so young pools still accumulate trade data. The HTF
-        # bias store and entry-price cache above already ran, so suppression here only
-        # silences the Telegram alert — the trade still feeds the ML.
-        _WEAK_SUPPRESS = 0.40
+        # Higher-quality-only gate: suppress signals the backend ensemble grades
+        # below the pool's own adaptive threshold (F-beta / expectancy tuned,
+        # default 0.45) — i.e. honor _gate["pass"] instead of a flat 0.40 cutoff.
+        # Why: a walk-forward audit of the live gold ledger showed the backend
+        # ensemble ranks outcomes (AUC ~0.52–0.56; top-quartile +2–11pp over base)
+        # while the Pine on-chart KNN that fires the entry is anti-predictive
+        # (AUC ~0.46). The flat 0.40 cutoff sat *below* the gate's own 0.45
+        # threshold, so trades the ensemble already judged sub-par still reached
+        # Telegram. Suppressing them puts the calibrated, OOS-validated model in
+        # the driver's seat.
+        # Guards: never suppress while models are warming up (cold-start / no
+        # features / gate error), and never suppress a THIN pool (Rule 8 — a
+        # low-confidence miss must not starve the cold-start data the pool needs
+        # to reach 50 trades). Suppression only silences the Telegram alert; the
+        # HTF bias store + entry-price cache already ran and the trade still feeds
+        # the ML at close.
         _warming = _gate["reason"] in ("no_features_cached", "cold_start_bypass", "gate_error")
-        if not _warming and _gate["score"] < _WEAK_SUPPRESS:
+        if not _warming and not _gate.get("thin_pool") and not _gate["pass"]:
             print(f"[webhook] SUPPRESSED weak {payload.direction} {sym} TF={tf} "
-                  f"score={_gate['score']} — similar setups mostly stopped out")
+                  f"score={_gate['score']} < threshold={_gate.get('threshold')} "
+                  f"({_gate['reason']})")
             return {"status": "ok", "routed_to": "suppressed",
                     "reason": "weak_ml_quality", "score": _gate["score"]}
 

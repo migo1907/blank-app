@@ -426,6 +426,48 @@ def _memory_features(history: list[dict], direction: str, n: int = 10) -> list[f
     return [overall, same_dir, same_sess, same_trig, min(streak, 8) / 8.0]
 
 
+def backend_ensemble_prob(pool: str, features, direction: str) -> float | None:
+    """
+    Compute the backend ensemble P(win) for a *specific* feature vector, used to
+    annotate closed trades so the live gate stays auditable (the ledger otherwise
+    only stores the Pine KNN `ml_bull_score`, which a walk-forward audit showed is
+    anti-predictive on gold; the backend ensemble is the score that actually gates).
+
+    Mirrors the model-averaging in score_entry_gate but takes the features directly
+    (the closed trade's stored vector) instead of the live heartbeat cache. Returns
+    None if nothing is trained for the pool. Best-effort and side-effect free.
+    """
+    try:
+        history  = _cached_history(pool, 500)
+        feat_list = features.as_list()
+        is_long  = direction == "LONG"
+        comps: list[float] = []
+        knn = get_model(pool)
+        if len(history) >= knn.k:
+            bull, bear = knn.predict(features, history)
+            comps.append(bull if is_long else bear)
+        rf = get_rf(pool)
+        if rf.is_trained:
+            comps.append(rf.predict(feat_list))
+        gbm = get_gbm(pool)
+        if gbm.is_trained:
+            comps.append(gbm.predict(feat_list))
+        if pool in GOLD_TF_IDS:
+            jm = get_joint_gold()
+            if jm.is_trained:
+                comps.append(jm.predict(feat_list, pool))
+        elif pool in STOCK_POOL_IDS:
+            jm = get_joint_stocks()
+            if jm.is_trained:
+                comps.append(jm.predict(feat_list, pool))
+        if not comps:
+            return None
+        return round(sum(comps) / len(comps), 4)
+    except Exception as _e:
+        print(f"[ensemble_prob] non-fatal for {pool}: {_e}")
+        return None
+
+
 def score_entry_gate(pool: str, direction: str, trigger: str = "") -> dict:
     """
     Re-score a Pine-fired entry using the backend's trained models.
@@ -592,6 +634,11 @@ def score_entry_gate(pool: str, direction: str, trigger: str = "") -> dict:
         "pass": passed, "score": round(score, 4), "reason": reason,
         "components": components, "threshold": threshold,
         "shap_drivers": shap_drivers,
+        # Rule 8: callers must never hard-suppress a thin pool on a low-confidence
+        # miss, or it starves the cold-start data the pool needs to mature. The
+        # hard-block gates above are already thin-guarded; this flag lets the
+        # webhook suppression honor the per-pool threshold for mature pools only.
+        "thin_pool": _thin_pool,
     }
 
 
