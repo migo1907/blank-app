@@ -26800,7 +26800,7 @@
     }
   },
   {
-    "received_at": "2026-06-30T08:45:17.674698+00:00",
+    "received_at": "2026-06-30T08:45:17.907845+00:00",
     "pool": "STOCKS_SPX500_15M",
     "payload": {
       "secret": "gold2026",
@@ -26816,11 +26816,11 @@
       "ml_score": 0.25,
       "tier": null,
       "trade_id": "US500_1782809100090",
-      "outcome": "WIN",
-      "ml_outcome": "TP1_HIT",
+      "outcome": "PARTIAL",
+      "ml_outcome": "WIN",
       "mfe": 0.0,
-      "tp_stage": "TP1",
-      "exit_price": 7435.1937,
+      "tp_stage": "SL_TP1",
+      "exit_price": 7449.9,
       "f1": 0.0951,
       "f2": 0.3534,
       "f3": -0.1935,
