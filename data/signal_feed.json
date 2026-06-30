@@ -3,37 +3,6 @@
     {
       "direction": "SHORT",
       "timeframe": "30",
-      "trigger": "LIQ",
-      "symbol": "SOXL",
-      "entry_price": 226.26,
-      "tp1": 201.6,
-      "tp2": 183.66,
-      "tp3": 159.0,
-      "sl": 250.92,
-      "ml_score": 0.75,
-      "tier": "\u2b50 HIGH",
-      "quality_score": 0.4539,
-      "quality_reason": "approved",
-      "news_score": -0.1119,
-      "velocity": "NORMAL",
-      "event": "WAR/CONFLICT",
-      "htf_bias": {
-        "direction": "SHORT",
-        "timeframe": "30",
-        "symbol": "SOXL",
-        "trigger": "LIQ",
-        "ml_score": 0.75,
-        "stored_at": "2026-06-25T14:00:48.386223+00:00",
-        "expires_at": "2026-06-25T16:00:48.386233+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "htf_direct",
-      "session": "NYSE Open",
-      "fired_at": "2026-06-25T14:02:11.759741+00:00"
-    },
-    {
-      "direction": "SHORT",
-      "timeframe": "30",
       "trigger": "BOS",
       "symbol": "BBAI",
       "entry_price": 3.38,
@@ -2891,6 +2860,37 @@
       "htf_context": "htf_direct",
       "session": "NYSE Afternoon",
       "fired_at": "2026-06-30T20:00:26.699408+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "60",
+      "trigger": "RSI",
+      "symbol": "CRM",
+      "entry_price": 156.72,
+      "tp1": 152.86,
+      "tp2": 149.77,
+      "tp3": 145.9,
+      "sl": 160.58,
+      "ml_score": 0.75,
+      "tier": "\u2b50 HIGH",
+      "quality_score": 0.5907,
+      "quality_reason": "approved",
+      "news_score": -0.0539,
+      "velocity": "CONFLICTED",
+      "event": "GEOPOLITICAL",
+      "htf_bias": {
+        "direction": "SHORT",
+        "timeframe": "60",
+        "symbol": "CRM",
+        "trigger": "RSI",
+        "ml_score": 0.75,
+        "stored_at": "2026-06-30T20:00:31.028774+00:00",
+        "expires_at": "2026-07-01T00:00:31.028793+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "htf_direct",
+      "session": "NYSE Afternoon",
+      "fired_at": "2026-06-30T20:00:31.031797+00:00"
     }
   ]
 }
