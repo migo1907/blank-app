@@ -342,6 +342,31 @@ async def _validation_error_handler(request, exc):
     return JSONResponse(status_code=422, content={"detail": safe_errors})
 
 
+@app.exception_handler(Exception)
+async def _unhandled_error_handler(request, exc):
+    """
+    Catch-all for unhandled exceptions (500s). Records the traceback to
+    data/error_log.json on the data branch so production errors are inspectable
+    out-of-band (no Railway log access needed), then returns a clean 500.
+    HTTPException / RequestValidationError have their own handlers and are
+    unaffected. Logging runs in a background task so it never delays the response.
+    """
+    import traceback as _tb
+    tb = "".join(_tb.format_exception(type(exc), exc, exc.__traceback__))
+    print(f"[500] {request.method} {request.url.path}\n{tb}")
+    try:
+        from db import log_error
+        asyncio.create_task(asyncio.to_thread(
+            log_error,
+            f"{request.method} {request.url.path}",
+            tb,
+            {"path": str(request.url.path)},
+        ))
+    except Exception as _le:
+        print(f"[500] error-sink scheduling failed (non-fatal): {_le}")
+    return JSONResponse(status_code=500, content={"detail": "internal error"})
+
+
 class TradeOutcomePayload(BaseModel):
     secret:      str
     trade_id:    Optional[str]   = None
@@ -1246,6 +1271,17 @@ async def signals_feed(secret: str = "", limit: int = 50):
     _validate_secret(secret)
     feed = list(reversed(_signal_feed[-limit:]))
     return {"signals": feed, "count": len(feed)}
+
+
+@app.get("/errors")
+async def errors_log(secret: str = "", limit: int = 50):
+    """Return the last N backend errors recorded to data/error_log.json."""
+    _validate_secret(secret)
+    from db import _get_file, _ERROR_LOG_PATH
+    log, _ = await asyncio.to_thread(_get_file, _ERROR_LOG_PATH)
+    if not isinstance(log, list):
+        log = []
+    return {"errors": list(reversed(log[-limit:])), "count": len(log)}
 
 
 @app.get("/signals/levels")

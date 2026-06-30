@@ -475,6 +475,44 @@ def log_raw_webhook(payload: dict) -> None:
         print(f"[webhook_log] Failed to log payload: {e}")
 
 
+_ERROR_LOG_PATH = "data/error_log.json"
+_ERROR_LOG_MAX  = 200  # keep last 200 errors (oldest dropped first)
+
+
+def log_error(where: str, exc: str, context: dict | None = None) -> None:
+    """
+    Append a backend error/exception to data/error_log.json on the data branch.
+
+    The data branch is the only surface reachable for out-of-band inspection, so
+    this gives standing visibility into production errors (500s, handler crashes)
+    without needing Railway log access. Capped at _ERROR_LOG_MAX, newest last.
+    Never raises — error logging must not itself break the request flow.
+    """
+    try:
+        entry = {
+            "at":      datetime.now(timezone.utc).isoformat(),
+            "where":   str(where)[:120],
+            "error":   str(exc)[:4000],
+            "context": context or {},
+        }
+        for attempt in range(3):
+            log, sha = _get_file(_ERROR_LOG_PATH)
+            if not isinstance(log, list):
+                log = []
+            log.append(entry)
+            if len(log) > _ERROR_LOG_MAX:
+                log = log[-_ERROR_LOG_MAX:]
+            try:
+                _put_file(_ERROR_LOG_PATH, log, sha, "chore: error log")
+                break
+            except Exception as put_err:
+                if attempt < 2 and "409" in str(put_err):
+                    continue
+                raise put_err
+    except Exception as e:
+        print(f"[error_log] Failed to log error: {e}")
+
+
 _MISTAKE_LEDGER_PATH = "data/mistake_ledger.json"
 _MISTAKE_LEDGER_MAX  = 500
 
