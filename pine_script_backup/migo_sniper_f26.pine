@@ -345,6 +345,7 @@ var bool   tp1Hit      = false
 var bool   tp2Hit      = false
 var float  trailSL     = 0.0
 var float  mfeFav      = 0.0  // max favorable excursion since entry (in price units)
+var float  maeAdv      = 0.0  // max adverse excursion since entry (positive magnitude; feeds exit-optimizer Phase B stop learning)
 var int    lastHBBar   = 0    // bar_index of last confirmed heartbeat
 
 // ═══════════════════════════════════════════════════════
@@ -395,7 +396,7 @@ buildPayload(dir, outcome, mlOut, stage, entPx, exitPx, mlSc, trig, mfe, tf) =>
     string p2  = ',"trade_id":"' + syminfo.ticker + '_' + str.tostring(timenow) + '"'
     string p3  = ',"direction":"' + dir + '","outcome":"' + outcome + '","ml_outcome":"' + mlOut + '","tp_stage":"' + stage + '","trigger":"' + trig + '"'
     string p4  = ',"entry_price":' + str.tostring(entPx, "#.####") + ',"exit_price":' + str.tostring(exitPx, "#.####")
-    string p5  = ',"ml_score":' + str.tostring(mlSc, "#.####") + ',"mfe":' + str.tostring(mfe, "#.####") + ',"timeframe":"' + tf + '"'
+    string p5  = ',"ml_score":' + str.tostring(mlSc, "#.####") + ',"mfe":' + str.tostring(mfe, "#.####") + ',"mae":' + str.tostring(maeAdv, "#.####") + ',"timeframe":"' + tf + '"'
     string p6  = ',"symbol":"' + syminfo.ticker + '"'
     string f1s  = ',"f1":'  + str.tostring(array.get(entryFeatures, 0),  "#.####")
     string f2s  = ',"f2":'  + str.tostring(array.get(entryFeatures, 1),  "#.####")
@@ -433,7 +434,7 @@ buildHeartbeatPayload(tf) =>
     string h1  = '{"secret":"' + webhookSecret + '"'
     string h2  = ',"trade_id":"heartbeat"'
     string h3  = ',"direction":"LONG","outcome":"HEARTBEAT","ml_outcome":"HEARTBEAT","tp_stage":"","trigger":""'
-    string h4  = ',"entry_price":0,"exit_price":0,"ml_score":0,"mfe":0'
+    string h4  = ',"entry_price":0,"exit_price":0,"ml_score":0,"mfe":0,"mae":0'
     string h5  = ',"timeframe":"' + tf + '","symbol":"' + syminfo.ticker + '"'
     string hf1  = ',"f1":'  + str.tostring(f1,  "#.####") + ',"f2":'  + str.tostring(f2,  "#.####")
     string hf3  = ',"f3":'  + str.tostring(f3,  "#.####") + ',"f4":'  + str.tostring(f4,  "#.####")
@@ -460,6 +461,11 @@ if activeTrade == "LONG"
     mfeFav := math.max(mfeFav, high - entryPrice)
 if activeTrade == "SHORT"
     mfeFav := math.min(mfeFav, entryPrice - low)
+// Max adverse excursion — positive magnitude of the worst move against the trade.
+if activeTrade == "LONG"
+    maeAdv := math.max(maeAdv, entryPrice - low)
+if activeTrade == "SHORT"
+    maeAdv := math.max(maeAdv, high - entryPrice)
 
 // TRAIL STOP
 // ═══════════════════════════════════════════════════════
@@ -501,6 +507,7 @@ if activeTrade == "LONG"
         tp1Hit  := false
         tp2Hit  := false
         mfeFav  := 0.0
+        maeAdv  := 0.0
         label.new(bar_index, high, "TP3 ✓\nFULL RUN! ☁️", color=color.green, textcolor=color.white, style=label.style_label_down, size=size.small)
 
     if not closedTP3L and low <= slPrice
@@ -521,6 +528,7 @@ if activeTrade == "LONG"
         tp1Hit := false
         tp2Hit := false
         mfeFav := 0.0
+        maeAdv := 0.0
 
 // ═══════════════════════════════════════════════════════
 // SHORT EXITS + ADAPTIVE UPDATE + WEBHOOK
@@ -550,6 +558,7 @@ if activeTrade == "SHORT"
         tp1Hit  := false
         tp2Hit  := false
         mfeFav  := 0.0
+        maeAdv  := 0.0
         label.new(bar_index, low, "TP3 ✓\nFULL RUN! ☁️", color=color.green, textcolor=color.white, style=label.style_label_up, size=size.small)
 
     if not closedTP3S and high >= slPrice
@@ -570,6 +579,7 @@ if activeTrade == "SHORT"
         tp1Hit  := false
         tp2Hit  := false
         mfeFav  := 0.0
+        maeAdv  := 0.0
 
 // ═══════════════════════════════════════════════════════
 // NEAR-TP1 PROXIMITY RESET
@@ -582,6 +592,7 @@ if activeTrade == "LONG" and not tp1Hit
         tp1Hit := false
         tp2Hit := false
         mfeFav := 0.0
+        maeAdv := 0.0
 
 if activeTrade == "SHORT" and not tp1Hit
     float tpRange     = entryPrice - tp1Price
@@ -591,6 +602,7 @@ if activeTrade == "SHORT" and not tp1Hit
         tp1Hit := false
         tp2Hit := false
         mfeFav := 0.0
+        maeAdv := 0.0
 
 // ═══════════════════════════════════════════════════════
 // MULTI-TRIGGER ENTRY SYSTEM (unchanged logic)
@@ -667,6 +679,7 @@ if doBuy
     tp1Hit      := false
     tp2Hit      := false
     mfeFav      := 0.0
+    maeAdv      := 0.0
     tradeConf   := math.round(mlBull * 100)
     storeFeatures()
     label.new(bar_index, low, "🤖 BUY [" + buyTrig + "] " + buyTier + "\nML:" + str.tostring(tradeConf) + "%  Ent:" + str.tostring(entryPrice, "#.##") + "\nTP1:" + str.tostring(tp1Price, "#.##") + "  TP2:" + str.tostring(tp2Price, "#.##") + "\nTP3:" + str.tostring(tp3Price, "#.##") + "  SL:" + str.tostring(slPrice, "#.##"), color=buyCol, textcolor=color.white, style=label.style_label_up, size=size.small)
@@ -684,6 +697,7 @@ if doSell
     tp1Hit      := false
     tp2Hit      := false
     mfeFav      := 0.0
+    maeAdv      := 0.0
     tradeConf   := math.round(mlBear * 100)
     storeFeatures()
     label.new(bar_index, high, "🤖 SELL [" + sellTrig + "] " + sellTier + "\nML:" + str.tostring(tradeConf) + "%  Ent:" + str.tostring(entryPrice, "#.##") + "\nTP1:" + str.tostring(tp1Price, "#.##") + "  TP2:" + str.tostring(tp2Price, "#.##") + "\nTP3:" + str.tostring(tp3Price, "#.##") + "  SL:" + str.tostring(slPrice, "#.##"), color=sellCol, textcolor=color.white, style=label.style_label_down, size=size.small)
