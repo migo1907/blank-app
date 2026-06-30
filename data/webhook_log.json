@@ -35140,7 +35140,7 @@
     }
   },
   {
-    "received_at": "2026-06-30T19:45:05.636443+00:00",
+    "received_at": "2026-06-30T19:45:05.875272+00:00",
     "pool": "STOCKS_QUALITY_15M",
     "payload": {
       "secret": "gold2026",
@@ -35156,12 +35156,12 @@
       "ml_score": 0.5,
       "tier": null,
       "trade_id": "IBKR_1782848700299",
-      "outcome": "WIN",
-      "ml_outcome": "TP1_HIT",
+      "outcome": "PARTIAL",
+      "ml_outcome": "WIN",
       "mfe": 0.0,
       "mae": 0.025,
-      "tp_stage": "TP1",
-      "exit_price": 87.2179,
+      "tp_stage": "SL_TP1",
+      "exit_price": 87.96,
       "f1": -0.3627,
       "f2": -0.3921,
       "f3": -0.3692,
