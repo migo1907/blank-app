@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-06-30T18:03:11.777173+00:00",
+  "updated_at": "2026-06-30T18:03:23.219982+00:00",
   "status": "running",
-  "progress": "0/15",
+  "progress": "1/15",
   "params": {
     "symbols": [
       "QQQ",
@@ -31,6 +31,13 @@
     ],
     "grid_per_cell": 20
   },
-  "results": {},
+  "results": {
+    "QQQ_240": {
+      "symbol": "QQQ",
+      "timeframe": "240",
+      "n_entries": 6,
+      "status": "insufficient"
+    }
+  },
   "summary": []
 }
