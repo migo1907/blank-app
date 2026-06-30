@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-06-30T18:04:02.117254+00:00",
+  "updated_at": "2026-06-30T18:04:41.762571+00:00",
   "status": "running",
-  "progress": "12/15",
+  "progress": "13/15",
   "params": {
     "symbols": [
       "QQQ",
@@ -523,6 +523,117 @@
           }
         }
       ]
+    },
+    "XAUUSD_30": {
+      "symbol": "XAUUSD",
+      "timeframe": "30",
+      "n_entries": 113,
+      "status": "complete",
+      "current": {
+        "multipliers": {
+          "tp1": 2.2,
+          "tp2": 3.8,
+          "tp3": 6.0,
+          "sl": 2.2
+        },
+        "expectancy": -0.0085,
+        "metrics": {
+          "n_trades": 113,
+          "win_rate": 48.7,
+          "avg_pnl_pct": -0.0085,
+          "profit_factor": 0.976,
+          "pct_SL": 39.8,
+          "pct_TP1": 36.3,
+          "pct_TP2": 4.4,
+          "pct_TP3": 0.9,
+          "pct_timeout": 18.6
+        }
+      },
+      "best": {
+        "multipliers": {
+          "tp1": 1.1,
+          "tp2": 1.9,
+          "tp3": 3.0,
+          "sl": 2.2
+        },
+        "expectancy": 0.0326,
+        "metrics": {
+          "n_trades": 113,
+          "win_rate": 68.1,
+          "avg_pnl_pct": 0.0326,
+          "profit_factor": 1.134,
+          "pct_SL": 24.8,
+          "pct_TP1": 56.6,
+          "pct_TP2": 9.7,
+          "pct_TP3": 0.9,
+          "pct_timeout": 8.0
+        }
+      },
+      "expectancy_gain": 0.0411,
+      "beats_current": true,
+      "flips_positive": true,
+      "candidates": [
+        {
+          "multipliers": {
+            "tp1": 1.1,
+            "tp2": 1.9,
+            "tp3": 3.0,
+            "sl": 2.2
+          },
+          "expectancy": 0.0326,
+          "metrics": {
+            "n_trades": 113,
+            "win_rate": 68.1,
+            "avg_pnl_pct": 0.0326,
+            "profit_factor": 1.134,
+            "pct_SL": 24.8,
+            "pct_TP1": 56.6,
+            "pct_TP2": 9.7,
+            "pct_TP3": 0.9,
+            "pct_timeout": 8.0
+          }
+        },
+        {
+          "multipliers": {
+            "tp1": 1.1,
+            "tp2": 1.9,
+            "tp3": 3.0,
+            "sl": 1.87
+          },
+          "expectancy": 0.0188,
+          "metrics": {
+            "n_trades": 113,
+            "win_rate": 62.8,
+            "avg_pnl_pct": 0.0188,
+            "profit_factor": 1.078,
+            "pct_SL": 31.9,
+            "pct_TP1": 51.3,
+            "pct_TP2": 9.7,
+            "pct_TP3": 0.9,
+            "pct_timeout": 6.2
+          }
+        },
+        {
+          "multipliers": {
+            "tp1": 1.1,
+            "tp2": 1.9,
+            "tp3": 3.0,
+            "sl": 2.86
+          },
+          "expectancy": 0.0173,
+          "metrics": {
+            "n_trades": 113,
+            "win_rate": 69.0,
+            "avg_pnl_pct": 0.0173,
+            "profit_factor": 1.066,
+            "pct_SL": 19.5,
+            "pct_TP1": 57.5,
+            "pct_TP2": 9.7,
+            "pct_TP3": 0.9,
+            "pct_timeout": 12.4
+          }
+        }
+      ]
     }
   },
   "summary": [
@@ -587,6 +698,22 @@
         "tp2": 3.15,
         "tp3": 4.9,
         "sl": 2.12
+      },
+      "flips_positive": true
+    },
+    {
+      "pool": "XAUUSD_30",
+      "symbol": "XAUUSD",
+      "timeframe": "30",
+      "current_expectancy": -0.0085,
+      "best_expectancy": 0.0326,
+      "current_pf": 0.976,
+      "best_pf": 1.134,
+      "recommended": {
+        "tp1": 1.1,
+        "tp2": 1.9,
+        "tp3": 3.0,
+        "sl": 2.2
       },
       "flips_positive": true
     }
