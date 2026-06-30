@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-06-30T16:19:30.807577+00:00",
+  "updated_at": "2026-06-30T16:19:32.266183+00:00",
   "status": "running",
-  "progress": "14/15",
+  "progress": "15/15",
   "params": {
     "symbols": [
       "QQQ",
@@ -1293,6 +1293,12 @@
     "XAUUSD_15": {
       "symbol": "XAUUSD",
       "timeframe": "15",
+      "n_trades": 0,
+      "note": "insufficient bars (0)"
+    },
+    "XAUUSD_5": {
+      "symbol": "XAUUSD",
+      "timeframe": "5",
       "n_trades": 0,
       "note": "insufficient bars (0)"
     }
