@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-06-30T16:02:08.769387+00:00",
+  "updated_at": "2026-06-30T16:02:13.485393+00:00",
   "status": "running",
-  "progress": "10/15",
+  "progress": "11/15",
   "params": {
     "symbols": [
       "QQQ",
@@ -553,6 +553,20 @@
       "timeframe": "5",
       "n_trades": 0,
       "note": "insufficient bars (0)"
+    },
+    "XAUUSD_240": {
+      "symbol": "XAUUSD",
+      "timeframe": "240",
+      "n_trades": 20,
+      "win_rate": 35.0,
+      "avg_pnl_pct": -0.995,
+      "profit_factor": 0.388,
+      "pct_SL": 40.0,
+      "pct_TP1": 15.0,
+      "pct_TP2": 0.0,
+      "pct_TP3": 0.0,
+      "pct_timeout": 45.0,
+      "exit_optimizer": null
     }
   }
 }
