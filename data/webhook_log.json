@@ -31900,7 +31900,7 @@
     }
   },
   {
-    "received_at": "2026-06-30T13:45:03.965898+00:00",
+    "received_at": "2026-06-30T13:45:02.108474+00:00",
     "pool": "STOCKS_MOMENTUM_15M",
     "payload": {
       "secret": "gold2026",
@@ -31916,11 +31916,11 @@
       "ml_score": 0.625,
       "tier": null,
       "trade_id": "SOXL_1782827100325",
-      "outcome": "WIN",
-      "ml_outcome": "TP1_HIT",
+      "outcome": "PROGRESS",
+      "ml_outcome": "TP2_HIT",
       "mfe": 15.76,
-      "tp_stage": "TP1",
-      "exit_price": 245.4964,
+      "tp_stage": "TP2",
+      "exit_price": 251.9587,
       "f1": 0.2126,
       "f2": -0.3033,
       "f3": -0.4569,
