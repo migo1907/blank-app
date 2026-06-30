@@ -66,6 +66,38 @@ def _quality_weight(row: dict) -> float:
     return _QUALITY_WEIGHT.get(stage, 0.60)
 
 
+def _label_noise_weight(row: dict) -> float:
+    """Label-noise correction (Phase 5).
+
+    A LOSS that ran meaningfully in our favour (high max-favorable-excursion) before
+    reversing into a stop is a NOISY direction label: the entry call wasn't wrong —
+    the trade got stopped by the exit (spread / slippage / trail). Downweighting these
+    stops the models from 'learning to avoid' setups that were actually right; the R:R
+    leak is handled separately by the exit optimizer, not by penalising the entry.
+
+    Wins and clean immediate losses keep full weight. Scale-invariant (MFE-vs-loss
+    ratio) so it works across gold scalps and stock swings. Floors at 0.5 so a noisy
+    loss is never fully discarded. Graceful 1.0 when mfe/pnl are missing (legacy rows).
+    """
+    if _win_label(row) == 1:
+        return 1.0
+    try:
+        mfe   = abs(float(row.get("mfe") or 0.0))
+        entry = float(row.get("entry_price") or 0.0)
+        pnl   = abs(float(row.get("pnl_pct") or 0.0))
+        if entry <= 0 or pnl <= 0:
+            return 1.0
+        # How far it went in our favour vs the realized loss. ratio ≤ 1 → it never
+        # really went our way (clean loss, full weight). ratio ≥ 3 → it ran 3× the
+        # loss in our favour then reversed (very noisy) → floor at 0.5.
+        ratio = (mfe / entry * 100.0) / pnl
+        if ratio <= 1.0:
+            return 1.0
+        return max(0.5, 1.0 - min((ratio - 1.0) / 2.0, 1.0) * 0.5)
+    except Exception:
+        return 1.0
+
+
 class RandomForestEnsemble:
     """
     Wraps sklearn RandomForestClassifier for XAU/USD WIN/LOSS prediction.
@@ -155,9 +187,9 @@ class RandomForestEnsemble:
             n_jobs=-1,
         )
 
-        # Combined weight: session quality × signal quality (tp_stage)
+        # Combined weight: session quality × signal quality (tp_stage) × label-noise correction
         sample_weights = np.array(
-            [_session_weight(row.get("created_at", "")) * _quality_weight(row) for row in history],
+            [_session_weight(row.get("created_at", "")) * _quality_weight(row) * _label_noise_weight(row) for row in history],
             dtype=np.float64
         )
 
@@ -353,7 +385,7 @@ class GradientBoostEnsemble:
         for row in history:
             X_rows.append(row_to_vector(row))
             y_rows.append(_win_label(row))
-            w_rows.append(_session_weight(row.get("created_at", "")) * _quality_weight(row))
+            w_rows.append(_session_weight(row.get("created_at", "")) * _quality_weight(row) * _label_noise_weight(row))
 
         if len(set(y_rows)) < 2:
             print(f"[gbm] Only one class in training data ({set(y_rows)}) — skipping train until wins accumulate.")
@@ -602,7 +634,7 @@ class JointGoldGBM:
                 label = _win_label(row)
                 X_rows.append(feat)
                 y_rows.append(label)
-                w_rows.append(_session_weight(row.get("created_at", "")) * _quality_weight(row))
+                w_rows.append(_session_weight(row.get("created_at", "")) * _quality_weight(row) * _label_noise_weight(row))
 
         if len(X_rows) < MIN_TRADES or len(set(y_rows)) < 2:
             print(f"[joint_gold] Not enough data ({len(X_rows)} rows, classes={set(y_rows)}) — skipping")
@@ -683,7 +715,7 @@ class JointStocksGBM:
                 label = _win_label(row)
                 X_rows.append(feat)
                 y_rows.append(label)
-                w_rows.append(_session_weight(row.get("created_at", "")) * _quality_weight(row))
+                w_rows.append(_session_weight(row.get("created_at", "")) * _quality_weight(row) * _label_noise_weight(row))
 
         if len(X_rows) < MIN_TRADES or len(set(y_rows)) < 2:
             print(f"[joint_stocks] Not enough data ({len(X_rows)} rows) — skipping")
