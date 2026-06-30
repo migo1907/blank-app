@@ -1,0 +1,36 @@
+{
+  "updated_at": "2026-06-30T18:03:11.777173+00:00",
+  "status": "running",
+  "progress": "0/15",
+  "params": {
+    "symbols": [
+      "QQQ",
+      "SPX",
+      "XAUUSD"
+    ],
+    "timeframes": [
+      "240",
+      "60",
+      "30",
+      "15",
+      "5"
+    ],
+    "days": 120,
+    "tp_scales": [
+      0.5,
+      0.7,
+      0.85,
+      1.0,
+      1.3
+    ],
+    "sl_scales": [
+      0.7,
+      0.85,
+      1.0,
+      1.3
+    ],
+    "grid_per_cell": 20
+  },
+  "results": {},
+  "summary": []
+}
