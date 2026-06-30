@@ -1284,6 +1284,19 @@ async def errors_log(secret: str = "", limit: int = 50):
     return {"errors": list(reversed(log[-limit:])), "count": len(log)}
 
 
+@app.get("/backtest")
+async def backtest(secret: str = "", symbols: str = "", timeframes: str = "", days: int = 120):
+    """Run the Polygon intraday forward backtest (AI MLM 26 reproduction).
+    Reproduces features F1..F26 + KNN + RQ kernel, grades ATR TP/SL bar-by-bar,
+    summarizes per symbol/timeframe, and persists to data/backtest_results.json."""
+    _validate_secret(secret)
+    import polygon_intraday_backtest as pbt
+    syms = [s.strip() for s in symbols.split(",") if s.strip()] or None
+    tfs = [t.strip() for t in timeframes.split(",") if t.strip()] or None
+    result = await asyncio.to_thread(pbt.run, syms, tfs, days)
+    return result
+
+
 @app.get("/signals/levels")
 async def signals_levels(secret: str = ""):
     """Return cached entry/TP/SL levels per symbol+direction+timeframe."""
