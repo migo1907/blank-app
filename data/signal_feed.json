@@ -2,29 +2,6 @@
   "signals": [
     {
       "direction": "LONG",
-      "timeframe": "15",
-      "trigger": "FVG",
-      "symbol": "XAUUSD",
-      "entry_price": 4014.98,
-      "tp1": 4036.66,
-      "tp2": 4052.93,
-      "tp3": 4074.61,
-      "sl": 3993.3,
-      "ml_score": 0.25,
-      "tier": "\u26a1 LOW",
-      "quality_score": 0.4118,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.2205,
-      "velocity": "CONFLICTED",
-      "event": "FOMC",
-      "htf_bias": null,
-      "contra_bias": null,
-      "htf_context": "scalp",
-      "session": "Off-Hours",
-      "fired_at": "2026-06-24T23:47:02.016985+00:00"
-    },
-    {
-      "direction": "LONG",
       "timeframe": "5",
       "trigger": "OB",
       "symbol": "XAUUSD",
@@ -2851,6 +2828,37 @@
       "htf_context": "htf_direct",
       "session": "NYSE Afternoon",
       "fired_at": "2026-06-29T20:00:03.389785+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "30",
+      "trigger": "LIQ",
+      "symbol": "US500",
+      "entry_price": 7432.4,
+      "tp1": 7457.74,
+      "tp2": 7476.18,
+      "tp3": 7501.52,
+      "sl": 7407.06,
+      "ml_score": 0.625,
+      "tier": "\u2705 MED",
+      "quality_score": 0.4443,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": 0.1578,
+      "velocity": "LOW",
+      "event": "NFP",
+      "htf_bias": {
+        "direction": "LONG",
+        "timeframe": "30",
+        "symbol": "US500",
+        "trigger": "LIQ",
+        "ml_score": 0.625,
+        "stored_at": "2026-06-30T01:00:06.430643+00:00",
+        "expires_at": "2026-06-30T03:00:06.430659+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "htf_direct",
+      "session": "Closed",
+      "fired_at": "2026-06-30T01:00:06.754363+00:00"
     }
   ]
 }
