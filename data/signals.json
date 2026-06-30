@@ -1,39 +1,5 @@
 [
   {
-    "symbol": "SPX500",
-    "pool": "STOCKS_SPX500_30M",
-    "direction": "SHORT",
-    "lean_direction": "SHORT",
-    "lean_pct": 75,
-    "confidence": 0.4116,
-    "tier": "LOW",
-    "ml_score": 0.75,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "ml_interval": [
-      0.3,
-      0.7
-    ],
-    "ml_interval_width": 0.4,
-    "ml_certainty": "MODERATE",
-    "news_score": 0.0602,
-    "macro_bias": 0.0957,
-    "macro_label": "NEUTRAL",
-    "combined_score": -0.3564,
-    "session": "NYSE_OPEN",
-    "regime": "NORMAL",
-    "regime_label": "NORMAL",
-    "hmm_regime": "hmm:na",
-    "intermarket": "imkt:na",
-    "mtf_confluence": "mtf:na",
-    "post_event": "evt:na",
-    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:na\u00d71.00 | imkt:na\u00d71.00 | mtf:na\u00d71.00 | evt:na\u00d71.00 | sess:NYSE_OPEN\u00d71.25 | confluence\u00d70.77 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+0.85) | news:neutral(+0.060) | macro:NEUTRAL(+0.096) | combined:-0.356 \u2192 conf:0.412 \u26a1 CPI",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-30T15:15:15.446089+00:00",
-    "created_at": "2026-06-30T14:45:15.821184+00:00",
-    "id": 101
-  },
-  {
     "symbol": "XAUUSD",
     "pool": "XAUUSD_2M",
     "direction": "NEUTRAL",
@@ -2986,7 +2952,7 @@
     "mtf_confluence": "mtf:na",
     "post_event": "evt:na",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:TRENDING_BULL(TREND_FOLLOW)\u00d71.15 | hmm:na\u00d71.00 | imkt:na\u00d71.00 | mtf:na\u00d71.00 | evt:na\u00d71.00 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d71.21 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.45) | news:neutral(+0.079) | macro:NEUTRAL(+0.096) | combined:+0.215 \u2192 conf:0.330 \u26a1 GEOPOLITICAL",
-    "status": "EXPIRED",
+    "status": "ACTIVE",
     "expires_at": "2026-06-30T19:01:27.005359+00:00",
     "created_at": "2026-06-30T18:31:27.481042+00:00",
     "id": 101
@@ -3020,7 +2986,7 @@
     "mtf_confluence": "mtf:na",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(PULLBACK_SHORT)\u00d70.80 | hmm:na\u00d71.00 | imkt:na\u00d71.00 | mtf:na\u00d71.00 | evt:na\u00d71.00 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d70.70 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:neutral(+0.079) | macro:NEUTRAL(+0.096) | combined:-0.142 \u2192 conf:0.300 \u26a1 GEOPOLITICAL",
-    "status": "EXPIRED",
+    "status": "ACTIVE",
     "expires_at": "2026-06-30T19:01:29.379717+00:00",
     "created_at": "2026-06-30T18:31:29.841444+00:00",
     "id": 101
@@ -3054,7 +3020,7 @@
     "mtf_confluence": "mtf:na",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(PULLBACK_SHORT)\u00d70.80 | hmm:na\u00d71.00 | imkt:na\u00d71.00 | mtf:na\u00d71.00 | evt:na\u00d71.00 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d70.70 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:neutral(+0.079) | macro:NEUTRAL(+0.096) | combined:-0.142 \u2192 conf:0.300 \u26a1 GEOPOLITICAL",
-    "status": "EXPIRED",
+    "status": "ACTIVE",
     "expires_at": "2026-06-30T19:01:32.228459+00:00",
     "created_at": "2026-06-30T18:31:32.625536+00:00",
     "id": 101
@@ -3397,6 +3363,40 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-30T19:31:29.109261+00:00",
     "created_at": "2026-06-30T19:01:30.556182+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "SPX",
+    "pool": "STOCKS_SPX500_30M",
+    "direction": "SHORT",
+    "lean_direction": "SHORT",
+    "lean_pct": 62,
+    "confidence": 0.3,
+    "tier": "LOW",
+    "ml_score": 0.625,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "ml_interval": [
+      0.3,
+      0.7
+    ],
+    "ml_interval_width": 0.4,
+    "ml_certainty": "MODERATE",
+    "news_score": -0.0899,
+    "macro_bias": 0.0957,
+    "macro_label": "NEUTRAL",
+    "combined_score": -0.1987,
+    "session": "NYSE_AFTERNOON",
+    "regime": "TRENDING_BULL",
+    "regime_label": "PULLBACK_SHORT",
+    "hmm_regime": "hmm:na",
+    "intermarket": "imkt:na",
+    "mtf_confluence": "mtf:na",
+    "post_event": "evt:na",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(PULLBACK_SHORT)\u00d70.80 | hmm:na\u00d71.00 | imkt:na\u00d71.00 | mtf:na\u00d71.00 | evt:na\u00d71.00 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d70.76 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:neutral(-0.090) | macro:NEUTRAL(+0.096) | combined:-0.199 \u2192 conf:0.300 \u26a1 GEOPOLITICAL",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-30T19:31:33.591079+00:00",
+    "created_at": "2026-06-30T19:01:35.057653+00:00",
     "id": 101
   }
 ]
