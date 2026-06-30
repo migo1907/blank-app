@@ -143,6 +143,20 @@ def test_normalize_outcome():
     assert_eq("unknown",  _normalize_outcome("GARBAGE"), "LOSS")
 
 
+def test_unified_payload_has_mae():
+    # Regression: UnifiedPayload (the /webhook model the production f26 hits) must
+    # carry an mae field. It was missing while the outcome handler read payload.mae,
+    # so every outcome 500'd once the Pine script started sending "mae" — losing the
+    # trade. Both the /webhook (UnifiedPayload) and /trade-outcome (TradeOutcomePayload)
+    # models must accept mae, defaulting to 0.0 when absent.
+    print("\n[2b] UnifiedPayload / TradeOutcomePayload accept mae")
+    from main import UnifiedPayload, TradeOutcomePayload
+    for cls in (UnifiedPayload, TradeOutcomePayload):
+        assert "mae" in cls.model_fields, f"{cls.__name__} missing mae field"
+        assert cls.model_fields["mae"].default == 0.0, f"{cls.__name__}.mae default should be 0.0"
+        assert cls(secret="gold2026", mae=3.5).mae == 3.5, f"{cls.__name__} should accept mae value"
+
+
 # ── 3. FEATURE_NAMES ──────────────────────────────────────────────────────────
 
 def test_feature_names():

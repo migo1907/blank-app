@@ -439,6 +439,7 @@ class UnifiedPayload(BaseModel):
     outcome:     Optional[str]   = None
     ml_outcome:  Optional[str]   = None
     mfe:         float           = 0.0
+    mae:         float           = 0.0
     tp_stage:    str             = ""
     exit_price:  Optional[float] = None
     f1:  float = 0.0; f2:  float = 0.0; f3:  float = 0.0; f4:  float = 0.0
@@ -461,7 +462,7 @@ class UnifiedPayload(BaseModel):
         if not isinstance(values, dict):
             return values
         float_fields = {
-            "ml_score", "mfe",
+            "ml_score", "mfe", "mae",
             "f1","f2","f3","f4","f5","f6","f7","f8","f9","f10",
             "f11","f12","f13","f14","f15","f16","f17","f18","f19","f20",
             "f21","f22","f23","f24","f25","f26",
