@@ -1,15 +1,15 @@
 {
-  "bias": 0.0841,
+  "bias": 0.1063,
   "label": "NEUTRAL",
   "components": {
-    "real_yield": 0.0667,
+    "real_yield": 0.1333,
     "dollar": 0.0932,
     "breakeven": 0.1333,
     "cot": 0.031
   },
-  "real_yield": 2.18,
+  "real_yield": 2.16,
   "dollar": 120.8866,
-  "breakeven": 2.22,
+  "breakeven": 2.24,
   "cot": {
     "report_date": "2026-06-23",
     "spec_long": 217028,
@@ -24,7 +24,7 @@
     "strength": 0.0,
     "level": null
   },
-  "updated_at": "2026-06-30T20:16:30.037868+00:00",
+  "updated_at": "2026-06-30T21:16:30.266103+00:00",
   "sources_live": {
     "fred": true,
     "cot": true,
