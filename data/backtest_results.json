@@ -1,0 +1,23 @@
+{
+  "updated_at": "2026-06-30T16:01:16.013777+00:00",
+  "status": "running",
+  "progress": "0/15",
+  "params": {
+    "symbols": [
+      "QQQ",
+      "SPX",
+      "XAUUSD"
+    ],
+    "timeframes": [
+      "240",
+      "60",
+      "30",
+      "15",
+      "5"
+    ],
+    "days": 120,
+    "weights_frozen": true,
+    "f17_dxy": "set to 0 (no DXY series)"
+  },
+  "results": {}
+}
