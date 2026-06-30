@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-06-30T16:01:56.260364+00:00",
+  "updated_at": "2026-06-30T16:01:57.815412+00:00",
   "status": "running",
-  "progress": "3/15",
+  "progress": "4/15",
   "params": {
     "symbols": [
       "QQQ",
@@ -511,6 +511,12 @@
         ],
         "note": "SHADOW: not applied to live trades. Take-profit learned from MFE; stop learned from MAE once the Pine Script sends it (Phase B)."
       }
+    },
+    "QQQ_15": {
+      "symbol": "QQQ",
+      "timeframe": "15",
+      "n_trades": 0,
+      "note": "insufficient bars (0)"
     }
   }
 }
