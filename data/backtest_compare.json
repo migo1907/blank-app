@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-06-30T18:03:23.219982+00:00",
+  "updated_at": "2026-06-30T18:03:31.014639+00:00",
   "status": "running",
-  "progress": "1/15",
+  "progress": "2/15",
   "params": {
     "symbols": [
       "QQQ",
@@ -37,7 +37,135 @@
       "timeframe": "240",
       "n_entries": 6,
       "status": "insufficient"
+    },
+    "QQQ_60": {
+      "symbol": "QQQ",
+      "timeframe": "60",
+      "n_entries": 44,
+      "status": "complete",
+      "current": {
+        "multipliers": {
+          "tp1": 2.5,
+          "tp2": 4.5,
+          "tp3": 7.0,
+          "sl": 2.5
+        },
+        "expectancy": -0.2093,
+        "metrics": {
+          "n_trades": 44,
+          "win_rate": 43.2,
+          "avg_pnl_pct": -0.2093,
+          "profit_factor": 0.627,
+          "pct_SL": 34.1,
+          "pct_TP1": 25.0,
+          "pct_TP2": 0.0,
+          "pct_TP3": 0.0,
+          "pct_timeout": 40.9
+        }
+      },
+      "best": {
+        "multipliers": {
+          "tp1": 2.12,
+          "tp2": 3.82,
+          "tp3": 5.95,
+          "sl": 3.25
+        },
+        "expectancy": -0.0214,
+        "metrics": {
+          "n_trades": 44,
+          "win_rate": 56.8,
+          "avg_pnl_pct": -0.0214,
+          "profit_factor": 0.955,
+          "pct_SL": 18.2,
+          "pct_TP1": 38.6,
+          "pct_TP2": 2.3,
+          "pct_TP3": 0.0,
+          "pct_timeout": 40.9
+        }
+      },
+      "expectancy_gain": 0.1879,
+      "beats_current": true,
+      "flips_positive": false,
+      "candidates": [
+        {
+          "multipliers": {
+            "tp1": 2.12,
+            "tp2": 3.82,
+            "tp3": 5.95,
+            "sl": 3.25
+          },
+          "expectancy": -0.0214,
+          "metrics": {
+            "n_trades": 44,
+            "win_rate": 56.8,
+            "avg_pnl_pct": -0.0214,
+            "profit_factor": 0.955,
+            "pct_SL": 18.2,
+            "pct_TP1": 38.6,
+            "pct_TP2": 2.3,
+            "pct_TP3": 0.0,
+            "pct_timeout": 40.9
+          }
+        },
+        {
+          "multipliers": {
+            "tp1": 2.12,
+            "tp2": 3.82,
+            "tp3": 5.95,
+            "sl": 2.5
+          },
+          "expectancy": -0.0524,
+          "metrics": {
+            "n_trades": 44,
+            "win_rate": 52.3,
+            "avg_pnl_pct": -0.0524,
+            "profit_factor": 0.893,
+            "pct_SL": 31.8,
+            "pct_TP1": 36.4,
+            "pct_TP2": 2.3,
+            "pct_TP3": 0.0,
+            "pct_timeout": 29.5
+          }
+        },
+        {
+          "multipliers": {
+            "tp1": 1.25,
+            "tp2": 2.25,
+            "tp3": 3.5,
+            "sl": 3.25
+          },
+          "expectancy": -0.0563,
+          "metrics": {
+            "n_trades": 44,
+            "win_rate": 65.9,
+            "avg_pnl_pct": -0.0563,
+            "profit_factor": 0.86,
+            "pct_SL": 15.9,
+            "pct_TP1": 54.5,
+            "pct_TP2": 2.3,
+            "pct_TP3": 0.0,
+            "pct_timeout": 27.3
+          }
+        }
+      ]
     }
   },
-  "summary": []
+  "summary": [
+    {
+      "pool": "QQQ_60",
+      "symbol": "QQQ",
+      "timeframe": "60",
+      "current_expectancy": -0.2093,
+      "best_expectancy": -0.0214,
+      "current_pf": 0.627,
+      "best_pf": 0.955,
+      "recommended": {
+        "tp1": 2.12,
+        "tp2": 3.82,
+        "tp3": 5.95,
+        "sl": 3.25
+      },
+      "flips_positive": false
+    }
+  ]
 }
