@@ -52,5 +52,23 @@
     "ml_score": 0.375,
     "stored_at": "2026-06-30T14:00:07.460015+00:00",
     "expires_at": "2026-06-30T16:00:07.460038+00:00"
+  },
+  "ADBE_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "ADBE",
+    "trigger": "LIQ",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-30T14:00:08.083078+00:00",
+    "expires_at": "2026-06-30T16:00:08.083107+00:00"
+  },
+  "PLUG_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "PLUG",
+    "trigger": "OB",
+    "ml_score": 0.25,
+    "stored_at": "2026-06-30T14:00:16.449603+00:00",
+    "expires_at": "2026-06-30T16:00:16.449622+00:00"
   }
 }
