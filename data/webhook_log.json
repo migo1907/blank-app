@@ -33916,7 +33916,7 @@
     }
   },
   {
-    "received_at": "2026-06-30T15:30:10.555124+00:00",
+    "received_at": "2026-06-30T15:30:10.407093+00:00",
     "pool": "STOCKS_QUALITY_15M",
     "payload": {
       "secret": "gold2026",
@@ -33932,12 +33932,12 @@
       "ml_score": 0.625,
       "tier": null,
       "trade_id": "AAPL_1782833400980",
-      "outcome": "PARTIAL",
-      "ml_outcome": "WIN",
+      "outcome": "PROGRESS",
+      "ml_outcome": "TP2_HIT",
       "mfe": 5.42,
       "mae": 0.38,
-      "tp_stage": "SL_TP2",
-      "exit_price": 286.62,
+      "tp_stage": "TP2",
+      "exit_price": 288.1911,
       "f1": 0.2092,
       "f2": 0.336,
       "f3": -0.1499,
