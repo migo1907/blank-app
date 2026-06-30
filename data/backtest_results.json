@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-06-30T16:19:27.755445+00:00",
+  "updated_at": "2026-06-30T16:19:29.248605+00:00",
   "status": "running",
-  "progress": "12/15",
+  "progress": "13/15",
   "params": {
     "symbols": [
       "QQQ",
@@ -1283,6 +1283,12 @@
         "note": "SHADOW: not applied to live trades. Take-profit learned from MFE; stop learned from MAE once the Pine Script sends it (Phase B)."
       },
       "candidate_tp1_atr_mult": 1.35
+    },
+    "XAUUSD_30": {
+      "symbol": "XAUUSD",
+      "timeframe": "30",
+      "n_trades": 0,
+      "note": "insufficient bars (0)"
     }
   }
 }
