@@ -1,40 +1,6 @@
 [
   {
     "symbol": "SPX500",
-    "pool": "STOCKS_SPX500_15M",
-    "direction": "NEUTRAL",
-    "lean_direction": "LONG",
-    "lean_pct": 75,
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.75,
-    "rf_score": 0.2196,
-    "gbm_score": 0.2254,
-    "ml_interval": [
-      0.0,
-      0.981
-    ],
-    "ml_interval_width": 0.981,
-    "ml_certainty": "LOW",
-    "news_score": -0.1715,
-    "macro_bias": 0.0957,
-    "macro_label": "NEUTRAL",
-    "combined_score": 0.0783,
-    "session": "NYSE_AFTERNOON",
-    "regime": "TRENDING_BULL",
-    "regime_label": "TREND_FOLLOW",
-    "hmm_regime": "hmm:na",
-    "intermarket": "imkt:na",
-    "mtf_confluence": "mtf:na",
-    "post_event": "evt:na",
-    "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:TRENDING_BULL(TREND_FOLLOW)\u00d71.15 | hmm:na\u00d71.00 | imkt:na\u00d71.00 | mtf:na\u00d71.00 | evt:na\u00d71.00 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d71.34 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:neutral(-0.172) | macro:NEUTRAL(+0.096) | combined:+0.078 \u2192 conf:0.132 \u26a1 NFP",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-30T17:08:06.060994+00:00",
-    "created_at": "2026-06-30T16:38:06.754322+00:00",
-    "id": 101
-  },
-  {
-    "symbol": "SPX500",
     "pool": "STOCKS_SPX500_30M",
     "direction": "SHORT",
     "lean_direction": "SHORT",
@@ -2986,7 +2952,7 @@
     "mtf_confluence": "mtf:na",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(PULLBACK_SHORT)\u00d70.80 | hmm:na\u00d71.00 | imkt:na\u00d71.00 | mtf:na\u00d71.00 | evt:na\u00d71.00 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d71.22 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:neutral(-0.008) | macro:NEUTRAL(+0.047) | combined:-0.195 \u2192 conf:0.252 \u26a1 GEOPOLITICAL",
-    "status": "EXPIRED",
+    "status": "ACTIVE",
     "expires_at": "2026-06-30T20:46:54.502122+00:00",
     "created_at": "2026-06-30T20:16:54.990223+00:00",
     "id": 101
@@ -3020,7 +2986,7 @@
     "mtf_confluence": "mtf:na",
     "post_event": "evt:na",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:TRENDING_BEAR(PULLBACK_LONG)\u00d70.95 | hmm:na\u00d71.00 | imkt:na\u00d71.00 | mtf:na\u00d71.00 | evt:na\u00d71.00 | sess:NY_LATE\u00d70.90 | confluence\u00d70.80 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.52) | news:neutral(-0.063) | macro:NEUTRAL(+0.084) | combined:+0.039 \u2192 conf:0.027 \u26a1 NFP",
-    "status": "EXPIRED",
+    "status": "ACTIVE",
     "expires_at": "2026-06-30T21:01:20.182498+00:00",
     "created_at": "2026-06-30T20:31:22.098154+00:00",
     "id": 101
@@ -3054,7 +3020,7 @@
     "mtf_confluence": "mtf:na",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:na\u00d71.00 | imkt:na\u00d71.00 | mtf:na\u00d71.00 | evt:na\u00d71.00 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d70.84 | cluster\u00d70.88 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.13) | news:neutral(-0.063) | macro:NEUTRAL(+0.047) | combined:-0.007 \u2192 conf:0.300 \u26a1 NFP",
-    "status": "EXPIRED",
+    "status": "ACTIVE",
     "expires_at": "2026-06-30T21:01:23.929730+00:00",
     "created_at": "2026-06-30T20:31:25.455804+00:00",
     "id": 101
@@ -3397,6 +3363,40 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-30T21:31:19.999423+00:00",
     "created_at": "2026-06-30T21:01:21.743746+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "SPY",
+    "pool": "STOCKS_INDEX_30M",
+    "direction": "SHORT",
+    "lean_direction": "SHORT",
+    "lean_pct": 50,
+    "confidence": 0.3,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.5,
+    "gbm_score": 0.5,
+    "ml_interval": [
+      0.3,
+      0.7
+    ],
+    "ml_interval_width": 0.4,
+    "ml_certainty": "MODERATE",
+    "news_score": -0.1191,
+    "macro_bias": 0.0473,
+    "macro_label": "NEUTRAL",
+    "combined_score": -0.0204,
+    "session": "CLOSED",
+    "regime": "NORMAL",
+    "regime_label": "NORMAL",
+    "hmm_regime": "hmm:na",
+    "intermarket": "imkt:na",
+    "mtf_confluence": "mtf:na",
+    "post_event": "evt:na",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:na\u00d71.00 | imkt:na\u00d71.00 | mtf:na\u00d71.00 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.84 | cluster\u00d70.88 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.13) | news:neutral(-0.119) | macro:NEUTRAL(+0.047) | combined:-0.020 \u2192 conf:0.300 \u26a1 GEOPOLITICAL",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-30T21:31:24.624310+00:00",
+    "created_at": "2026-06-30T21:01:25.982208+00:00",
     "id": 101
   }
 ]
