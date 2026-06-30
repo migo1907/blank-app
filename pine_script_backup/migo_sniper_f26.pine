@@ -62,6 +62,24 @@ float atrMultTrl2 = isTF2 ? 0.5 : isTF5 ? 0.7 : isTF15 ? 0.9 : isTF30 ? 1.0 : is
 int   mlDepth     = autoTF ? (isTF2 ? 150 : isTF5 ? 250 : isTF15 ? 350 : isTF30 ? 400 : 500) : mlDepth_inp
 int   kWin        = autoTF ? (isTF2 ? 5   : isTF5 ? 8   : isTF15 ? 12  : isTF30 ? 14  : isTF1H ? 16 : 20) : kWin_inp
 
+// ── Gold-specific exit ladders — backtest-validated 2026-06-30 ────────────────
+// Gold 30m & 1H take-profits were too wide: trades timed out / reversed before
+// reaching TP2/TP3. Tighter TPs bank the move earlier. Backtested on 120 days of
+// real Polygon bars (frozen-seed reproduction): 30m PF 0.98→1.13 (win 49→68%,
+// n=113), 1H PF 0.96→1.20 (n=59) — both flip to positive expectancy. ONLY gold
+// 30m/1H change; all stocks and the other gold timeframes keep their ladders.
+bool isGoldSym = str.contains(syminfo.ticker, "XAU")
+if autoTF and isGoldSym and isTF30
+    atrMultTP1 := 1.1
+    atrMultTP2 := 1.9
+    atrMultTP3 := 3.0
+    atrMultSL  := 2.2
+if autoTF and isGoldSym and isTF1H
+    atrMultTP1 := 1.75
+    atrMultTP2 := 3.15
+    atrMultTP3 := 4.9
+    atrMultSL  := 2.12
+
 // ═══════════════════════════════════════════════════════
 // INDICATORS — BASE (unchanged, no quality loss)
 // ═══════════════════════════════════════════════════════
