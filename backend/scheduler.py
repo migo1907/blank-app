@@ -1422,6 +1422,30 @@ async def _exit_optimizer_cycle() -> None:
         print(f"[exit_opt] cycle failed: {e}")
 
 
+async def _self_diagnosis_cycle() -> None:
+    """Weekly (Sun 21:15 UTC, right after the exit optimizer so it uses fresh exit
+    numbers) — for each pool, classify its losing trades into a dominant failure mode
+    and route a concrete fix. SHADOW/ADVISORY: persists to data/self_diagnosis.json;
+    never mutates live trading. Pine-level fixes are flagged for a human to paste."""
+    try:
+        import self_diagnosis
+        out = await asyncio.to_thread(self_diagnosis.run_all)
+        worst = (out.get("summary") or {}).get("worst_pools") or []
+        if worst:
+            try:
+                from telegram_bot import send_critical_alert
+                await send_critical_alert(
+                    "Self-Diagnosis — pool failure-mode autopsy",
+                    self_diagnosis.format_telegram(out),
+                    "SHADOW only — review then route the fix. [PINE] items need a "
+                    "manual Pine Script paste; the rest the backend can adapt.",
+                )
+            except Exception as e:
+                print(f"[self_diag] alert failed: {e}")
+    except Exception as e:
+        print(f"[self_diag] cycle failed: {e}")
+
+
 async def _weekly_model_comparison() -> None:
     """
     Every Sunday 20:00 UTC — walk-forward backtest all models on the last 100 trades
@@ -2074,6 +2098,8 @@ def start_scheduler() -> AsyncIOScheduler:
     _scheduler.add_job(_weekly_model_comparison, trigger="cron", day_of_week="sun", hour=20, minute=0, id="weekly_model_compare", replace_existing=True, misfire_grace_time=3600)
     # Adaptive exit optimizer (SHADOW) — re-derive learned take-profits weekly, Sun 21:00 UTC
     _scheduler.add_job(_exit_optimizer_cycle, trigger="cron", day_of_week="sun", hour=21, minute=0, id="exit_optimizer", replace_existing=True, misfire_grace_time=3600)
+    # Self-diagnosis (SHADOW) — per-pool failure-mode autopsy, Sun 21:15 UTC (after exit optimizer)
+    _scheduler.add_job(_self_diagnosis_cycle, trigger="cron", day_of_week="sun", hour=21, minute=15, id="self_diagnosis", replace_existing=True, misfire_grace_time=3600)
     # Phase 2C — SPX options: record ATM IV once per session (15:45 ET, after the
     # bulk of the day's IV is realized) + manage open paper positions hourly.
     _scheduler.add_job(_options_iv_record_cycle, trigger="cron", day_of_week="mon-fri", hour=15, minute=45,
