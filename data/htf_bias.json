@@ -1,22 +1,4 @@
 {
-  "HTZ_240": {
-    "direction": "SHORT",
-    "timeframe": "240",
-    "symbol": "HTZ",
-    "trigger": "BOS",
-    "ml_score": 0.75,
-    "stored_at": "2026-06-29T17:30:22.744536+00:00",
-    "expires_at": "2026-06-30T01:30:22.744561+00:00"
-  },
-  "ADBE_240": {
-    "direction": "LONG",
-    "timeframe": "240",
-    "symbol": "ADBE",
-    "trigger": "RSI",
-    "ml_score": 0.5,
-    "stored_at": "2026-06-29T17:30:22.981396+00:00",
-    "expires_at": "2026-06-30T01:30:22.981430+00:00"
-  },
   "TSLA_240": {
     "direction": "LONG",
     "timeframe": "240",
@@ -36,13 +18,13 @@
     "expires_at": "2026-06-30T04:00:26.607301+00:00"
   },
   "XAUUSD_30": {
-    "direction": "SHORT",
+    "direction": "LONG",
     "timeframe": "30",
     "symbol": "XAUUSD",
-    "trigger": "FVG",
-    "ml_score": 0.625,
-    "stored_at": "2026-06-30T02:02:00.531896+00:00",
-    "expires_at": "2026-06-30T04:02:00.531909+00:00"
+    "trigger": "RSI",
+    "ml_score": 0.25,
+    "stored_at": "2026-06-30T06:32:01.488845+00:00",
+    "expires_at": "2026-06-30T08:32:01.488857+00:00"
   },
   "US500_30": {
     "direction": "LONG",
