@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-06-30T18:03:40.384302+00:00",
+  "updated_at": "2026-06-30T18:03:41.627708+00:00",
   "status": "running",
-  "progress": "3/15",
+  "progress": "4/15",
   "params": {
     "symbols": [
       "QQQ",
@@ -259,6 +259,12 @@
           }
         }
       ]
+    },
+    "QQQ_15": {
+      "symbol": "QQQ",
+      "timeframe": "15",
+      "n_entries": 0,
+      "status": "insufficient"
     }
   },
   "summary": [
