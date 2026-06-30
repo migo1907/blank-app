@@ -3,6 +3,37 @@
     {
       "direction": "SHORT",
       "timeframe": "30",
+      "trigger": "LIQ",
+      "symbol": "AMD",
+      "entry_price": 508.07,
+      "tp1": 485.28,
+      "tp2": 468.7,
+      "tp3": 445.91,
+      "sl": 530.86,
+      "ml_score": 0.5,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.4137,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.1119,
+      "velocity": "NORMAL",
+      "event": "WAR/CONFLICT",
+      "htf_bias": {
+        "direction": "SHORT",
+        "timeframe": "30",
+        "symbol": "AMD",
+        "trigger": "LIQ",
+        "ml_score": 0.5,
+        "stored_at": "2026-06-25T14:00:05.369709+00:00",
+        "expires_at": "2026-06-25T16:00:05.369718+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "htf_direct",
+      "session": "NYSE Open",
+      "fired_at": "2026-06-25T14:00:05.461054+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "30",
       "trigger": "BOS",
       "symbol": "NVDA",
       "entry_price": 192.36,
@@ -2860,37 +2891,6 @@
       "htf_context": "with_bias",
       "session": "NYSE Afternoon",
       "fired_at": "2026-06-30T19:15:07.277490+00:00"
-    },
-    {
-      "direction": "LONG",
-      "timeframe": "15",
-      "trigger": "BOS",
-      "symbol": "SPY",
-      "entry_price": 747.73,
-      "tp1": 749.39,
-      "tp2": 750.64,
-      "tp3": 752.31,
-      "sl": 746.07,
-      "ml_score": 0.75,
-      "tier": "\u2b50 HIGH",
-      "quality_score": 0.3635,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.0899,
-      "velocity": "CONFLICTED",
-      "event": "GEOPOLITICAL",
-      "htf_bias": {
-        "direction": "LONG",
-        "timeframe": "240",
-        "symbol": "SPY",
-        "trigger": "FVG",
-        "ml_score": 0.375,
-        "stored_at": "2026-06-30T17:30:08.213423+00:00",
-        "expires_at": "2026-07-01T01:30:08.213449+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "with_bias",
-      "session": "NYSE Afternoon",
-      "fired_at": "2026-06-30T19:15:09.106743+00:00"
     }
   ]
 }
