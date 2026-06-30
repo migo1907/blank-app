@@ -1,39 +1,5 @@
 [
   {
-    "symbol": "XAUUSD",
-    "pool": "XAUUSD_2M",
-    "direction": "NEUTRAL",
-    "lean_direction": "LONG",
-    "lean_pct": 88,
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.875,
-    "rf_score": 0.2529,
-    "gbm_score": 0.2295,
-    "ml_interval": [
-      0.0,
-      1.0
-    ],
-    "ml_interval_width": 1.0,
-    "ml_certainty": "LOW",
-    "news_score": 0.094,
-    "macro_bias": 0.0841,
-    "macro_label": "NEUTRAL",
-    "combined_score": 0.0544,
-    "session": "LONDON",
-    "regime": "TRENDING_BEAR",
-    "regime_label": "PULLBACK_LONG",
-    "hmm_regime": "hmm:na",
-    "intermarket": "imkt:na",
-    "mtf_confluence": "mtf:na",
-    "post_event": "evt:na",
-    "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:TRENDING_BEAR(PULLBACK_LONG)\u00d70.95 | hmm:na\u00d71.00 | imkt:na\u00d71.00 | mtf:na\u00d71.00 | evt:na\u00d71.00 | sess:LONDON\u00d71.15 | confluence\u00d70.92 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:neutral(+0.094) | macro:NEUTRAL(+0.084) | combined:+0.054 \u2192 conf:0.055 \u26a1 CPI",
-    "status": "EXPIRED",
-    "expires_at": "2026-06-30T08:51:25.304646+00:00",
-    "created_at": "2026-06-30T08:21:26.224963+00:00",
-    "id": 101
-  },
-  {
     "symbol": "SPY",
     "pool": "STOCKS_INDEX_30M",
     "direction": "LONG",
@@ -2986,7 +2952,7 @@
     "mtf_confluence": "mtf:na",
     "post_event": "evt:na",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:na\u00d71.00 | imkt:na\u00d71.00 | mtf:na\u00d71.00 | evt:na\u00d71.00 | sess:PRE_MARKET\u00d70.90 | confluence\u00d71.27 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.58) | news:neutral(-0.006) | macro:NEUTRAL(+0.096) | combined:+0.205 \u2192 conf:0.300 \u26a1 NFP",
-    "status": "EXPIRED",
+    "status": "ACTIVE",
     "expires_at": "2026-06-30T12:36:52.827604+00:00",
     "created_at": "2026-06-30T12:06:54.660240+00:00",
     "id": 101
@@ -3020,7 +2986,7 @@
     "mtf_confluence": "mtf:na",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:na\u00d71.00 | imkt:na\u00d71.00 | mtf:na\u00d71.00 | evt:na\u00d71.00 | sess:PRE_MARKET\u00d70.90 | confluence\u00d71.08 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.35) | news:neutral(-0.006) | macro:NEUTRAL(+0.096) | combined:+0.013 \u2192 conf:0.300 \u26a1 NFP",
-    "status": "EXPIRED",
+    "status": "ACTIVE",
     "expires_at": "2026-06-30T12:36:57.223828+00:00",
     "created_at": "2026-06-30T12:06:59.083535+00:00",
     "id": 101
@@ -3054,7 +3020,7 @@
     "mtf_confluence": "mtf:na",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:na\u00d71.00 | imkt:na\u00d71.00 | mtf:na\u00d71.00 | evt:na\u00d71.00 | sess:PRE_MARKET\u00d70.90 | confluence\u00d70.70 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.53) | news:neutral(-0.006) | macro:NEUTRAL(+0.096) | combined:-0.169 \u2192 conf:0.128 \u26a1 NFP",
-    "status": "EXPIRED",
+    "status": "ACTIVE",
     "expires_at": "2026-06-30T12:37:02.391408+00:00",
     "created_at": "2026-06-30T12:07:03.196314+00:00",
     "id": 101
@@ -3397,6 +3363,40 @@
     "status": "ACTIVE",
     "expires_at": "2026-06-30T13:06:56.557065+00:00",
     "created_at": "2026-06-30T12:36:59.689807+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "SPX500",
+    "pool": "STOCKS_SPX500_15M",
+    "direction": "NEUTRAL",
+    "lean_direction": "SHORT",
+    "lean_pct": 38,
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.375,
+    "rf_score": 0.2386,
+    "gbm_score": 0.2245,
+    "ml_interval": [
+      0.0,
+      1.0
+    ],
+    "ml_interval_width": 1.0,
+    "ml_certainty": "LOW",
+    "news_score": -0.0728,
+    "macro_bias": 0.0957,
+    "macro_label": "NEUTRAL",
+    "combined_score": -0.0382,
+    "session": "PRE_MARKET",
+    "regime": "NORMAL",
+    "regime_label": "NORMAL",
+    "hmm_regime": "hmm:na",
+    "intermarket": "imkt:na",
+    "mtf_confluence": "mtf:na",
+    "post_event": "evt:na",
+    "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:na\u00d71.00 | imkt:na\u00d71.00 | mtf:na\u00d71.00 | evt:na\u00d71.00 | sess:PRE_MARKET\u00d70.90 | confluence\u00d71.28 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.24) | news:neutral(-0.073) | macro:NEUTRAL(+0.096) | combined:-0.038 \u2192 conf:0.044 \u26a1 NFP",
+    "status": "ACTIVE",
+    "expires_at": "2026-06-30T13:07:03.519679+00:00",
+    "created_at": "2026-06-30T12:37:05.499480+00:00",
     "id": 101
   }
 ]
