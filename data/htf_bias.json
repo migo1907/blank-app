@@ -25,5 +25,23 @@
     "ml_score": 0.625,
     "stored_at": "2026-06-30T14:00:01.753616+00:00",
     "expires_at": "2026-06-30T16:00:01.753635+00:00"
+  },
+  "PLTR_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "PLTR",
+    "trigger": "LIQ",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-30T14:00:02.809236+00:00",
+    "expires_at": "2026-06-30T16:00:02.809255+00:00"
+  },
+  "NOW_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "NOW",
+    "trigger": "RSI",
+    "ml_score": 0.625,
+    "stored_at": "2026-06-30T14:00:06.721825+00:00",
+    "expires_at": "2026-06-30T16:00:06.721847+00:00"
   }
 }
