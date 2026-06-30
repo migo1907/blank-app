@@ -1322,6 +1322,25 @@ async def backtest(secret: str = "", symbols: str = "", timeframes: str = "", da
                        "days": days}}
 
 
+@app.get("/backtest/compare")
+async def backtest_compare(secret: str = "", symbols: str = "", timeframes: str = "", days: int = 120):
+    """Laddered exit A/B comparison: grade candidate 3-tier TP/SL ladders against
+    the CURRENT ladder on the SAME entries (KNN runs once per cell). Reports the
+    winner in Pine ATR-multiplier units. Persists to data/backtest_compare.json."""
+    _validate_secret(secret)
+    import polygon_intraday_backtest as pbt
+    syms = [s.strip() for s in symbols.split(",") if s.strip()] or None
+    tfs = [t.strip() for t in timeframes.split(",") if t.strip()] or None
+    task = asyncio.create_task(asyncio.to_thread(pbt.run_compare, syms, tfs, days))
+    _BACKGROUND_TASKS.add(task)
+    task.add_done_callback(_BACKGROUND_TASKS.discard)
+    return {"status": "started",
+            "note": "Exit comparison running in background. Results stream into "
+                    "data/backtest_compare.json (status: running → complete).",
+            "params": {"symbols": syms or "default", "timeframes": tfs or "default",
+                       "days": days}}
+
+
 @app.get("/signals/levels")
 async def signals_levels(secret: str = ""):
     """Return cached entry/TP/SL levels per symbol+direction+timeframe."""

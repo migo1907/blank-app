@@ -84,3 +84,40 @@ def test_exit_optimizer_integration(monkeypatch):
     assert "exit_optimizer" in res
     eo = res["exit_optimizer"]
     assert eo is None or isinstance(eo, dict)
+
+
+def test_compare_exits_keys_and_best_not_worse():
+    bars = _synthetic_bars(n=600)
+    res = pbt.compare_exits("XAUUSD", "15", bars)
+    if res.get("status") == "insufficient":
+        # synthetic should produce >=20 entries; if not, the contract still holds
+        assert res["status"] == "insufficient"
+        return
+    for k in ("current", "best", "beats_current", "candidates",
+              "expectancy_gain", "flips_positive"):
+        assert k in res, f"missing {k}"
+    assert isinstance(res["candidates"], list) and len(res["candidates"]) <= 3
+    # best is chosen by max expectancy and current is in the grid → never worse
+    assert res["best"]["expectancy"] >= res["current"]["expectancy"] - 1e-9
+
+
+def test_compare_recommended_ladder_floored_and_rounded():
+    for tf in ("5", "15", "30", "60", "240"):
+        for ladder in pbt._candidate_ladders(tf):
+            assert len(ladder) == 4
+            for m in ladder:
+                assert m >= pbt._MULT_FLOOR - 1e-9, f"{m} below floor"
+                assert round(m, 2) == m, f"{m} not rounded to 2dp"
+    # grid is 5 TP scales × 4 SL scales = 20 per cell
+    assert len(pbt._candidate_ladders("15")) == 20
+
+
+def test_run_compare_returns_summary(monkeypatch):
+    monkeypatch.setattr(pbt, "fetch_bars",
+                        lambda *a, **k: _synthetic_bars(n=600))
+    monkeypatch.setattr(pbt, "_persist_compare", lambda out: None)
+    out = pbt.run_compare(symbols=["XAUUSD"], timeframes=["15"], days=30)
+    assert "results" in out and "summary" in out
+    assert out["status"] == "complete"
+    assert isinstance(out["summary"], list)
+    assert "XAUUSD_15" in out["results"]

@@ -438,9 +438,15 @@ _ATR_MULT = {
 _HORIZON = {"5": 48, "15": 32, "30": 24, "60": 16, "240": 12}
 
 
-def _grade_trade(direction, entry, atr_val, bars_after, tf):
-    """Walk forward bar-by-bar. bars_after = list of (h,l,c). Returns trade dict."""
-    tp1m, tp2m, tp3m, slm = _ATR_MULT.get(str(tf), _ATR_MULT["15"])
+def _grade_trade(direction, entry, atr_val, bars_after, tf, mults=None):
+    """Walk forward bar-by-bar. bars_after = list of (h,l,c). Returns trade dict.
+
+    mults=(tp1,tp2,tp3,sl) overrides the per-timeframe default ladder. When None,
+    the current _ATR_MULT[tf] ladder is used (preserves existing behavior)."""
+    if mults is not None:
+        tp1m, tp2m, tp3m, slm = mults
+    else:
+        tp1m, tp2m, tp3m, slm = _ATR_MULT.get(str(tf), _ATR_MULT["15"])
     if direction == "LONG":
         tp1 = entry + atr_val * tp1m
         tp2 = entry + atr_val * tp2m
@@ -519,17 +525,18 @@ def _grade_trade(direction, entry, atr_val, bars_after, tf):
     }
 
 
-def simulate(sig: pd.DataFrame, tf: str) -> list[dict]:
-    """Generate trades on flips (dedup via lastSig), grade each."""
+def build_entries(sig: pd.DataFrame, tf: str) -> list[dict]:
+    """Generate the raw entry list ONCE (the expensive KNN already ran upstream).
+
+    Each entry = {direction, entry_price, atr_val, bars_after} where bars_after is
+    a list of (h,l,c) forward bars. Reusable: grade any ladder against this list
+    without re-running the signal core."""
     horizon = _HORIZON.get(str(tf), 32)
-    trades = []
+    entries: list[dict] = []
     last_sig = 0  # 0 none, 1 long, -1 short
-    idx = list(range(len(sig)))
     closes = sig["close"].values
-    highs = None  # we only have close in sig; need full OHLC — pass via attrs
-    # sig carries close+atr; we need h/l from the source df attached as attrs
     hl = sig.attrs.get("hl")  # list of (h,l,c)
-    for i in idx:
+    for i in range(len(sig)):
         long_ok = bool(sig["long_ok"].iloc[i])
         short_ok = bool(sig["short_ok"].iloc[i])
         new_sig = 0
@@ -546,21 +553,35 @@ def simulate(sig: pd.DataFrame, tf: str) -> list[dict]:
             bars_after = hl[i + 1: i + 1 + horizon] if hl else []
             if not bars_after:
                 continue
-            direction = "LONG" if new_sig == 1 else "SHORT"
-            trades.append(_grade_trade(direction, entry, atr_val, bars_after, tf))
-    return trades
+            entries.append({
+                "direction": "LONG" if new_sig == 1 else "SHORT",
+                "entry_price": entry,
+                "atr_val": atr_val,
+                "bars_after": bars_after,
+            })
+    return entries
+
+
+def grade_entries(entries: list[dict], tf: str, mults=None) -> list[dict]:
+    """Grade a fixed entry list against one ladder. Cheap — no signal core."""
+    return [_grade_trade(e["direction"], e["entry_price"], e["atr_val"],
+                         e["bars_after"], tf, mults) for e in entries]
+
+
+def simulate(sig: pd.DataFrame, tf: str) -> list[dict]:
+    """Generate trades on flips (dedup via lastSig), grade each with the current ladder."""
+    return grade_entries(build_entries(sig, tf), tf, mults=None)
 
 
 # ---------------------------------------------------------------------------
 # Summarize
 # ---------------------------------------------------------------------------
 
-def summarize(trades: list[dict], symbol: str, tf: str) -> dict:
-    import exit_optimizer
+def _summarize_trades(trades: list[dict]) -> dict:
+    """Core metric dict for a graded trade list (ladder-agnostic, reusable)."""
     n = len(trades)
     if n == 0:
-        return {"symbol": symbol, "timeframe": tf, "n_trades": 0}
-
+        return {"n_trades": 0}
     wins = [t for t in trades if t["outcome"] == "WIN"]
     pnls = [t["pnl_pct"] for t in trades]
     gross_win = sum(p for p in pnls if p > 0)
@@ -570,9 +591,7 @@ def summarize(trades: list[dict], symbol: str, tf: str) -> dict:
     def _pct(reason):
         return round(100 * sum(1 for t in trades if t["exit_reason"] == reason) / n, 1)
 
-    out = {
-        "symbol": symbol,
-        "timeframe": tf,
+    return {
         "n_trades": n,
         "win_rate": round(100 * len(wins) / n, 1),
         "avg_pnl_pct": round(sum(pnls) / n, 4),
@@ -583,6 +602,16 @@ def summarize(trades: list[dict], symbol: str, tf: str) -> dict:
         "pct_TP3": _pct("TP3"),
         "pct_timeout": _pct("timeout"),
     }
+
+
+def summarize(trades: list[dict], symbol: str, tf: str) -> dict:
+    import exit_optimizer
+    n = len(trades)
+    if n == 0:
+        return {"symbol": symbol, "timeframe": tf, "n_trades": 0}
+
+    out = {"symbol": symbol, "timeframe": tf}
+    out.update(_summarize_trades(trades))
     # Median ATR-as-% — lets us convert the optimizer's recommended TP% into an
     # exact Pine ATR multiplier for the candidate change.
     atr_pcts = sorted(t.get("atr_pct", 0.0) for t in trades if t.get("atr_pct"))
@@ -622,6 +651,182 @@ def backtest_one(symbol: str, tf: str, bars: list[dict]) -> dict:
     sig.attrs["hl"] = hl
     trades = simulate(sig, tf)
     return summarize(trades, symbol, tf)
+
+
+# ---------------------------------------------------------------------------
+# Laddered exit A/B comparison
+# ---------------------------------------------------------------------------
+
+_TP_SCALES = [0.5, 0.7, 0.85, 1.0, 1.3]
+_SL_SCALES = [0.7, 0.85, 1.0, 1.3]
+_MULT_FLOOR = 0.2
+
+
+def _candidate_ladders(tf: str) -> list[tuple]:
+    """Full candidate ladder grid derived from the current ladder for this tf.
+
+    5 TP scales × 4 SL scales = 20 ladders (incl. current at 1.0/1.0). Each
+    multiplier floored at 0.2 and rounded to 2 decimals."""
+    tp1, tp2, tp3, sl = _ATR_MULT.get(str(tf), _ATR_MULT["15"])
+    ladders: list[tuple] = []
+    for ts in _TP_SCALES:
+        for ss in _SL_SCALES:
+            ladders.append((
+                round(max(_MULT_FLOOR, tp1 * ts), 2),
+                round(max(_MULT_FLOOR, tp2 * ts), 2),
+                round(max(_MULT_FLOOR, tp3 * ts), 2),
+                round(max(_MULT_FLOOR, sl * ss), 2),
+            ))
+    return ladders
+
+
+def _expectancy(metrics: dict) -> float:
+    return float(metrics.get("avg_pnl_pct") or 0.0)
+
+
+def compare_exits(symbol: str, tf: str, bars: list[dict]) -> dict:
+    """A/B the CURRENT ladder vs every candidate ladder on the SAME entries.
+
+    The KNN/signal core runs ONCE; entries are reused across all 20 ladders.
+    Winner is chosen by expectancy (mean pnl_pct) — since the current ladder is
+    in the grid, the best can never be worse than current."""
+    if not bars or len(bars) < 60:
+        return {"symbol": symbol, "timeframe": tf, "n_entries": 0,
+                "status": "insufficient"}
+    df = _bars_to_df(bars)
+    F = compute_features(df)
+    sig = _signals(F, tf)
+    hl = list(zip(df["h"].values, df["l"].values, df["c"].values))
+    sig.attrs["hl"] = hl
+    entries = build_entries(sig, tf)
+
+    n = len(entries)
+    if n < 20:
+        return {"symbol": symbol, "timeframe": tf, "n_entries": n,
+                "status": "insufficient"}
+
+    current = _ATR_MULT.get(str(tf), _ATR_MULT["15"])
+    cur_metrics = _summarize_trades(grade_entries(entries, tf, mults=current))
+    cur_exp = _expectancy(cur_metrics)
+
+    scored = []  # (expectancy, ladder, metrics)
+    for ladder in _candidate_ladders(tf):
+        m = _summarize_trades(grade_entries(entries, tf, mults=ladder))
+        scored.append((_expectancy(m), ladder, m))
+    scored.sort(key=lambda x: x[0], reverse=True)
+
+    best_exp, best_ladder, best_metrics = scored[0]
+    gain = round(best_exp - cur_exp, 5)
+    beats_current = best_exp > cur_exp + 0.01
+    flips_positive = cur_exp <= 0 < best_exp
+
+    def _fmt(exp, ladder, metrics):
+        return {
+            "multipliers": {"tp1": ladder[0], "tp2": ladder[1],
+                            "tp3": ladder[2], "sl": ladder[3]},
+            "expectancy": round(exp, 5),
+            "metrics": metrics,
+        }
+
+    return {
+        "symbol": symbol,
+        "timeframe": tf,
+        "n_entries": n,
+        "status": "complete",
+        "current": {
+            "multipliers": {"tp1": current[0], "tp2": current[1],
+                            "tp3": current[2], "sl": current[3]},
+            "expectancy": round(cur_exp, 5),
+            "metrics": cur_metrics,
+        },
+        "best": _fmt(best_exp, best_ladder, best_metrics),
+        "expectancy_gain": gain,
+        "beats_current": bool(beats_current),
+        "flips_positive": bool(flips_positive),
+        "candidates": [_fmt(e, l, m) for e, l, m in scored[:3]],
+    }
+
+
+def run_compare(symbols=None, timeframes=None, days: int = 120) -> dict:
+    """Laddered exit A/B sweep across pools. Persists incrementally to
+    data/backtest_compare.json. Top-level summary lists Pine-paste winners."""
+    symbols = symbols or ["QQQ", "SPX", "XAUUSD"]
+    timeframes = timeframes or ["240", "60", "30", "15", "5"]
+    to_date = datetime.now(timezone.utc).date()
+    from_date = to_date - timedelta(days=days)
+    to_s, from_s = to_date.isoformat(), from_date.isoformat()
+
+    results: dict = {}
+    total = len(symbols) * len(timeframes)
+    done = 0
+
+    def _summary() -> list[dict]:
+        wins = []
+        for key, res in results.items():
+            if isinstance(res, dict) and res.get("beats_current"):
+                wins.append({
+                    "pool": key,
+                    "symbol": res.get("symbol"),
+                    "timeframe": res.get("timeframe"),
+                    "current_expectancy": res["current"]["expectancy"],
+                    "best_expectancy": res["best"]["expectancy"],
+                    "current_pf": res["current"]["metrics"].get("profit_factor"),
+                    "best_pf": res["best"]["metrics"].get("profit_factor"),
+                    "recommended": res["best"]["multipliers"],
+                    "flips_positive": res.get("flips_positive"),
+                })
+        return wins
+
+    def _snapshot(status: str) -> dict:
+        return {
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "status": status,
+            "progress": f"{done}/{total}",
+            "params": {"symbols": symbols, "timeframes": timeframes, "days": days,
+                       "tp_scales": _TP_SCALES, "sl_scales": _SL_SCALES,
+                       "grid_per_cell": len(_TP_SCALES) * len(_SL_SCALES)},
+            "results": results,
+            "summary": _summary(),
+        }
+
+    _persist_compare(_snapshot("running"))
+    for sym in symbols:
+        ticker = _poly_ticker(sym)
+        for tf in timeframes:
+            key = f"{sym}_{tf}"
+            try:
+                mult, span = _tf_agg(tf)
+                bars = fetch_bars(ticker, mult, span, from_s, to_s)
+                results[key] = compare_exits(sym, tf, bars)
+            except Exception as e:
+                print(f"[poly_bt] compare {key} failed: {e}")
+                results[key] = {"symbol": sym, "timeframe": tf, "error": str(e)}
+            done += 1
+            _persist_compare(_snapshot("running"))
+
+    out = _snapshot("complete")
+    _persist_compare(out)
+    print(f"[poly_bt] exit comparison complete — {done}/{total} cells")
+    return out
+
+
+def _persist_compare(out: dict) -> None:
+    import time as _time, random as _random
+    try:
+        from db import _get_file, _put_file
+    except Exception as e:
+        print(f"[poly_bt] db import failed, skipping persist: {e}")
+        return
+    path = "data/backtest_compare.json"
+    for attempt in range(3):
+        try:
+            _, sha = _get_file(path)
+            _put_file(path, out, sha, "data: laddered exit A/B comparison")
+            return
+        except Exception as e:
+            print(f"[poly_bt] compare persist attempt {attempt+1} failed: {e}")
+            _time.sleep(0.5 + _random.random())
+    print("[poly_bt] compare persist gave up after 3 attempts")
 
 
 # ---------------------------------------------------------------------------
