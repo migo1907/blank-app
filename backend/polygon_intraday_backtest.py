@@ -618,13 +618,28 @@ def backtest_one(symbol: str, tf: str, bars: list[dict]) -> dict:
 # ---------------------------------------------------------------------------
 
 def run(symbols=None, timeframes=None, days: int = 120) -> dict:
-    symbols = symbols or ["XAUUSD", "SPX", "QQQ"]
-    timeframes = timeframes or ["5", "15", "30", "60", "240"]
+    symbols = symbols or ["QQQ", "SPX", "XAUUSD"]
+    # Coarse timeframes first (far fewer bars → quick partial results), heavy 5m last.
+    timeframes = timeframes or ["240", "60", "30", "15", "5"]
     to_date = datetime.now(timezone.utc).date()
     from_date = to_date - timedelta(days=days)
     to_s, from_s = to_date.isoformat(), from_date.isoformat()
 
-    results = {}
+    results: dict = {}
+    total = len(symbols) * len(timeframes)
+    done = 0
+
+    def _snapshot(status: str) -> dict:
+        return {
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "status": status,                       # running | complete
+            "progress": f"{done}/{total}",
+            "params": {"symbols": symbols, "timeframes": timeframes, "days": days,
+                       "weights_frozen": True, "f17_dxy": "set to 0 (no DXY series)"},
+            "results": results,
+        }
+
+    _persist(_snapshot("running"))                  # mark started immediately
     for sym in symbols:
         ticker = _poly_ticker(sym)
         for tf in timeframes:
@@ -636,14 +651,12 @@ def run(symbols=None, timeframes=None, days: int = 120) -> dict:
             except Exception as e:
                 print(f"[poly_bt] {key} failed: {e}")
                 results[key] = {"symbol": sym, "timeframe": tf, "error": str(e)}
+            done += 1
+            _persist(_snapshot("running"))          # incremental — partial survives a crash
 
-    out = {
-        "updated_at": datetime.now(timezone.utc).isoformat(),
-        "params": {"symbols": symbols, "timeframes": timeframes, "days": days,
-                   "weights_frozen": True, "f17_dxy": "set to 0 (no DXY series)"},
-        "results": results,
-    }
+    out = _snapshot("complete")
     _persist(out)
+    print(f"[poly_bt] backtest complete — {done}/{total} cells")
     return out
 
 

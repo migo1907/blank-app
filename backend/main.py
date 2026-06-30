@@ -1284,6 +1284,10 @@ async def errors_log(secret: str = "", limit: int = 50):
     return {"errors": list(reversed(log[-limit:])), "count": len(log)}
 
 
+# Strong refs to detached background tasks so the event loop doesn't GC them mid-run.
+_BACKGROUND_TASKS: set = set()
+
+
 @app.get("/backtest")
 async def backtest(secret: str = "", symbols: str = "", timeframes: str = "", days: int = 120):
     """Run the Polygon intraday forward backtest (AI MLM 26 reproduction).
@@ -1293,8 +1297,17 @@ async def backtest(secret: str = "", symbols: str = "", timeframes: str = "", da
     import polygon_intraday_backtest as pbt
     syms = [s.strip() for s in symbols.split(",") if s.strip()] or None
     tfs = [t.strip() for t in timeframes.split(",") if t.strip()] or None
-    result = await asyncio.to_thread(pbt.run, syms, tfs, days)
-    return result
+    # Fire-and-forget: the backtest takes minutes (months of bars × KNN per bar),
+    # far longer than an HTTP request survives. Launch it in the background — it
+    # persists incrementally to data/backtest_results.json — and return at once.
+    task = asyncio.create_task(asyncio.to_thread(pbt.run, syms, tfs, days))
+    _BACKGROUND_TASKS.add(task)
+    task.add_done_callback(_BACKGROUND_TASKS.discard)
+    return {"status": "started",
+            "note": "Backtest running in background. Results stream into "
+                    "data/backtest_results.json (status: running → complete).",
+            "params": {"symbols": syms or "default", "timeframes": tfs or "default",
+                       "days": days}}
 
 
 @app.get("/signals/levels")
