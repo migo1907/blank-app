@@ -1,31 +1,4 @@
 {
-  "TSLA_240": {
-    "direction": "LONG",
-    "timeframe": "240",
-    "symbol": "TSLA",
-    "trigger": "FVG",
-    "ml_score": 0.625,
-    "stored_at": "2026-06-29T20:00:02.813292+00:00",
-    "expires_at": "2026-06-30T04:00:02.813308+00:00"
-  },
-  "TSLL_240": {
-    "direction": "LONG",
-    "timeframe": "240",
-    "symbol": "TSLL",
-    "trigger": "FVG",
-    "ml_score": 0.75,
-    "stored_at": "2026-06-29T20:00:26.607280+00:00",
-    "expires_at": "2026-06-30T04:00:26.607301+00:00"
-  },
-  "XAUUSD_30": {
-    "direction": "LONG",
-    "timeframe": "30",
-    "symbol": "XAUUSD",
-    "trigger": "RSI",
-    "ml_score": 0.25,
-    "stored_at": "2026-06-30T06:32:01.488845+00:00",
-    "expires_at": "2026-06-30T08:32:01.488857+00:00"
-  },
   "US500_30": {
     "direction": "SHORT",
     "timeframe": "30",
@@ -35,13 +8,13 @@
     "stored_at": "2026-06-30T12:30:05.900745+00:00",
     "expires_at": "2026-06-30T14:30:05.900761+00:00"
   },
-  "XAUUSD_60": {
+  "NVDA_30": {
     "direction": "LONG",
-    "timeframe": "60",
-    "symbol": "XAUUSD",
+    "timeframe": "30",
+    "symbol": "NVDA",
     "trigger": "FVG",
     "ml_score": 0.625,
-    "stored_at": "2026-06-30T08:02:02.610982+00:00",
-    "expires_at": "2026-06-30T12:02:02.611002+00:00"
+    "stored_at": "2026-06-30T14:00:01.153564+00:00",
+    "expires_at": "2026-06-30T16:00:01.153571+00:00"
   }
 }
