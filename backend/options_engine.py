@@ -1346,7 +1346,9 @@ def weekly_autopsy() -> str:
     loss_counts = Counter(r["loss_reason"] for r in losses)
 
     lines = [
-        f"📊 <b>SPX Options Weekly Autopsy</b>",
+        # No HTML tags here — send_critical_alert() html-escapes the body, so any
+        # <b> would render as literal text. The alert template already bolds the title.
+        f"📊 SPX Options Weekly Autopsy",
         f"Total closed: {total} | Win rate: {win_rate:.1f}%",
         f"Wins: {len(wins)} | Losses: {len(losses)}",
         "",
