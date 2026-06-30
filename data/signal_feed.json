@@ -1,37 +1,6 @@
 {
   "signals": [
     {
-      "direction": "LONG",
-      "timeframe": "30",
-      "trigger": "BOS",
-      "symbol": "MU",
-      "entry_price": 1138.53,
-      "tp1": 1216.7,
-      "tp2": 1273.55,
-      "tp3": 1351.72,
-      "sl": 1060.36,
-      "ml_score": 0.5,
-      "tier": "\u26a1 LOW",
-      "quality_score": 0.4087,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.1119,
-      "velocity": "NORMAL",
-      "event": "WAR/CONFLICT",
-      "htf_bias": {
-        "direction": "LONG",
-        "timeframe": "30",
-        "symbol": "MU",
-        "trigger": "BOS",
-        "ml_score": 0.5,
-        "stored_at": "2026-06-25T14:00:11.862730+00:00",
-        "expires_at": "2026-06-25T16:00:11.862749+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "htf_direct",
-      "session": "NYSE Open",
-      "fired_at": "2026-06-25T14:00:30.692687+00:00"
-    },
-    {
       "direction": "SHORT",
       "timeframe": "30",
       "trigger": "LIQ",
@@ -2891,6 +2860,37 @@
       "htf_context": "htf_direct",
       "session": "NYSE Afternoon",
       "fired_at": "2026-06-30T20:00:09.888256+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "60",
+      "trigger": "FVG",
+      "symbol": "NOW",
+      "entry_price": 99.28,
+      "tp1": 102.68,
+      "tp2": 105.41,
+      "tp3": 108.81,
+      "sl": 95.88,
+      "ml_score": 0.25,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.2986,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.0539,
+      "velocity": "CONFLICTED",
+      "event": "GEOPOLITICAL",
+      "htf_bias": {
+        "direction": "LONG",
+        "timeframe": "60",
+        "symbol": "NOW",
+        "trigger": "FVG",
+        "ml_score": 0.25,
+        "stored_at": "2026-06-30T20:00:16.265894+00:00",
+        "expires_at": "2026-07-01T00:00:16.265928+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "htf_direct",
+      "session": "NYSE Afternoon",
+      "fired_at": "2026-06-30T20:00:16.269087+00:00"
     }
   ]
 }
