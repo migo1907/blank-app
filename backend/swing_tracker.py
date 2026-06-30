@@ -258,9 +258,16 @@ def training_dataset() -> tuple[list[list[float]], list[int], dict]:
     closed = store["closed"]
     X, y = [], []
     for t in closed:
-        feats = t.get("features", {})
-        X.append([float(feats.get(k, 0.0)) for k in FEATURE_KEYS])
-        y.append(int(t.get("label", 0)))
+        feats = t.get("features", {}) or {}
+        row = []
+        for k in FEATURE_KEYS:
+            v = feats.get(k, 0.0)
+            try:
+                row.append(float(v) if v is not None else 0.0)
+            except (TypeError, ValueError):
+                row.append(0.0)   # tolerate missing/None/non-numeric feature (older rows)
+        X.append(row)
+        y.append(int(t.get("label", 0) or 0))
     n = len(y)
     meta = {
         "n_closed":  n,
