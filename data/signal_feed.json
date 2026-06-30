@@ -2,29 +2,6 @@
   "signals": [
     {
       "direction": "SHORT",
-      "timeframe": "15",
-      "trigger": "FVG",
-      "symbol": "US500",
-      "entry_price": 7389.0,
-      "tp1": 7365.76,
-      "tp2": 7348.34,
-      "tp3": 7325.1,
-      "sl": 7412.24,
-      "ml_score": 0.5,
-      "tier": "\u26a1 LOW",
-      "quality_score": 0.409,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.1486,
-      "velocity": "CONFLICTED",
-      "event": "WAR/CONFLICT",
-      "htf_bias": null,
-      "contra_bias": null,
-      "htf_context": "scalp",
-      "session": "Closed",
-      "fired_at": "2026-06-25T01:00:12.851692+00:00"
-    },
-    {
-      "direction": "SHORT",
       "timeframe": "5",
       "trigger": "OB",
       "symbol": "XAUUSD",
@@ -2859,6 +2836,37 @@
       "htf_context": "scalp",
       "session": "NYSE Open",
       "fired_at": "2026-06-30T13:45:03.420918+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "30",
+      "trigger": "BOS",
+      "symbol": "QQQ",
+      "entry_price": 731.8,
+      "tp1": 740.17,
+      "tp2": 746.26,
+      "tp3": 754.62,
+      "sl": 723.43,
+      "ml_score": 0.375,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.4882,
+      "quality_reason": "approved",
+      "news_score": 0.0946,
+      "velocity": "CONFLICTED",
+      "event": "GEOPOLITICAL",
+      "htf_bias": {
+        "direction": "LONG",
+        "timeframe": "30",
+        "symbol": "QQQ",
+        "trigger": "BOS",
+        "ml_score": 0.375,
+        "stored_at": "2026-06-30T14:00:07.460015+00:00",
+        "expires_at": "2026-06-30T16:00:07.460038+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "htf_direct",
+      "session": "NYSE Open",
+      "fired_at": "2026-06-30T14:00:07.888885+00:00"
     }
   ]
 }
