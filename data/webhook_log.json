@@ -32650,7 +32650,7 @@
     }
   },
   {
-    "received_at": "2026-06-30T14:01:05.686337+00:00",
+    "received_at": "2026-06-30T14:00:31.135122+00:00",
     "pool": "STOCKS_MOMENTUM_30M",
     "payload": {
       "secret": "gold2026",
@@ -32666,11 +32666,11 @@
       "ml_score": 0.75,
       "tier": null,
       "trade_id": "AMD_1782828003193",
-      "outcome": "WIN",
-      "ml_outcome": "TP1_HIT",
+      "outcome": "PARTIAL",
+      "ml_outcome": "WIN",
       "mfe": 23.29,
-      "tp_stage": "TP1",
-      "exit_price": 561.6141,
+      "tp_stage": "SL_TP1",
+      "exit_price": 545.28,
       "f1": 0.3349,
       "f2": 0.3318,
       "f3": 0.0371,
