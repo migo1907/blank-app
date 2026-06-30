@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-06-30T16:02:07.112926+00:00",
+  "updated_at": "2026-06-30T16:02:08.769387+00:00",
   "status": "running",
-  "progress": "9/15",
+  "progress": "10/15",
   "params": {
     "symbols": [
       "QQQ",
@@ -545,6 +545,12 @@
     "SPX_15": {
       "symbol": "SPX",
       "timeframe": "15",
+      "n_trades": 0,
+      "note": "insufficient bars (0)"
+    },
+    "SPX_5": {
+      "symbol": "SPX",
+      "timeframe": "5",
       "n_trades": 0,
       "note": "insufficient bars (0)"
     }
