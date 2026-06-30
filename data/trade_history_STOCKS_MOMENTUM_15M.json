@@ -16775,14 +16775,14 @@
     "direction": "LONG",
     "trigger": "FVG",
     "entry_price": 2.71,
-    "exit_price": 2.73,
-    "outcome": "PARTIAL",
-    "ml_outcome": "WIN",
+    "exit_price": 2.7889,
+    "outcome": "WIN",
+    "ml_outcome": "TP1_HIT",
     "mfe": 0.08,
     "mae": 0.065,
-    "tp_stage": "SL_TP1",
+    "tp_stage": "TP1",
     "timeframe": "15",
-    "pnl_pct": 0.738,
+    "pnl_pct": 2.9114,
     "ml_bull_score": 0.375,
     "regime": "TRENDING_BEAR",
     "session": "NYSE_AFTERNOON",
@@ -16812,8 +16812,8 @@
     "f24_fvgq": 0.0,
     "f25_tod": -0.5,
     "f26_stoch": 0.7143,
-    "id": "e27b7f50",
+    "id": "c9814449",
     "pool": "STOCKS_MOMENTUM_15M",
-    "created_at": "2026-06-30T17:30:29.708971+00:00"
+    "created_at": "2026-06-30T17:30:31.947648+00:00"
   }
 ]
