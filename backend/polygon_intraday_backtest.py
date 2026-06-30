@@ -514,6 +514,7 @@ def _grade_trade(direction, entry, atr_val, bars_after, tf):
         "pnl_pct": round(pnl_pct, 5),
         "mfe": round(mfe, 5),
         "mae": round(mae, 5),
+        "atr_pct": round(atr_val / entry * 100.0, 5) if entry else 0.0,
         "outcome": outcome,
     }
 
@@ -582,8 +583,18 @@ def summarize(trades: list[dict], symbol: str, tf: str) -> dict:
         "pct_TP3": _pct("TP3"),
         "pct_timeout": _pct("timeout"),
     }
+    # Median ATR-as-% — lets us convert the optimizer's recommended TP% into an
+    # exact Pine ATR multiplier for the candidate change.
+    atr_pcts = sorted(t.get("atr_pct", 0.0) for t in trades if t.get("atr_pct"))
+    median_atr_pct = atr_pcts[len(atr_pcts) // 2] if atr_pcts else 0.0
+    out["median_atr_pct"] = round(median_atr_pct, 5)
     try:
-        out["exit_optimizer"] = exit_optimizer.optimize_pool(trades)
+        opt = exit_optimizer.optimize_pool(trades)
+        out["exit_optimizer"] = opt
+        # Candidate TP1 ATR multiplier = recommended TP% / median ATR% (Pine units).
+        rec_tp = (opt or {}).get("recommended_tp_pct")
+        if rec_tp and median_atr_pct > 0:
+            out["candidate_tp1_atr_mult"] = round(rec_tp / median_atr_pct, 2)
     except Exception as e:
         out["exit_optimizer"] = {"error": str(e)}
     return out
