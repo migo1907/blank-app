@@ -9,7 +9,7 @@ import { Crosshair, BarChart3, CalendarDays, Briefcase, Newspaper, LogOut, Menu,
 import { getDashboard, subscribePush, VAPID_PUBLIC,
   getMarketOverview, getMarketQuotes, getMarketTicker, getMarketCompare, getMarketWrap, getMarketCommentary,
   getMarketSparklines, getOptionsFlow, getEconomicCalendar, getEarningsCalendar,
-  login, getSecret, clearSecret } from './api'
+  getBreakingNews, login, getSecret, clearSecret } from './api'
 
 const BASE = 'https://blank-app-production-a8bd.up.railway.app'
 
@@ -1566,9 +1566,36 @@ function CompareTab() {
 
 function WrapTab() {
   const {data,err,load}=useLoad(()=>getMarketWrap())
+  const [playing,setPlaying]=useState(false)
+  useEffect(()=>()=>{ try{ window.speechSynthesis?.cancel() }catch{} },[])
   if(load) return <Spinner/>
   if(err)  return <Err e={err}/>
   const s=data?.sections||{}
+  const spoken=[
+    'Sniper Signals daily market wrap.',
+    s.overview,
+    s.themes?.length ? 'Key themes. '+s.themes.join('. ') : '',
+    s.outlook ? 'Outlook. '+s.outlook : '',
+  ].filter(Boolean).join(' ')
+  const text=(s.overview||s.themes?.length||s.outlook) ? spoken : (data?.wrap ? 'Sniper Signals daily market wrap. '+data.wrap : '')
+  const canSpeak=typeof window!=='undefined' && 'speechSynthesis' in window && !!text
+  const toggle=()=>{
+    try{
+      if(playing){ window.speechSynthesis.cancel(); setPlaying(false); return }
+      window.speechSynthesis.cancel()
+      const u=new SpeechSynthesisUtterance(text)
+      u.rate=1.0
+      try{
+        const vs=window.speechSynthesis.getVoices()||[]
+        const v=vs.find(x=>/^en[-_](US|GB)/i.test(x.lang))||vs.find(x=>/^en/i.test(x.lang))
+        if(v) u.voice=v
+      }catch{}
+      u.onend=()=>setPlaying(false)
+      u.onerror=()=>setPlaying(false)
+      window.speechSynthesis.speak(u)
+      setPlaying(true)
+    }catch{ setPlaying(false) }
+  }
   return (
     <div className="content">
       <div className="commentary-card" style={{margin:'10px 10px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
@@ -1576,7 +1603,15 @@ function WrapTab() {
           <h2 style={{margin:0,fontSize:16,color:'var(--gold)'}}>🗞️ Daily Market Wrap-Up</h2>
           <span style={{color:'var(--muted)',fontSize:13}}>{data?.date}{data?.cached?' (cached)':''}</span>
         </div>
-        <span style={{fontSize:10,fontWeight:700,letterSpacing:'.08em',textTransform:'uppercase',color:'var(--text-mut)'}}>AI · Haiku</span>
+        <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:6}}>
+          <span style={{fontSize:10,fontWeight:700,letterSpacing:'.08em',textTransform:'uppercase',color:'var(--text-mut)'}}>AI · Haiku</span>
+          {canSpeak && (
+            <button className="radio-btn" onClick={toggle} aria-label={playing?'Stop':'Listen'}>
+              <span style={{fontSize:10,color:'var(--text-mut)',marginRight:6}}>🔊 Radio</span>
+              {playing?'⏸ Stop':'▶ Listen'}
+            </button>
+          )}
+        </div>
       </div>
       {s.overview&&<div className="card"><h3 style={{color:'var(--gold)',marginBottom:8,fontSize:14}}>Market Overview</h3><p style={{margin:0,color:'var(--text)',lineHeight:1.7,fontSize:14}}>{s.overview}</p></div>}
       {s.themes?.length>0&&<div className="card"><h3 style={{color:'var(--gold)',marginBottom:10,fontSize:14}}>Key Themes</h3><ul style={{margin:0,padding:'0 0 0 18px',color:'var(--text)',lineHeight:2,fontSize:14}}>{s.themes.map((t,i)=><li key={i}>{t}</li>)}</ul></div>}
@@ -1999,6 +2034,50 @@ function Splash({onEnter}) {
 }
 
 // ══════════════════════════════════════════════════════════════════
+// BREAKING NEWS FLASH BAR — fixed top overlay, polls every 60s
+// ══════════════════════════════════════════════════════════════════
+function BreakingBar() {
+  const [items,setItems] = useState([])
+  const [idx,setIdx]     = useState(0)
+  const [dismissed,setDismissed] = useState(()=>{ try{ return new Set(JSON.parse(localStorage.getItem('dismissed_breaking')||'[]')) }catch{ return new Set() } })
+  useEffect(()=>{
+    let alive=true
+    const poll=async()=>{ try{ const d=await getBreakingNews(); if(alive) setItems(Array.isArray(d?.items)?d.items:[]) }catch{} }
+    poll()
+    const id=setInterval(poll,60_000)
+    return ()=>{ alive=false; clearInterval(id) }
+  },[])
+  const fresh = items.filter(it=>{
+    try{ return it?.headline && it?.at && (Date.now()-new Date(it.at)) < 30*60*1000 && !dismissed.has(String(it.headline).slice(0,80)) }
+    catch{ return false }
+  })
+  useEffect(()=>{
+    if(fresh.length<2) return
+    const id=setInterval(()=>setIdx(i=>i+1),8_000)
+    return ()=>clearInterval(id)
+  },[fresh.length])
+  if(!fresh.length) return null
+  const it = fresh[idx%fresh.length]
+  const dismiss = ()=>{
+    const key=String(it.headline).slice(0,80)
+    setDismissed(prev=>{
+      const nx=new Set(prev); nx.add(key)
+      try{ localStorage.setItem('dismissed_breaking',JSON.stringify([...nx].slice(-20))) }catch{}
+      return nx
+    })
+  }
+  return (
+    <div className="breaking-bar" role="alert">
+      <span className="breaking-dot"/>
+      <b style={{flexShrink:0,fontSize:11,letterSpacing:'.08em'}}>BREAKING</b>
+      <span className="breaking-text">{it.headline}</span>
+      <span style={{flexShrink:0,opacity:.75,fontSize:11}}>{age(it.at)}</span>
+      <button className="breaking-close" onClick={dismiss} aria-label="Dismiss">✕</button>
+    </div>
+  )
+}
+
+// ══════════════════════════════════════════════════════════════════
 // APP ROOT
 // ══════════════════════════════════════════════════════════════════
 function MainApp({onLock}) {
@@ -2015,6 +2094,7 @@ function MainApp({onLock}) {
 
   return (
     <>
+      <BreakingBar/>
       <div className="app-main" style={{flex:1, paddingBottom:64}}>
         {tab==='signals'   && <SignalsHub/>}
         {tab==='markets'   && <MarketsTab key={'mk-'+marketsSub} initialSub={marketsSub} pulse={pulse} health={health}/>}

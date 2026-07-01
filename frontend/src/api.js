@@ -25,6 +25,7 @@ async function _get(path, params = {}) {
 
 export const getPulse    = ()       => fetch(`${BASE}/pulse`, { signal: AbortSignal.timeout(15000) }).then(r => r.json())
 export const getNewsFeed = ()       => _get('/news/feed')
+export const getBreakingNews = ()   => _get('/news/breaking')
 export const getHealth   = ()       => _get('/health')
 export const getDashboard = (pool)  => _get('/dashboard', { pool })
 
