@@ -3,29 +3,6 @@
     {
       "direction": "LONG",
       "timeframe": "15",
-      "trigger": "FVG",
-      "symbol": "NVDA",
-      "entry_price": 195.09,
-      "tp1": 197.79,
-      "tp2": 199.81,
-      "tp3": 202.5,
-      "sl": 192.39,
-      "ml_score": 0.5,
-      "tier": "\u26a1 LOW",
-      "quality_score": 0.4448,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.0324,
-      "velocity": "CONFLICTED",
-      "event": "FOMC",
-      "htf_bias": null,
-      "contra_bias": null,
-      "htf_context": "scalp",
-      "session": "NYSE Open",
-      "fired_at": "2026-06-26T15:45:07.860314+00:00"
-    },
-    {
-      "direction": "LONG",
-      "timeframe": "15",
       "trigger": "RSI",
       "symbol": "MSTR",
       "entry_price": 86.59,
@@ -2835,6 +2812,37 @@
       "htf_context": "htf_direct",
       "session": "NYSE Open",
       "fired_at": "2026-07-01T14:00:41.640446+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "60",
+      "trigger": "OB",
+      "symbol": "XAUUSD",
+      "entry_price": 4088.32,
+      "tp1": 4128.16,
+      "tp2": 4160.03,
+      "tp3": 4199.86,
+      "sl": 4040.06,
+      "ml_score": 0.125,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.2978,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.2556,
+      "velocity": "NORMAL",
+      "event": "GEOPOLITICAL",
+      "htf_bias": {
+        "direction": "LONG",
+        "timeframe": "60",
+        "symbol": "XAUUSD",
+        "trigger": "OB",
+        "ml_score": 0.125,
+        "stored_at": "2026-07-01T14:02:03.598967+00:00",
+        "expires_at": "2026-07-01T18:02:03.598991+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "htf_direct",
+      "session": "London/NY Overlap",
+      "fired_at": "2026-07-01T14:02:03.854507+00:00"
     }
   ]
 }
