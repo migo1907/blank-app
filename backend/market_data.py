@@ -269,10 +269,29 @@ def _health(source: str, ok: bool, category: str = "", detail: str = "") -> None
         pass
 
 
+def _stooq_symbol_for(ticker: str) -> str | None:
+    """Resolve a ticker to a Stooq symbol. Known aliases (indices/futures/ETFs)
+    come from STOOQ_SYMBOLS; any other plain US equity uses Stooq's '<ticker>.us'
+    convention (lowercased, '.' → '-', e.g. BRK.B → brk-b.us). Returns None for
+    symbols Stooq can't serve this way (^indices, =futures not in the map)."""
+    mapped = STOOQ_SYMBOLS.get(ticker)
+    if mapped:
+        return mapped
+    t = (ticker or "").strip().lower()
+    if not t or t.startswith("^") or "=" in t or ":" in t:
+        return None
+    if t.endswith(".us"):
+        return t
+    return f"{t.replace('.', '-')}.us"
+
+
 def fetch_daily(ticker: str, period: str = "1y"):
-    """Daily OHLC — Stooq primary (free, cloud-reliable). Empty DataFrame if unavailable."""
+    """Daily OHLC — Stooq primary (free, cloud-reliable). Empty DataFrame if unavailable.
+    Resolves arbitrary US equities (swing universe) via the '<ticker>.us' convention,
+    not just the hardcoded alias map — without this, yfinance's removal left every
+    individual stock with no daily bars (swing screener + tracker went dark)."""
     import pandas as pd
-    sym = STOOQ_SYMBOLS.get(ticker)
+    sym = _stooq_symbol_for(ticker)
     if sym:
         try:
             df = _stooq_daily(sym)
