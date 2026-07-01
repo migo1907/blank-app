@@ -114,9 +114,14 @@ def test_symbol_to_pool():
 def test_normalize_outcome():
     print("\n[2] _normalize_outcome")
 
-    # TP1_HIT = WIN (TP1 acts as a full win); TP2_HIT/TP3_HIT = PROGRESS (addon score, no DB write)
-    assert_eq("TP1_HIT",  _normalize_outcome("TP1_HIT"),  "WIN")
+    # ALL TP milestones = PROGRESS (no DB write): the trade continues after TP1
+    # (BE stop, targeting TP2/TP3) and sends its real close later. The old
+    # TP1_HIT->WIN mapping wrote a phantom win row per TP1 touch alongside the
+    # true close, double-counting every TP1-reaching trade (fixed 2026-07-01).
+    assert_eq("TP1_HIT",  _normalize_outcome("TP1_HIT"),  "PROGRESS")
     assert_eq("TP2_HIT",  _normalize_outcome("TP2_HIT"),  "PROGRESS")
+    # SCRATCH (proximity-reset close) = PARTIAL: closed row, win only if pnl>0
+    assert_eq("SCRATCH",  _normalize_outcome("SCRATCH"),  "PARTIAL")
 
     # WIN variants
     assert_eq("WIN",      _normalize_outcome("WIN"),   "WIN")
