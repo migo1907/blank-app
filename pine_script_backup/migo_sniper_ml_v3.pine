@@ -69,6 +69,15 @@ int   kWin        = autoTF ? (isTF2 ? 5   : isTF5 ? 8   : isTF15 ? 12  : isTF30 
 // n=113), 1H PF 0.96→1.20 (n=59) — both flip to positive expectancy. ONLY gold
 // 30m/1H change; all stocks and the other gold timeframes keep their ladders.
 bool isGoldSym = str.contains(syminfo.ticker, "XAU")
+// Gold 5m — IBKR backtest 2026-07-01: current 1.5/2.5/4.0/1.5 robustly LOSES
+// (PF 0.83, consistent across both sample halves); tighter ladder flips it
+// positive (PF 1.31, win 44%→62%). Same direction as gold's other TFs. Sample
+// is ~2 weeks / one regime — refine once deeper history confirms.
+if autoTF and isGoldSym and isTF5
+    atrMultTP1 := 0.75
+    atrMultTP2 := 1.25
+    atrMultTP3 := 2.0
+    atrMultSL  := 1.05
 if autoTF and isGoldSym and isTF30
     atrMultTP1 := 1.1
     atrMultTP2 := 1.9
