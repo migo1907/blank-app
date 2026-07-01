@@ -25,6 +25,7 @@ _shock_sent_dirty: bool = False  # set when _shock_sent changes → cycle persis
 _fj_expiry_alert_at: float = 0.0  # monotonic time of last FJ-session-expired alert; throttles to 1/12h
 _brief_sent_date:  object = None  # date the daily market brief was last sent (guards against double-fire)
 _report_sent_date: object = None  # date the daily performance report was last sent (guards against double-fire)
+_data_degraded_alerted: set = set()  # data sources already escalated to the owner (state-change dedup)
 
 _SEEN_HEADLINES_PATH = "data/seen_headlines.json"
 _SEEN_HEADLINES_MAX  = 500
@@ -704,6 +705,27 @@ async def _hourly_system_check() -> None:
         else:
             names = ", ".join(f"{d['source']}({d['reason']})" for d in deg[:8])
             issues.append(f"Data flow — {len(deg)}/{len(tracked)} source(s) degraded: {names} ⚠️")
+            # Watchdog escalation: a feed going dark used to be invisible (options +
+            # swing silently broke when yfinance was removed and nobody was told).
+            # Alert the owner about NEWLY-degraded sources only (state-change dedup),
+            # so a persistent issue doesn't spam every hour.
+            global _data_degraded_alerted
+            new = [d for d in deg if d["source"] not in _data_degraded_alerted]
+            if new:
+                detail = "; ".join(
+                    f"{d['source']} ({d['reason']}"
+                    + (f", {int(d['minutes_since_ok'])}m since ok" if d.get("minutes_since_ok") else "")
+                    + (f": {d['last_error'][:50]}" if d.get("last_error") else "") + ")"
+                    for d in new[:6]
+                )
+                critical_alerts.append((
+                    "Data feed went dark",
+                    f"{len(new)} data source(s) newly degraded — {detail}",
+                    "A feed stopped updating. The system will keep trying to self-heal; "
+                    "if a source stays down it likely needs a new key/allowlist or an "
+                    "alternative source (I'll investigate).",
+                ))
+            _data_degraded_alerted = {d["source"] for d in deg}
     except Exception as e:
         issues.append(f"Data-flow health error: {e} ❌")
 
