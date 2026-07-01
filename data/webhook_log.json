@@ -43045,7 +43045,7 @@
     }
   },
   {
-    "received_at": "2026-07-01T17:30:23.790129+00:00",
+    "received_at": "2026-07-01T17:30:23.157792+00:00",
     "pool": "STOCKS_MOMENTUM_4H",
     "payload": {
       "secret": "gold2026",
@@ -43061,12 +43061,12 @@
       "ml_score": 0.25,
       "tier": null,
       "trade_id": "HIMS_1782927012419",
-      "outcome": "PARTIAL",
-      "ml_outcome": "WIN",
+      "outcome": "WIN",
+      "ml_outcome": "TP1_HIT",
       "mfe": 5.78,
       "mae": 2.44,
-      "tp_stage": "SL_TP1",
-      "exit_price": 34.78,
+      "tp_stage": "TP1",
+      "exit_price": 37.2663,
       "f1": 0.3868,
       "f2": 0.3612,
       "f3": 0.1407,
