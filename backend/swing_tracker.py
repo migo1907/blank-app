@@ -126,6 +126,24 @@ def open_paper_trades(screen: dict) -> int:
     cands = (screen or {}).get("candidates", [])
     if not cands:
         return 0
+    # Market-regime gate (backtest 2026-07-01, 10 tickers × 14 months of daily
+    # bars): long entries with SPY above its 50dMA run PF 1.57 vs 0.78 below it;
+    # the gate is defensive (neutral-to-positive in both halves) and would have
+    # blocked the entire Jun-15..24 losing cluster (15 of the first 18 closes).
+    # Fail-open: if SPY data is unavailable, trade as before.
+    # Kill-switch: SWING_REGIME_GATE=false.
+    import os as _os
+    if _os.environ.get("SWING_REGIME_GATE", "true").lower() in ("1", "true", "yes"):
+        try:
+            from market_data import fetch_daily as _fd
+            _spy = _fd("SPY", period="6mo")
+            if len(_spy) >= 50:
+                _closes = _spy["Close"].to_numpy(dtype=float)
+                if _closes[-1] < _closes[-50:].mean():
+                    print("[swing] regime gate: SPY below 50dMA — no new swing longs tonight")
+                    return 0
+        except Exception as _rg:
+            print(f"[swing] regime gate check failed (fail-open): {_rg}")
     store = _load()
     open_tickers = {t["ticker"] for t in store["open"]}
     from market_data import fetch_daily
