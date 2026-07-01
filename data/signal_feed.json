@@ -1,37 +1,6 @@
 {
   "signals": [
     {
-      "direction": "SHORT",
-      "timeframe": "60",
-      "trigger": "OB",
-      "symbol": "GOOGL",
-      "entry_price": 336.81,
-      "tp1": 326.71,
-      "tp2": 318.62,
-      "tp3": 308.52,
-      "sl": 346.91,
-      "ml_score": 0.625,
-      "tier": "\u2705 MED",
-      "quality_score": 0.4337,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": 0.0308,
-      "velocity": "LOW",
-      "event": "GEOPOLITICAL",
-      "htf_bias": {
-        "direction": "SHORT",
-        "timeframe": "60",
-        "symbol": "GOOGL",
-        "trigger": "OB",
-        "ml_score": 0.625,
-        "stored_at": "2026-06-26T20:00:23.547099+00:00",
-        "expires_at": "2026-06-27T00:00:23.547114+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "htf_direct",
-      "session": "NYSE Afternoon",
-      "fired_at": "2026-06-26T20:00:24.473976+00:00"
-    },
-    {
       "direction": "LONG",
       "timeframe": "60",
       "trigger": "RSI",
@@ -2867,6 +2836,37 @@
       "htf_context": "htf_direct",
       "session": "NYSE Open",
       "fired_at": "2026-07-01T14:30:11.094880+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "30",
+      "trigger": "FVG",
+      "symbol": "NOW",
+      "entry_price": 104.06,
+      "tp1": 106.76,
+      "tp2": 108.73,
+      "tp3": 111.43,
+      "sl": 101.36,
+      "ml_score": 0.5,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.2312,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.2328,
+      "velocity": "LOW",
+      "event": "GEOPOLITICAL",
+      "htf_bias": {
+        "direction": "LONG",
+        "timeframe": "30",
+        "symbol": "NOW",
+        "trigger": "FVG",
+        "ml_score": 0.5,
+        "stored_at": "2026-07-01T14:30:12.203067+00:00",
+        "expires_at": "2026-07-01T16:30:12.203085+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "htf_direct",
+      "session": "NYSE Open",
+      "fired_at": "2026-07-01T14:30:12.289285+00:00"
     }
   ]
 }
