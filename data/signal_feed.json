@@ -1,37 +1,6 @@
 {
   "signals": [
     {
-      "direction": "SHORT",
-      "timeframe": "30",
-      "trigger": "FVG",
-      "symbol": "US500",
-      "entry_price": 7469.9,
-      "tp1": 7448.56,
-      "tp2": 7433.05,
-      "tp3": 7411.71,
-      "sl": 7491.24,
-      "ml_score": 0.75,
-      "tier": "\u2b50 HIGH",
-      "quality_score": 0.3669,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.1876,
-      "velocity": "LOW",
-      "event": "CPI",
-      "htf_bias": {
-        "direction": "SHORT",
-        "timeframe": "30",
-        "symbol": "US500",
-        "trigger": "FVG",
-        "ml_score": 0.75,
-        "stored_at": "2026-07-01T02:30:07.091561+00:00",
-        "expires_at": "2026-07-01T04:30:07.091577+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "htf_direct",
-      "session": "Closed",
-      "fired_at": "2026-07-01T02:30:07.438274+00:00"
-    },
-    {
       "direction": "LONG",
       "timeframe": "5",
       "trigger": "FVG",
@@ -2867,6 +2836,37 @@
       "htf_context": "with_bias",
       "session": "NYSE Afternoon",
       "fired_at": "2026-07-01T16:00:33.465506+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "15",
+      "trigger": "BOS",
+      "symbol": "IBKR",
+      "entry_price": 93.45,
+      "tp1": 94.9,
+      "tp2": 96.0,
+      "tp3": 97.46,
+      "sl": 91.99,
+      "ml_score": 0.375,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.3752,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.1068,
+      "velocity": "CONFLICTED",
+      "event": "WAR/CONFLICT",
+      "htf_bias": {
+        "direction": "LONG",
+        "timeframe": "60",
+        "symbol": "IBKR",
+        "trigger": "FVG",
+        "ml_score": 0.375,
+        "stored_at": "2026-07-01T15:30:26.114618+00:00",
+        "expires_at": "2026-07-01T19:30:26.114635+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "with_bias",
+      "session": "NYSE Afternoon",
+      "fired_at": "2026-07-01T16:15:16.337684+00:00"
     }
   ]
 }
