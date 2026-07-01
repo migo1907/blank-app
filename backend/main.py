@@ -2560,6 +2560,37 @@ def exit_optimization(secret: str = "", run: int = 0):
     return data if isinstance(data, dict) else {"pools": {}, "note": "not computed yet — call with run=1"}
 
 
+@app.get("/options/chain-test")
+async def options_chain_test(secret: str = ""):
+    """Diagnostic: probe CBOE's raw SPX feed + each stage of the chain path, so a
+    blank ATM IV / spot can be root-caused (reachability vs parse vs expiry)."""
+    _validate_secret(secret)
+    import cboe_data
+    from datetime import datetime as _dt
+    from options_engine import _pick_expiry, _NY, _spx_chain
+    out = {"cboe_probe": await asyncio.to_thread(cboe_data.probe_spx)}
+    out["cboe_expiries"] = (await asyncio.to_thread(cboe_data.fetch_spx_expiries))[:8]
+    try:
+        picked = await asyncio.to_thread(_pick_expiry, _dt.now(_NY))
+        out["picked_expiry"] = picked
+    except Exception as e:
+        out["pick_error"] = str(e); picked = None
+    if picked:
+        exp = picked[0]
+        try:
+            cd = await asyncio.to_thread(cboe_data.fetch_spx_chain, exp)
+            out["cboe_chain"] = {"calls": len(cd["calls"]), "puts": len(cd["puts"]),
+                                 "spot": cd.get("spot")} if cd else None
+        except Exception as e:
+            out["cboe_chain_error"] = str(e)
+        try:
+            spot, chain = await asyncio.to_thread(_spx_chain, exp)
+            out["spx_chain"] = {"spot": spot, "calls": len(chain.calls), "puts": len(chain.puts)}
+        except Exception as e:
+            out["spx_chain_error"] = str(e)
+    return out
+
+
 @app.get("/options/flow")
 async def options_flow(secret: str = ""):
     _validate_secret(secret)

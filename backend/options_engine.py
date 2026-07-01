@@ -271,6 +271,16 @@ def _list_expiries() -> list[str]:
                 return exps
     except Exception:
         pass
+    # CBOE free fallback — without this the expiry list was empty (Tradier absent,
+    # Polygon options needs a paid tier), so _pick_expiry returned None and the
+    # whole chain snapshot (spot / ATM IV / expected move) stayed blank.
+    try:
+        import cboe_data
+        exps = cboe_data.fetch_spx_expiries()
+        if exps:
+            return exps
+    except Exception:
+        pass
     return []
 
 

@@ -214,6 +214,65 @@ def fetch_spx_chain(expiry: str) -> dict | None:
     return result
 
 
+def _get_spx_payload() -> dict:
+    """Raw CBOE _SPX.json 'data' object (current_price + options list). {} on error."""
+    import httpx
+    url = "https://cdn.cboe.com/api/global/delayed_quotes/options/_SPX.json"
+    with httpx.Client(timeout=15, headers=_HEADERS, follow_redirects=True) as c:
+        r = c.get(url)
+        r.raise_for_status()
+        return (r.json() or {}).get("data", {}) or {}
+
+
+def fetch_spx_expiries() -> list[str]:
+    """Sorted unique SPXW expiry dates (ISO) listed on CBOE — the free fallback for
+    the options engine's expiry list. Returns [] on any failure."""
+    try:
+        data = _get_spx_payload()
+        exps = set()
+        for opt in data.get("options", []) or []:
+            p = _parse_osi(opt.get("option") or opt.get("symbol") or "")
+            if p and p[0] == "SPXW":
+                exps.add(p[1])
+        out = sorted(exps)
+        print(f"[cboe] SPX expiries: {len(out)} found")
+        return out
+    except Exception as e:
+        print(f"[cboe] SPX expiries fetch failed: {e}")
+        return []
+
+
+def probe_spx() -> dict:
+    """Diagnostic snapshot of what CBOE actually returns — for debugging the chain
+    path (HTTP status, option count, roots seen, a few raw symbols, current_price)."""
+    out: dict = {"url": "cdn.cboe.com/api/global/delayed_quotes/options/_SPX.json"}
+    try:
+        import httpx
+        url = "https://cdn.cboe.com/api/global/delayed_quotes/options/_SPX.json"
+        with httpx.Client(timeout=15, headers=_HEADERS, follow_redirects=True) as c:
+            r = c.get(url)
+            out["http_status"] = r.status_code
+            r.raise_for_status()
+            data = (r.json() or {}).get("data", {}) or {}
+        opts = data.get("options", []) or []
+        out["current_price"] = data.get("current_price")
+        out["n_options"] = len(opts)
+        roots: dict = {}
+        samples = []
+        for opt in opts:
+            sym = opt.get("option") or opt.get("symbol") or ""
+            p = _parse_osi(sym)
+            if p:
+                roots[p[0]] = roots.get(p[0], 0) + 1
+            if len(samples) < 4:
+                samples.append({"sym": sym, "keys": list(opt.keys())[:10]})
+        out["roots"] = roots
+        out["sample_options"] = samples
+    except Exception as e:
+        out["error"] = str(e)
+    return out
+
+
 def get_pc_ratio() -> dict:
     """Return last cached CBOE put/call ratios (no network)."""
     return dict(_cache)
