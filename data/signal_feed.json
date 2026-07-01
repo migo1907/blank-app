@@ -1,37 +1,6 @@
 {
   "signals": [
     {
-      "direction": "SHORT",
-      "timeframe": "240",
-      "trigger": "BOS",
-      "symbol": "HTZ",
-      "entry_price": 2.4,
-      "tp1": 1.56,
-      "tp2": 0.87,
-      "tp3": -0.11,
-      "sl": 3.24,
-      "ml_score": 0.75,
-      "tier": "\u2b50 HIGH",
-      "quality_score": 0.4388,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.0103,
-      "velocity": "CONFLICTED",
-      "event": "GEOPOLITICAL",
-      "htf_bias": {
-        "direction": "SHORT",
-        "timeframe": "240",
-        "symbol": "HTZ",
-        "trigger": "BOS",
-        "ml_score": 0.75,
-        "stored_at": "2026-06-29T17:30:22.744536+00:00",
-        "expires_at": "2026-06-30T01:30:22.744561+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "htf_direct",
-      "session": "NYSE Afternoon",
-      "fired_at": "2026-06-29T17:30:23.158088+00:00"
-    },
-    {
       "direction": "LONG",
       "timeframe": "30",
       "trigger": "FVG",
@@ -2907,6 +2876,29 @@
       "htf_context": "with_bias",
       "session": "NYSE Open",
       "fired_at": "2026-07-01T15:00:02.871616+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "15",
+      "trigger": "FVG",
+      "symbol": "QQQ",
+      "entry_price": 728.0,
+      "tp1": 723.83,
+      "tp2": 720.7,
+      "tp3": 716.53,
+      "sl": 732.17,
+      "ml_score": 0.75,
+      "tier": "\u2b50 HIGH",
+      "quality_score": 0.2562,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.1568,
+      "velocity": "CONFLICTED",
+      "event": "NFP",
+      "htf_bias": null,
+      "contra_bias": null,
+      "htf_context": "scalp",
+      "session": "NYSE Open",
+      "fired_at": "2026-07-01T15:00:10.924625+00:00"
     }
   ]
 }
