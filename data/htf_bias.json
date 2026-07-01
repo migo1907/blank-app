@@ -99,13 +99,13 @@
     "expires_at": "2026-07-01T16:00:14.908842+00:00"
   },
   "AMD_30": {
-    "direction": "LONG",
+    "direction": "SHORT",
     "timeframe": "30",
     "symbol": "AMD",
-    "trigger": "LIQ",
-    "ml_score": 0.625,
-    "stored_at": "2026-07-01T14:00:15.760778+00:00",
-    "expires_at": "2026-07-01T16:00:15.760799+00:00"
+    "trigger": "FVG",
+    "ml_score": 0.375,
+    "stored_at": "2026-07-01T14:30:09.222636+00:00",
+    "expires_at": "2026-07-01T16:30:09.222649+00:00"
   },
   "PLTR_30": {
     "direction": "LONG",
@@ -160,5 +160,50 @@
     "ml_score": 0.25,
     "stored_at": "2026-07-01T14:30:08.635455+00:00",
     "expires_at": "2026-07-01T18:30:08.635472+00:00"
+  },
+  "MSFT_60": {
+    "direction": "LONG",
+    "timeframe": "60",
+    "symbol": "MSFT",
+    "trigger": "FVG",
+    "ml_score": 0.875,
+    "stored_at": "2026-07-01T14:30:09.651601+00:00",
+    "expires_at": "2026-07-01T18:30:09.651624+00:00"
+  },
+  "SOXL_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "SOXL",
+    "trigger": "FVG",
+    "ml_score": 0.375,
+    "stored_at": "2026-07-01T14:30:09.955204+00:00",
+    "expires_at": "2026-07-01T16:30:09.955221+00:00"
+  },
+  "AAPL_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "AAPL",
+    "trigger": "FVG",
+    "ml_score": 0.5,
+    "stored_at": "2026-07-01T14:30:11.003082+00:00",
+    "expires_at": "2026-07-01T16:30:11.003100+00:00"
+  },
+  "NOW_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "NOW",
+    "trigger": "FVG",
+    "ml_score": 0.5,
+    "stored_at": "2026-07-01T14:30:12.203067+00:00",
+    "expires_at": "2026-07-01T16:30:12.203085+00:00"
+  },
+  "ADBE_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "ADBE",
+    "trigger": "FVG",
+    "ml_score": 0.5,
+    "stored_at": "2026-07-01T14:30:13.064811+00:00",
+    "expires_at": "2026-07-01T16:30:13.064830+00:00"
   }
 }
