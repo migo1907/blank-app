@@ -1848,6 +1848,35 @@ async def pulse():
     }
 
 
+_breaking_ep_cache = {"ts": 0.0, "items": []}
+
+@app.get("/news/breaking")
+async def news_breaking(secret: str = ""):
+    """Recent breaking headlines for the app's red flash bar.
+    Primary: scheduler's in-memory buffer (fed by the 2-min FJ cycle).
+    Fallback: live FJ red-ticker fetch, cached 60s, so a fresh restart
+    still surfaces anything currently breaking."""
+    _validate_secret(secret)
+    import time
+    from scheduler import get_recent_breaking
+    items = get_recent_breaking()
+    if not items:
+        if time.time() - _breaking_ep_cache["ts"] > 60:
+            try:
+                from news_fetcher import fetch_breaking_news
+                raw = await asyncio.to_thread(fetch_breaking_news)
+                now_iso = datetime.now(timezone.utc).isoformat()
+                _breaking_ep_cache["items"] = [
+                    {"headline": (i.get("title") or "").strip(), "at": now_iso}
+                    for i in (raw or []) if (i.get("title") or "").strip()
+                ][:5]
+            except Exception:
+                _breaking_ep_cache["items"] = []
+            _breaking_ep_cache["ts"] = time.time()
+        items = _breaking_ep_cache["items"]
+    return {"items": items[:10]}
+
+
 @app.get("/news/feed")
 async def news_feed(secret: str = ""):
     _validate_secret(secret)

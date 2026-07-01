@@ -240,6 +240,15 @@ def _save_seen_headlines() -> None:
         print(f"[scheduler] Could not save seen headlines: {e}")
 
 
+# Rolling buffer of recent breaking headlines for the app's red flash bar.
+_recent_breaking: list[dict] = []
+_RECENT_BREAKING_MAX = 20
+
+def get_recent_breaking() -> list[dict]:
+    """Newest-first breaking headlines detected by the 2-min FJ cycle."""
+    return list(reversed(_recent_breaking))
+
+
 async def _breaking_news_cycle() -> None:
     global _fj_seen_headlines
     try:
@@ -294,6 +303,11 @@ async def _breaking_news_cycle() -> None:
                 continue
             new_seen.add(key)
             sent_any = True
+            _recent_breaking.append({
+                "headline": headline,
+                "at": datetime.now(timezone.utc).isoformat(),
+            })
+            del _recent_breaking[:-_RECENT_BREAKING_MAX]
             if telegram_enabled:
                 msg = (
                     f"\U0001f6a8 <b>BREAKING</b> — FinancialJuice\n"
