@@ -2088,6 +2088,52 @@ function BreakingBar() {
 }
 
 // ══════════════════════════════════════════════════════════════════
+// TICKER TAPE — scrolling market strip, polls every 60s
+// ══════════════════════════════════════════════════════════════════
+function TickerTape() {
+  const [items,setItems] = useState([])
+  useEffect(()=>{
+    let alive=true
+    const poll=async()=>{
+      try{
+        const d=await getMarketOverview()
+        if(!alive) return
+        const flat=Object.values(d||{})
+          .flat()
+          .filter(it=>it&&!it.error&&it.price!=null&&!isNaN(Number(it.price)))
+        setItems(flat)
+      }catch{}
+    }
+    poll()
+    const id=setInterval(poll,60_000)
+    return ()=>{ alive=false; clearInterval(id) }
+  },[])
+  if(!items.length) return null
+  const fmtPx = v => Number(v).toLocaleString('en-US',{maximumFractionDigits:2})
+  const renderItem = (it,key)=>{
+    const chg = Number(it.change_pct)
+    const has = !isNaN(chg)
+    const up  = has && chg>=0
+    const sym = String(it.symbol||it.name||'').replace(/^\^/,'')
+    return (
+      <span className="ticker-item" key={key}>
+        <span className="tk-sym">{sym}</span>
+        <span className="tk-px">{fmtPx(it.price)}</span>
+        {has&&<span className={`tk-chg ${up?'up':'dn'}`}>{up?'▲':'▼'} {Math.abs(chg).toFixed(2)}%</span>}
+      </span>
+    )
+  }
+  return (
+    <div className="ticker-tape" aria-label="Live market ticker">
+      <div className="ticker-track" style={{animationDuration:`${Math.max(20,items.length*4)}s`}}>
+        {items.map((it,i)=>renderItem(it,`a${i}`))}
+        {items.map((it,i)=>renderItem(it,`b${i}`))}
+      </div>
+    </div>
+  )
+}
+
+// ══════════════════════════════════════════════════════════════════
 // APP ROOT
 // ══════════════════════════════════════════════════════════════════
 function MainApp({onLock}) {
@@ -2128,6 +2174,7 @@ function MainApp({onLock}) {
     <>
       <BreakingBar/>
       <div className="app-main" style={{flex:1, paddingBottom:64}}>
+        <TickerTape/>
         {tab==='signals'   && <SignalsHub/>}
         {tab==='markets'   && <MarketsTab key={'mk-'+marketsSub} initialSub={marketsSub} pulse={pulse} health={health}/>}
         {tab==='calendar'  && <CalendarTab/>}

@@ -474,6 +474,34 @@ select.pro:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-d
 @keyframes brkPulse{ 0%,100%{opacity:1} 50%{opacity:.35} }
 @media (prefers-reduced-motion: reduce){ .breaking-dot{ animation:none } }
 
+/* ── TICKER TAPE ── */
+.ticker-tape{
+  height:30px; overflow:hidden; white-space:nowrap;
+  background:var(--nav-bg); backdrop-filter:blur(10px) saturate(140%);
+  border-bottom:1px solid var(--border);
+}
+.ticker-track{
+  display:inline-flex; align-items:center; height:100%;
+  animation:tickerScroll 60s linear infinite; will-change:transform;
+}
+.ticker-tape:hover .ticker-track{ animation-play-state:paused; }
+.ticker-item{
+  display:inline-flex; align-items:center; gap:6px; padding:0 14px;
+  font-size:var(--fs-11); flex:none;
+  border-right:1px solid var(--border);
+}
+.ticker-item .tk-sym{ color:var(--text-hi); font-weight:700; letter-spacing:.02em; }
+.ticker-item .tk-px{ font-family:var(--mono); font-variant-numeric:tabular-nums; font-weight:600; color:var(--text); }
+.ticker-item .tk-chg{ font-family:var(--mono); font-variant-numeric:tabular-nums; font-weight:600; }
+.ticker-item .tk-chg.up{ color:var(--green-text); }
+.ticker-item .tk-chg.dn{ color:var(--red-text); }
+@keyframes tickerScroll{ from{transform:translateX(0)} to{transform:translateX(-50%)} }
+@media (prefers-reduced-motion: reduce){
+  .ticker-track{ animation:none !important; }
+  .ticker-tape{ overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+  .ticker-tape::-webkit-scrollbar{ display:none; }
+}
+
 /* ── WRAP-UP RADIO BUTTON ── */
 .radio-btn{
   display:inline-flex; align-items:center; gap:7px;
