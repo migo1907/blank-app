@@ -2768,7 +2768,7 @@
     "mtf_confluence": "mtf:na",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:RANGING(RANGING)\u00d70.82 | hmm:na\u00d71.00 | imkt:na\u00d71.00 | mtf:na\u00d71.00 | evt:na\u00d71.00 | sess:OVERLAP\u00d71.30 | confluence\u00d70.98 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:neutral(-0.138) | macro:NEUTRAL(+0.106) | combined:-0.119 \u2192 conf:0.149 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-07-01T16:48:00.764457+00:00",
     "created_at": "2026-07-01T16:18:02.437647+00:00",
     "id": 101
@@ -2802,7 +2802,7 @@
     "mtf_confluence": "mtf:na",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:na\u00d71.00 | imkt:na\u00d71.00 | mtf:na\u00d71.00 | evt:na\u00d71.00 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d70.76 | cluster\u00d70.88 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.46) | news:neutral(-0.138) | macro:NEUTRAL(+0.078) | combined:-0.385 \u2192 conf:0.341 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-07-01T16:48:04.220983+00:00",
     "created_at": "2026-07-01T16:18:07.760410+00:00",
     "id": 101
@@ -2836,7 +2836,7 @@
     "mtf_confluence": "mtf:na",
     "post_event": "evt:na",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:TRENDING_BULL(TREND_FOLLOW)\u00d71.15 | hmm:na\u00d71.00 | imkt:na\u00d71.00 | mtf:na\u00d71.00 | evt:na\u00d71.00 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d71.08 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.04) | news:neutral(-0.138) | macro:NEUTRAL(+0.078) | combined:+0.151 \u2192 conf:0.300 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-07-01T16:48:09.691373+00:00",
     "created_at": "2026-07-01T16:18:10.971056+00:00",
     "id": 101
@@ -2870,7 +2870,7 @@
     "mtf_confluence": "mtf:na",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:VOLATILE(VOLATILE)\u00d70.92 | hmm:na\u00d71.00 | imkt:na\u00d71.00 | mtf:na\u00d71.00 | evt:na\u00d71.00 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d70.70 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:neutral(-0.138) | macro:NEUTRAL(+0.078) | combined:-0.206 \u2192 conf:0.300 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-07-01T16:48:14.099132+00:00",
     "created_at": "2026-07-01T16:18:17.684280+00:00",
     "id": 101
@@ -2904,7 +2904,7 @@
     "mtf_confluence": "mtf:na",
     "post_event": "evt:na",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:na\u00d71.00 | imkt:na\u00d71.00 | mtf:na\u00d71.00 | evt:na\u00d71.00 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d71.34 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:neutral(-0.138) | macro:NEUTRAL(+0.078) | combined:+0.068 \u2192 conf:0.099 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-07-01T16:48:20.928620+00:00",
     "created_at": "2026-07-01T16:18:22.502169+00:00",
     "id": 101
@@ -2938,7 +2938,7 @@
     "mtf_confluence": "mtf:na",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:VOLATILE(VOLATILE)\u00d70.92 | hmm:na\u00d71.00 | imkt:na\u00d71.00 | mtf:na\u00d71.00 | evt:na\u00d71.00 | sess:NYSE_AFTERNOON\u00d71.10 | confluence\u00d70.70 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:neutral(-0.138) | macro:NEUTRAL(+0.078) | combined:-0.206 \u2192 conf:0.300 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-07-01T16:48:24.510960+00:00",
     "created_at": "2026-07-01T16:18:24.848101+00:00",
     "id": 101
@@ -2972,7 +2972,7 @@
     "mtf_confluence": "mtf:na",
     "post_event": "evt:na",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:RANGING(RANGING)\u00d70.82 | hmm:na\u00d71.00 | imkt:na\u00d71.00 | mtf:na\u00d71.00 | evt:na\u00d71.00 | sess:OVERLAP\u00d71.30 | confluence\u00d71.35 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:neutral(-0.073) | macro:NEUTRAL(+0.106) | combined:-0.016 \u2192 conf:0.023 \u26a1 WAR/CONFLICT",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-07-01T17:02:29.708775+00:00",
     "created_at": "2026-07-01T16:32:31.259602+00:00",
     "id": 101
