@@ -2,37 +2,6 @@
   "signals": [
     {
       "direction": "LONG",
-      "timeframe": "15",
-      "trigger": "FVG",
-      "symbol": "PATH",
-      "entry_price": 11.59,
-      "tp1": 11.84,
-      "tp2": 12.03,
-      "tp3": 12.28,
-      "sl": 11.34,
-      "ml_score": 0.125,
-      "tier": "\u26a1 LOW",
-      "quality_score": 0.2147,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.2328,
-      "velocity": "LOW",
-      "event": "GEOPOLITICAL",
-      "htf_bias": {
-        "direction": "LONG",
-        "timeframe": "60",
-        "symbol": "PATH",
-        "trigger": "FVG",
-        "ml_score": 0.625,
-        "stored_at": "2026-07-01T14:30:15.112523+00:00",
-        "expires_at": "2026-07-01T18:30:15.112543+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "with_bias",
-      "session": "NYSE Open",
-      "fired_at": "2026-07-01T14:30:22.334838+00:00"
-    },
-    {
-      "direction": "LONG",
       "timeframe": "60",
       "trigger": "OB",
       "symbol": "BBAI",
@@ -2883,6 +2852,29 @@
       "htf_context": "scalp",
       "session": "Off-Hours",
       "fired_at": "2026-07-01T22:37:02.491244+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "5",
+      "trigger": "FVG",
+      "symbol": "XAUUSD",
+      "entry_price": 4043.54,
+      "tp1": 4046.13,
+      "tp2": 4047.85,
+      "tp3": 4050.44,
+      "sl": 4039.92,
+      "ml_score": 0.375,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.4589,
+      "quality_reason": "approved",
+      "news_score": 0.0918,
+      "velocity": "CONFLICTED",
+      "event": "NFP",
+      "htf_bias": null,
+      "contra_bias": null,
+      "htf_context": "scalp",
+      "session": "Off-Hours",
+      "fired_at": "2026-07-01T22:52:02.246924+00:00"
     }
   ]
 }
