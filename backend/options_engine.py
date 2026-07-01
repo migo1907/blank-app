@@ -7,7 +7,7 @@ CALL/PUT recommendations. Never sells premium, never builds spreads.
 Data sources:
   • Options chain (strike selection, expected move, paper-ledger premium):
     Tradier when TRADIER_TOKEN is set (stable REST, ~15-min delayed sandbox
-    quotes), else yfinance ^SPX (delayed scrape) as automatic fallback.
+    quotes), else Polygon, else CBOE's free delayed chain as automatic fallback.
   • yfinance ^VIX / ^VIX3M — volatility regime gate.
   • Live premiums come from the user's TradingView OPRA subscription: Telegram
     delivers the exact contract symbol; TV premium alerts can route back into
@@ -165,7 +165,7 @@ def iv_rank(current_iv: float) -> float | None:
 # ── Chain access (yfinance, delayed — paper baseline) ─────────────────────────
 
 def _spx_chain(expiry: str):
-    """Spot + option chain. Priority: Tradier → Polygon → yfinance."""
+    """Spot + option chain. Priority: Tradier → Polygon → CBOE (free delayed)."""
     import tradier_data
     if tradier_data.available():
         spot = tradier_data.get_spot()
@@ -209,9 +209,42 @@ def _spx_chain(expiry: str):
     except Exception as e:
         print(f"[options] Polygon chain failed: {e}")
 
+    # CBOE free delayed chain — final fallback (no auth, no paid tier)
+    try:
+        import cboe_data
+        cd = cboe_data.fetch_spx_chain(expiry)
+        if cd and (cd["calls"] or cd["puts"]):
+            import pandas as pd
+            spot = cd.get("spot")
+            if not spot:
+                # Stooq SPX proxy via SPY (SPX ≈ SPY × 10)
+                try:
+                    from market_data import _stooq_daily
+                    _spy = _stooq_daily("spy.us")
+                    if len(_spy):
+                        spot = float(_spy["Close"].iloc[-1]) * 10
+                except Exception:
+                    spot = None
+            calls_df = pd.DataFrame(cd["calls"])
+            puts_df  = pd.DataFrame(cd["puts"])
+            for df in (calls_df, puts_df):
+                for col in ("impliedVolatility", "lastPrice", "strike",
+                            "openInterest", "delta", "bid", "ask"):
+                    if col not in df.columns:
+                        df[col] = None
+
+            class _Chain:
+                def __init__(self, c, p): self.calls, self.puts = c, p
+
+            print(f"[options] CBOE chain: {expiry} ({len(calls_df)}C {len(puts_df)}P, delayed)")
+            _chain_health(True)
+            return spot, _Chain(calls_df, puts_df)
+    except Exception as e:
+        print(f"[options] CBOE chain failed: {e}")
+
     # No chain source available — raise so caller skips this cycle
-    _chain_health(False, "no Tradier/Polygon chain")
-    raise ValueError("No options chain source available (Tradier/Polygon not configured)")
+    _chain_health(False, "no Tradier/Polygon/CBOE chain")
+    raise ValueError("No options chain source available (Tradier/Polygon/CBOE unavailable)")
 
 
 def _chain_health(ok: bool, detail: str = "") -> None:

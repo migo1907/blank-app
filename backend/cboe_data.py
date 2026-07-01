@@ -93,6 +93,127 @@ def fetch_pc_ratio() -> dict:
     return dict(_cache)
 
 
+import re as _re
+
+# Match an OSI/OCC option symbol tail: ROOT + YYMMDD + C|P + 8-digit strike.
+# e.g. "SPXW260701C07430000" → root=SPXW, date=260701, C, strike=07430000
+_OSI_RE = _re.compile(r"([A-Z]+)(\d{6})([CP])(\d{8})$")
+
+
+def _parse_osi(symbol: str) -> tuple[str, str, str, float] | None:
+    """Parse an OSI/OCC option symbol → (root, iso_expiry, right, strike).
+
+    Format: ROOT + YYMMDD + C|P + STRIKE(8 digits, price × 1000).
+    "SPXW260701C07430000" → ("SPXW", "2026-07-01", "C", 7430.0).
+    Returns None if the symbol doesn't match (skip that option safely).
+    """
+    if not symbol:
+        return None
+    m = _OSI_RE.search(symbol.strip())
+    if not m:
+        return None
+    root, yymmdd, right, strike8 = m.groups()
+    try:
+        iso = f"20{yymmdd[0:2]}-{yymmdd[2:4]}-{yymmdd[4:6]}"
+        strike = int(strike8) / 1000.0
+    except Exception:
+        return None
+    return root, iso, right, strike
+
+
+def _norm_iv(raw) -> float:
+    """CBOE 'iv' may be a fraction (0.148) or a percent (14.8). Heuristic:
+    values > 3 are assumed to be in percent and divided by 100 (an IV of 300%
+    is already implausible for SPX, so >3 unambiguously means percent form)."""
+    try:
+        v = float(raw)
+    except (TypeError, ValueError):
+        return 0.0
+    if v != v:  # NaN
+        return 0.0
+    return v / 100.0 if v > 3 else v
+
+
+def _f(raw, default=0.0):
+    """Best-effort float coercion — never raises."""
+    try:
+        v = float(raw)
+        return default if v != v else v
+    except (TypeError, ValueError):
+        return default
+
+
+def fetch_spx_chain(expiry: str) -> dict | None:
+    """Free delayed SPX (SPXW) options chain from CBOE's CDN.
+
+    Returns {"calls": [...], "puts": [...], "spot": float|None} where each option
+    is a dict with keys strike/impliedVolatility/lastPrice/openInterest/delta/bid/ask
+    — the same shape the options engine expects from Tradier/Polygon.
+
+    Keeps ONLY SPXW-rooted contracts (PM-settled daily/weekly series used for
+    0/1DTE) whose parsed expiry equals the requested ISO `expiry`.
+
+    Returns None on fetch failure; returns the dict with (possibly empty) lists
+    when the fetch worked but nothing matched, so the caller can distinguish.
+    """
+    url = "https://cdn.cboe.com/api/global/delayed_quotes/options/_SPX.json"
+    ok = False
+    detail = ""
+    try:
+        import httpx
+        with httpx.Client(timeout=15, headers=_HEADERS, follow_redirects=True) as c:
+            r = c.get(url)
+            r.raise_for_status()
+            payload = r.json()
+        data = (payload or {}).get("data", {}) or {}
+        spot = data.get("current_price")
+        try:
+            spot = float(spot) if spot is not None else None
+        except (TypeError, ValueError):
+            spot = None
+
+        calls, puts = [], []
+        for opt in data.get("options", []) or []:
+            try:
+                sym = opt.get("option") or opt.get("symbol") or ""
+                parsed = _parse_osi(sym)
+                if not parsed:
+                    continue
+                root, iso, right, strike = parsed
+                if root != "SPXW" or iso != expiry:
+                    continue
+                item = {
+                    "strike":            strike,
+                    "impliedVolatility": _norm_iv(opt.get("iv")),
+                    "lastPrice":         _f(opt.get("last_trade_price")),
+                    "openInterest":      int(_f(opt.get("open_interest"))),
+                    "delta":             _f(opt.get("delta")),
+                    "bid":               _f(opt.get("bid")),
+                    "ask":               _f(opt.get("ask")),
+                }
+                (calls if right == "C" else puts).append(item)
+            except Exception:
+                continue  # never let one bad option abort the whole chain
+
+        calls.sort(key=lambda x: x["strike"])
+        puts.sort(key=lambda x: x["strike"])
+        ok = True
+        detail = f"{len(calls)}C {len(puts)}P for {expiry}"
+        print(f"[cboe] SPX chain: {detail}")
+        result = {"calls": calls, "puts": puts, "spot": spot}
+    except Exception as e:
+        detail = str(e)
+        print(f"[cboe] SPX chain fetch failed: {e}")
+        result = None
+
+    try:
+        import data_health
+        data_health.record("cboe_options_chain", ok, "options", detail)
+    except Exception:
+        pass
+    return result
+
+
 def get_pc_ratio() -> dict:
     """Return last cached CBOE put/call ratios (no network)."""
     return dict(_cache)
