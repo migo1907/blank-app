@@ -1031,12 +1031,21 @@ async def unified_webhook(payload: UnifiedPayload):
         # Railway env to restore hard-gating (weak signals dropped). Either way the
         # trade still feeds the ML at close.
         _suppress_weak = os.environ.get("SUPPRESS_WEAK_SIGNALS", "false").strip().lower() in ("1", "true", "yes", "on")
-        if _gate_fail and _suppress_weak:
-            print(f"[webhook] SUPPRESSED weak {payload.direction} {sym} TF={tf} "
+        # Quarantine teeth: a segment the Strategy Lab confirmed as bleeding in
+        # BOTH history halves suppresses its failed entries even in show-all mode.
+        # OOS-validated 2026-07-01 (train 60% / test 40%): kept stream PF 1.15 vs
+        # removed 0.66. Show-all stays for model-weak signals (models unproven);
+        # quarantine is realized-PF evidence, a different standard. Pine still
+        # trades these and the ledger keeps learning, so recovery auto-releases.
+        _quarantined = float(_gate.get("components", {}).get("quarantine_bump", 0) or 0) > 0
+        if _gate_fail and (_suppress_weak or _quarantined):
+            print(f"[webhook] SUPPRESSED {'quarantined' if _quarantined else 'weak'} "
+                  f"{payload.direction} {sym} TF={tf} "
                   f"score={_gate['score']} < threshold={_gate.get('threshold')} "
                   f"({_gate['reason']})")
             return {"status": "ok", "routed_to": "suppressed",
-                    "reason": "weak_ml_quality", "score": _gate["score"]}
+                    "reason": "quarantined_segment" if _quarantined else "weak_ml_quality",
+                    "score": _gate["score"]}
         if _gate_fail:
             print(f"[webhook] LOW-QUALITY sent (labeled ⚠️ WEAK) {payload.direction} {sym} "
                   f"TF={tf} score={_gate['score']} < threshold={_gate.get('threshold')}")
