@@ -1,0 +1,71 @@
+{
+ "note": "Backtest data coverage matrix - IBKR pulls 2026-07-01. Caps: CMDTY endpoint ~3500 bars/call, IND endpoint 1000 bars/call, no date pagination.",
+ "cells": {
+  "XAUUSD_2m": {
+   "file": "xauusd_2m_ibkr.json",
+   "bars": 3501,
+   "span": "2026-06-24T19:36:00Z -> 2026-07-01T22:16:00Z",
+   "ladder_validated": true
+  },
+  "XAUUSD_5m": {
+   "file": "xauusd_5m_ibkr.json",
+   "bars": 3501,
+   "span": "2026-06-15T01:20:00Z -> 2026-07-01T22:15:00Z",
+   "ladder_validated": true
+  },
+  "XAUUSD_30m": {
+   "file": "xauusd_30m_ibkr.json",
+   "bars": 3502,
+   "span": "2026-03-16T10:00:00Z -> 2026-07-01T22:00:00Z",
+   "ladder_validated": true
+  },
+  "XAUUSD_1h": {
+   "file": "xauusd_1h_ibkr.json",
+   "bars": 3501,
+   "span": "2025-11-25T09:00:00Z -> 2026-07-01T22:00:00Z",
+   "ladder_validated": true
+  },
+  "XAUUSD_4h": {
+   "file": "xauusd_4h_ibkr.json",
+   "bars": 1785,
+   "span": "2025-07-02T22:00:00Z -> 2026-07-01T22:00:00Z",
+   "ladder_validated": false
+  },
+  "XAUUSD_1d": {
+   "file": "xauusd_daily_ibkr.json",
+   "bars": 258,
+   "span": "2025-07-01T22:00:00Z -> 2026-06-30T22:00:00Z",
+   "ladder_validated": false
+  },
+  "SPX_2m": {
+   "file": "spx_2min_ibkr.json",
+   "bars": 1000,
+   "span": "2026-06-24T19:10:00Z -> 2026-07-01T19:58:00Z",
+   "ladder_validated": true
+  },
+  "SPX_5m": {
+   "file": "spx_5min_ibkr.json",
+   "bars": 1000,
+   "span": "2026-06-12T14:40:00Z -> 2026-07-01T19:55:00Z",
+   "ladder_validated": true
+  },
+  "SPX_15m": {
+   "file": "spx_15min_ibkr.json",
+   "bars": 1000,
+   "span": "2026-05-06T17:00:00Z -> 2026-07-01T19:45:00Z",
+   "ladder_validated": true
+  },
+  "SPX_30m": {
+   "file": "spx_30min_ibkr.json",
+   "bars": 1000,
+   "span": "2026-03-12T14:00:00Z -> 2026-07-01T19:30:00Z",
+   "ladder_validated": true
+  },
+  "SPX_1h": {
+   "file": "spx_1h_ibkr.json",
+   "bars": 1077,
+   "span": "2025-11-17T16:00:00Z -> 2026-07-01T19:00:00Z",
+   "ladder_validated": true
+  }
+ }
+}
