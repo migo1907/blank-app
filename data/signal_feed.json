@@ -2,37 +2,6 @@
   "signals": [
     {
       "direction": "LONG",
-      "timeframe": "30",
-      "trigger": "FVG",
-      "symbol": "QQQ",
-      "entry_price": 718.92,
-      "tp1": 729.61,
-      "tp2": 737.38,
-      "tp3": 748.07,
-      "sl": 708.23,
-      "ml_score": 0.75,
-      "tier": "\u2b50 HIGH",
-      "quality_score": 0.4197,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": 0.0263,
-      "velocity": "CONFLICTED",
-      "event": "NFP",
-      "htf_bias": {
-        "direction": "LONG",
-        "timeframe": "30",
-        "symbol": "QQQ",
-        "trigger": "FVG",
-        "ml_score": 0.75,
-        "stored_at": "2026-06-29T16:00:02.354453+00:00",
-        "expires_at": "2026-06-29T18:00:02.354482+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "htf_direct",
-      "session": "NYSE Afternoon",
-      "fired_at": "2026-06-29T16:00:02.840151+00:00"
-    },
-    {
-      "direction": "LONG",
       "timeframe": "60",
       "trigger": "FVG",
       "symbol": "MSTR",
@@ -2907,6 +2876,37 @@
       "htf_context": "htf_direct",
       "session": "NYSE Open",
       "fired_at": "2026-07-01T14:31:00.763868+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "30",
+      "trigger": "FVG",
+      "symbol": "XAUUSD",
+      "entry_price": 4101.55,
+      "tp1": 4121.44,
+      "tp2": 4135.9,
+      "tp3": 4155.79,
+      "sl": 4061.77,
+      "ml_score": 0.625,
+      "tier": "\u2705 MED",
+      "quality_score": 0.4678,
+      "quality_reason": "approved",
+      "news_score": -0.2328,
+      "velocity": "LOW",
+      "event": "GEOPOLITICAL",
+      "htf_bias": {
+        "direction": "LONG",
+        "timeframe": "30",
+        "symbol": "XAUUSD",
+        "trigger": "FVG",
+        "ml_score": 0.625,
+        "stored_at": "2026-07-01T14:32:06.929384+00:00",
+        "expires_at": "2026-07-01T16:32:06.929397+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "htf_direct",
+      "session": "London/NY Overlap",
+      "fired_at": "2026-07-01T14:32:07.473539+00:00"
     }
   ]
 }
