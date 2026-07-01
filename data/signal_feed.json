@@ -2,6 +2,37 @@
   "signals": [
     {
       "direction": "LONG",
+      "timeframe": "60",
+      "trigger": "FVG",
+      "symbol": "NOW",
+      "entry_price": 99.28,
+      "tp1": 102.68,
+      "tp2": 105.41,
+      "tp3": 108.81,
+      "sl": 95.88,
+      "ml_score": 0.25,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.2986,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.0539,
+      "velocity": "CONFLICTED",
+      "event": "GEOPOLITICAL",
+      "htf_bias": {
+        "direction": "LONG",
+        "timeframe": "60",
+        "symbol": "NOW",
+        "trigger": "FVG",
+        "ml_score": 0.25,
+        "stored_at": "2026-06-30T20:00:16.265894+00:00",
+        "expires_at": "2026-07-01T00:00:16.265928+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "htf_direct",
+      "session": "NYSE Afternoon",
+      "fired_at": "2026-06-30T20:00:16.269087+00:00"
+    },
+    {
+      "direction": "LONG",
       "timeframe": "240",
       "trigger": "FVG",
       "symbol": "RR",
@@ -2836,37 +2867,6 @@
       "htf_context": "htf_direct",
       "session": "NYSE Open",
       "fired_at": "2026-07-01T15:31:52.532303+00:00"
-    },
-    {
-      "direction": "LONG",
-      "timeframe": "15",
-      "trigger": "FVG",
-      "symbol": "PLUG",
-      "entry_price": 2.75,
-      "tp1": 2.83,
-      "tp2": 2.9,
-      "tp3": 2.98,
-      "sl": 2.66,
-      "ml_score": 0.75,
-      "tier": "\u2b50 HIGH",
-      "quality_score": 0.2941,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.1808,
-      "velocity": "LOW",
-      "event": "NFP",
-      "htf_bias": {
-        "direction": "LONG",
-        "timeframe": "30",
-        "symbol": "PLUG",
-        "trigger": "LIQ",
-        "ml_score": 0.875,
-        "stored_at": "2026-07-01T14:00:07.785108+00:00",
-        "expires_at": "2026-07-01T16:00:07.785122+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "with_bias",
-      "session": "NYSE Open",
-      "fired_at": "2026-07-01T15:32:01.632897+00:00"
     }
   ]
 }
