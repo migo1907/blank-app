@@ -280,8 +280,9 @@ def refresh_joint_models(all_histories: dict[str, list[dict]]) -> None:
     Retrain joint gold and stock LightGBM models from the latest combined histories.
     Call after any outcome is persisted. Runs in the caller's thread (use asyncio.to_thread).
     """
-    gold_pools   = {p: h for p, h in all_histories.items() if p in GOLD_TF_IDS}
-    stock_pools  = {p: h for p, h in all_histories.items() if p in STOCK_POOL_IDS}
+    from ibkr_warmstart import augment_for_training
+    gold_pools   = {p: augment_for_training(p, h) for p, h in all_histories.items() if p in GOLD_TF_IDS}
+    stock_pools  = {p: augment_for_training(p, h) for p, h in all_histories.items() if p in STOCK_POOL_IDS}
     if gold_pools:
         get_joint_gold().train(gold_pools)
     if stock_pools:

@@ -1051,12 +1051,19 @@ async def _hourly_system_check() -> None:
                          "STOCKS_INDEX_15M",    "STOCKS_INDEX_30M",    "STOCKS_INDEX_1H",    "STOCKS_INDEX_4H",
                          "STOCKS_QQQ_15M",      "STOCKS_QQQ_30M",      "STOCKS_QQQ_1H",      "STOCKS_QQQ_4H",
                          "STOCKS_SPX500_15M",   "STOCKS_SPX500_30M",   "STOCKS_SPX500_1H",   "STOCKS_SPX500_4H"]
+        from ibkr_warmstart import augment_for_training
         for _pool in retrain_pools:
             _trades = await asyncio.to_thread(recent_outcomes, _pool, 500)
-            if len(_trades) >= 50:
-                await asyncio.to_thread(get_rf(_pool).retrain, _trades)
-                await asyncio.to_thread(get_gbm(_pool).train, _trades)
-                print(f"[system_check] RF+GBM refreshed for {_pool} on {len(_trades)} trades.")
+            # Warm-start: thin pools (<50 real trades) are otherwise skipped forever
+            # (cold-start deadlock). augment_for_training is a no-op unless
+            # IBKR_WARMSTART_SEED is enabled AND the pool is still thin.
+            _train = augment_for_training(_pool, _trades)
+            if len(_train) >= 50:
+                await asyncio.to_thread(get_rf(_pool).retrain, _train)
+                await asyncio.to_thread(get_gbm(_pool).train, _train)
+                _syn = len(_train) - len(_trades)
+                _note = f" (+{_syn} seed)" if _syn else ""
+                print(f"[system_check] RF+GBM refreshed for {_pool} on {len(_trades)} trades{_note}.")
     except Exception as e:
         print(f"[system_check] Ensemble retrain failed: {e}")
 

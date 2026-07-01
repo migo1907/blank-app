@@ -78,9 +78,14 @@ def _label_noise_weight(row: dict) -> float:
     Wins and clean immediate losses keep full weight. Scale-invariant (MFE-vs-loss
     ratio) so it works across gold scalps and stock swings. Floors at 0.5 so a noisy
     loss is never fully discarded. Graceful 1.0 when mfe/pnl are missing (legacy rows).
+
+    Synthetic warm-start seeds (IBKR-backtest labels used to break a thin pool's
+    cold-start) carry an extra 0.5× factor: they teach setup structure but must never
+    outweigh a real closed trade, and they fade out as live trades accumulate.
     """
+    _syn = 0.5 if row.get("synthetic") else 1.0
     if _win_label(row) == 1:
-        return 1.0
+        return 1.0 * _syn
     try:
         mfe   = abs(float(row.get("mfe") or 0.0))
         entry = float(row.get("entry_price") or 0.0)
@@ -92,10 +97,10 @@ def _label_noise_weight(row: dict) -> float:
         # loss in our favour then reversed (very noisy) → floor at 0.5.
         ratio = (mfe / entry * 100.0) / pnl
         if ratio <= 1.0:
-            return 1.0
-        return max(0.5, 1.0 - min((ratio - 1.0) / 2.0, 1.0) * 0.5)
+            return 1.0 * _syn
+        return max(0.5, 1.0 - min((ratio - 1.0) / 2.0, 1.0) * 0.5) * _syn
     except Exception:
-        return 1.0
+        return 1.0 * _syn
 
 
 class RandomForestEnsemble:
