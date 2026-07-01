@@ -1,37 +1,6 @@
 {
   "signals": [
     {
-      "direction": "SHORT",
-      "timeframe": "30",
-      "trigger": "RSI",
-      "symbol": "SPCX",
-      "entry_price": 162.72,
-      "tp1": 156.09,
-      "tp2": 151.27,
-      "tp3": 144.64,
-      "sl": 169.35,
-      "ml_score": 0.5,
-      "tier": "\u26a1 LOW",
-      "quality_score": 0.2472,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.2556,
-      "velocity": "NORMAL",
-      "event": "GEOPOLITICAL",
-      "htf_bias": {
-        "direction": "SHORT",
-        "timeframe": "30",
-        "symbol": "SPCX",
-        "trigger": "RSI",
-        "ml_score": 0.5,
-        "stored_at": "2026-07-01T14:00:04.733428+00:00",
-        "expires_at": "2026-07-01T16:00:04.733452+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "htf_direct",
-      "session": "NYSE Open",
-      "fired_at": "2026-07-01T14:00:05.399986+00:00"
-    },
-    {
       "direction": "LONG",
       "timeframe": "30",
       "trigger": "BOS",
@@ -2963,6 +2932,29 @@
       "htf_context": "scalp",
       "session": "New York",
       "fired_at": "2026-07-01T18:32:01.814387+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "15",
+      "trigger": "FVG",
+      "symbol": "TNA",
+      "entry_price": 75.0,
+      "tp1": 74.21,
+      "tp2": 73.62,
+      "tp3": 72.82,
+      "sl": 75.79,
+      "ml_score": 0.375,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.2381,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.114,
+      "velocity": "LOW",
+      "event": "NFP",
+      "htf_bias": null,
+      "contra_bias": null,
+      "htf_context": "scalp",
+      "session": "NYSE Afternoon",
+      "fired_at": "2026-07-01T18:45:25.659970+00:00"
     }
   ]
 }
