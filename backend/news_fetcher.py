@@ -630,6 +630,98 @@ FINNHUB_KEY = os.environ.get("FINNHUB_KEY", "") or os.environ.get("FINNHUB_API_K
 _FINNHUB_NEWS_URL     = "https://finnhub.io/api/v1/news"
 _FINNHUB_CALENDAR_URL = "https://finnhub.io/api/v1/calendar/economic"
 
+# Extra breaking-style terms layered on top of FINANCIALJUICE_HIGH_IMPACT for
+# the Finnhub breaking scan (market-shock verbs + tariff headlines).
+_BREAKING_EXTRA_TERMS = [
+    "tariff", "surge", "plunge", "soar", "tumble", "collapse",
+    "halts", "suspend", "rate decision",
+]
+_BREAKING_KEYWORDS = FINANCIALJUICE_HIGH_IMPACT + _BREAKING_EXTRA_TERMS
+
+
+def fetch_finnhub_breaking() -> list[dict]:
+    """
+    Cookie-free breaking-news source: Finnhub general news, filtered to items
+    published within the last 30 minutes that match the high-impact keyword set.
+    Same item shape as fetch_breaking_news(). Returns [] on any failure or
+    missing key — never raises.
+    """
+    if not FINNHUB_KEY:
+        return []
+
+    breaking: list[dict] = []
+    seen: set[str] = set()
+    try:
+        now_ts = time.time()
+        with httpx.Client(timeout=10) as client:
+            resp = client.get(_FINNHUB_NEWS_URL, params={
+                "category": "general", "token": FINNHUB_KEY,
+            })
+            resp.raise_for_status()
+            items = resp.json()
+        if not isinstance(items, list):
+            return []
+        for art in items:
+            title = (art.get("headline", "") or "").strip()
+            if not title or len(title) < 10:
+                continue
+            # Freshness: only items from the last 30 minutes
+            try:
+                age = now_ts - float(art.get("datetime", 0) or 0)
+            except (TypeError, ValueError):
+                continue
+            if age < 0 or age > 30 * 60:
+                continue
+            lower = title.lower()
+            if not any(kw in lower for kw in _BREAKING_KEYWORDS):
+                continue
+            if any(t in lower for t in CRYPTO_NOISE_TERMS):
+                continue
+            key = title[:80].casefold()
+            if key in seen:
+                continue
+            seen.add(key)
+            breaking.append({
+                "title":  title,
+                "source": f"Finnhub/{art.get('source', '') or 'general'}",
+                "url":    art.get("url", "") or "",
+            })
+            if len(breaking) >= 5:
+                break
+    except Exception as e:
+        print(f"[breaking] Finnhub breaking fetch failed: {e}")
+        return breaking
+    if breaking:
+        print(f"[breaking] Finnhub: {len(breaking)} high-impact items (last 30min)")
+    return breaking
+
+
+def fetch_breaking_aggregate() -> list[dict]:
+    """
+    Cookie-independent breaking-news aggregate: FJ/RSS breaking items first
+    (fetch_breaking_news), then Finnhub general-news breaking items — deduped
+    by 80-char casefolded title prefix. Never raises; [] worst case. Keeps the
+    breaking pipeline alive with ZERO FinancialJuice auth.
+    """
+    combined: list[dict] = []
+    seen: set[str] = set()
+    for fetcher in (fetch_breaking_news, fetch_finnhub_breaking):
+        try:
+            items = fetcher() or []
+        except Exception as e:
+            print(f"[breaking] aggregate source {getattr(fetcher, '__name__', '?')} failed: {e}")
+            items = []
+        for item in items:
+            title = (item.get("title", "") or "").strip()
+            if not title:
+                continue
+            key = title[:80].casefold()
+            if key in seen:
+                continue
+            seen.add(key)
+            combined.append(item)
+    return combined
+
 
 def fetch_newsapi_headlines(max_articles: int = 20) -> list[dict]:
     """

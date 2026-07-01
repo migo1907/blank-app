@@ -252,7 +252,7 @@ def get_recent_breaking() -> list[dict]:
 async def _breaking_news_cycle() -> None:
     global _fj_seen_headlines
     try:
-        from news_fetcher import fetch_fj_breaking_direct, fetch_breaking_news
+        from news_fetcher import fetch_fj_breaking_direct, fetch_breaking_aggregate
         from telegram_bot import send_text, send_critical_alert
         from datetime import datetime, timezone
 
@@ -270,18 +270,21 @@ async def _breaking_news_cycle() -> None:
                 await send_critical_alert(
                     "FinancialJuice Session Expired",
                     "FJ breaking-banner login has stopped working (cookie expired or auto-login failing). "
-                    "Your RSS-based news + ML intelligence is unaffected — only the live breaking banner is down.",
-                    "Optional fix: log in to financialjuice.com in your browser, copy the new .ASPXAUTH cookie "
-                    "value into Railway → Variables → FJ_SESSION_COOKIE, and redeploy.",
+                    "Breaking news continues via Finnhub + RSS aggregation, and RSS-based news + ML "
+                    "intelligence is unaffected — only the premium FJ banner is down.",
+                    "Optional fix (no urgency): log in to financialjuice.com in your browser, copy the new "
+                    ".ASPXAUTH cookie value into Railway → Variables → FJ_SESSION_COOKIE, and redeploy.",
                 )
-            return
+            # Do NOT return — breaking coverage continues below via the
+            # cookie-free Finnhub + RSS aggregate even while FJ auth is down.
+            breaking = ""
 
         alerts: list[str] = []
         if breaking:
             alerts.append(breaking)
 
-        # ── 2. FJ red ticker items (high-impact keywords in RSS feed) ─────────
-        ticker_items = await asyncio.to_thread(fetch_breaking_news)
+        # ── 2. High-impact ticker items — FJ RSS/ForexLive/FXStreet + Finnhub ─
+        ticker_items = await asyncio.to_thread(fetch_breaking_aggregate)
         for item in ticker_items:
             headline = item.get("title", "").strip()
             if headline:
