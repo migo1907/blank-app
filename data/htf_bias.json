@@ -16,5 +16,23 @@
     "ml_score": 0.375,
     "stored_at": "2026-07-01T13:32:04.071021+00:00",
     "expires_at": "2026-07-01T15:32:04.071043+00:00"
+  },
+  "SPCX_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "SPCX",
+    "trigger": "RSI",
+    "ml_score": 0.5,
+    "stored_at": "2026-07-01T14:00:04.733428+00:00",
+    "expires_at": "2026-07-01T16:00:04.733452+00:00"
+  },
+  "HOOD_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "HOOD",
+    "trigger": "BOS",
+    "ml_score": 0.375,
+    "stored_at": "2026-07-01T14:00:05.247009+00:00",
+    "expires_at": "2026-07-01T16:00:05.247028+00:00"
   }
 }
