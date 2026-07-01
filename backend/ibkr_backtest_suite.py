@@ -25,13 +25,25 @@ from __future__ import annotations
 import os, json, math, random, argparse
 from datetime import datetime
 
-from ibkr_backtest import bs_price, pick_strike, _load, _sessions, SESSION_MIN, HARD_EXIT_MIN
+from ibkr_backtest import (bs_price, pick_strike, _load, _sessions, _DIR,
+                           SESSION_MIN, HARD_EXIT_MIN)
 
 HALF_SPREAD = 0.20   # SPXW 0DTE ~0.25-delta: ~$0.30-0.60 wide -> pay ~half each way
 COMMISSION  = 0.02   # ~$2/contract in index points (multiplier 100)
 COST        = HALF_SPREAD + COMMISSION
 MIN_PREMIUM = 0.30   # skip entries where costs dwarf the premium
 YEAR_MIN    = 60.0 * 24.0 * 365.0
+
+# Pricing convention — overwritten from backtest_data/ibkr_calibration_fit.json
+# (written by ibkr_calibration.py from real ledger premiums) unless --no-fit.
+CONFIG = {"tau_convention": "calendar", "iv_mult": 1.0}
+
+
+def _tau(minutes_remaining: float) -> float:
+    """Minutes-to-expiry -> years, under the active time convention."""
+    if CONFIG["tau_convention"] == "trading":
+        return max(minutes_remaining, 0.0) / SESSION_MIN / 252.0
+    return max(minutes_remaining, 0.0) / YEAR_MIN
 
 
 # ---------------------------------------------------------------- IV curves
@@ -84,7 +96,7 @@ def sim_trade(bars: list[dict], iv_at, direction: str, entry_minute: float,
     if entry_bar is None or entry_minute >= HARD_EXIT_MIN:
         return None
     spot = entry_bar["o"]
-    tau0 = (SESSION_MIN - entry_minute) / YEAR_MIN
+    tau0 = _tau(SESSION_MIN - entry_minute)
     iv0  = iv_at(entry_minute)
     strike = pick_strike(spot, tau0, iv0, direction)
     mid = bs_price(spot, strike, tau0, iv0, direction)
@@ -101,13 +113,13 @@ def sim_trade(bars: list[dict], iv_at, direction: str, entry_minute: float,
         if b["minute"] < entry_minute:
             continue
         if b["minute"] >= HARD_EXIT_MIN:
-            tau = (SESSION_MIN - b["minute"]) / YEAR_MIN
+            tau = _tau(SESSION_MIN - b["minute"])
             mark = bs_price(b["o"], strike, tau, iv_at(b["minute"]), direction) - cost
             proceeds += open_frac * max(mark, 0.0)
             result, exit_minute = "EXPIRED", b["minute"]
             break
         bar_end = b["minute"] + 15.0
-        tau = (SESSION_MIN - bar_end) / YEAR_MIN
+        tau = _tau(SESSION_MIN - bar_end)
         iv  = iv_at(bar_end)
         worst = b["l"] if direction == "call" else b["h"]
         best  = b["h"] if direction == "call" else b["l"]
@@ -206,18 +218,29 @@ def slice_by(trades: list[dict], key_fn) -> dict:
 
 
 # ---------------------------------------------------------------- the suite
-def main(output: str = "") -> dict:
+def main(output: str = "", no_fit: bool = False) -> dict:
     spx      = _sessions(_load("spx_15min_ibkr.json"))
     vix_hr   = _load("vix1d_hourly_ibkr.json")
     vix_day  = _load("vix1d_daily_ibkr.json")
     curves, fallbacks = _iv_curves(vix_hr, vix_day)
+
+    fit_path = os.path.join(_DIR, "ibkr_calibration_fit.json")
+    if not no_fit and os.path.exists(fit_path):
+        with open(fit_path) as f:
+            fit = json.load(f)
+        CONFIG.update({k: fit[k] for k in ("tau_convention", "iv_mult")})
+        print(f"Calibration fit applied: tau={CONFIG['tau_convention']}, "
+              f"IV x {CONFIG['iv_mult']:.2f} (from ibkr_calibration.py vs real ledger)")
+    if CONFIG["iv_mult"] != 1.0:
+        curves = {d: (lambda f, m: (lambda minute: f(minute) * m))(fn, CONFIG["iv_mult"])
+                  for d, fn in curves.items()}
 
     full = {d: b for d, b in spx.items() if len(b) >= 26 and b[0]["minute"] == 0.0}
     print(f"Sessions: {len(full)} full ({min(full)} → {max(full)}), "
           f"{fallbacks} day(s) on daily-IV fallback\n")
 
     results: dict = {"sessions": len(full), "first": min(full), "last": max(full),
-                     "cost_per_side": COST}
+                     "cost_per_side": COST, "pricing": dict(CONFIG)}
 
     # 1. Baseline, frictionless (comparable to ibkr_backtest.py v1)
     base_free = run_config(full, curves, ["call", "put"], cost=0.0)
@@ -273,7 +296,8 @@ def main(output: str = "") -> dict:
                 f"avg={s['avg_pnl_pct']:+6.1f}%{ci}")
 
     print("=" * 74)
-    print(f"IBKR SPX 0DTE SUITE — {len(full)} sessions, cost {COST:.2f}/side")
+    print(f"IBKR SPX 0DTE SUITE — {len(full)} sessions, cost {COST:.2f}/side, "
+          f"tau={CONFIG['tau_convention']}, IV x {CONFIG['iv_mult']:.2f}")
     print("=" * 74)
     print(line("frictionless", results["baseline_frictionless"]))
     print(line("with costs", results["baseline_with_costs"]))
@@ -306,5 +330,7 @@ def main(output: str = "") -> dict:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", default="backtest_data/ibkr_suite_results.json")
+    parser.add_argument("--no-fit", action="store_true",
+                        help="ignore ibkr_calibration_fit.json (calendar tau, IV x 1.0)")
     args = parser.parse_args()
-    main(args.output)
+    main(args.output, args.no_fit)
