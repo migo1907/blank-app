@@ -1009,12 +1009,22 @@ async def unified_webhook(payload: UnifiedPayload):
         # HTF bias store + entry-price cache already ran and the trade still feeds
         # the ML at close.
         _warming = _gate["reason"] in ("no_features_cached", "cold_start_bypass", "gate_error")
-        if not _warming and not _gate.get("thin_pool") and not _gate["pass"]:
+        _gate_fail = not _warming and not _gate.get("thin_pool") and not _gate["pass"]
+        # Default = SHOW ALL: a weak signal still goes to Telegram, clearly tagged
+        # "⚠️ WEAK (nn%)" by send_entry_signal — nothing is hidden, the ML grade
+        # guides you instead of a silent wall. Set SUPPRESS_WEAK_SIGNALS=true in the
+        # Railway env to restore hard-gating (weak signals dropped). Either way the
+        # trade still feeds the ML at close.
+        _suppress_weak = os.environ.get("SUPPRESS_WEAK_SIGNALS", "false").strip().lower() in ("1", "true", "yes", "on")
+        if _gate_fail and _suppress_weak:
             print(f"[webhook] SUPPRESSED weak {payload.direction} {sym} TF={tf} "
                   f"score={_gate['score']} < threshold={_gate.get('threshold')} "
                   f"({_gate['reason']})")
             return {"status": "ok", "routed_to": "suppressed",
                     "reason": "weak_ml_quality", "score": _gate["score"]}
+        if _gate_fail:
+            print(f"[webhook] LOW-QUALITY sent (labeled ⚠️ WEAK) {payload.direction} {sym} "
+                  f"TF={tf} score={_gate['score']} < threshold={_gate.get('threshold')}")
 
         bias        = get_active_bias(sym, payload.direction)
         contra_bias = get_active_bias(sym, "SHORT" if payload.direction == "LONG" else "LONG")
