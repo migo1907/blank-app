@@ -2986,7 +2986,7 @@
     "mtf_confluence": "mtf:na",
     "post_event": "evt:na",
     "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:TRENDING_BULL(PULLBACK_SHORT)\u00d70.80 | hmm:na\u00d71.00 | imkt:na\u00d71.00 | mtf:na\u00d71.00 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.76 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.59) | news:bearish(-0.431) | macro:NEUTRAL(+0.078) | combined:-0.116 \u2192 conf:0.042 \u26a1 GEOPOLITICAL",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-07-01T08:31:38.971063+00:00",
     "created_at": "2026-07-01T08:01:39.818390+00:00",
     "id": 101
@@ -3020,7 +3020,7 @@
     "mtf_confluence": "mtf:na",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:TRENDING_BULL(PULLBACK_SHORT)\u00d70.80 | hmm:na\u00d71.00 | imkt:na\u00d71.00 | mtf:na\u00d71.00 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d71.37 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.41) | news:bearish(-0.431) | macro:NEUTRAL(+0.078) | combined:-0.173 \u2192 conf:0.300 \u26a1 GEOPOLITICAL",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-07-01T08:31:43.235532+00:00",
     "created_at": "2026-07-01T08:01:43.553567+00:00",
     "id": 101
@@ -3054,7 +3054,7 @@
     "mtf_confluence": "mtf:na",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:na\u00d71.00 | imkt:na\u00d71.00 | mtf:na\u00d71.00 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.84 | cluster\u00d70.88 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.13) | news:bearish(-0.227) | macro:NEUTRAL(+0.078) | combined:-0.053 \u2192 conf:0.300 \u26a1 GEOPOLITICAL",
-    "status": "ACTIVE",
+    "status": "EXPIRED",
     "expires_at": "2026-07-01T08:46:40.508986+00:00",
     "created_at": "2026-07-01T08:16:43.491470+00:00",
     "id": 101
