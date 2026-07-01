@@ -17,15 +17,6 @@
     "stored_at": "2026-07-01T16:30:20.794801+00:00",
     "expires_at": "2026-07-01T20:30:20.794815+00:00"
   },
-  "US500_60": {
-    "direction": "LONG",
-    "timeframe": "60",
-    "symbol": "US500",
-    "trigger": "BOS",
-    "ml_score": 0.625,
-    "stored_at": "2026-07-01T16:00:07.168914+00:00",
-    "expires_at": "2026-07-01T20:00:07.168932+00:00"
-  },
   "SPCX_240": {
     "direction": "SHORT",
     "timeframe": "240",
