@@ -7,5 +7,14 @@
     "ml_score": 0.375,
     "stored_at": "2026-07-01T12:02:02.275464+00:00",
     "expires_at": "2026-07-01T16:02:02.275479+00:00"
+  },
+  "XAUUSD_30": {
+    "direction": "LONG",
+    "timeframe": "30",
+    "symbol": "XAUUSD",
+    "trigger": "OB",
+    "ml_score": 0.375,
+    "stored_at": "2026-07-01T13:32:04.071021+00:00",
+    "expires_at": "2026-07-01T15:32:04.071043+00:00"
   }
 }
