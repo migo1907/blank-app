@@ -148,9 +148,27 @@ def alphavantage_4h(ticker: str, max_age_min: int = 90):
     return df4
 
 
+_IBKR_BAR = {"1min": "1min", "5min": "5min", "15min": "15min", "30min": "30min",
+             "60min": "1h", "1h": "1h", "4h": "4h", "1d": "1d"}
+
+
 def fetch_intraday(ticker: str, interval: str = "1h", period: str = "60d"):
-    """Intraday OHLC — Alpha Vantage for mapped equities (SPY/QQQ), budget-guarded."""
+    """Intraday OHLC — IBKR gateway first (live, same feed we trade), then Alpha
+    Vantage for mapped equities (SPY/QQQ), budget-guarded. IBKR is inert unless a
+    Client Portal Gateway is configured (IBKR_GATEWAY_URL), so this is a no-op
+    upgrade until then."""
     import pandas as pd
+    try:
+        import ibkr_data
+        if ibkr_data.available():
+            bar = _IBKR_BAR.get(interval, "1h")
+            per = "6m" if bar in ("1h", "4h", "1d") else "5d"
+            df = ibkr_data.fetch_history(ticker, period=per, bar=bar)
+            if len(df):
+                _health("ibkr_intraday", True, "price")
+                return df
+    except Exception as e:
+        print(f"[mktdata] IBKR intraday {ticker} failed: {e}")
     av = _alphavantage_intraday(ticker, interval="60min")
     if len(av):
         _health("alphavantage_intraday", True, "price")
@@ -314,6 +332,18 @@ def fetch_daily(ticker: str, period: str = "1y"):
     not just the hardcoded alias map — without this, yfinance's removal left every
     individual stock with no daily bars (swing screener + tracker went dark)."""
     import pandas as pd
+    # IBKR gateway first when live — same feed the account trades on, no basis
+    # premium on gold. Inert (returns []) unless IBKR_GATEWAY_URL is configured,
+    # so Stooq stays the effective default until a gateway is pointed at us.
+    try:
+        import ibkr_data
+        if ibkr_data.available():
+            df = ibkr_data.fetch_history(ticker, period="1y", bar="1d")
+            if len(df):
+                _health("ibkr_daily", True, "price")
+                return df
+    except Exception as e:
+        print(f"[mktdata] IBKR daily {ticker} failed: {e}")
     sym = _stooq_symbol_for(ticker)
     if sym:
         try:

@@ -1306,6 +1306,21 @@ async def owner_test(secret: str = "", message: str = ""):
     return {"sent": ok}
 
 
+@app.get("/ibkr/status")
+async def ibkr_status(secret: str = ""):
+    """IBKR gateway diagnostics — confirms the server-side Client Portal Gateway
+    is configured and authenticated so live IBKR data flows to every section.
+    'configured' False → set IBKR_GATEWAY_URL in Railway. 'authenticated' False
+    with configured True → gateway reachable but IBKR session needs (re)login."""
+    _validate_secret(secret)
+    import ibkr_data
+    st = ibkr_data.status()
+    probe = None
+    if st.get("authenticated"):
+        probe = {"symbol": "SPY", "last": ibkr_data.get_spot("SPY")}
+    return {"ibkr": st, "probe": probe}
+
+
 # Strong refs to detached background tasks so the event loop doesn't GC them mid-run.
 _BACKGROUND_TASKS: set = set()
 
