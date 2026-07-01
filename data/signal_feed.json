@@ -2,37 +2,6 @@
   "signals": [
     {
       "direction": "LONG",
-      "timeframe": "60",
-      "trigger": "FVG",
-      "symbol": "PATH",
-      "entry_price": 11.59,
-      "tp1": 12.13,
-      "tp2": 12.57,
-      "tp3": 13.11,
-      "sl": 11.05,
-      "ml_score": 0.625,
-      "tier": "\u2705 MED",
-      "quality_score": 0.15,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.2328,
-      "velocity": "LOW",
-      "event": "GEOPOLITICAL",
-      "htf_bias": {
-        "direction": "LONG",
-        "timeframe": "60",
-        "symbol": "PATH",
-        "trigger": "FVG",
-        "ml_score": 0.625,
-        "stored_at": "2026-07-01T14:30:15.112523+00:00",
-        "expires_at": "2026-07-01T18:30:15.112543+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "htf_direct",
-      "session": "NYSE Open",
-      "fired_at": "2026-07-01T14:30:15.116659+00:00"
-    },
-    {
-      "direction": "LONG",
       "timeframe": "30",
       "trigger": "FVG",
       "symbol": "PATH",
@@ -2883,6 +2852,37 @@
       "htf_context": "htf_direct",
       "session": "New York Late",
       "fired_at": "2026-07-01T20:02:02.736131+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "5",
+      "trigger": "BOS",
+      "symbol": "XAUUSD",
+      "entry_price": 4035.24,
+      "tp1": 4032.09,
+      "tp2": 4029.99,
+      "tp3": 4026.85,
+      "sl": 4039.65,
+      "ml_score": 0.75,
+      "tier": "\u2b50 HIGH",
+      "quality_score": 0.2667,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.1106,
+      "velocity": "CONFLICTED",
+      "event": "GEOPOLITICAL",
+      "htf_bias": {
+        "direction": "SHORT",
+        "timeframe": "30",
+        "symbol": "XAUUSD",
+        "trigger": "RSI",
+        "ml_score": 0.5,
+        "stored_at": "2026-07-01T20:02:02.193094+00:00",
+        "expires_at": "2026-07-01T22:02:02.193106+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "with_bias",
+      "session": "New York Late",
+      "fired_at": "2026-07-01T20:02:03.048982+00:00"
     }
   ]
 }
