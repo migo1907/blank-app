@@ -652,6 +652,13 @@ def _fetch_todays_high_impact_events() -> str:
     """
     now = datetime.now(timezone.utc)
     events = _finnhub_calendar_events(now) + _ff_calendar_events(now)
+    # Bulletproof fallback: if the live sources come back empty (premium 403 on
+    # Finnhub, egress block / 429 / cold in-memory cache on Forex Factory), read
+    # today's events straight from the persisted weekly snapshot on the data
+    # branch. The snapshot is refreshed whenever a live pull succeeds, so this
+    # keeps the calendar section alive even when the live fetch is dark at 09:00.
+    if not events:
+        events = _ff_week_from_disk(now)
     if not events:
         events = _fomc_fallback(now)
     if not events:

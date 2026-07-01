@@ -192,8 +192,24 @@ async def send_signal(signal: dict) -> bool:
 
 
 async def send_text(text: str) -> None:
-    """Send a plain text message to the main channel."""
-    await _send(text)
+    """Send a plain text message to the main channel. Telegram rejects messages
+    over 4096 chars, which would drop the whole brief (calendar lives at the end),
+    so split long text into <=4000-char chunks at line boundaries and send in order."""
+    if len(text) <= 4000:
+        await _send(text)
+        return
+    chunks, cur = [], ""
+    for line in text.split("\n"):
+        if len(cur) + len(line) + 1 > 4000:
+            if cur:
+                chunks.append(cur)
+            cur = line
+        else:
+            cur = f"{cur}\n{line}" if cur else line
+    if cur:
+        chunks.append(cur)
+    for chunk in chunks:
+        await _send(chunk)
 
 
 async def send_personal_text(text: str) -> bool:
