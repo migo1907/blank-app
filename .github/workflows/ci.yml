@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - "claude/hopeful-pasteur-VVHCl"
+      - "claude/ibkr-data-backtest-tfyswp"
       - "main"
   pull_request:
     branches:
@@ -42,4 +43,4 @@ jobs:
           GITHUB_BRANCH: "data"
           TELEGRAM_TOKEN: "test"
           TELEGRAM_CHAT_ID: "12345"
-        run: pytest tests/test_core.py -v
+        run: pytest tests/test_core.py tests/test_options_backtest.py tests/test_ladder_backtest.py -v

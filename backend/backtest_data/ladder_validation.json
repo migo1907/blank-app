@@ -1,0 +1,1929 @@
+{
+ "XAUUSD_2m": {
+  "bars": 3500,
+  "bad_prints_dropped": 1,
+  "span": "2026-06-24T19:36:00Z -> 2026-07-01T22:16:00Z",
+  "entries_every": 15,
+  "n_graded": 460,
+  "n_data_end": 0,
+  "overall": {
+   "n": 460,
+   "outcomes": {
+    "PARTIAL": 200,
+    "LOSS": 256,
+    "WIN": 4
+   },
+   "stages": {
+    "SL_TP1": 127,
+    "SL": 256,
+    "SL_TP2": 73,
+    "TP3": 4
+   },
+   "tp1_rate_pct": 44.3,
+   "avg_r": -0.34,
+   "median_r": -1.0,
+   "avg_bars_held": 3.4
+  },
+  "sanity": {
+   "loss_avg_r": -1.0,
+   "partial_min_r": -0.634,
+   "partial_avg_r": 0.423
+  },
+  "by_half": {
+   "H1": {
+    "n": 228,
+    "outcomes": {
+     "PARTIAL": 99,
+     "LOSS": 127,
+     "WIN": 2
+    },
+    "stages": {
+     "SL_TP1": 58,
+     "SL": 127,
+     "SL_TP2": 41,
+     "TP3": 2
+    },
+    "tp1_rate_pct": 44.3,
+    "avg_r": -0.338,
+    "median_r": -1.0,
+    "avg_bars_held": 3.5
+   },
+   "H2": {
+    "n": 232,
+    "outcomes": {
+     "LOSS": 129,
+     "PARTIAL": 101,
+     "WIN": 2
+    },
+    "stages": {
+     "SL": 129,
+     "SL_TP2": 32,
+     "SL_TP1": 69,
+     "TP3": 2
+    },
+    "tp1_rate_pct": 44.4,
+    "avg_r": -0.342,
+    "median_r": -1.0,
+    "avg_bars_held": 3.3
+   }
+  },
+  "by_trend": {
+   "ranging": {
+    "n": 148,
+    "outcomes": {
+     "PARTIAL": 65,
+     "LOSS": 83
+    },
+    "stages": {
+     "SL_TP1": 41,
+     "SL": 83,
+     "SL_TP2": 24
+    },
+    "tp1_rate_pct": 43.9,
+    "avg_r": -0.366,
+    "median_r": -1.0,
+    "avg_bars_held": 3.3
+   },
+   "trend_down": {
+    "n": 170,
+    "outcomes": {
+     "PARTIAL": 76,
+     "LOSS": 92,
+     "WIN": 2
+    },
+    "stages": {
+     "SL_TP2": 25,
+     "SL": 92,
+     "SL_TP1": 51,
+     "TP3": 2
+    },
+    "tp1_rate_pct": 45.9,
+    "avg_r": -0.321,
+    "median_r": -1.0,
+    "avg_bars_held": 3.4
+   },
+   "trend_up": {
+    "n": 142,
+    "outcomes": {
+     "PARTIAL": 59,
+     "LOSS": 81,
+     "WIN": 2
+    },
+    "stages": {
+     "SL_TP1": 35,
+     "SL": 81,
+     "SL_TP2": 24,
+     "TP3": 2
+    },
+    "tp1_rate_pct": 43.0,
+    "avg_r": -0.335,
+    "median_r": -1.0,
+    "avg_bars_held": 3.4
+   }
+  },
+  "by_vol": {
+   "high_vol": {
+    "n": 128,
+    "outcomes": {
+     "LOSS": 69,
+     "PARTIAL": 59
+    },
+    "stages": {
+     "SL": 69,
+     "SL_TP2": 20,
+     "SL_TP1": 39
+    },
+    "tp1_rate_pct": 46.1,
+    "avg_r": -0.321,
+    "median_r": -1.0,
+    "avg_bars_held": 3.6
+   },
+   "low_vol": {
+    "n": 208,
+    "outcomes": {
+     "LOSS": 111,
+     "PARTIAL": 95,
+     "WIN": 2
+    },
+    "stages": {
+     "SL": 111,
+     "SL_TP1": 62,
+     "SL_TP2": 33,
+     "TP3": 2
+    },
+    "tp1_rate_pct": 46.6,
+    "avg_r": -0.319,
+    "median_r": -1.0,
+    "avg_bars_held": 3.0
+   },
+   "mid_vol": {
+    "n": 124,
+    "outcomes": {
+     "PARTIAL": 46,
+     "LOSS": 76,
+     "WIN": 2
+    },
+    "stages": {
+     "SL_TP1": 26,
+     "SL": 76,
+     "SL_TP2": 20,
+     "TP3": 2
+    },
+    "tp1_rate_pct": 38.7,
+    "avg_r": -0.394,
+    "median_r": -1.0,
+    "avg_bars_held": 3.7
+   }
+  },
+  "by_direction": {
+   "LONG": {
+    "n": 230,
+    "outcomes": {
+     "PARTIAL": 108,
+     "LOSS": 119,
+     "WIN": 3
+    },
+    "stages": {
+     "SL_TP1": 72,
+     "SL": 119,
+     "SL_TP2": 36,
+     "TP3": 3
+    },
+    "tp1_rate_pct": 48.3,
+    "avg_r": -0.265,
+    "median_r": -1.0,
+    "avg_bars_held": 3.5
+   },
+   "SHORT": {
+    "n": 230,
+    "outcomes": {
+     "LOSS": 137,
+     "PARTIAL": 92,
+     "WIN": 1
+    },
+    "stages": {
+     "SL": 137,
+     "SL_TP1": 55,
+     "SL_TP2": 37,
+     "TP3": 1
+    },
+    "tp1_rate_pct": 40.4,
+    "avg_r": -0.414,
+    "median_r": -1.0,
+    "avg_bars_held": 3.2
+   }
+  }
+ },
+ "XAUUSD_5m": {
+  "bars": 3500,
+  "bad_prints_dropped": 1,
+  "span": "2026-06-15T01:20:00Z -> 2026-07-01T22:15:00Z",
+  "entries_every": 12,
+  "n_graded": 576,
+  "n_data_end": 0,
+  "overall": {
+   "n": 576,
+   "outcomes": {
+    "LOSS": 287,
+    "PARTIAL": 278,
+    "WIN": 11
+   },
+   "stages": {
+    "SL": 287,
+    "SL_TP1": 192,
+    "TP3": 11,
+    "SL_TP2": 86
+   },
+   "tp1_rate_pct": 50.2,
+   "avg_r": -0.204,
+   "median_r": -0.798,
+   "avg_bars_held": 8.4
+  },
+  "sanity": {
+   "loss_avg_r": -1.013,
+   "partial_min_r": -2.064,
+   "partial_avg_r": 0.517
+  },
+  "by_half": {
+   "H1": {
+    "n": 284,
+    "outcomes": {
+     "LOSS": 141,
+     "PARTIAL": 134,
+     "WIN": 9
+    },
+    "stages": {
+     "SL": 141,
+     "SL_TP1": 94,
+     "TP3": 9,
+     "SL_TP2": 40
+    },
+    "tp1_rate_pct": 50.4,
+    "avg_r": -0.178,
+    "median_r": -0.798,
+    "avg_bars_held": 7.8
+   },
+   "H2": {
+    "n": 292,
+    "outcomes": {
+     "PARTIAL": 144,
+     "LOSS": 146,
+     "WIN": 2
+    },
+    "stages": {
+     "SL_TP1": 98,
+     "SL": 146,
+     "SL_TP2": 46,
+     "TP3": 2
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.23,
+    "median_r": -0.406,
+    "avg_bars_held": 9.1
+   }
+  },
+  "by_trend": {
+   "ranging": {
+    "n": 190,
+    "outcomes": {
+     "WIN": 2,
+     "LOSS": 95,
+     "PARTIAL": 93
+    },
+    "stages": {
+     "TP3": 2,
+     "SL": 95,
+     "SL_TP2": 30,
+     "SL_TP1": 63
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.219,
+    "median_r": -0.406,
+    "avg_bars_held": 8.2
+   },
+   "trend_down": {
+    "n": 232,
+    "outcomes": {
+     "PARTIAL": 110,
+     "LOSS": 115,
+     "WIN": 7
+    },
+    "stages": {
+     "SL_TP1": 75,
+     "SL": 115,
+     "TP3": 7,
+     "SL_TP2": 35
+    },
+    "tp1_rate_pct": 50.4,
+    "avg_r": -0.194,
+    "median_r": -0.798,
+    "avg_bars_held": 7.4
+   },
+   "trend_up": {
+    "n": 154,
+    "outcomes": {
+     "LOSS": 77,
+     "PARTIAL": 75,
+     "WIN": 2
+    },
+    "stages": {
+     "SL": 77,
+     "SL_TP1": 54,
+     "SL_TP2": 21,
+     "TP3": 2
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.202,
+    "median_r": -0.131,
+    "avg_bars_held": 10.3
+   }
+  },
+  "by_vol": {
+   "high_vol": {
+    "n": 266,
+    "outcomes": {
+     "LOSS": 133,
+     "PARTIAL": 129,
+     "WIN": 4
+    },
+    "stages": {
+     "SL": 133,
+     "SL_TP1": 87,
+     "SL_TP2": 42,
+     "TP3": 4
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.203,
+    "median_r": -0.406,
+    "avg_bars_held": 10.0
+   },
+   "low_vol": {
+    "n": 146,
+    "outcomes": {
+     "LOSS": 72,
+     "PARTIAL": 73,
+     "WIN": 1
+    },
+    "stages": {
+     "SL": 72,
+     "SL_TP1": 56,
+     "TP3": 1,
+     "SL_TP2": 17
+    },
+    "tp1_rate_pct": 50.7,
+    "avg_r": -0.299,
+    "median_r": -0.798,
+    "avg_bars_held": 6.0
+   },
+   "mid_vol": {
+    "n": 164,
+    "outcomes": {
+     "PARTIAL": 76,
+     "LOSS": 82,
+     "WIN": 6
+    },
+    "stages": {
+     "SL_TP1": 49,
+     "SL": 82,
+     "TP3": 6,
+     "SL_TP2": 27
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.123,
+    "median_r": -0.111,
+    "avg_bars_held": 8.0
+   }
+  },
+  "by_direction": {
+   "LONG": {
+    "n": 288,
+    "outcomes": {
+     "LOSS": 157,
+     "PARTIAL": 125,
+     "WIN": 6
+    },
+    "stages": {
+     "SL": 157,
+     "SL_TP1": 86,
+     "TP3": 6,
+     "SL_TP2": 39
+    },
+    "tp1_rate_pct": 45.5,
+    "avg_r": -0.291,
+    "median_r": -1.0,
+    "avg_bars_held": 8.4
+   },
+   "SHORT": {
+    "n": 288,
+    "outcomes": {
+     "PARTIAL": 153,
+     "LOSS": 130,
+     "WIN": 5
+    },
+    "stages": {
+     "SL_TP1": 106,
+     "SL": 130,
+     "SL_TP2": 47,
+     "TP3": 5
+    },
+    "tp1_rate_pct": 54.9,
+    "avg_r": -0.118,
+    "median_r": -0.0,
+    "avg_bars_held": 8.5
+   }
+  }
+ },
+ "XAUUSD_30m": {
+  "bars": 3502,
+  "bad_prints_dropped": 0,
+  "span": "2026-03-16T10:00:00Z -> 2026-07-01T22:00:00Z",
+  "entries_every": 8,
+  "n_graded": 862,
+  "n_data_end": 2,
+  "overall": {
+   "n": 862,
+   "outcomes": {
+    "LOSS": 429,
+    "PARTIAL": 420,
+    "WIN": 13
+   },
+   "stages": {
+    "SL": 429,
+    "SL_TP1": 356,
+    "SL_TP2": 64,
+    "TP3": 13
+   },
+   "tp1_rate_pct": 50.2,
+   "avg_r": -0.2,
+   "median_r": -0.375,
+   "avg_bars_held": 14.3
+  },
+  "sanity": {
+   "loss_avg_r": -1.003,
+   "partial_min_r": -0.438,
+   "partial_avg_r": 0.53
+  },
+  "by_half": {
+   "H1": {
+    "n": 426,
+    "outcomes": {
+     "LOSS": 211,
+     "PARTIAL": 205,
+     "WIN": 10
+    },
+    "stages": {
+     "SL": 211,
+     "SL_TP1": 174,
+     "SL_TP2": 31,
+     "TP3": 10
+    },
+    "tp1_rate_pct": 50.5,
+    "avg_r": -0.167,
+    "median_r": -0.275,
+    "avg_bars_held": 14.7
+   },
+   "H2": {
+    "n": 436,
+    "outcomes": {
+     "LOSS": 218,
+     "PARTIAL": 215,
+     "WIN": 3
+    },
+    "stages": {
+     "SL": 218,
+     "SL_TP1": 182,
+     "SL_TP2": 33,
+     "TP3": 3
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.232,
+    "median_r": -0.388,
+    "avg_bars_held": 13.9
+   }
+  },
+  "by_trend": {
+   "ranging": {
+    "n": 302,
+    "outcomes": {
+     "LOSS": 149,
+     "PARTIAL": 147,
+     "WIN": 6
+    },
+    "stages": {
+     "SL": 149,
+     "SL_TP1": 129,
+     "SL_TP2": 18,
+     "TP3": 6
+    },
+    "tp1_rate_pct": 50.7,
+    "avg_r": -0.206,
+    "median_r": -0.315,
+    "avg_bars_held": 14.0
+   },
+   "trend_down": {
+    "n": 348,
+    "outcomes": {
+     "LOSS": 174,
+     "PARTIAL": 171,
+     "WIN": 3
+    },
+    "stages": {
+     "SL": 174,
+     "SL_TP1": 140,
+     "SL_TP2": 31,
+     "TP3": 3
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.209,
+    "median_r": -0.375,
+    "avg_bars_held": 14.7
+   },
+   "trend_up": {
+    "n": 212,
+    "outcomes": {
+     "LOSS": 106,
+     "PARTIAL": 102,
+     "WIN": 4
+    },
+    "stages": {
+     "SL": 106,
+     "SL_TP1": 87,
+     "SL_TP2": 15,
+     "TP3": 4
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.177,
+    "median_r": -0.438,
+    "avg_bars_held": 14.0
+   }
+  },
+  "by_vol": {
+   "high_vol": {
+    "n": 192,
+    "outcomes": {
+     "PARTIAL": 95,
+     "LOSS": 96,
+     "WIN": 1
+    },
+    "stages": {
+     "SL_TP1": 79,
+     "SL": 96,
+     "SL_TP2": 16,
+     "TP3": 1
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.19,
+    "median_r": -0.241,
+    "avg_bars_held": 18.0
+   },
+   "low_vol": {
+    "n": 304,
+    "outcomes": {
+     "LOSS": 152,
+     "PARTIAL": 149,
+     "WIN": 3
+    },
+    "stages": {
+     "SL": 152,
+     "SL_TP1": 126,
+     "SL_TP2": 23,
+     "TP3": 3
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.237,
+    "median_r": -0.388,
+    "avg_bars_held": 11.0
+   },
+   "mid_vol": {
+    "n": 366,
+    "outcomes": {
+     "LOSS": 181,
+     "PARTIAL": 176,
+     "WIN": 9
+    },
+    "stages": {
+     "SL": 181,
+     "SL_TP1": 151,
+     "SL_TP2": 25,
+     "TP3": 9
+    },
+    "tp1_rate_pct": 50.5,
+    "avg_r": -0.175,
+    "median_r": -0.275,
+    "avg_bars_held": 15.0
+   }
+  },
+  "by_direction": {
+   "LONG": {
+    "n": 431,
+    "outcomes": {
+     "LOSS": 238,
+     "PARTIAL": 190,
+     "WIN": 3
+    },
+    "stages": {
+     "SL": 238,
+     "SL_TP1": 164,
+     "SL_TP2": 26,
+     "TP3": 3
+    },
+    "tp1_rate_pct": 44.8,
+    "avg_r": -0.291,
+    "median_r": -1.0,
+    "avg_bars_held": 14.4
+   },
+   "SHORT": {
+    "n": 431,
+    "outcomes": {
+     "PARTIAL": 230,
+     "LOSS": 191,
+     "WIN": 10
+    },
+    "stages": {
+     "SL_TP1": 192,
+     "SL": 191,
+     "SL_TP2": 38,
+     "TP3": 10
+    },
+    "tp1_rate_pct": 55.7,
+    "avg_r": -0.109,
+    "median_r": -0.0,
+    "avg_bars_held": 14.1
+   }
+  }
+ },
+ "XAUUSD_1h": {
+  "bars": 3500,
+  "bad_prints_dropped": 1,
+  "span": "2025-11-25T09:00:00Z -> 2026-07-01T22:00:00Z",
+  "entries_every": 6,
+  "n_graded": 1148,
+  "n_data_end": 2,
+  "overall": {
+   "n": 1148,
+   "outcomes": {
+    "PARTIAL": 573,
+    "LOSS": 567,
+    "WIN": 8
+   },
+   "stages": {
+    "SL_TP1": 513,
+    "SL": 567,
+    "SL_TP2": 60,
+    "TP3": 8
+   },
+   "tp1_rate_pct": 50.6,
+   "avg_r": -0.222,
+   "median_r": -0.577,
+   "avg_bars_held": 17.1
+  },
+  "sanity": {
+   "loss_avg_r": -1.009,
+   "partial_min_r": -1.609,
+   "partial_avg_r": 0.514
+  },
+  "by_half": {
+   "H1": {
+    "n": 568,
+    "outcomes": {
+     "PARTIAL": 277,
+     "LOSS": 283,
+     "WIN": 8
+    },
+    "stages": {
+     "SL_TP1": 251,
+     "SL": 283,
+     "SL_TP2": 26,
+     "TP3": 8
+    },
+    "tp1_rate_pct": 50.2,
+    "avg_r": -0.217,
+    "median_r": -0.431,
+    "avg_bars_held": 18.1
+   },
+   "H2": {
+    "n": 580,
+    "outcomes": {
+     "LOSS": 284,
+     "PARTIAL": 296
+    },
+    "stages": {
+     "SL": 284,
+     "SL_TP1": 262,
+     "SL_TP2": 34
+    },
+    "tp1_rate_pct": 51.0,
+    "avg_r": -0.227,
+    "median_r": -0.73,
+    "avg_bars_held": 16.1
+   }
+  },
+  "by_trend": {
+   "ranging": {
+    "n": 386,
+    "outcomes": {
+     "PARTIAL": 195,
+     "LOSS": 189,
+     "WIN": 2
+    },
+    "stages": {
+     "SL_TP1": 172,
+     "SL": 189,
+     "TP3": 2,
+     "SL_TP2": 23
+    },
+    "tp1_rate_pct": 51.0,
+    "avg_r": -0.204,
+    "median_r": -0.309,
+    "avg_bars_held": 16.1
+   },
+   "trend_down": {
+    "n": 342,
+    "outcomes": {
+     "PARTIAL": 171,
+     "LOSS": 171
+    },
+    "stages": {
+     "SL_TP1": 161,
+     "SL": 171,
+     "SL_TP2": 10
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.247,
+    "median_r": -0.258,
+    "avg_bars_held": 18.5
+   },
+   "trend_up": {
+    "n": 420,
+    "outcomes": {
+     "LOSS": 207,
+     "PARTIAL": 207,
+     "WIN": 6
+    },
+    "stages": {
+     "SL": 207,
+     "SL_TP2": 27,
+     "SL_TP1": 180,
+     "TP3": 6
+    },
+    "tp1_rate_pct": 50.7,
+    "avg_r": -0.218,
+    "median_r": -0.73,
+    "avg_bars_held": 16.8
+   }
+  },
+  "by_vol": {
+   "high_vol": {
+    "n": 380,
+    "outcomes": {
+     "PARTIAL": 188,
+     "LOSS": 189,
+     "WIN": 3
+    },
+    "stages": {
+     "SL_TP1": 168,
+     "SL": 189,
+     "SL_TP2": 20,
+     "TP3": 3
+    },
+    "tp1_rate_pct": 50.3,
+    "avg_r": -0.223,
+    "median_r": -0.73,
+    "avg_bars_held": 20.3
+   },
+   "low_vol": {
+    "n": 260,
+    "outcomes": {
+     "PARTIAL": 130,
+     "LOSS": 130
+    },
+    "stages": {
+     "SL_TP1": 120,
+     "SL": 130,
+     "SL_TP2": 10
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.229,
+    "median_r": -0.522,
+    "avg_bars_held": 13.4
+   },
+   "mid_vol": {
+    "n": 508,
+    "outcomes": {
+     "LOSS": 248,
+     "PARTIAL": 255,
+     "WIN": 5
+    },
+    "stages": {
+     "SL": 248,
+     "SL_TP1": 225,
+     "TP3": 5,
+     "SL_TP2": 30
+    },
+    "tp1_rate_pct": 51.2,
+    "avg_r": -0.218,
+    "median_r": -0.414,
+    "avg_bars_held": 16.5
+   }
+  },
+  "by_direction": {
+   "LONG": {
+    "n": 574,
+    "outcomes": {
+     "PARTIAL": 275,
+     "LOSS": 298,
+     "WIN": 1
+    },
+    "stages": {
+     "SL_TP1": 254,
+     "SL": 298,
+     "SL_TP2": 21,
+     "TP3": 1
+    },
+    "tp1_rate_pct": 48.1,
+    "avg_r": -0.261,
+    "median_r": -1.0,
+    "avg_bars_held": 17.1
+   },
+   "SHORT": {
+    "n": 574,
+    "outcomes": {
+     "LOSS": 269,
+     "PARTIAL": 298,
+     "WIN": 7
+    },
+    "stages": {
+     "SL": 269,
+     "SL_TP2": 39,
+     "SL_TP1": 259,
+     "TP3": 7
+    },
+    "tp1_rate_pct": 53.1,
+    "avg_r": -0.182,
+    "median_r": -0.084,
+    "avg_bars_held": 17.0
+   }
+  }
+ },
+ "SPX_2m": {
+  "bars": 1000,
+  "bad_prints_dropped": 0,
+  "span": "2026-06-24T19:10:00Z -> 2026-07-01T19:58:00Z",
+  "entries_every": 15,
+  "n_graded": 128,
+  "n_data_end": 0,
+  "overall": {
+   "n": 128,
+   "outcomes": {
+    "LOSS": 72,
+    "PARTIAL": 56
+   },
+   "stages": {
+    "SL": 72,
+    "SL_TP1": 39,
+    "SL_TP2": 17
+   },
+   "tp1_rate_pct": 43.8,
+   "avg_r": -0.389,
+   "median_r": -1.0,
+   "avg_bars_held": 3.1
+  },
+  "sanity": {
+   "loss_avg_r": -1.0,
+   "partial_min_r": -0.347,
+   "partial_avg_r": 0.397
+  },
+  "by_half": {
+   "H1": {
+    "n": 60,
+    "outcomes": {
+     "LOSS": 34,
+     "PARTIAL": 26
+    },
+    "stages": {
+     "SL": 34,
+     "SL_TP1": 16,
+     "SL_TP2": 10
+    },
+    "tp1_rate_pct": 43.3,
+    "avg_r": -0.365,
+    "median_r": -1.0,
+    "avg_bars_held": 3.6
+   },
+   "H2": {
+    "n": 68,
+    "outcomes": {
+     "PARTIAL": 30,
+     "LOSS": 38
+    },
+    "stages": {
+     "SL_TP1": 23,
+     "SL": 38,
+     "SL_TP2": 7
+    },
+    "tp1_rate_pct": 44.1,
+    "avg_r": -0.41,
+    "median_r": -1.0,
+    "avg_bars_held": 2.6
+   }
+  },
+  "by_trend": {
+   "ranging": {
+    "n": 34,
+    "outcomes": {
+     "PARTIAL": 16,
+     "LOSS": 18
+    },
+    "stages": {
+     "SL_TP1": 10,
+     "SL": 18,
+     "SL_TP2": 6
+    },
+    "tp1_rate_pct": 47.1,
+    "avg_r": -0.294,
+    "median_r": -1.0,
+    "avg_bars_held": 3.8
+   },
+   "trend_down": {
+    "n": 28,
+    "outcomes": {
+     "PARTIAL": 11,
+     "LOSS": 17
+    },
+    "stages": {
+     "SL_TP2": 2,
+     "SL": 17,
+     "SL_TP1": 9
+    },
+    "tp1_rate_pct": 39.3,
+    "avg_r": -0.537,
+    "median_r": -1.0,
+    "avg_bars_held": 3.0
+   },
+   "trend_up": {
+    "n": 66,
+    "outcomes": {
+     "LOSS": 37,
+     "PARTIAL": 29
+    },
+    "stages": {
+     "SL": 37,
+     "SL_TP1": 20,
+     "SL_TP2": 9
+    },
+    "tp1_rate_pct": 43.9,
+    "avg_r": -0.375,
+    "median_r": -1.0,
+    "avg_bars_held": 2.7
+   }
+  },
+  "by_vol": {
+   "high_vol": {
+    "n": 18,
+    "outcomes": {
+     "LOSS": 12,
+     "PARTIAL": 6
+    },
+    "stages": {
+     "SL": 12,
+     "SL_TP1": 2,
+     "SL_TP2": 4
+    },
+    "tp1_rate_pct": 33.3,
+    "avg_r": -0.461,
+    "median_r": -1.0,
+    "avg_bars_held": 4.4
+   },
+   "low_vol": {
+    "n": 88,
+    "outcomes": {
+     "PARTIAL": 39,
+     "LOSS": 49
+    },
+    "stages": {
+     "SL_TP1": 31,
+     "SL": 49,
+     "SL_TP2": 8
+    },
+    "tp1_rate_pct": 44.3,
+    "avg_r": -0.433,
+    "median_r": -1.0,
+    "avg_bars_held": 2.7
+   },
+   "mid_vol": {
+    "n": 22,
+    "outcomes": {
+     "LOSS": 11,
+     "PARTIAL": 11
+    },
+    "stages": {
+     "SL": 11,
+     "SL_TP1": 6,
+     "SL_TP2": 5
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.154,
+    "median_r": -0.002,
+    "avg_bars_held": 3.5
+   }
+  },
+  "by_direction": {
+   "LONG": {
+    "n": 64,
+    "outcomes": {
+     "LOSS": 31,
+     "PARTIAL": 33
+    },
+    "stages": {
+     "SL": 31,
+     "SL_TP1": 22,
+     "SL_TP2": 11
+    },
+    "tp1_rate_pct": 51.6,
+    "avg_r": -0.226,
+    "median_r": -0.048,
+    "avg_bars_held": 3.6
+   },
+   "SHORT": {
+    "n": 64,
+    "outcomes": {
+     "PARTIAL": 23,
+     "LOSS": 41
+    },
+    "stages": {
+     "SL_TP1": 17,
+     "SL_TP2": 6,
+     "SL": 41
+    },
+    "tp1_rate_pct": 35.9,
+    "avg_r": -0.552,
+    "median_r": -1.0,
+    "avg_bars_held": 2.6
+   }
+  }
+ },
+ "SPX_5m": {
+  "bars": 1000,
+  "bad_prints_dropped": 0,
+  "span": "2026-06-12T14:40:00Z -> 2026-07-01T19:55:00Z",
+  "entries_every": 12,
+  "n_graded": 160,
+  "n_data_end": 0,
+  "overall": {
+   "n": 160,
+   "outcomes": {
+    "LOSS": 80,
+    "PARTIAL": 75,
+    "WIN": 5
+   },
+   "stages": {
+    "SL": 80,
+    "SL_TP1": 54,
+    "TP3": 5,
+    "SL_TP2": 21
+   },
+   "tp1_rate_pct": 50.0,
+   "avg_r": -0.212,
+   "median_r": -0.399,
+   "avg_bars_held": 9.9
+  },
+  "sanity": {
+   "loss_avg_r": -1.155,
+   "partial_min_r": -0.399,
+   "partial_avg_r": 0.603
+  },
+  "by_half": {
+   "H1": {
+    "n": 76,
+    "outcomes": {
+     "LOSS": 38,
+     "PARTIAL": 35,
+     "WIN": 3
+    },
+    "stages": {
+     "SL": 38,
+     "SL_TP1": 27,
+     "TP3": 3,
+     "SL_TP2": 8
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.222,
+    "median_r": -0.399,
+    "avg_bars_held": 11.2
+   },
+   "H2": {
+    "n": 84,
+    "outcomes": {
+     "LOSS": 42,
+     "PARTIAL": 40,
+     "WIN": 2
+    },
+    "stages": {
+     "SL": 42,
+     "SL_TP2": 13,
+     "SL_TP1": 27,
+     "TP3": 2
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.202,
+    "median_r": -0.346,
+    "avg_bars_held": 8.8
+   }
+  },
+  "by_trend": {
+   "ranging": {
+    "n": 36,
+    "outcomes": {
+     "WIN": 1,
+     "LOSS": 18,
+     "PARTIAL": 17
+    },
+    "stages": {
+     "TP3": 1,
+     "SL": 18,
+     "SL_TP1": 10,
+     "SL_TP2": 7
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.304,
+    "median_r": -0.399,
+    "avg_bars_held": 7.4
+   },
+   "trend_down": {
+    "n": 60,
+    "outcomes": {
+     "LOSS": 30,
+     "PARTIAL": 26,
+     "WIN": 4
+    },
+    "stages": {
+     "SL": 30,
+     "SL_TP1": 21,
+     "SL_TP2": 5,
+     "TP3": 4
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.197,
+    "median_r": -0.012,
+    "avg_bars_held": 11.1
+   },
+   "trend_up": {
+    "n": 64,
+    "outcomes": {
+     "LOSS": 32,
+     "PARTIAL": 32
+    },
+    "stages": {
+     "SL": 32,
+     "SL_TP1": 23,
+     "SL_TP2": 9
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.174,
+    "median_r": -0.268,
+    "avg_bars_held": 10.3
+   }
+  },
+  "by_vol": {
+   "high_vol": {
+    "n": 54,
+    "outcomes": {
+     "PARTIAL": 26,
+     "LOSS": 27,
+     "WIN": 1
+    },
+    "stages": {
+     "SL_TP2": 4,
+     "SL": 27,
+     "SL_TP1": 22,
+     "TP3": 1
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.219,
+    "median_r": -0.346,
+    "avg_bars_held": 12.1
+   },
+   "low_vol": {
+    "n": 50,
+    "outcomes": {
+     "LOSS": 25,
+     "PARTIAL": 24,
+     "WIN": 1
+    },
+    "stages": {
+     "SL": 25,
+     "SL_TP1": 15,
+     "SL_TP2": 9,
+     "TP3": 1
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.203,
+    "median_r": -0.399,
+    "avg_bars_held": 7.9
+   },
+   "mid_vol": {
+    "n": 56,
+    "outcomes": {
+     "LOSS": 28,
+     "PARTIAL": 25,
+     "WIN": 3
+    },
+    "stages": {
+     "SL": 28,
+     "SL_TP1": 17,
+     "TP3": 3,
+     "SL_TP2": 8
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.211,
+    "median_r": 0.006,
+    "avg_bars_held": 9.7
+   }
+  },
+  "by_direction": {
+   "LONG": {
+    "n": 80,
+    "outcomes": {
+     "LOSS": 45,
+     "WIN": 2,
+     "PARTIAL": 33
+    },
+    "stages": {
+     "SL": 45,
+     "TP3": 2,
+     "SL_TP2": 10,
+     "SL_TP1": 23
+    },
+    "tp1_rate_pct": 43.8,
+    "avg_r": -0.262,
+    "median_r": -1.0,
+    "avg_bars_held": 10.0
+   },
+   "SHORT": {
+    "n": 80,
+    "outcomes": {
+     "PARTIAL": 42,
+     "LOSS": 35,
+     "WIN": 3
+    },
+    "stages": {
+     "SL_TP1": 31,
+     "SL": 35,
+     "SL_TP2": 11,
+     "TP3": 3
+    },
+    "tp1_rate_pct": 56.2,
+    "avg_r": -0.161,
+    "median_r": 0.022,
+    "avg_bars_held": 9.9
+   }
+  }
+ },
+ "SPX_15m": {
+  "bars": 1000,
+  "bad_prints_dropped": 0,
+  "span": "2026-05-06T17:00:00Z -> 2026-07-01T19:45:00Z",
+  "entries_every": 10,
+  "n_graded": 188,
+  "n_data_end": 2,
+  "overall": {
+   "n": 188,
+   "outcomes": {
+    "PARTIAL": 84,
+    "LOSS": 95,
+    "WIN": 9
+   },
+   "stages": {
+    "SL_TP1": 64,
+    "SL": 95,
+    "SL_TP2": 20,
+    "TP3": 9
+   },
+   "tp1_rate_pct": 49.5,
+   "avg_r": -0.194,
+   "median_r": -1.0,
+   "avg_bars_held": 11.7
+  },
+  "sanity": {
+   "loss_avg_r": -1.196,
+   "partial_min_r": -0.371,
+   "partial_avg_r": 0.624
+  },
+  "by_half": {
+   "H1": {
+    "n": 90,
+    "outcomes": {
+     "PARTIAL": 44,
+     "LOSS": 45,
+     "WIN": 1
+    },
+    "stages": {
+     "SL_TP1": 32,
+     "SL": 45,
+     "SL_TP2": 12,
+     "TP3": 1
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.206,
+    "median_r": -0.371,
+    "avg_bars_held": 10.5
+   },
+   "H2": {
+    "n": 98,
+    "outcomes": {
+     "LOSS": 50,
+     "PARTIAL": 40,
+     "WIN": 8
+    },
+    "stages": {
+     "SL": 50,
+     "SL_TP1": 32,
+     "SL_TP2": 8,
+     "TP3": 8
+    },
+    "tp1_rate_pct": 49.0,
+    "avg_r": -0.183,
+    "median_r": -1.0,
+    "avg_bars_held": 12.8
+   }
+  },
+  "by_trend": {
+   "ranging": {
+    "n": 30,
+    "outcomes": {
+     "PARTIAL": 12,
+     "LOSS": 15,
+     "WIN": 3
+    },
+    "stages": {
+     "SL_TP2": 2,
+     "SL": 15,
+     "SL_TP1": 10,
+     "TP3": 3
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.153,
+    "median_r": 0.003,
+    "avg_bars_held": 9.6
+   },
+   "trend_down": {
+    "n": 66,
+    "outcomes": {
+     "PARTIAL": 31,
+     "LOSS": 33,
+     "WIN": 2
+    },
+    "stages": {
+     "SL_TP1": 26,
+     "SL": 33,
+     "SL_TP2": 5,
+     "TP3": 2
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.218,
+    "median_r": -0.119,
+    "avg_bars_held": 11.7
+   },
+   "trend_up": {
+    "n": 92,
+    "outcomes": {
+     "PARTIAL": 41,
+     "LOSS": 47,
+     "WIN": 4
+    },
+    "stages": {
+     "SL_TP1": 28,
+     "SL": 47,
+     "SL_TP2": 13,
+     "TP3": 4
+    },
+    "tp1_rate_pct": 48.9,
+    "avg_r": -0.19,
+    "median_r": -1.0,
+    "avg_bars_held": 12.4
+   }
+  },
+  "by_vol": {
+   "high_vol": {
+    "n": 104,
+    "outcomes": {
+     "PARTIAL": 48,
+     "LOSS": 52,
+     "WIN": 4
+    },
+    "stages": {
+     "SL_TP1": 39,
+     "SL": 52,
+     "SL_TP2": 9,
+     "TP3": 4
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.203,
+    "median_r": -0.119,
+    "avg_bars_held": 13.4
+   },
+   "low_vol": {
+    "n": 36,
+    "outcomes": {
+     "PARTIAL": 15,
+     "LOSS": 18,
+     "WIN": 3
+    },
+    "stages": {
+     "SL_TP1": 11,
+     "SL": 18,
+     "SL_TP2": 4,
+     "TP3": 3
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.24,
+    "median_r": -0.371,
+    "avg_bars_held": 6.1
+   },
+   "mid_vol": {
+    "n": 48,
+    "outcomes": {
+     "PARTIAL": 21,
+     "LOSS": 25,
+     "WIN": 2
+    },
+    "stages": {
+     "SL_TP1": 14,
+     "SL": 25,
+     "SL_TP2": 7,
+     "TP3": 2
+    },
+    "tp1_rate_pct": 47.9,
+    "avg_r": -0.139,
+    "median_r": -1.0,
+    "avg_bars_held": 12.1
+   }
+  },
+  "by_direction": {
+   "LONG": {
+    "n": 95,
+    "outcomes": {
+     "PARTIAL": 43,
+     "LOSS": 51,
+     "WIN": 1
+    },
+    "stages": {
+     "SL_TP1": 29,
+     "SL": 51,
+     "SL_TP2": 14,
+     "TP3": 1
+    },
+    "tp1_rate_pct": 46.3,
+    "avg_r": -0.328,
+    "median_r": -1.0,
+    "avg_bars_held": 11.9
+   },
+   "SHORT": {
+    "n": 93,
+    "outcomes": {
+     "LOSS": 44,
+     "PARTIAL": 41,
+     "WIN": 8
+    },
+    "stages": {
+     "SL": 44,
+     "SL_TP2": 6,
+     "SL_TP1": 35,
+     "TP3": 8
+    },
+    "tp1_rate_pct": 52.7,
+    "avg_r": -0.057,
+    "median_r": -0.024,
+    "avg_bars_held": 11.4
+   }
+  }
+ },
+ "SPX_30m": {
+  "bars": 1000,
+  "bad_prints_dropped": 0,
+  "span": "2026-03-12T14:00:00Z -> 2026-07-01T19:30:00Z",
+  "entries_every": 8,
+  "n_graded": 234,
+  "n_data_end": 4,
+  "overall": {
+   "n": 234,
+   "outcomes": {
+    "LOSS": 117,
+    "PARTIAL": 110,
+    "WIN": 7
+   },
+   "stages": {
+    "SL": 117,
+    "SL_TP1": 87,
+    "TP3": 7,
+    "SL_TP2": 23
+   },
+   "tp1_rate_pct": 50.0,
+   "avg_r": -0.15,
+   "median_r": -0.513,
+   "avg_bars_held": 10.5
+  },
+  "sanity": {
+   "loss_avg_r": -1.109,
+   "partial_min_r": -0.513,
+   "partial_avg_r": 0.687
+  },
+  "by_half": {
+   "H1": {
+    "n": 114,
+    "outcomes": {
+     "LOSS": 57,
+     "PARTIAL": 52,
+     "WIN": 5
+    },
+    "stages": {
+     "SL": 57,
+     "SL_TP1": 39,
+     "TP3": 5,
+     "SL_TP2": 13
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.09,
+    "median_r": -0.311,
+    "avg_bars_held": 10.1
+   },
+   "H2": {
+    "n": 120,
+    "outcomes": {
+     "LOSS": 60,
+     "PARTIAL": 58,
+     "WIN": 2
+    },
+    "stages": {
+     "SL": 60,
+     "SL_TP1": 48,
+     "SL_TP2": 10,
+     "TP3": 2
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.207,
+    "median_r": -0.513,
+    "avg_bars_held": 10.9
+   }
+  },
+  "by_trend": {
+   "ranging": {
+    "n": 42,
+    "outcomes": {
+     "LOSS": 21,
+     "WIN": 5,
+     "PARTIAL": 16
+    },
+    "stages": {
+     "SL": 21,
+     "TP3": 5,
+     "SL_TP1": 11,
+     "SL_TP2": 5
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": 0.059,
+    "median_r": -0.513,
+    "avg_bars_held": 10.6
+   },
+   "trend_down": {
+    "n": 56,
+    "outcomes": {
+     "PARTIAL": 27,
+     "LOSS": 28,
+     "WIN": 1
+    },
+    "stages": {
+     "SL_TP1": 26,
+     "SL": 28,
+     "TP3": 1,
+     "SL_TP2": 1
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.216,
+    "median_r": -0.33,
+    "avg_bars_held": 10.6
+   },
+   "trend_up": {
+    "n": 136,
+    "outcomes": {
+     "LOSS": 68,
+     "PARTIAL": 67,
+     "WIN": 1
+    },
+    "stages": {
+     "SL": 68,
+     "SL_TP1": 50,
+     "SL_TP2": 17,
+     "TP3": 1
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.188,
+    "median_r": -0.311,
+    "avg_bars_held": 10.5
+   }
+  },
+  "by_vol": {
+   "high_vol": {
+    "n": 66,
+    "outcomes": {
+     "LOSS": 33,
+     "PARTIAL": 31,
+     "WIN": 2
+    },
+    "stages": {
+     "SL": 33,
+     "SL_TP1": 28,
+     "TP3": 2,
+     "SL_TP2": 3
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.11,
+    "median_r": -0.0,
+    "avg_bars_held": 12.7
+   },
+   "low_vol": {
+    "n": 88,
+    "outcomes": {
+     "PARTIAL": 42,
+     "LOSS": 44,
+     "WIN": 2
+    },
+    "stages": {
+     "SL_TP2": 13,
+     "SL": 44,
+     "SL_TP1": 29,
+     "TP3": 2
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.169,
+    "median_r": -0.513,
+    "avg_bars_held": 8.0
+   },
+   "mid_vol": {
+    "n": 80,
+    "outcomes": {
+     "LOSS": 40,
+     "PARTIAL": 37,
+     "WIN": 3
+    },
+    "stages": {
+     "SL": 40,
+     "SL_TP1": 30,
+     "TP3": 3,
+     "SL_TP2": 7
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.163,
+    "median_r": -0.33,
+    "avg_bars_held": 11.4
+   }
+  },
+  "by_direction": {
+   "LONG": {
+    "n": 117,
+    "outcomes": {
+     "LOSS": 51,
+     "PARTIAL": 64,
+     "WIN": 2
+    },
+    "stages": {
+     "SL": 51,
+     "SL_TP1": 50,
+     "SL_TP2": 14,
+     "TP3": 2
+    },
+    "tp1_rate_pct": 56.4,
+    "avg_r": -0.047,
+    "median_r": 0.165,
+    "avg_bars_held": 10.9
+   },
+   "SHORT": {
+    "n": 117,
+    "outcomes": {
+     "PARTIAL": 46,
+     "WIN": 5,
+     "LOSS": 66
+    },
+    "stages": {
+     "SL_TP1": 37,
+     "TP3": 5,
+     "SL": 66,
+     "SL_TP2": 9
+    },
+    "tp1_rate_pct": 43.6,
+    "avg_r": -0.253,
+    "median_r": -1.0,
+    "avg_bars_held": 10.1
+   }
+  }
+ },
+ "SPX_1h": {
+  "bars": 1077,
+  "bad_prints_dropped": 0,
+  "span": "2025-11-17T16:00:00Z -> 2026-07-01T19:00:00Z",
+  "entries_every": 6,
+  "n_graded": 338,
+  "n_data_end": 4,
+  "overall": {
+   "n": 338,
+   "outcomes": {
+    "LOSS": 169,
+    "PARTIAL": 167,
+    "WIN": 2
+   },
+   "stages": {
+    "SL": 169,
+    "SL_TP1": 145,
+    "SL_TP2": 22,
+    "TP3": 2
+   },
+   "tp1_rate_pct": 50.0,
+   "avg_r": -0.141,
+   "median_r": -0.24,
+   "avg_bars_held": 14.4
+  },
+  "sanity": {
+   "loss_avg_r": -1.052,
+   "partial_min_r": -0.24,
+   "partial_avg_r": 0.746
+  },
+  "by_half": {
+   "H1": {
+    "n": 164,
+    "outcomes": {
+     "LOSS": 82,
+     "PARTIAL": 82
+    },
+    "stages": {
+     "SL": 82,
+     "SL_TP1": 74,
+     "SL_TP2": 8
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.192,
+    "median_r": -0.24,
+    "avg_bars_held": 16.1
+   },
+   "H2": {
+    "n": 174,
+    "outcomes": {
+     "LOSS": 87,
+     "PARTIAL": 85,
+     "WIN": 2
+    },
+    "stages": {
+     "SL": 87,
+     "SL_TP1": 71,
+     "SL_TP2": 14,
+     "TP3": 2
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.093,
+    "median_r": -0.23,
+    "avg_bars_held": 12.7
+   }
+  },
+  "by_trend": {
+   "ranging": {
+    "n": 86,
+    "outcomes": {
+     "LOSS": 43,
+     "PARTIAL": 43
+    },
+    "stages": {
+     "SL": 43,
+     "SL_TP1": 36,
+     "SL_TP2": 7
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.167,
+    "median_r": -0.0,
+    "avg_bars_held": 13.0
+   },
+   "trend_down": {
+    "n": 86,
+    "outcomes": {
+     "LOSS": 43,
+     "PARTIAL": 43
+    },
+    "stages": {
+     "SL": 43,
+     "SL_TP1": 36,
+     "SL_TP2": 7
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.068,
+    "median_r": 0.051,
+    "avg_bars_held": 15.5
+   },
+   "trend_up": {
+    "n": 166,
+    "outcomes": {
+     "LOSS": 83,
+     "PARTIAL": 81,
+     "WIN": 2
+    },
+    "stages": {
+     "SL": 83,
+     "SL_TP1": 73,
+     "SL_TP2": 8,
+     "TP3": 2
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.165,
+    "median_r": -0.24,
+    "avg_bars_held": 14.5
+   }
+  },
+  "by_vol": {
+   "high_vol": {
+    "n": 114,
+    "outcomes": {
+     "LOSS": 57,
+     "PARTIAL": 56,
+     "WIN": 1
+    },
+    "stages": {
+     "SL": 57,
+     "SL_TP1": 46,
+     "SL_TP2": 10,
+     "TP3": 1
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.065,
+    "median_r": 0.164,
+    "avg_bars_held": 17.4
+   },
+   "low_vol": {
+    "n": 110,
+    "outcomes": {
+     "PARTIAL": 55,
+     "LOSS": 55
+    },
+    "stages": {
+     "SL_TP1": 48,
+     "SL": 55,
+     "SL_TP2": 7
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.2,
+    "median_r": -0.24,
+    "avg_bars_held": 10.5
+   },
+   "mid_vol": {
+    "n": 114,
+    "outcomes": {
+     "LOSS": 57,
+     "PARTIAL": 56,
+     "WIN": 1
+    },
+    "stages": {
+     "SL": 57,
+     "SL_TP1": 51,
+     "SL_TP2": 5,
+     "TP3": 1
+    },
+    "tp1_rate_pct": 50.0,
+    "avg_r": -0.16,
+    "median_r": -0.23,
+    "avg_bars_held": 15.1
+   }
+  },
+  "by_direction": {
+   "LONG": {
+    "n": 169,
+    "outcomes": {
+     "LOSS": 89,
+     "PARTIAL": 78,
+     "WIN": 2
+    },
+    "stages": {
+     "SL": 89,
+     "SL_TP1": 65,
+     "SL_TP2": 13,
+     "TP3": 2
+    },
+    "tp1_rate_pct": 47.3,
+    "avg_r": -0.126,
+    "median_r": -1.0,
+    "avg_bars_held": 15.1
+   },
+   "SHORT": {
+    "n": 169,
+    "outcomes": {
+     "PARTIAL": 89,
+     "LOSS": 80
+    },
+    "stages": {
+     "SL_TP1": 80,
+     "SL": 80,
+     "SL_TP2": 9
+    },
+    "tp1_rate_pct": 52.7,
+    "avg_r": -0.155,
+    "median_r": 0.085,
+    "avg_bars_held": 13.7
+   }
+  }
+ }
+}
