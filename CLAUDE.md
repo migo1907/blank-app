@@ -121,6 +121,16 @@
 
 
 
+## Strategy Lab & Validated-Change Discipline (2026-07-01)
+- **Strategy Lab** (`strategy_lab.py`): weekly Sat 13:00 UTC + `/lab/now?secret=gold2026`. Measures win/PF by pool/trigger/session/stock-hour with BOTH-HALVES confirmation; auto-quarantine is **ON by default** (owner-approved) — reversible ML-threshold bumps via `data/strategy_config.json`, thin pools never touched; kill-switch `STRATEGY_AUTO_QUARANTINE=false`.
+- **Gate scores are persisted on outcome rows** (`gate_score/components/threshold`) since 2026-07-01 — calibrate the ensemble on live labels via `strategy_lab.gate_calibration`.
+- **CRITICAL — walk-forward gate replay (2026-07-01):** the f1–f26 RF/GBM ensemble is ANTI-predictive OOS on stock pools (quality-15m: bottom-half PF 1.88 vs top-half 0.77; momentum-15m/30m also inverted; gold ~flat, weak positive only in the 5M top-quartile). NEVER enforce the per-trade model score as a hard gate for stocks. Improvement path = realized-PF segment gating (quarantine), regime, and exit management.
+- **Exits are BE-only since 2026-07-01** (trail-model backtest over 22 IBKR cells): the old 1.2-ATR ratcheting trail + post-TP2 tighten produced ~zero expectancy and 2.5% TP3-reach; BE-only (stop parks at entry from TP1, no ratchet) = +0.039%/trade, TP3 10.5%. No-trail scored highest (+0.088%) — revisit after live confirmation. Harness: `trail_backtest.py`.
+- **Validated ladders live:** gold 5m 0.75/1.25/2.0/1.05 · gold 30m 1.1/1.9/3.0/2.2 · gold 1H 1.75/3.15/4.9/2.12 · quality-15m 2.6/4.55/7.15/2.6 (197 pooled trades, both halves). A momentum-1H tightening was tested and REJECTED (85-trade artifact, overturned at 163 trades) — only ship what survives the larger sample.
+- **Options engine (BS-mode backtest + 5% half-spread):** naive signal→long-option conversion is NEGATIVE after costs on most cells (SPY-30 PF 0.62, QQQ-15 0.76, SPY-60 0.38). Keep paper-only; the engine's IV/event gates + ML gate must prove edge first. Known bug: paper closes may not be persisting (0 closed recorded) — verify `manage_paper_positions`.
+- **Pine change discipline:** never change the Pine without a split-half-robust backtest (harnesses: `polygon_intraday_backtest` ladders, `trail_backtest` exit management, `options_backtest`). The lab emits paste-ready proposals; deployment is always a manual owner paste.
+- **IBKR chat connector:** tools attach only at session start — a mid-session reconnect never reaches the running chat; use a fresh conversation. Server-side path: `ibkr_data.py` + `IBKR_GATEWAY_URL` (Client Portal Gateway), diagnostics at `/ibkr/status`.
+
 ## Railway
 - **Production URL:** https://blank-app-production-a8bd.up.railway.app
 - **Health:** https://blank-app-production-a8bd.up.railway.app/health

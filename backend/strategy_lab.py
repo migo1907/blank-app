@@ -88,6 +88,18 @@ def segment_report(histories: dict[str, list[dict]]) -> dict:
         for v, trades in groups.items():
             if v not in ("?", "", "UNKNOWN"):
                 _consider(f"{kind}:{v}", trades, kind, len(trades))
+    # per-hour (UTC) for stocks — IBKR backtest 2026-07-01 found the NY lunch hour
+    # (17:00 UTC) bleeding -0.26%/trade across 85 entries; hour segments let the
+    # quarantine catch time-of-day leaks the coarse session buckets blur over.
+    hgroups: dict[str, list[dict]] = {}
+    for t in all_trades:
+        if str(t.get("pool", "")).startswith("XAUUSD"):
+            continue
+        ts = str(t.get("created_at") or "")
+        if len(ts) >= 13 and ts[11:13].isdigit():
+            hgroups.setdefault(f"stock_hour:{ts[11:13]}", []).append(t)
+    for key, trades in hgroups.items():
+        _consider(key, trades, "hour", len(trades))
 
     return {"generated_at": datetime.now(timezone.utc).isoformat(),
             "segments": segments, "bleeders": bleeders}
@@ -136,7 +148,10 @@ def _fetch_histories(limit: int = 400) -> dict[str, list[dict]]:
 
 
 def quarantine_enabled() -> bool:
-    return os.environ.get("STRATEGY_AUTO_QUARANTINE", "false").lower() in ("1", "true", "yes")
+    """ON by default (owner-approved 2026-07-01). Set STRATEGY_AUTO_QUARANTINE=false
+    in Railway to disable. Bumps are threshold-raises only, regenerated weekly,
+    thin pools never touched — the safe end of autonomy."""
+    return os.environ.get("STRATEGY_AUTO_QUARANTINE", "true").lower() in ("1", "true", "yes")
 
 
 def lab_cycle() -> dict:
@@ -232,6 +247,8 @@ def threshold_bump(pool: str, trigger: str = "", session: str = "") -> float:
             keys.append(f"trigger:{trigger}")
         if session:
             keys.append(f"session:{session}")
+        if not pool.startswith("XAUUSD"):
+            keys.append(f"stock_hour:{datetime.now(timezone.utc).strftime('%H')}")
         return max([float(bumps.get(k, 0.0)) for k in keys] + [0.0])
     except Exception:
         return 0.0
