@@ -3,37 +3,6 @@
     {
       "direction": "LONG",
       "timeframe": "30",
-      "trigger": "FVG",
-      "symbol": "PLTR",
-      "entry_price": 124.6,
-      "tp1": 128.08,
-      "tp2": 130.61,
-      "tp3": 134.09,
-      "sl": 121.12,
-      "ml_score": 0.5,
-      "tier": "\u26a1 LOW",
-      "quality_score": 0.2801,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.2556,
-      "velocity": "NORMAL",
-      "event": "GEOPOLITICAL",
-      "htf_bias": {
-        "direction": "LONG",
-        "timeframe": "30",
-        "symbol": "PLTR",
-        "trigger": "FVG",
-        "ml_score": 0.5,
-        "stored_at": "2026-07-01T14:00:26.800553+00:00",
-        "expires_at": "2026-07-01T16:00:26.800572+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "htf_direct",
-      "session": "NYSE Open",
-      "fired_at": "2026-07-01T14:00:27.034670+00:00"
-    },
-    {
-      "direction": "LONG",
-      "timeframe": "30",
       "trigger": "OB",
       "symbol": "MSTR",
       "entry_price": 93.08,
@@ -2923,6 +2892,29 @@
       "htf_context": "counter_trend",
       "session": "NYSE Afternoon",
       "fired_at": "2026-07-01T19:30:23.233122+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "15",
+      "trigger": "RSI",
+      "symbol": "ADBE",
+      "entry_price": 210.67,
+      "tp1": 208.38,
+      "tp2": 206.66,
+      "tp3": 204.37,
+      "sl": 212.43,
+      "ml_score": 0.25,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.2124,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.1354,
+      "velocity": "NORMAL",
+      "event": "WAR/CONFLICT",
+      "htf_bias": null,
+      "contra_bias": null,
+      "htf_context": "scalp",
+      "session": "NYSE Afternoon",
+      "fired_at": "2026-07-01T19:30:23.765432+00:00"
     }
   ]
 }
