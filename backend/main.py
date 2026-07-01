@@ -620,11 +620,19 @@ def _normalize_outcome(raw: str) -> str:
     """
     v = raw.upper().strip()
     if v == "HEARTBEAT":                          return "HEARTBEAT"
-    if v == "TP1_HIT":                            return "WIN"
-    if v in ("TP2_HIT", "TP3_HIT"):              return "PROGRESS"
+    # TP1_HIT is a MILESTONE — the trade continues (BE stop, targeting TP2/TP3)
+    # and sends its real close later (WIN/PARTIAL/LOSS). Mapping it to WIN wrote
+    # a phantom win row per TP1 touch AND the true close row — double-counting
+    # every TP1-reaching trade (found 2026-07-01: 249 phantom rows on 2M alone,
+    # inflating money win-rates while their ml_outcome polluted ML labels as
+    # losses). Milestones are PROGRESS, exactly like TP2/TP3.
+    if v in ("TP1_HIT", "TP2_HIT", "TP3_HIT"):   return "PROGRESS"
     if v in ("WIN", "TP3", "TP2", "TP1"):         return "WIN"
     if v in ("LOSS", "SL"):                        return "LOSS"
-    if v in ("PARTIAL", "SL_TP1", "SL_TP2",
+    # SCRATCH = proximity-reset close (reached 80% of TP1 then faded; exits at
+    # close). PARTIAL semantics fit exactly: closed row, win only if pnl > 0,
+    # ml_outcome from Pine's MFE heuristic drives the ML label. tp_stage="PROX".
+    if v in ("PARTIAL", "SCRATCH", "SL_TP1", "SL_TP2",
              "SL_TP3", "TP1_SL", "TP2_SL"):       return "PARTIAL"
     return "LOSS"  # unknown → treat as loss
 

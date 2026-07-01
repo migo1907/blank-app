@@ -353,6 +353,11 @@ def recent_outcomes(pool: str = "XAUUSD", limit: int = 200) -> list[dict]:
         history = []
     if not history:
         return []
+    # Exclude legacy phantom rows: TP1_HIT milestones were mis-normalized to WIN
+    # until 2026-07-01, writing a duplicate "closed" row per TP1 touch alongside
+    # the trade's real close. Filtering here cleans every consumer (ML training,
+    # gates, strategy lab) without rewriting ledger history.
+    history = [t for t in history if t.get("tp_stage") != "TP1"]
     return list(reversed(history))[:limit]
 
 
