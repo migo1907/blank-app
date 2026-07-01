@@ -1,25 +1,5 @@
 [
   {
-    "symbol": "XAUUSD",
-    "pool": "XAUUSD_2M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "news_score": -0.2222,
-    "combined_score": 0.0,
-    "session": "LONDON",
-    "regime": "TRENDING_BEAR",
-    "regime_label": "TRENDING_BEAR",
-    "reasoning": "News CONFLICTED \u2014 low conviction",
-    "status": "NEUTRAL",
-    "expires_at": "2026-07-01T11:01:20.074216+00:00",
-    "created_at": "2026-07-01T10:31:20.223699+00:00",
-    "id": 101
-  },
-  {
     "symbol": "QQQ",
     "pool": "STOCKS_QQQ_30M",
     "direction": "LONG",
@@ -3383,6 +3363,40 @@
     "status": "ACTIVE",
     "expires_at": "2026-07-01T14:59:11.559710+00:00",
     "created_at": "2026-07-01T14:29:12.187021+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "XAUUSD",
+    "pool": "XAUUSD_2M",
+    "direction": "NEUTRAL",
+    "lean_direction": "SHORT",
+    "lean_pct": 12,
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.125,
+    "rf_score": 0.1765,
+    "gbm_score": 0.0,
+    "ml_interval": [
+      0.0,
+      0.912
+    ],
+    "ml_interval_width": 0.912,
+    "ml_certainty": "LOW",
+    "news_score": -0.1719,
+    "macro_bias": 0.1063,
+    "macro_label": "NEUTRAL",
+    "combined_score": -0.1464,
+    "session": "OVERLAP",
+    "regime": "NORMAL",
+    "regime_label": "NORMAL",
+    "hmm_regime": "hmm:na",
+    "intermarket": "imkt:na",
+    "mtf_confluence": "mtf:na",
+    "post_event": "evt:na",
+    "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:na\u00d71.00 | imkt:na\u00d71.00 | mtf:na\u00d71.00 | evt:na\u00d71.00 | sess:OVERLAP\u00d71.30 | confluence\u00d71.09 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:neutral(-0.172) | macro:NEUTRAL(+0.106) | combined:-0.146 \u2192 conf:0.208 \u26a1 NFP",
+    "status": "ACTIVE",
+    "expires_at": "2026-07-01T15:13:59.990516+00:00",
+    "created_at": "2026-07-01T14:44:01.821963+00:00",
     "id": 101
   }
 ]
