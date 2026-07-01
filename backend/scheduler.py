@@ -2165,7 +2165,11 @@ def start_scheduler() -> AsyncIOScheduler:
     # bulk of the day's IV is realized) + manage open paper positions hourly.
     _scheduler.add_job(_options_iv_record_cycle, trigger="cron", day_of_week="mon-fri", hour=15, minute=45,
                        timezone=_ny_tz, id="options_iv_record", replace_existing=True, misfire_grace_time=3600)
-    _scheduler.add_job(_options_paper_manage_cycle, trigger="cron", day_of_week="mon-fri", hour="10-16", minute=5,
+    # 15-min cadence (was hourly): the first 7 real paper closes show SL exits at
+    # -56%..-70% instead of -50% — 0/1DTE premiums blow through the stop between
+    # hourly checks. Tighter cadence shrinks the overshoot; costs nothing (delayed
+    # quotes, no rate-limited source on this path).
+    _scheduler.add_job(_options_paper_manage_cycle, trigger="cron", day_of_week="mon-fri", hour="9-16", minute="5,20,35,50",
                        timezone=_ny_tz, id="options_paper_manage", replace_existing=True, misfire_grace_time=600)
     _scheduler.add_job(_options_weekly_autopsy, trigger="cron", day_of_week="mon", hour=17, minute=0,
                        timezone=_ny_tz, id="options_weekly_autopsy", replace_existing=True, misfire_grace_time=3600)
