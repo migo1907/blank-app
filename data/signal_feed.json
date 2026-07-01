@@ -3,37 +3,6 @@
     {
       "direction": "LONG",
       "timeframe": "30",
-      "trigger": "FVG",
-      "symbol": "PATH",
-      "entry_price": 11.35,
-      "tp1": 11.69,
-      "tp2": 11.94,
-      "tp3": 12.28,
-      "sl": 11.01,
-      "ml_score": 0.625,
-      "tier": "\u2705 MED",
-      "quality_score": 0.1847,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.2556,
-      "velocity": "NORMAL",
-      "event": "GEOPOLITICAL",
-      "htf_bias": {
-        "direction": "LONG",
-        "timeframe": "30",
-        "symbol": "PATH",
-        "trigger": "FVG",
-        "ml_score": 0.625,
-        "stored_at": "2026-07-01T14:00:06.292754+00:00",
-        "expires_at": "2026-07-01T16:00:06.292791+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "htf_direct",
-      "session": "NYSE Open",
-      "fired_at": "2026-07-01T14:00:06.898386+00:00"
-    },
-    {
-      "direction": "LONG",
-      "timeframe": "30",
       "trigger": "LIQ",
       "symbol": "PLUG",
       "entry_price": 2.77,
@@ -2947,6 +2916,29 @@
       "htf_context": "htf_direct",
       "session": "NYSE Afternoon",
       "fired_at": "2026-07-01T19:00:06.897426+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "15",
+      "trigger": "RSI",
+      "symbol": "UPST",
+      "entry_price": 36.39,
+      "tp1": 35.86,
+      "tp2": 35.47,
+      "tp3": 34.94,
+      "sl": 36.92,
+      "ml_score": 0.375,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.2162,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.1511,
+      "velocity": "LOW",
+      "event": "NFP",
+      "htf_bias": null,
+      "contra_bias": null,
+      "htf_context": "scalp",
+      "session": "NYSE Afternoon",
+      "fired_at": "2026-07-01T19:00:07.985394+00:00"
     }
   ]
 }
