@@ -31,6 +31,11 @@ import os
 from datetime import datetime, timezone
 
 MIN_SEGMENT_N   = 100    # a segment needs this many closed trades to be judged
+# Everything before this timestamp traded under the OLD exit regime (ratcheting
+# trail, phantom TP1 rows, broken short-MFE, old ladders) — replaced 2026-07-01.
+# Clean-era stats are the only honest scoreboard for the current system; the
+# lab reports them separately so 2,300 obsolete trades can't drown the signal.
+CLEAN_ERA_START = "2026-07-01T22:00"
 BLEED_PF        = 0.70   # full-sample PF below this → candidate bleeder
 BLEED_HALF_PF   = 0.85   # ...and BOTH halves must be below this (regime-robust)
 QUARANTINE_BUMP = 0.08   # ML-threshold bump applied to quarantined segments
@@ -105,6 +110,22 @@ def segment_report(histories: dict[str, list[dict]]) -> dict:
             "segments": segments, "bleeders": bleeders}
 
 
+def clean_era_report(histories: dict[str, list[dict]]) -> dict:
+    """Stats for trades closed AFTER the 2026-07-01 exit overhaul — the honest
+    scoreboard for the current system. Per-pool + aggregate; small n expected
+    at first, growing daily."""
+    per_pool = {}
+    all_new = []
+    for pool, hist in histories.items():
+        recent = [t for t in hist if str(t.get("created_at") or "") >= CLEAN_ERA_START]
+        if recent:
+            per_pool[pool] = _seg_stats(recent)
+            all_new += recent
+    return {"since": CLEAN_ERA_START, "n": len(all_new),
+            "aggregate": _seg_stats(all_new) if all_new else {"n": 0},
+            "per_pool": per_pool}
+
+
 def gate_calibration(histories: dict[str, list[dict]]) -> dict:
     """Do persisted backend gate scores separate winners on live labels?
     Buckets outcomes by gate_score; needs main.py's gate-score attachment to
@@ -161,6 +182,7 @@ def lab_cycle() -> dict:
         histories = _fetch_histories()
         report = segment_report(histories)
         report["gate_calibration"] = gate_calibration(histories)
+        report["clean_era"] = clean_era_report(histories)
         report["quarantine_active"] = quarantine_enabled()
 
         # IBKR gateway live? re-validate exits on fresh bars (proposal-only).
@@ -198,9 +220,13 @@ def lab_cycle() -> dict:
         try:
             n_bleed = len(report["bleeders"])
             n_prop = len(report.get("pine_proposals", []))
-            if n_bleed or n_prop:
+            ce = report.get("clean_era", {}).get("aggregate", {})
+            if n_bleed or n_prop or ce.get("n"):
                 lines = [f"🧪 Strategy Lab — {n_bleed} bleeding segment(s), "
                          f"{n_prop} validated Pine proposal(s)"]
+                if ce.get("n"):
+                    lines.append(f"📈 CLEAN ERA (post-fix): n={ce['n']} "
+                                 f"win%={ce.get('win_pct')} PF={ce.get('pf')}")
                 for b in report["bleeders"][:6]:
                     lines.append(f"• {b['segment']}: n={b['n']} PF={b['pf']} "
                                  f"(halves {b['h1_pf']}/{b['h2_pf']})"
