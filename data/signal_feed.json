@@ -1,37 +1,6 @@
 {
   "signals": [
     {
-      "direction": "LONG",
-      "timeframe": "30",
-      "trigger": "BOS",
-      "symbol": "AMD",
-      "entry_price": 541.47,
-      "tp1": 561.61,
-      "tp2": 576.26,
-      "tp3": 596.41,
-      "sl": 521.33,
-      "ml_score": 0.5,
-      "tier": "\u26a1 LOW",
-      "quality_score": 0.5487,
-      "quality_reason": "approved",
-      "news_score": -0.0103,
-      "velocity": "CONFLICTED",
-      "event": "GEOPOLITICAL",
-      "htf_bias": {
-        "direction": "LONG",
-        "timeframe": "60",
-        "symbol": "AMD",
-        "trigger": "FVG",
-        "ml_score": 0.625,
-        "stored_at": "2026-06-29T17:30:04.393004+00:00",
-        "expires_at": "2026-06-29T21:30:04.393025+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "htf_direct",
-      "session": "NYSE Afternoon",
-      "fired_at": "2026-06-29T17:30:13.351181+00:00"
-    },
-    {
       "direction": "SHORT",
       "timeframe": "240",
       "trigger": "BOS",
@@ -2907,6 +2876,37 @@
       "htf_context": "counter_trend",
       "session": "London/NY Overlap",
       "fired_at": "2026-07-01T14:52:02.224049+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "15",
+      "trigger": "FVG",
+      "symbol": "MU",
+      "entry_price": 1053.8,
+      "tp1": 1020.55,
+      "tp2": 995.62,
+      "tp3": 962.37,
+      "sl": 1087.05,
+      "ml_score": 0.25,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.219,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.1568,
+      "velocity": "CONFLICTED",
+      "event": "NFP",
+      "htf_bias": {
+        "direction": "SHORT",
+        "timeframe": "60",
+        "symbol": "MU",
+        "trigger": "FVG",
+        "ml_score": 0.375,
+        "stored_at": "2026-07-01T14:30:23.712844+00:00",
+        "expires_at": "2026-07-01T18:30:23.712863+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "with_bias",
+      "session": "NYSE Open",
+      "fired_at": "2026-07-01T15:00:02.871616+00:00"
     }
   ]
 }
