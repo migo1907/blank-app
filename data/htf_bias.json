@@ -8,87 +8,6 @@
     "stored_at": "2026-07-01T18:00:24.517867+00:00",
     "expires_at": "2026-07-01T20:00:24.517875+00:00"
   },
-  "PLTR_60": {
-    "direction": "LONG",
-    "timeframe": "60",
-    "symbol": "PLTR",
-    "trigger": "FVG",
-    "ml_score": 0.5,
-    "stored_at": "2026-07-01T14:30:06.495837+00:00",
-    "expires_at": "2026-07-01T18:30:06.495856+00:00"
-  },
-  "CRM_60": {
-    "direction": "LONG",
-    "timeframe": "60",
-    "symbol": "CRM",
-    "trigger": "FVG",
-    "ml_score": 0.25,
-    "stored_at": "2026-07-01T14:30:08.635455+00:00",
-    "expires_at": "2026-07-01T18:30:08.635472+00:00"
-  },
-  "MSFT_60": {
-    "direction": "LONG",
-    "timeframe": "60",
-    "symbol": "MSFT",
-    "trigger": "FVG",
-    "ml_score": 0.875,
-    "stored_at": "2026-07-01T14:30:09.651601+00:00",
-    "expires_at": "2026-07-01T18:30:09.651624+00:00"
-  },
-  "META_60": {
-    "direction": "LONG",
-    "timeframe": "60",
-    "symbol": "META",
-    "trigger": "FVG",
-    "ml_score": 0.375,
-    "stored_at": "2026-07-01T14:30:14.793969+00:00",
-    "expires_at": "2026-07-01T18:30:14.793990+00:00"
-  },
-  "PATH_60": {
-    "direction": "LONG",
-    "timeframe": "60",
-    "symbol": "PATH",
-    "trigger": "FVG",
-    "ml_score": 0.625,
-    "stored_at": "2026-07-01T14:30:15.112523+00:00",
-    "expires_at": "2026-07-01T18:30:15.112543+00:00"
-  },
-  "MSTR_60": {
-    "direction": "LONG",
-    "timeframe": "60",
-    "symbol": "MSTR",
-    "trigger": "OB",
-    "ml_score": 0.625,
-    "stored_at": "2026-07-01T14:30:21.819372+00:00",
-    "expires_at": "2026-07-01T18:30:21.819394+00:00"
-  },
-  "BBAI_60": {
-    "direction": "LONG",
-    "timeframe": "60",
-    "symbol": "BBAI",
-    "trigger": "OB",
-    "ml_score": 0.75,
-    "stored_at": "2026-07-01T14:30:22.671468+00:00",
-    "expires_at": "2026-07-01T18:30:22.671488+00:00"
-  },
-  "MU_60": {
-    "direction": "SHORT",
-    "timeframe": "60",
-    "symbol": "MU",
-    "trigger": "FVG",
-    "ml_score": 0.375,
-    "stored_at": "2026-07-01T14:30:23.712844+00:00",
-    "expires_at": "2026-07-01T18:30:23.712863+00:00"
-  },
-  "BLNK_60": {
-    "direction": "LONG",
-    "timeframe": "60",
-    "symbol": "BLNK",
-    "trigger": "FVG",
-    "ml_score": 0.125,
-    "stored_at": "2026-07-01T14:31:00.279318+00:00",
-    "expires_at": "2026-07-01T18:31:00.279337+00:00"
-  },
   "SOXL_60": {
     "direction": "SHORT",
     "timeframe": "60",
@@ -142,15 +61,6 @@
     "ml_score": 0.375,
     "stored_at": "2026-07-01T15:30:22.281172+00:00",
     "expires_at": "2026-07-01T19:30:22.281188+00:00"
-  },
-  "IBKR_30": {
-    "direction": "LONG",
-    "timeframe": "30",
-    "symbol": "IBKR",
-    "trigger": "BOS",
-    "ml_score": 0.875,
-    "stored_at": "2026-07-01T16:30:20.780415+00:00",
-    "expires_at": "2026-07-01T18:30:20.780430+00:00"
   },
   "IBKR_60": {
     "direction": "LONG",
@@ -277,5 +187,14 @@
     "ml_score": 0.5,
     "stored_at": "2026-07-01T18:30:02.981219+00:00",
     "expires_at": "2026-07-01T22:30:02.981239+00:00"
+  },
+  "SPCX_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "SPCX",
+    "trigger": "FVG",
+    "ml_score": 0.5,
+    "stored_at": "2026-07-01T19:00:06.426968+00:00",
+    "expires_at": "2026-07-01T21:00:06.426990+00:00"
   }
 }
