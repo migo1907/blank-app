@@ -39,6 +39,7 @@ export async function subscribePush(sub) {
 }
 
 export const VAPID_PUBLIC = import.meta.env.VITE_VAPID_PUBLIC || ''
+export const getVapidPublic = () => _get('/push/vapid-public')
 
 export const getMarketOverview  = ()        => _get('/market/overview')
 export const getMarketQuotes    = (symbols) => _get('/market/quotes', { symbols })

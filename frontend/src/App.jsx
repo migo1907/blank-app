@@ -5,8 +5,8 @@ import {
   AreaChart, Area, LineChart, Line,
   ReferenceLine
 } from 'recharts'
-import { Crosshair, BarChart3, CalendarDays, Briefcase, Newspaper, LogOut, Menu, X, Moon, Sun, FileText } from 'lucide-react'
-import { getDashboard, subscribePush, VAPID_PUBLIC,
+import { Crosshair, BarChart3, CalendarDays, Briefcase, Newspaper, LogOut, Menu, X, Moon, Sun, FileText, Bell } from 'lucide-react'
+import { getDashboard, subscribePush, VAPID_PUBLIC, getVapidPublic,
   getMarketOverview, getMarketQuotes, getMarketTicker, getMarketCompare, getMarketWrap, getMarketCommentary,
   getMarketSparklines, getOptionsFlow, getEconomicCalendar, getEarningsCalendar,
   getBreakingNews, login, getSecret, clearSecret } from './api'
@@ -36,6 +36,16 @@ const GOLD_POOLS  = ['XAUUSD_2M','XAUUSD_5M','XAUUSD_15M','XAUUSD_30M','XAUUSD_1
 const STOCK_POOLS = ['STOCKS_MOMENTUM_15M','STOCKS_MOMENTUM_30M','STOCKS_QUALITY_15M','STOCKS_QUALITY_30M','STOCKS_INDEX_15M','STOCKS_INDEX_30M','STOCKS_QQQ_15M','STOCKS_QQQ_30M','STOCKS_SPX500_15M','STOCKS_SPX500_30M']
 
 // ── Utils ──────────────────────────────────────────────────────────────────────
+// base64url → Uint8Array (VAPID applicationServerKey)
+function urlB64ToUint8Array(base64) {
+  const padding = '='.repeat((4 - base64.length % 4) % 4)
+  const b64 = (base64 + padding).replace(/-/g, '+').replace(/_/g, '/')
+  const raw = window.atob(b64)
+  const out = new Uint8Array(raw.length)
+  for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i)
+  return out
+}
+
 const bc   = b => b==='BULLISH'?'bull':b==='BEARISH'?'bear':'neut'
 const bico = b => b==='BULLISH'?'▲':b==='BEARISH'?'▼':'—'
 const bclr = b => b==='BULLISH'?'var(--green)':b==='BEARISH'?'var(--red)':'var(--muted)'
@@ -2085,6 +2095,28 @@ function MainApp({onLock}) {
   const [menu,setMenu] = useState(false)
   const [marketsSub,setMarketsSub] = useState('overview')
   const [theme,setTheme] = useState(()=>{ try{ return localStorage.getItem('theme')||'dark' }catch{ return 'dark' } })
+  const [pushOn,setPushOn] = useState(()=>{ try{ return localStorage.getItem('push_enabled')==='1' }catch{ return false } })
+  const canPush = typeof window!=='undefined' && 'PushManager' in window && 'serviceWorker' in navigator
+
+  async function enablePush() {
+    try {
+      const perm = await Notification.requestPermission()
+      if (perm !== 'granted') { alert('Notifications were not allowed.'); return }
+      const reg = await navigator.serviceWorker.ready
+      const { key } = await getVapidPublic()
+      const serverKey = key || VAPID_PUBLIC
+      if (!serverKey) { alert('Push not configured on the server yet.'); return }
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlB64ToUint8Array(serverKey),
+      })
+      await subscribePush(sub.toJSON ? sub.toJSON() : sub)
+      try { localStorage.setItem('push_enabled','1') } catch {}
+      setPushOn(true)
+    } catch (e) {
+      alert('Could not enable notifications: ' + (e?.message || e))
+    }
+  }
   useEffect(()=>{ try{ document.documentElement.setAttribute('data-theme',theme); localStorage.setItem('theme',theme) }catch{} },[theme])
   const pulse  = useLoad(()=>fetch(`${BASE}/pulse`,{signal:AbortSignal.timeout(15000)}).then(r=>r.json()))
   const health = useLoad(()=>api('/health'))
@@ -2137,6 +2169,12 @@ function MainApp({onLock}) {
               {theme==='light'?'Night Mode':'Day Mode'}
               <span className="m-meta">{theme==='light'?'Light':'Dark'}</span>
             </button>
+            {canPush && (
+              <button className="menu-item" onClick={enablePush}>
+                <span className="m-ico"><Bell size={18}/></span> Notifications
+                {pushOn && <span className="m-meta">✓ Enabled</span>}
+              </button>
+            )}
             <button className="menu-item danger" onClick={()=>{ setMenu(false); onLock() }}>
               <span className="m-ico"><LogOut size={18}/></span> Lock / Sign Out
             </button>

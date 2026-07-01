@@ -932,6 +932,13 @@ async def signal_entry(payload: SignalEntryPayload):
     }
     _feed_push(_sig_payload)
     asyncio.create_task(send_entry_signal(_sig_payload))
+    try:
+        import push_notify
+        if push_notify.available():
+            asyncio.create_task(asyncio.to_thread(
+                push_notify.send_push, f"{payload.direction} — {sym}", f"Entry {entry} · TF {tf}m"))
+    except Exception as _pe:
+        print(f"[signal-entry] push notify skipped (non-fatal): {_pe}")
     return {"status": "ok", "routed_to": "signal-entry", "direction": payload.direction, "htf_context": htf_context}
 
 
@@ -1088,6 +1095,13 @@ async def unified_webhook(payload: UnifiedPayload):
         }
         _feed_push(_sig_payload2)
         asyncio.create_task(send_entry_signal(_sig_payload2))
+        try:
+            import push_notify
+            if push_notify.available():
+                asyncio.create_task(asyncio.to_thread(
+                    push_notify.send_push, f"{payload.direction} — {sym}", f"Entry {entry} · TF {tf}m"))
+        except Exception as _pe:
+            print(f"[webhook] push notify skipped (non-fatal): {_pe}")
         return {"status": "ok", "routed_to": "signal-entry", "direction": payload.direction, "htf_context": htf_context}
 
     if payload.outcome == "HEARTBEAT":
@@ -1932,6 +1946,22 @@ async def push_subscribe(request: Request, secret: str = ""):
         subs.append(sub)
         _put_file("data/push_subscriptions.json", subs, sha, "data: new push subscription")
     return {"ok": True, "total": len(subs)}
+
+
+@app.get("/push/vapid-public")
+async def push_vapid_public(secret: str = ""):
+    """Public VAPID key for the browser's pushManager.subscribe()."""
+    _validate_secret(secret)
+    return {"key": os.environ.get("VAPID_PUBLIC_KEY", "")}
+
+
+@app.post("/push/test")
+async def push_test(secret: str = ""):
+    """Send a test push to every stored subscription."""
+    _validate_secret(secret)
+    from push_notify import send_push, available
+    n = await asyncio.to_thread(send_push, "Sniper Signals", "Push notifications are working ✅")
+    return {"sent": n, "available": available()}
 
 
 @app.get("/brief/data")

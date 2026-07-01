@@ -311,6 +311,13 @@ async def _breaking_news_cycle() -> None:
                 "at": datetime.now(timezone.utc).isoformat(),
             })
             del _recent_breaking[:-_RECENT_BREAKING_MAX]
+            try:
+                import push_notify
+                if push_notify.available():
+                    asyncio.create_task(asyncio.to_thread(
+                        push_notify.send_push, "🔴 BREAKING", headline[:160]))
+            except Exception:
+                pass
             if telegram_enabled:
                 msg = (
                     f"\U0001f6a8 <b>BREAKING</b> — FinancialJuice\n"

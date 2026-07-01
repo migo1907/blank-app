@@ -20,12 +20,13 @@ self.addEventListener('fetch', e => {
 })
 
 self.addEventListener('push', e => {
-  const data = e.data ? e.data.json() : { title: 'Migo Sniper', body: 'New alert' }
+  let data = { title: 'Sniper Signals', body: 'New alert' }
+  try { if (e.data) data = e.data.json() } catch { try { data.body = e.data.text() } catch {} }
   e.waitUntil(
-    self.registration.showNotification(data.title || 'Migo Sniper Pro', {
+    self.registration.showNotification(data.title || 'Sniper Signals', {
       body:    data.body || '',
-      icon:    '/app/manifest.json',
-      badge:   '/app/manifest.json',
+      icon:    '/app/icon-192.png',
+      badge:   '/app/icon-192.png',
       data:    { url: data.url || '/app/' },
       vibrate: [200, 100, 200],
     })
