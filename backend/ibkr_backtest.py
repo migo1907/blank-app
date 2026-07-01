@@ -42,16 +42,14 @@ def _normalize(bars):
 
 
 def run_bars(symbol: str, tf: str, bars) -> dict:
-    """Backtest a bar series. `tf` is Pine notation ('5','15','30','60','240')."""
+    """Backtest a bar series. `tf` is Pine notation ('5','15','30','60','240').
+    Returns the base trade summary + the laddered exit A/B (current vs best)."""
     import polygon_intraday_backtest as bt
     rows = _normalize(bars)
     if len(rows) < 60:
         return {"symbol": symbol, "tf": tf, "error": f"too few bars ({len(rows)})"}
-    feats = bt.compute_features(rows, tf)
-    entries = bt.build_entries(feats, rows, tf, symbol)
-    graded = bt.grade_entries(entries, rows, tf, symbol)
-    summary = bt._summarize_trades(graded)
-    ladders = bt.compare_exits(entries, rows, tf, symbol)
+    summary = bt.backtest_one(symbol, tf, rows)
+    ladders = bt.compare_exits(symbol, tf, rows)
     return {"symbol": symbol, "tf": tf, "n_bars": len(rows),
             "summary": summary, "exit_ladders": ladders}
 
