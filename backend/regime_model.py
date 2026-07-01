@@ -249,7 +249,7 @@ def compute_regime(asset_key: str) -> dict:
         if df is None or len(df) < 60:
             df = fetch_daily(ticker, period="2y")   # Stooq-backed daily fallback
         if df is None or not len(df):
-            raise RuntimeError("no OHLC from yfinance or Stooq")
+            raise RuntimeError("no OHLC (Stooq unavailable / rate-limited)")
         close = df["Close"].to_numpy(dtype=float)
         high  = df["High"].to_numpy(dtype=float)
         low   = df["Low"].to_numpy(dtype=float)

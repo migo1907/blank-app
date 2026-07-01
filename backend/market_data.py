@@ -240,13 +240,30 @@ def alphavantage_target_upside(ticker: str, current_price: float | None):
 
 
 def _stooq_daily(stooq_symbol: str):
-    """Daily OHLC CSV from Stooq → yfinance-shaped DataFrame (or empty)."""
+    """Daily OHLC CSV from Stooq → yfinance-shaped DataFrame (or empty).
+
+    Stooq is now the shared daily source for regime + macro + daily-levels +
+    the swing 70-stock scan, and it rate-limits aggressively — a startup burst
+    can transiently 429 (or return a throttle body), starving every consumer.
+    Retry a couple of times with backoff so a transient throttle doesn't degrade
+    the whole data layer. A genuinely bad symbol still returns empty fast."""
     import pandas as pd
+    import time as _time
     url = f"https://stooq.com/q/d/l/?s={stooq_symbol}&i=d"
-    with httpx.Client(timeout=12) as client:
-        r = client.get(url, headers={"User-Agent": _STOOQ_UA})
-        r.raise_for_status()
-        text = r.text or ""
+    text = ""
+    for attempt in range(3):
+        try:
+            with httpx.Client(timeout=12) as client:
+                r = client.get(url, headers={"User-Agent": _STOOQ_UA})
+                r.raise_for_status()
+                text = r.text or ""
+            if text and ("Date" in text[:64]):
+                break                       # got a real CSV header
+            # Empty / "N/D" / throttle body — retry (could be a transient rate-limit)
+        except Exception:
+            if attempt == 2:
+                raise
+        _time.sleep(1.2 * (attempt + 1))    # 1.2s, 2.4s backoff
     lines = text.splitlines()
     if not lines or "Date" not in lines[0] or "Close" not in lines[0]:
         return pd.DataFrame()      # Stooq returns "N/D" / HTML for bad symbols
