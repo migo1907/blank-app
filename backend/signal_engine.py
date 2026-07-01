@@ -622,6 +622,17 @@ def score_entry_gate(pool: str, direction: str, trigger: str = "") -> dict:
     # Weekly autopsy: trigger-less entries = 31/100 losses (largest single category).
     if not trigger:
         threshold = round(threshold * 1.15, 3)
+    # Strategy-lab auto-quarantine (env-gated, default OFF): both-halves-confirmed
+    # bleeding segments get a threshold bump from data/strategy_config.json.
+    # Backend-only, reversible every lab cycle; thin pools never flagged (Rule 8).
+    try:
+        from strategy_lab import threshold_bump
+        _bump = threshold_bump(pool, trigger, "")
+        if _bump:
+            threshold = round(threshold + _bump, 3)
+            components["quarantine_bump"] = _bump
+    except Exception:
+        pass
     passed    = score >= threshold
     reason    = "approved" if passed else ("rejected_no_trigger_weak" if not trigger else "rejected_low_confidence")
 

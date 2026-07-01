@@ -1451,6 +1451,17 @@ async def _exit_optimizer_cycle() -> None:
         print(f"[exit_opt] cycle failed: {e}")
 
 
+async def _strategy_lab_cycle() -> None:
+    """Weekly Strategy Lab (see strategy_lab.py). Heavy ledger reads → thread."""
+    try:
+        from strategy_lab import lab_cycle
+        report = await asyncio.to_thread(lab_cycle)
+        print(f"[scheduler] strategy lab: {len(report.get('bleeders', []))} bleeders, "
+              f"{len(report.get('pine_proposals', []))} proposals")
+    except Exception as e:
+        print(f"[scheduler] strategy lab failed: {e}")
+
+
 async def _self_diagnosis_cycle() -> None:
     """Weekly (Sun 21:15 UTC, right after the exit optimizer so it uses fresh exit
     numbers) — for each pool, classify its losing trades into a dominant failure mode
@@ -2144,6 +2155,12 @@ def start_scheduler() -> AsyncIOScheduler:
     _scheduler.add_job(_exit_optimizer_cycle, trigger="cron", day_of_week="sun", hour=21, minute=0, id="exit_optimizer", replace_existing=True, misfire_grace_time=3600)
     # Self-diagnosis (SHADOW) — per-pool failure-mode autopsy, Sun 21:15 UTC (after exit optimizer)
     _scheduler.add_job(_self_diagnosis_cycle, trigger="cron", day_of_week="sun", hour=21, minute=15, id="self_diagnosis", replace_existing=True, misfire_grace_time=3600)
+    # Strategy Lab — the weekly measure→validate→improve loop: segment bleeder
+    # detection (both-halves-confirmed), gate calibration on live labels,
+    # env-gated auto-quarantine (backend threshold bumps only, reversible),
+    # and IBKR-revalidated Pine proposals when the gateway is live. Saturday:
+    # markets closed, full week of fresh outcomes to measure.
+    _scheduler.add_job(_strategy_lab_cycle, trigger="cron", day_of_week="sat", hour=13, minute=0, id="strategy_lab", replace_existing=True, misfire_grace_time=3600)
     # Phase 2C — SPX options: record ATM IV once per session (15:45 ET, after the
     # bulk of the day's IV is realized) + manage open paper positions hourly.
     _scheduler.add_job(_options_iv_record_cycle, trigger="cron", day_of_week="mon-fri", hour=15, minute=45,

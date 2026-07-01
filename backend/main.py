@@ -25,6 +25,10 @@ _OUTCOME_DEDUP_TTL = 30.0  # seconds
 # that outcome payloads (TP1_HIT, WIN, LOSS) can recover it if the field is missing/NaN.
 # Key: "SYMBOL|DIRECTION|TF"  Value: (entry_price, tp1, tp2, tp3, sl, monotonic_ts)
 _entry_price_cache: dict[str, tuple] = {}
+# (symbol, tf, direction) -> (gate_score, components, threshold, monotonic).
+# Set at entry, attached to the matching OUTCOME row (<48h) so the ledger can
+# calibrate/auto-tune the backend gate on live labels (strategy_lab).
+_gate_score_cache: dict[tuple, tuple] = {}
 _ENTRY_CACHE_TTL = 86400.0  # 24h — covers overnight/multi-day trades
 
 # Triggered signal feed — mirrors what is sent to Telegram (last 100)
@@ -992,6 +996,17 @@ async def unified_webhook(payload: UnifiedPayload):
         print(f"[webhook] ML QUALITY {payload.direction} {sym} TF={tf} "
               f"score={_gate['score']} ({_gate['reason']}) components={_gate['components']}")
 
+        # Persist-for-learning: cache the gate verdict so the eventual OUTCOME row
+        # carries it. Without this the ledger only stores Pine's KNN score (proven
+        # non-separating) and the backend ensemble can never be counterfactual-
+        # tested or auto-tuned on live labels (strategy_lab.gate_calibration).
+        try:
+            _gate_score_cache[(sym, tf, payload.direction)] = (
+                _gate.get("score"), _gate.get("components", {}),
+                _gate.get("threshold"), _time.monotonic())
+        except Exception:
+            pass
+
         # Higher-quality-only gate: suppress signals the backend ensemble grades
         # below the pool's own adaptive threshold (F-beta / expectancy tuned,
         # default 0.45) — i.e. honor _gate["pass"] instead of a flat 0.40 cutoff.
@@ -1171,6 +1186,17 @@ async def unified_webhook(payload: UnifiedPayload):
             "regime":        _regime,
             "session":       _session,
         }
+        # Attach the backend gate verdict captured at ENTRY (strategy_lab needs
+        # live labels next to gate scores to calibrate/auto-tune the ensemble).
+        try:
+            import time as _t
+            _gs = _gate_score_cache.get((sym2, payload.timeframe or "", payload.direction))
+            if _gs and (_t.monotonic() - _gs[3]) < 48 * 3600:
+                outcome_row["gate_score"] = _gs[0]
+                outcome_row["gate_components"] = _gs[1]
+                outcome_row["gate_threshold"] = _gs[2]
+        except Exception:
+            pass
         outcome_row.update(features.as_db_dict())
 
         async def _persist():
@@ -1304,6 +1330,21 @@ async def owner_test(secret: str = "", message: str = ""):
                        "needs a manual step (paste Pine, allow-list a host, run an endpoint).")
     ok = await send_owner_message(body, action="reply here or in chat if you got this.")
     return {"sent": ok}
+
+
+@app.get("/lab/now")
+async def strategy_lab_now(secret: str = ""):
+    """Run the Strategy Lab cycle on demand (weekly cron: Sat 13:00 UTC).
+    Measures segment bleeders, calibrates the gate on live labels, applies the
+    env-gated quarantine, and returns the report inline."""
+    _validate_secret(secret)
+    from strategy_lab import lab_cycle
+    report = await asyncio.to_thread(lab_cycle)
+    return {"bleeders": report.get("bleeders", []),
+            "gate_calibration": report.get("gate_calibration"),
+            "quarantine_active": report.get("quarantine_active"),
+            "pine_proposals": report.get("pine_proposals", []),
+            "n_segments": len(report.get("segments", {}))}
 
 
 @app.get("/ibkr/status")
