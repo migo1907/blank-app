@@ -2,37 +2,6 @@
   "signals": [
     {
       "direction": "SHORT",
-      "timeframe": "60",
-      "trigger": "FVG",
-      "symbol": "XAUUSD",
-      "entry_price": 3996.61,
-      "tp1": 3954.27,
-      "tp2": 3920.4,
-      "tp3": 3878.06,
-      "sl": 4038.95,
-      "ml_score": 0.875,
-      "tier": "\u2b50 HIGH",
-      "quality_score": 0.2962,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.2258,
-      "velocity": "NORMAL",
-      "event": "GEOPOLITICAL",
-      "htf_bias": {
-        "direction": "SHORT",
-        "timeframe": "60",
-        "symbol": "XAUUSD",
-        "trigger": "FVG",
-        "ml_score": 0.875,
-        "stored_at": "2026-07-01T01:02:01.832194+00:00",
-        "expires_at": "2026-07-01T05:02:01.832208+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "htf_direct",
-      "session": "Asian",
-      "fired_at": "2026-07-01T01:02:02.329958+00:00"
-    },
-    {
-      "direction": "SHORT",
       "timeframe": "30",
       "trigger": "RSI",
       "symbol": "US500",
@@ -2867,6 +2836,37 @@
       "htf_context": "with_bias",
       "session": "NYSE Afternoon",
       "fired_at": "2026-07-01T16:00:04.577228+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "60",
+      "trigger": "BOS",
+      "symbol": "US500",
+      "entry_price": 7515.2,
+      "tp1": 7553.72,
+      "tp2": 7584.54,
+      "tp3": 7623.06,
+      "sl": 7476.68,
+      "ml_score": 0.625,
+      "tier": "\u2705 MED",
+      "quality_score": 0.2648,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.0941,
+      "velocity": "CONFLICTED",
+      "event": "NFP",
+      "htf_bias": {
+        "direction": "LONG",
+        "timeframe": "60",
+        "symbol": "US500",
+        "trigger": "BOS",
+        "ml_score": 0.625,
+        "stored_at": "2026-07-01T16:00:07.168914+00:00",
+        "expires_at": "2026-07-01T20:00:07.168932+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "htf_direct",
+      "session": "NYSE Afternoon",
+      "fired_at": "2026-07-01T16:00:07.760969+00:00"
     }
   ]
 }
