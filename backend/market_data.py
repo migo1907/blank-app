@@ -239,16 +239,26 @@ def alphavantage_target_upside(ticker: str, current_price: float | None):
         return None, None
 
 
+_STOOQ_CACHE: dict = {}   # stooq_symbol -> (epoch_fetched, df) — shared across consumers
+_STOOQ_TTL = 1800         # 30 min: daily bars don't change intraday
+
+
 def _stooq_daily(stooq_symbol: str):
     """Daily OHLC CSV from Stooq → yfinance-shaped DataFrame (or empty).
 
-    Stooq is now the shared daily source for regime + macro + daily-levels +
-    the swing 70-stock scan, and it rate-limits aggressively — a startup burst
-    can transiently 429 (or return a throttle body), starving every consumer.
-    Retry a couple of times with backoff so a transient throttle doesn't degrade
-    the whole data layer. A genuinely bad symbol still returns empty fast."""
+    Stooq is now the shared daily source for regime + MTF + macro + daily-levels +
+    the swing 70-stock scan, and it rate-limits aggressively — the market-open
+    burst (all consumers hitting it at once) got everything throttled at once,
+    leaving regime UNKNOWN / MTF all-zero. Two defenses:
+      1) a 30-min in-memory cache so consumers SHARE one fetch instead of each
+         hammering Stooq (this is what actually stops the burst rate-limiting),
+      2) retry+backoff so a transient 429 / throttle body doesn't return empty.
+    A genuinely bad symbol still returns empty fast."""
     import pandas as pd
     import time as _time
+    _c = _STOOQ_CACHE.get(stooq_symbol)
+    if _c and (_time.time() - _c[0]) < _STOOQ_TTL and len(_c[1]):
+        return _c[1]
     url = f"https://stooq.com/q/d/l/?s={stooq_symbol}&i=d"
     text = ""
     for attempt in range(3):
@@ -274,7 +284,10 @@ def _stooq_daily(stooq_symbol: str):
     df = df.set_index("Date").sort_index()
     # Already Open/High/Low/Close-cased; keep only what callers use.
     keep = [c for c in ("Open", "High", "Low", "Close", "Volume") if c in df.columns]
-    return df[keep]
+    result = df[keep]
+    if len(result):
+        _STOOQ_CACHE[stooq_symbol] = (_time.time(), result)   # share across consumers
+    return result
 
 
 def _health(source: str, ok: bool, category: str = "", detail: str = "") -> None:
