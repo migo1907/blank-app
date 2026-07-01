@@ -56,7 +56,10 @@ TP_PREMIUM_MULT    = 2.0   # +100%
 SL_PREMIUM_MULT    = 0.5   # -50%
 IV_RANK_MAX        = 50.0
 VIX_HALF_SIZE      = 25.0
-TARGET_DELTA       = 0.25  # OTM strike target
+TARGET_DELTA       = 0.40  # OTM strike target. Was 0.25: the cost-aware sweep
+# (54 pooled trades, 5% half-spread) has d0.40 breakeven vs d0.25 at -2.8%/trade
+# — nearer-the-money = less theta lottery, in line with options theory (and with
+# the code comments, which always said 0.40). Paper-only layer; reversible.
 MIN_CONFIDENCE     = 0.0   # data-collection phase: collect every directional flip;
                            # the ML gate (≥50 closed trades/pool) is the real quality
                            # filter. Was 0.62 — that blocked every SPX signal, so the

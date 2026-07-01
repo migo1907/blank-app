@@ -563,13 +563,29 @@ async def _news_signal_cycle() -> None:
                 elif _opt_dir == _last_sent_direction_spx_options:
                     set_options_check(f"SPX500 {_opt_dir} unchanged — waiting for a direction flip")
                 else:
+                    # Strategy routing per spec (found unwired 2026-07-01: all 12
+                    # paper trades were long_option at confluence 0.5 — the spread
+                    # and straddle builders existed but nothing called them):
+                    #   both TFs agree      -> long option (full conviction)
+                    #   other TF neutral    -> debit spread (halves premium/theta —
+                    #                          the BS+spread backtest shows naked
+                    #                          longs are negative after costs)
+                    #   TFs conflict        -> straddle (big move, unclear side)
+                    _other_dir = _other_sig.get("direction", "NEUTRAL")
+                    if _other_dir == _opt_dir:
+                        _builder, _args = build_spx_recommendation, (_opt_dir, _opt_conf)
+                    elif _other_dir in ("NEUTRAL", ""):
+                        from options_engine import build_spx_spread
+                        _builder, _args = build_spx_spread, (_opt_dir, _opt_conf)
+                    else:
+                        from options_engine import build_spx_straddle
+                        _builder, _args = build_spx_straddle, (max(_opt_conf, _other_sig.get("confidence", 0.0) or 0.0),)
                     _rec = await asyncio.to_thread(
-                        build_spx_recommendation, _opt_dir, _opt_conf,
-                        pool_confluence=_confluence)
+                        _builder, *_args, pool_confluence=_confluence)
                     if _rec:
                         await asyncio.to_thread(append_paper_trade, _rec)
                         _last_sent_direction_spx_options = _opt_dir
-                        print(f"[options] paper trade logged (app-only — Telegram silent)")
+                        print(f"[options] paper {_rec.get('strategy','long_option')} logged (app-only — Telegram silent)")
             except Exception as _opt_err:
                 print(f"[options] recommendation failed: {_opt_err}")
 
