@@ -2,37 +2,6 @@
   "signals": [
     {
       "direction": "LONG",
-      "timeframe": "30",
-      "trigger": "FVG",
-      "symbol": "META",
-      "entry_price": 606.5,
-      "tp1": 620.63,
-      "tp2": 630.91,
-      "tp3": 645.04,
-      "sl": 592.37,
-      "ml_score": 0.25,
-      "tier": "\u26a1 LOW",
-      "quality_score": 0.1955,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.2556,
-      "velocity": "NORMAL",
-      "event": "GEOPOLITICAL",
-      "htf_bias": {
-        "direction": "LONG",
-        "timeframe": "30",
-        "symbol": "META",
-        "trigger": "FVG",
-        "ml_score": 0.25,
-        "stored_at": "2026-07-01T14:00:14.260775+00:00",
-        "expires_at": "2026-07-01T16:00:14.260799+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "htf_direct",
-      "session": "NYSE Open",
-      "fired_at": "2026-07-01T14:00:14.441037+00:00"
-    },
-    {
-      "direction": "LONG",
       "timeframe": "15",
       "trigger": "FVG",
       "symbol": "IBKR",
@@ -2931,6 +2900,37 @@
       "htf_context": "htf_direct",
       "session": "NYSE Afternoon",
       "fired_at": "2026-07-01T19:00:21.746990+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "30",
+      "trigger": "FVG",
+      "symbol": "TNA",
+      "entry_price": 74.97,
+      "tp1": 73.49,
+      "tp2": 72.41,
+      "tp3": 70.92,
+      "sl": 76.45,
+      "ml_score": 0.375,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.0,
+      "quality_reason": "choppy_market_blocked",
+      "news_score": -0.1511,
+      "velocity": "LOW",
+      "event": "NFP",
+      "htf_bias": {
+        "direction": "SHORT",
+        "timeframe": "30",
+        "symbol": "TNA",
+        "trigger": "FVG",
+        "ml_score": 0.375,
+        "stored_at": "2026-07-01T19:00:23.177179+00:00",
+        "expires_at": "2026-07-01T21:00:23.177204+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "htf_direct",
+      "session": "NYSE Afternoon",
+      "fired_at": "2026-07-01T19:00:23.178276+00:00"
     }
   ]
 }
