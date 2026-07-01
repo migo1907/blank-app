@@ -1,39 +1,5 @@
 [
   {
-    "symbol": "SPX500",
-    "pool": "STOCKS_SPX500_15M",
-    "direction": "NEUTRAL",
-    "lean_direction": "SHORT",
-    "lean_pct": 38,
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.375,
-    "rf_score": 0.2438,
-    "gbm_score": 0.2306,
-    "ml_interval": [
-      0.0,
-      0.995
-    ],
-    "ml_interval_width": 0.995,
-    "ml_certainty": "LOW",
-    "news_score": -0.2917,
-    "macro_bias": 0.0776,
-    "macro_label": "NEUTRAL",
-    "combined_score": -0.0699,
-    "session": "CLOSED",
-    "regime": "TRENDING_BULL",
-    "regime_label": "PULLBACK_SHORT",
-    "hmm_regime": "hmm:na",
-    "intermarket": "imkt:na",
-    "mtf_confluence": "mtf:na",
-    "post_event": "evt:na",
-    "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:TRENDING_BULL(PULLBACK_SHORT)\u00d70.80 | hmm:na\u00d71.00 | imkt:na\u00d71.00 | mtf:na\u00d71.00 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.80 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(-0.54) | news:bearish(-0.292) | macro:NEUTRAL(+0.078) | combined:-0.070 \u2192 conf:0.027 \u26a1 GEOPOLITICAL",
-    "status": "EXPIRED",
-    "expires_at": "2026-07-01T03:31:47.336209+00:00",
-    "created_at": "2026-07-01T03:01:49.086756+00:00",
-    "id": 101
-  },
-  {
     "symbol": "XAUUSD",
     "pool": "XAUUSD_2M",
     "direction": "NEUTRAL",
@@ -2918,7 +2884,7 @@
     "mtf_confluence": "mtf:na",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:na\u00d71.00 | imkt:na\u00d71.00 | mtf:na\u00d71.00 | evt:na\u00d71.00 | sess:LONDON_OPEN\u00d70.90 | confluence\u00d70.94 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-1.00) | news:bearish(-0.316) | macro:NEUTRAL(+0.106) | combined:-0.313 \u2192 conf:0.317 \u26a1 GEOPOLITICAL",
-    "status": "EXPIRED",
+    "status": "ACTIVE",
     "expires_at": "2026-07-01T07:31:21.488190+00:00",
     "created_at": "2026-07-01T07:01:23.201864+00:00",
     "id": 101
@@ -2952,7 +2918,7 @@
     "mtf_confluence": "mtf:na",
     "post_event": "evt:na",
     "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:na\u00d71.00 | imkt:na\u00d71.00 | mtf:na\u00d71.00 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d70.84 | cluster\u00d70.88 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:NEAR(+0.13) | news:bearish(-0.316) | macro:NEUTRAL(+0.078) | combined:-0.124 \u2192 conf:0.300 \u26a1 GEOPOLITICAL",
-    "status": "EXPIRED",
+    "status": "ACTIVE",
     "expires_at": "2026-07-01T07:31:25.125630+00:00",
     "created_at": "2026-07-01T07:01:26.591833+00:00",
     "id": 101
@@ -3397,6 +3363,40 @@
     "status": "ACTIVE",
     "expires_at": "2026-07-01T08:01:23.112786+00:00",
     "created_at": "2026-07-01T07:31:24.664147+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "SPX500",
+    "pool": "STOCKS_SPX500_15M",
+    "direction": "NEUTRAL",
+    "lean_direction": "SHORT",
+    "lean_pct": 38,
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.375,
+    "rf_score": 0.2407,
+    "gbm_score": 0.224,
+    "ml_interval": [
+      0.0,
+      0.99
+    ],
+    "ml_interval_width": 0.99,
+    "ml_certainty": "LOW",
+    "news_score": -0.3899,
+    "macro_bias": 0.0776,
+    "macro_label": "NEUTRAL",
+    "combined_score": -0.086,
+    "session": "CLOSED",
+    "regime": "TRENDING_BULL",
+    "regime_label": "PULLBACK_SHORT",
+    "hmm_regime": "hmm:na",
+    "intermarket": "imkt:na",
+    "mtf_confluence": "mtf:na",
+    "post_event": "evt:na",
+    "reasoning": "KNN:LONG RF:SHORT GBM:SHORT | agree\u00d71.00 | regime:TRENDING_BULL(PULLBACK_SHORT)\u00d70.80 | hmm:na\u00d71.00 | imkt:na\u00d71.00 | mtf:na\u00d71.00 | evt:na\u00d71.00 | sess:CLOSED\u00d70.60 | confluence\u00d71.37 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(-0.87) | news:bearish(-0.390) | macro:NEUTRAL(+0.078) | combined:-0.086 \u2192 conf:0.057 \u26a1 GDP",
+    "status": "ACTIVE",
+    "expires_at": "2026-07-01T08:01:27.902260+00:00",
+    "created_at": "2026-07-01T07:31:29.336574+00:00",
     "id": 101
   }
 ]
