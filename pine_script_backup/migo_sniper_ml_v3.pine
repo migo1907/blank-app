@@ -89,29 +89,22 @@ if autoTF and isGoldSym and isTF1H
     atrMultTP3 := 4.9
     atrMultSL  := 2.12
 
-// ── Stock archetype exit ladders (IBKR backtest 2026-07-01) ───────────────────
-// Momentum (high-beta) and quality (mega-cap) were sharing ONE stock ladder per
-// timeframe. Pooled cross-symbol backtests (NVDA/AMD/TSLA vs AAPL/MSFT/META, ~95-106
-// trades each) show they want OPPOSITE exits, and the direction held in BOTH regime
-// halves — so we split them. Only the two robustly-proven cells change; every other
-// stock cell keeps the shared default. Commas wrap the list + ticker to block partial
-// matches (e.g. "MU" inside another symbol).
-bool isMomentum = str.contains(",AMD,BBAI,BLNK,HIMS,HOOD,HTZ,MSTR,MU,NVDA,PLTR,PLUG,RR,SMCI,SOXL,SPCX,TNA,TSLA,TSLL,UPST,", "," + syminfo.ticker + ",")
-bool isQuality  = str.contains(",AAPL,ADBE,CRM,GOOG,GOOGL,IBKR,META,MSFT,NOW,PATH,",                                    "," + syminfo.ticker + ",")
-// Quality 15m — mega-caps grind: both halves want WIDER TP (PF 1.11→1.64, lifts the
-// losing half 0.80→1.30). TP proven; SL kept at the 2.0 default (halves disagreed on stop).
+// ── Stock archetype exit ladders (IBKR backtest 2026-07-01, refined on larger sample) ──
+// Quality (mega-cap) at 15m benefits from a wider ladder; confirmed on 197 pooled trades
+// across 6 names (AAPL/MSFT/META/GOOGL/CRM/NOW) — BOTH regime halves independently pick the
+// SAME ladder 2.6/4.55/7.15/2.6 (PF 1.31→1.48, H1 1.57 / H2 1.40). Robust on TP *and* SL.
+// Commas wrap the list+ticker to block partial matches (e.g. "MU" inside another symbol).
+//
+// NOTE: a momentum-1H tightening was tested and REJECTED. On 85 trades it looked like a
+// clear win; on 163 trades (6 names incl. PLTR/MU/SOXL) the current default is already
+// profitable (PF 1.07) and the halves disagree on direction — it was small-sample noise.
+// Momentum keeps the shared default. Only ship what holds on the larger sample.
+bool isQuality = str.contains(",AAPL,ADBE,CRM,GOOG,GOOGL,IBKR,META,MSFT,NOW,PATH,", "," + syminfo.ticker + ",")
 if autoTF and isQuality and isTF15
     atrMultTP1 := 2.6
     atrMultTP2 := 4.55
     atrMultTP3 := 7.15
-// Momentum 1H — high-beta reverses fast: current 2.5/4.5/7.0 LOSES both halves
-// (PF 0.72); both halves want TIGHTER (→ ~PF 1.0). TP tightened as proven; SL moved
-// partway (2.5→2.0), not all the way to the aggressive 1.75, pending deeper history.
-if autoTF and isMomentum and isTF1H
-    atrMultTP1 := 1.75
-    atrMultTP2 := 3.15
-    atrMultTP3 := 4.9
-    atrMultSL  := 2.0
+    atrMultSL  := 2.6
 
 // ═══════════════════════════════════════════════════════
 // INDICATORS — BASE (unchanged, no quality loss)
