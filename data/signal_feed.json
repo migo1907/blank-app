@@ -1,29 +1,6 @@
 {
   "signals": [
     {
-      "direction": "LONG",
-      "timeframe": "15",
-      "trigger": "FVG",
-      "symbol": "IBKR",
-      "entry_price": 89.04,
-      "tp1": 90.09,
-      "tp2": 90.88,
-      "tp3": 91.93,
-      "sl": 87.99,
-      "ml_score": 0.375,
-      "tier": "\u26a1 LOW",
-      "quality_score": 0.2437,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.2556,
-      "velocity": "NORMAL",
-      "event": "GEOPOLITICAL",
-      "htf_bias": null,
-      "contra_bias": null,
-      "htf_context": "scalp",
-      "session": "NYSE Open",
-      "fired_at": "2026-07-01T14:00:14.844829+00:00"
-    },
-    {
       "direction": "SHORT",
       "timeframe": "30",
       "trigger": "FVG",
@@ -2931,6 +2908,37 @@
       "htf_context": "htf_direct",
       "session": "NYSE Afternoon",
       "fired_at": "2026-07-01T19:00:23.178276+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "15",
+      "trigger": "FVG",
+      "symbol": "CRM",
+      "entry_price": 163.57,
+      "tp1": 162.02,
+      "tp2": 160.85,
+      "tp3": 159.3,
+      "sl": 165.12,
+      "ml_score": 0.375,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.2748,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.1298,
+      "velocity": "LOW",
+      "event": "GEOPOLITICAL",
+      "htf_bias": null,
+      "contra_bias": {
+        "direction": "LONG",
+        "timeframe": "240",
+        "symbol": "CRM",
+        "trigger": "FVG",
+        "ml_score": 0.625,
+        "stored_at": "2026-07-01T17:30:18.710838+00:00",
+        "expires_at": "2026-07-02T01:30:18.710856+00:00"
+      },
+      "htf_context": "counter_trend",
+      "session": "NYSE Afternoon",
+      "fired_at": "2026-07-01T19:15:05.671392+00:00"
     }
   ]
 }
