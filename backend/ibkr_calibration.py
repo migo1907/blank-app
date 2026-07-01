@@ -85,10 +85,47 @@ def main() -> None:
         mult = sum(ratios_b) / len(ratios_b)
         print(f"B (VIX1D proxy, backtest IV): mean |err| = {sum(errs_b)/len(errs_b):5.1f}%  "
               f"real/model multiplier = {mult:.2f}x")
-        print(f"\n=> Backtest premiums should be scaled ~{mult:.2f}x to match real chains.")
-        print("   (P&L percentages are premium-relative, so entry-level bias mostly")
-        print("   cancels in pnl_pct — but the spread/cost RATIO shrinks when real")
-        print("   premiums are larger, making the with-cost numbers conservative.)")
+
+    # ------------------------------------------------------------------
+    # Fit: which (tau convention, IV multiplier) best reproduces the REAL
+    # premiums when pricing from VIX1D? Real 0DTE chains embed trading-time
+    # to expiry, not calendar hours — test both conventions and scan beta.
+    # In-sample on the full ledger (small n — disclosed, not hidden).
+    # ------------------------------------------------------------------
+    def tau_trading(created_at: str, expiry: str) -> float:
+        t0 = datetime.strptime(created_at, "%Y-%m-%dT%H:%M:%SZ")
+        entry_min = max((t0.hour - 13) * 60.0 + t0.minute - 30.0, 0.0)
+        session_frac = max(SESSION_MIN - entry_min, 1.0) / SESSION_MIN
+        days_ahead = (datetime.strptime(expiry, "%Y-%m-%d")
+                      - datetime(t0.year, t0.month, t0.day)).days
+        return (session_frac + days_ahead) / 252.0
+
+    best = None
+    for conv, tau_fn in (("calendar", lambda t: _tau_years(t["created_at"], t["expiry"])),
+                         ("trading",  lambda t: tau_trading(t["created_at"], t["expiry"]))):
+        for beta_i in range(60, 181, 5):
+            beta = beta_i / 100.0
+            errs = []
+            for t in ledger:
+                iv = _vix1d_iv(t["created_at"], vix_hr, vix_dy)
+                if iv is None:
+                    continue
+                model = bs_price(t["spot"], t["strike"], tau_fn(t), iv * beta,
+                                 t["type"].lower())
+                errs.append(abs(model - t["entry_premium"]) / t["entry_premium"] * 100.0)
+            score = sum(errs) / len(errs)
+            if best is None or score < best["mean_abs_err_pct"]:
+                best = {"tau_convention": conv, "iv_mult": beta,
+                        "mean_abs_err_pct": round(score, 1), "n_fit": len(errs)}
+
+    print(f"\nBest fit vs real premiums: tau={best['tau_convention']}, "
+          f"IV x {best['iv_mult']:.2f} -> mean |err| = {best['mean_abs_err_pct']:.1f}% "
+          f"(fit on {best['n_fit']} ledger entries — small sample, in-sample)")
+    fit_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                            "backtest_data", "ibkr_calibration_fit.json")
+    with open(fit_path, "w") as f:
+        json.dump(best, f, indent=2)
+    print(f"Fit saved to {fit_path} (ibkr_backtest_suite.py picks it up automatically)")
 
 
 if __name__ == "__main__":

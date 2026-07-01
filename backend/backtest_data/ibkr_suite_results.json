@@ -1,0 +1,308 @@
+{
+  "sessions": 38,
+  "first": "2026-05-07",
+  "last": "2026-07-01",
+  "cost_per_side": 0.22,
+  "pricing": {
+    "tau_convention": "trading",
+    "iv_mult": 0.85
+  },
+  "baseline_frictionless": {
+    "n": 76,
+    "wins": 29,
+    "losses": 47,
+    "expired": 0,
+    "win_rate_pct": 38.2,
+    "avg_pnl_pct": 7.2,
+    "avg_pnl_ci90": [
+      -6.6,
+      21.1
+    ],
+    "win_rate_ci90": [
+      28.9,
+      47.4
+    ]
+  },
+  "baseline_with_costs": {
+    "n": 76,
+    "wins": 24,
+    "losses": 52,
+    "expired": 0,
+    "win_rate_pct": 31.6,
+    "avg_pnl_pct": -2.6,
+    "avg_pnl_ci90": [
+      -16.4,
+      11.2
+    ],
+    "win_rate_ci90": [
+      22.4,
+      40.8
+    ]
+  },
+  "entry_time_sweep": {
+    "09:30": {
+      "n": 76,
+      "wins": 24,
+      "losses": 52,
+      "expired": 0,
+      "win_rate_pct": 31.6,
+      "avg_pnl_pct": -2.6
+    },
+    "10:00": {
+      "n": 76,
+      "wins": 22,
+      "losses": 54,
+      "expired": 0,
+      "win_rate_pct": 28.9,
+      "avg_pnl_pct": -6.6
+    },
+    "10:30": {
+      "n": 76,
+      "wins": 24,
+      "losses": 52,
+      "expired": 0,
+      "win_rate_pct": 31.6,
+      "avg_pnl_pct": -2.6
+    },
+    "11:00": {
+      "n": 76,
+      "wins": 25,
+      "losses": 51,
+      "expired": 0,
+      "win_rate_pct": 32.9,
+      "avg_pnl_pct": -0.7
+    },
+    "12:00": {
+      "n": 76,
+      "wins": 12,
+      "losses": 63,
+      "expired": 1,
+      "win_rate_pct": 15.8,
+      "avg_pnl_pct": -25.8
+    },
+    "13:00": {
+      "n": 76,
+      "wins": 8,
+      "losses": 67,
+      "expired": 1,
+      "win_rate_pct": 10.5,
+      "avg_pnl_pct": -33.6
+    }
+  },
+  "tp_sl_grid": {
+    "TP+50/SL-30": {
+      "n": 76,
+      "wins": 23,
+      "losses": 53,
+      "expired": 0,
+      "win_rate_pct": 30.3,
+      "avg_pnl_pct": -5.8
+    },
+    "TP+50/SL-40": {
+      "n": 76,
+      "wins": 33,
+      "losses": 43,
+      "expired": 0,
+      "win_rate_pct": 43.4,
+      "avg_pnl_pct": -0.9
+    },
+    "TP+50/SL-50": {
+      "n": 76,
+      "wins": 35,
+      "losses": 41,
+      "expired": 0,
+      "win_rate_pct": 46.1,
+      "avg_pnl_pct": -3.9
+    },
+    "TP+75/SL-30": {
+      "n": 76,
+      "wins": 19,
+      "losses": 57,
+      "expired": 0,
+      "win_rate_pct": 25.0,
+      "avg_pnl_pct": -3.8
+    },
+    "TP+75/SL-40": {
+      "n": 76,
+      "wins": 28,
+      "losses": 48,
+      "expired": 0,
+      "win_rate_pct": 36.8,
+      "avg_pnl_pct": 2.4
+    },
+    "TP+75/SL-50": {
+      "n": 76,
+      "wins": 30,
+      "losses": 46,
+      "expired": 0,
+      "win_rate_pct": 39.5,
+      "avg_pnl_pct": -0.7
+    },
+    "TP+100/SL-30": {
+      "n": 76,
+      "wins": 17,
+      "losses": 59,
+      "expired": 0,
+      "win_rate_pct": 22.4,
+      "avg_pnl_pct": -0.9
+    },
+    "TP+100/SL-40": {
+      "n": 76,
+      "wins": 24,
+      "losses": 52,
+      "expired": 0,
+      "win_rate_pct": 31.6,
+      "avg_pnl_pct": 4.2
+    },
+    "TP+100/SL-50": {
+      "n": 76,
+      "wins": 24,
+      "losses": 52,
+      "expired": 0,
+      "win_rate_pct": 31.6,
+      "avg_pnl_pct": -2.6
+    },
+    "TP+150/SL-30": {
+      "n": 76,
+      "wins": 14,
+      "losses": 62,
+      "expired": 0,
+      "win_rate_pct": 18.4,
+      "avg_pnl_pct": 3.2
+    },
+    "TP+150/SL-40": {
+      "n": 76,
+      "wins": 18,
+      "losses": 58,
+      "expired": 0,
+      "win_rate_pct": 23.7,
+      "avg_pnl_pct": 5.0
+    },
+    "TP+150/SL-50": {
+      "n": 76,
+      "wins": 19,
+      "losses": 57,
+      "expired": 0,
+      "win_rate_pct": 25.0,
+      "avg_pnl_pct": 0.0
+    }
+  },
+  "scaling_exit": {
+    "n": 76,
+    "wins": 24,
+    "losses": 52,
+    "expired": 0,
+    "win_rate_pct": 31.6,
+    "avg_pnl_pct": -3.3,
+    "avg_pnl_ci90": [
+      -13.5,
+      7.2
+    ],
+    "win_rate_ci90": [
+      22.4,
+      40.8
+    ]
+  },
+  "momentum_10am": {
+    "n": 38,
+    "wins": 5,
+    "losses": 33,
+    "expired": 0,
+    "win_rate_pct": 13.2,
+    "avg_pnl_pct": -30.3,
+    "avg_pnl_ci90": [
+      -42.1,
+      -14.5
+    ],
+    "win_rate_ci90": [
+      5.3,
+      23.7
+    ]
+  },
+  "by_direction": {
+    "call": {
+      "n": 38,
+      "wins": 13,
+      "losses": 25,
+      "expired": 0,
+      "win_rate_pct": 34.2,
+      "avg_pnl_pct": 1.3
+    },
+    "put": {
+      "n": 38,
+      "wins": 11,
+      "losses": 27,
+      "expired": 0,
+      "win_rate_pct": 28.9,
+      "avg_pnl_pct": -6.6
+    }
+  },
+  "by_vix_regime": {
+    "vix 10-15": {
+      "n": 32,
+      "wins": 10,
+      "losses": 22,
+      "expired": 0,
+      "win_rate_pct": 31.2,
+      "avg_pnl_pct": -3.1
+    },
+    "vix<10": {
+      "n": 34,
+      "wins": 13,
+      "losses": 21,
+      "expired": 0,
+      "win_rate_pct": 38.2,
+      "avg_pnl_pct": 7.4
+    },
+    "vix>=15": {
+      "n": 10,
+      "wins": 1,
+      "losses": 9,
+      "expired": 0,
+      "win_rate_pct": 10.0,
+      "avg_pnl_pct": -35.0
+    }
+  },
+  "by_weekday": {
+    "Fri": {
+      "n": 14,
+      "wins": 6,
+      "losses": 8,
+      "expired": 0,
+      "win_rate_pct": 42.9,
+      "avg_pnl_pct": 14.3
+    },
+    "Mon": {
+      "n": 14,
+      "wins": 4,
+      "losses": 10,
+      "expired": 0,
+      "win_rate_pct": 28.6,
+      "avg_pnl_pct": -7.1
+    },
+    "Thu": {
+      "n": 16,
+      "wins": 3,
+      "losses": 13,
+      "expired": 0,
+      "win_rate_pct": 18.8,
+      "avg_pnl_pct": -21.9
+    },
+    "Tue": {
+      "n": 16,
+      "wins": 5,
+      "losses": 11,
+      "expired": 0,
+      "win_rate_pct": 31.2,
+      "avg_pnl_pct": -3.1
+    },
+    "Wed": {
+      "n": 16,
+      "wins": 6,
+      "losses": 10,
+      "expired": 0,
+      "win_rate_pct": 37.5,
+      "avg_pnl_pct": 6.2
+    }
+  }
+}
