@@ -2,37 +2,6 @@
   "signals": [
     {
       "direction": "SHORT",
-      "timeframe": "240",
-      "trigger": "FVG",
-      "symbol": "PATH",
-      "entry_price": 9.94,
-      "tp1": 8.81,
-      "tp2": 7.88,
-      "tp3": 6.56,
-      "sl": 11.07,
-      "ml_score": 0.75,
-      "tier": "\u2b50 HIGH",
-      "quality_score": 0.5102,
-      "quality_reason": "approved",
-      "news_score": -0.111,
-      "velocity": "CONFLICTED",
-      "event": "GEOPOLITICAL",
-      "htf_bias": {
-        "direction": "SHORT",
-        "timeframe": "240",
-        "symbol": "PATH",
-        "trigger": "FVG",
-        "ml_score": 0.75,
-        "stored_at": "2026-06-25T20:00:11.362820+00:00",
-        "expires_at": "2026-06-26T04:00:11.362832+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "htf_direct",
-      "session": "NYSE Afternoon",
-      "fired_at": "2026-06-25T20:00:11.674874+00:00"
-    },
-    {
-      "direction": "SHORT",
       "timeframe": "30",
       "trigger": "FVG",
       "symbol": "AAPL",
@@ -2787,6 +2756,29 @@
       "htf_context": "scalp",
       "session": "NYSE Open",
       "fired_at": "2026-07-01T13:45:30.820226+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "15",
+      "trigger": "FVG",
+      "symbol": "PATH",
+      "entry_price": 11.28,
+      "tp1": 11.51,
+      "tp2": 11.68,
+      "tp3": 11.9,
+      "sl": 11.05,
+      "ml_score": 0.5,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.1896,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.2133,
+      "velocity": "LOW",
+      "event": "GEOPOLITICAL",
+      "htf_bias": null,
+      "contra_bias": null,
+      "htf_context": "scalp",
+      "session": "NYSE Open",
+      "fired_at": "2026-07-01T13:45:34.731332+00:00"
     }
   ]
 }
