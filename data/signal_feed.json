@@ -2,37 +2,6 @@
   "signals": [
     {
       "direction": "LONG",
-      "timeframe": "5",
-      "trigger": "FVG",
-      "symbol": "XAUUSD",
-      "entry_price": 4048.66,
-      "tp1": 4060.02,
-      "tp2": 4067.59,
-      "tp3": 4078.95,
-      "sl": 4037.3,
-      "ml_score": 0.625,
-      "tier": "\u2705 MED",
-      "quality_score": 0.3145,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.3247,
-      "velocity": "ELEVATED",
-      "event": "GEOPOLITICAL",
-      "htf_bias": {
-        "direction": "LONG",
-        "timeframe": "60",
-        "symbol": "XAUUSD",
-        "trigger": "FVG",
-        "ml_score": 0.375,
-        "stored_at": "2026-07-01T12:02:02.275464+00:00",
-        "expires_at": "2026-07-01T16:02:02.275479+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "with_bias",
-      "session": "London/NY Overlap",
-      "fired_at": "2026-07-01T13:32:03.931809+00:00"
-    },
-    {
-      "direction": "LONG",
       "timeframe": "30",
       "trigger": "OB",
       "symbol": "XAUUSD",
@@ -2859,6 +2828,37 @@
       "htf_context": "htf_direct",
       "session": "NYSE Afternoon",
       "fired_at": "2026-07-01T17:30:03.780514+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "240",
+      "trigger": "RSI",
+      "symbol": "SOXL",
+      "entry_price": 223.71,
+      "tp1": 145.36,
+      "tp2": 80.07,
+      "tp3": -11.34,
+      "sl": 302.06,
+      "ml_score": 0.25,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.4659,
+      "quality_reason": "approved",
+      "news_score": 0.0685,
+      "velocity": "CONFLICTED",
+      "event": "WAR/CONFLICT",
+      "htf_bias": {
+        "direction": "SHORT",
+        "timeframe": "240",
+        "symbol": "SOXL",
+        "trigger": "RSI",
+        "ml_score": 0.25,
+        "stored_at": "2026-07-01T17:30:11.328689+00:00",
+        "expires_at": "2026-07-02T01:30:11.328705+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "htf_direct",
+      "session": "NYSE Afternoon",
+      "fired_at": "2026-07-01T17:30:11.337281+00:00"
     }
   ]
 }
