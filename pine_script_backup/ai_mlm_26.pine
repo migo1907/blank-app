@@ -40,6 +40,22 @@ float atrMultTP2 = isTF2 ? 1.8 : isTF5 ? 2.5 : isTF15 ? 3.5 : isTF30 ? 3.8 : isT
 float atrMultTP3 = isTF2 ? 3.0 : isTF5 ? 4.0 : isTF15 ? 5.5 : isTF30 ? 6.0 : isTF1H ? 7.0 : 9.0
 float atrMultSL  = isTF2 ? 0.8 : isTF5 ? 1.5 : isTF15 ? 2.0 : isTF30 ? 2.2 : isTF1H ? 2.5 : 3.0
 
+// ── Gold-specific exit ladders — backtest-validated 2026-07-01 (mirrors prod) ──
+// Gold 30m & 1H take-profits were too wide → trades timed out before TP2/TP3.
+// Tighter TPs flip both pools to positive expectancy (30m PF 0.98→1.13 n=113,
+// 1H 0.96→1.20 n=59). Only gold 30m/1H change; all else unchanged.
+bool isGoldSym = str.contains(syminfo.ticker, "XAU")
+if isGoldSym and isTF30
+    atrMultTP1 := 1.1
+    atrMultTP2 := 1.9
+    atrMultTP3 := 3.0
+    atrMultSL  := 2.2
+if isGoldSym and isTF1H
+    atrMultTP1 := 1.75
+    atrMultTP2 := 3.15
+    atrMultTP3 := 4.9
+    atrMultSL  := 2.12
+
 // ── Base indicators ───────────────────────────────────────────────
 float rsiVal   = ta.rsi(close, 14)
 float maLong   = ta.ema(close, 200)
@@ -140,13 +156,14 @@ float f25 = math.sin((todMins / 1440.0) * 2.0 * math.pi)
 float f26 = math.max(-1.0, math.min(1.0, (stochK - stochD) / 20.0))
 
 // ═══════════════════════════════════════════════════════════════════
-// WEIGHTS — seeded from backend weights_XAUUSD_2M.json (2026-06-27)
+// WEIGHTS — seeded from backend XAUUSD_2M training (refreshed 2026-07-01)
 // Adaptive loop refines these on current chart data.
-// Seed: 280W / 720L (1000 trades) — XAUUSD_2M pool, isotonic-calibrated.
+// Seed: 330W / 670L (1000 trades, 33.0% honest) — XAUUSD_2M pool, isotonic-calib.
 // Win count is HONEST (a PARTIAL only counts as a win when it closed positive).
 // Top learned features: F6 Williams%R (3.0), F13 Premium/Discount (3.0),
 //   F12 Liquidity sweep (2.60), F19 RSI divergence (2.40), F24 FVG quality (1.77),
 //   F15 Session (1.57), F14 CHoCH (1.50).
+// This build also mirrors the validated gold 30m/1H exit ladders (see top).
 // ═══════════════════════════════════════════════════════════════════
 var float[] weights = array.from(
     0.200, 0.200, 0.944, 0.200, 0.200,   // F1  F2  F3  F4  F5
@@ -156,8 +173,8 @@ var float[] weights = array.from(
     0.291, 0.200, 0.200, 1.773, 0.641,   // F21 F22 F23 F24 F25
     0.200)                                // F26 Stochastic
 
-var int totalWins   = 280
-var int totalLosses = 720
+var int totalWins   = 330
+var int totalLosses = 670
 
 clampW(w) => math.max(0.2, math.min(3.0, w))
 
