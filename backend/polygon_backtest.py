@@ -15,7 +15,7 @@ Run:
   python polygon_backtest.py [--days 30] [--direction call|put|both]
 """
 from __future__ import annotations
-import os, sys, httpx, json, argparse
+import os, sys, time, httpx, json, argparse
 from datetime import date, timedelta, datetime
 
 _KEY  = os.environ.get("POLYGON_API_KEY", "")
@@ -23,13 +23,22 @@ _BASE = "https://api.polygon.io"
 
 
 def _get(path: str, params: dict = {}) -> dict | None:
-    try:
-        r = httpx.get(f"{_BASE}{path}", params={"apiKey": _KEY, **params}, timeout=15)
-        if r.status_code == 200:
-            return r.json()
-        print(f"  [polygon] {path} → HTTP {r.status_code}")
-    except Exception as e:
-        print(f"  [polygon] {path} failed: {e}")
+    # Free tier = 5 req/min → 429s are expected on any multi-day run; wait and retry.
+    for attempt in range(8):
+        try:
+            r = httpx.get(f"{_BASE}{path}", params={"apiKey": _KEY, **params}, timeout=15)
+            if r.status_code == 200:
+                return r.json()
+            if r.status_code == 429:
+                print(f"  [polygon] rate limited — waiting 15s (attempt {attempt + 1})", flush=True)
+                time.sleep(15)
+                continue
+            print(f"  [polygon] {path} → HTTP {r.status_code}")
+            return None
+        except Exception as e:
+            print(f"  [polygon] {path} failed: {e}")
+            return None
+    print(f"  [polygon] {path} → still rate limited after retries")
     return None
 
 
