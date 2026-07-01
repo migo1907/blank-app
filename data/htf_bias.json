@@ -228,9 +228,9 @@
     "direction": "SHORT",
     "timeframe": "30",
     "symbol": "US500",
-    "trigger": "RSI",
-    "ml_score": 0.375,
-    "stored_at": "2026-07-01T01:30:10.296053+00:00",
-    "expires_at": "2026-07-01T03:30:10.296067+00:00"
+    "trigger": "FVG",
+    "ml_score": 0.75,
+    "stored_at": "2026-07-01T02:30:07.091561+00:00",
+    "expires_at": "2026-07-01T04:30:07.091577+00:00"
   }
 }
