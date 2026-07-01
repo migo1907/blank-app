@@ -503,7 +503,11 @@ if activeTrade == "LONG"
     mfeFav := math.max(mfeFav, high - entryPrice)
     maeAdv := math.max(maeAdv, entryPrice - low)    // worst drawdown below entry
 if activeTrade == "SHORT"
-    mfeFav := math.min(mfeFav, entryPrice - low)
+    // FIX 2026-07-01: was math.min — which pinned short MFE at <=0 forever
+    // (ledger audit: 100% of shorts had mfe<=0, mean -1.53 vs +8.17 for longs).
+    // Every short's favorable move went unrecorded: ml_outcome never credited
+    // "right direction, stopped by exit", corrupting ML labels + noise weights.
+    mfeFav := math.max(mfeFav, entryPrice - low)
     maeAdv := math.max(maeAdv, high - entryPrice)   // worst run above entry
 
 // TRAIL STOP → BREAK-EVEN ONLY (IBKR trail-model backtest 2026-07-01)
@@ -621,6 +625,13 @@ if activeTrade == "LONG" and not tp1Hit
     float tpRange     = tp1Price - entryPrice
     float nearTPLevel = entryPrice + tpRange * tpProximity
     if highest3 >= nearTPLevel and close < nearTPLevel
+        // SCRATCH telemetry (2026-07-01): these near-miss exits used to vanish
+        // silently — no webhook, invisible to the ML and the ledger. Now they
+        // report as SCRATCH (backend stores them as PARTIAL closes, tp_stage
+        // PROX; ml_outcome from the same MFE heuristic as SL exits).
+        float slDistPL  = math.abs(entryPrice - (entryPrice - atr * atrMultSL))
+        string mlOutPL  = mfeFav >= slDistPL * 0.875 ? "WIN" : "LOSS"
+        alert(buildPayload(activeTrade, "SCRATCH", mlOutPL, "PROX", entryPrice, close, mlBull, activeTrigger, mfeFav, timeframe.period), alert.freq_once_per_bar_close)
         activeTrade := "NONE"
         tp1Hit := false
         tp2Hit := false
@@ -630,6 +641,10 @@ if activeTrade == "SHORT" and not tp1Hit
     float tpRange     = entryPrice - tp1Price
     float nearTPLevel = entryPrice - tpRange * tpProximity
     if lowest3 <= nearTPLevel and close > nearTPLevel
+        // SCRATCH telemetry — see LONG block note above.
+        float slDistPS  = math.abs((entryPrice + atr * atrMultSL) - entryPrice)
+        string mlOutPS  = mfeFav >= slDistPS * 0.875 ? "WIN" : "LOSS"
+        alert(buildPayload(activeTrade, "SCRATCH", mlOutPS, "PROX", entryPrice, close, mlBear, activeTrigger, mfeFav, timeframe.period), alert.freq_once_per_bar_close)
         activeTrade := "NONE"
         tp1Hit := false
         tp2Hit := false
