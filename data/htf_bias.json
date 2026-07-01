@@ -268,5 +268,23 @@
     "ml_score": 0.125,
     "stored_at": "2026-07-01T14:31:00.279318+00:00",
     "expires_at": "2026-07-01T18:31:00.279337+00:00"
+  },
+  "SOXL_60": {
+    "direction": "SHORT",
+    "timeframe": "60",
+    "symbol": "SOXL",
+    "trigger": "FVG",
+    "ml_score": 0.125,
+    "stored_at": "2026-07-01T15:30:06.487080+00:00",
+    "expires_at": "2026-07-01T19:30:06.487089+00:00"
+  },
+  "HOOD_60": {
+    "direction": "LONG",
+    "timeframe": "60",
+    "symbol": "HOOD",
+    "trigger": "BOS",
+    "ml_score": 0.625,
+    "stored_at": "2026-07-01T15:30:06.495075+00:00",
+    "expires_at": "2026-07-01T19:30:06.495083+00:00"
   }
 }
