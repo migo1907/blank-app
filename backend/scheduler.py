@@ -2060,6 +2060,25 @@ async def _swing_screen_cycle() -> None:
         await asyncio.to_thread(open_paper_trades, screen)
         # from telegram_bot import send_swing_brief
         # await send_swing_brief(screen)
+        try:
+            import push_notify
+            if push_notify.available():
+                cands = (screen or {}).get("candidates") or []
+                parts = []
+                for c in cands[:3]:
+                    if not isinstance(c, dict):
+                        continue
+                    tkr = c.get("ticker")
+                    score = c.get("combined_score")
+                    if not tkr or score is None:
+                        continue
+                    parts.append(f"{tkr} ({score:+.2f})")
+                if parts:
+                    asyncio.create_task(asyncio.to_thread(
+                        push_notify.send_push, "📈 Swing Scan Complete",
+                        "Top: " + " · ".join(parts)))
+        except Exception:
+            pass
     except Exception as e:
         print(f"[swing] nightly screen cycle failed: {e}")
 

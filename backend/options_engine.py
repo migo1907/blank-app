@@ -890,6 +890,15 @@ def append_paper_trade(rec: dict) -> None:
                 _put_file(_PAPER_PATH, ledger, sha,
                           f"options: paper {rec['type']} {int(rec['strike'])} {rec['expiry']}")
                 print(f"[options] paper trade logged: {rec['tv_symbol']}")
+                try:
+                    import push_notify
+                    if push_notify.available():
+                        push_notify.send_push(
+                            f"🎯 SPX {rec.get('type')} opened (paper)",
+                            f"Strike {rec.get('strike')} · {rec.get('expiry')}"
+                            f" · prem ${rec.get('entry_premium')}")
+                except Exception:
+                    pass  # push failure (incl. ImportError) never breaks the ledger write
                 return
             except Exception as put_err:
                 if attempt < 3 and "409" in str(put_err):
