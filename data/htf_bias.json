@@ -70,23 +70,5 @@
     "ml_score": 0.375,
     "stored_at": "2026-07-01T14:00:08.753200+00:00",
     "expires_at": "2026-07-01T16:00:08.753227+00:00"
-  },
-  "META_30": {
-    "direction": "LONG",
-    "timeframe": "30",
-    "symbol": "META",
-    "trigger": "FVG",
-    "ml_score": 0.25,
-    "stored_at": "2026-07-01T14:00:14.260775+00:00",
-    "expires_at": "2026-07-01T16:00:14.260799+00:00"
-  },
-  "MU_30": {
-    "direction": "SHORT",
-    "timeframe": "30",
-    "symbol": "MU",
-    "trigger": "FVG",
-    "ml_score": 0.125,
-    "stored_at": "2026-07-01T14:00:14.571959+00:00",
-    "expires_at": "2026-07-01T16:00:14.571978+00:00"
   }
 }
