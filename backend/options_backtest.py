@@ -103,9 +103,12 @@ def _et_hour_min(ts):
     return et.hour, et.minute
 
 
-def run_bars(symbol: str, tf: str, bars, bars_per_day: int = 26) -> dict:
+def run_bars(symbol: str, tf: str, bars, bars_per_day: int = 26,
+             spread_pct: float = 0.0) -> dict:
     """Backtest the options engine on underlying bars. `tf` is Pine notation.
-    Returns per-pool (SPX_0DTE / SPX_1DTE) expectancy summaries."""
+    Returns per-pool (SPX_0DTE / SPX_1DTE) expectancy summaries.
+    spread_pct: half-spread as a fraction of premium (0.05 = pay +5% on entry,
+    receive −5% on exit) — SPX 0-1DTE realistic round trip ≈ 10%."""
     import polygon_intraday_backtest as bt
     _BARS_PER_DAY[0] = bars_per_day
     rows = bars.get("data") if isinstance(bars, dict) else bars
@@ -138,7 +141,7 @@ def run_bars(symbol: str, tf: str, bars, bars_per_day: int = 26) -> dict:
             continue
         tau0 = mins_to_expiry / _MINUTES_YEAR
         strike = _pick_strike(spot, iv, tau0, is_call)
-        entry_prem = _bs_price(spot, strike, iv, tau0, is_call)
+        entry_prem = _bs_price(spot, strike, iv, tau0, is_call) * (1.0 + spread_pct)
         if entry_prem < 0.10:
             continue
         tp, sl = entry_prem * TP_MULT, entry_prem * SL_MULT
@@ -150,7 +153,7 @@ def run_bars(symbol: str, tf: str, bars, bars_per_day: int = 26) -> dict:
             dayspan = (idx[j].normalize() - idx[i].normalize()).days
             mins_left = ((16 - hj) * 60 - mj) + max(0, dte - dayspan) * 24 * 60
             tau = max(0.0, mins_left / _MINUTES_YEAR)
-            prem = _bs_price(float(closes[j]), strike, iv, tau, is_call)
+            prem = _bs_price(float(closes[j]), strike, iv, tau, is_call) * (1.0 - spread_pct)
             if prem >= tp:
                 exit_prem, reason = tp, "TP"; break
             if prem <= sl:

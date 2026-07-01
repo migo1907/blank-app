@@ -58,7 +58,8 @@ def build_trail_entries(symbol: str, tf: str, bars: list[dict]) -> list[dict]:
                for j in range(i + 1, min(i + 1 + horizon, len(sig)))]
         if not fwd:
             continue
-        entries.append({"dir": new_sig, "entry": float(closes[i]), "atr": atr0, "fwd": fwd})
+        entries.append({"dir": new_sig, "entry": float(closes[i]), "atr": atr0,
+                        "fwd": fwd, "hour_utc": int(df.index[i].hour)})
     return entries
 
 
