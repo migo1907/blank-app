@@ -1,13 +1,4 @@
 {
-  "PLUG_30": {
-    "direction": "SHORT",
-    "timeframe": "30",
-    "symbol": "PLUG",
-    "trigger": "FVG",
-    "ml_score": 0.75,
-    "stored_at": "2026-07-01T18:00:24.517867+00:00",
-    "expires_at": "2026-07-01T20:00:24.517875+00:00"
-  },
   "IBKR_60": {
     "direction": "LONG",
     "timeframe": "60",
@@ -178,5 +169,14 @@
     "ml_score": 0.5,
     "stored_at": "2026-07-01T20:02:02.193094+00:00",
     "expires_at": "2026-07-01T22:02:02.193106+00:00"
+  },
+  "US500_30": {
+    "direction": "SHORT",
+    "timeframe": "30",
+    "symbol": "US500",
+    "trigger": "FVG",
+    "ml_score": 0.625,
+    "stored_at": "2026-07-01T20:30:08.158356+00:00",
+    "expires_at": "2026-07-01T22:30:08.158384+00:00"
   }
 }
