@@ -2704,14 +2704,14 @@
     "direction": "LONG",
     "trigger": "FVG",
     "entry_price": 7494.4,
-    "exit_price": 7506.8,
-    "outcome": "PARTIAL",
-    "ml_outcome": "WIN",
+    "exit_price": 7514.0185,
+    "outcome": "WIN",
+    "ml_outcome": "TP1_HIT",
     "mfe": 26.0,
     "mae": 11.2,
-    "tp_stage": "SL_TP1",
+    "tp_stage": "TP1",
     "timeframe": "15",
-    "pnl_pct": 0.1655,
+    "pnl_pct": 0.2618,
     "ml_bull_score": 0.5,
     "regime": "VOLATILE",
     "session": "NYSE_OPEN",
@@ -2741,8 +2741,8 @@
     "f24_fvgq": 0.0,
     "f25_tod": -0.5556,
     "f26_stoch": 0.1072,
-    "id": "ca18832a",
+    "id": "2130a178",
     "pool": "STOCKS_SPX500_15M",
-    "created_at": "2026-07-01T15:31:58.132379+00:00"
+    "created_at": "2026-07-01T15:32:10.847958+00:00"
   }
 ]
