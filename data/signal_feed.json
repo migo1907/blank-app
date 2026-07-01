@@ -2,37 +2,6 @@
   "signals": [
     {
       "direction": "SHORT",
-      "timeframe": "30",
-      "trigger": "OB",
-      "symbol": "BLNK",
-      "entry_price": 0.58,
-      "tp1": 0.56,
-      "tp2": 0.55,
-      "tp3": 0.53,
-      "sl": 0.6,
-      "ml_score": 0.5,
-      "tier": "\u26a1 LOW",
-      "quality_score": 0.4577,
-      "quality_reason": "approved",
-      "news_score": -0.1119,
-      "velocity": "NORMAL",
-      "event": "WAR/CONFLICT",
-      "htf_bias": {
-        "direction": "SHORT",
-        "timeframe": "30",
-        "symbol": "BLNK",
-        "trigger": "OB",
-        "ml_score": 0.5,
-        "stored_at": "2026-06-25T14:00:59.120176+00:00",
-        "expires_at": "2026-06-25T16:00:59.120195+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "htf_direct",
-      "session": "NYSE Open",
-      "fired_at": "2026-06-25T14:02:27.040096+00:00"
-    },
-    {
-      "direction": "SHORT",
       "timeframe": "60",
       "trigger": "BOS",
       "symbol": "NVDA",
@@ -2891,6 +2860,37 @@
       "htf_context": "htf_direct",
       "session": "Closed",
       "fired_at": "2026-07-01T01:30:10.639264+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "30",
+      "trigger": "FVG",
+      "symbol": "US500",
+      "entry_price": 7469.9,
+      "tp1": 7448.56,
+      "tp2": 7433.05,
+      "tp3": 7411.71,
+      "sl": 7491.24,
+      "ml_score": 0.75,
+      "tier": "\u2b50 HIGH",
+      "quality_score": 0.3669,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": -0.1876,
+      "velocity": "LOW",
+      "event": "CPI",
+      "htf_bias": {
+        "direction": "SHORT",
+        "timeframe": "30",
+        "symbol": "US500",
+        "trigger": "FVG",
+        "ml_score": 0.75,
+        "stored_at": "2026-07-01T02:30:07.091561+00:00",
+        "expires_at": "2026-07-01T04:30:07.091577+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "htf_direct",
+      "session": "Closed",
+      "fired_at": "2026-07-01T02:30:07.438274+00:00"
     }
   ]
 }
