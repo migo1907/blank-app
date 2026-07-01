@@ -246,34 +246,27 @@ _STOOQ_TTL = 1800         # 30 min: daily bars don't change intraday
 def _stooq_daily(stooq_symbol: str):
     """Daily OHLC CSV from Stooq → yfinance-shaped DataFrame (or empty).
 
-    Stooq is now the shared daily source for regime + MTF + macro + daily-levels +
-    the swing 70-stock scan, and it rate-limits aggressively — the market-open
-    burst (all consumers hitting it at once) got everything throttled at once,
-    leaving regime UNKNOWN / MTF all-zero. Two defenses:
-      1) a 30-min in-memory cache so consumers SHARE one fetch instead of each
-         hammering Stooq (this is what actually stops the burst rate-limiting),
-      2) retry+backoff so a transient 429 / throttle body doesn't return empty.
-    A genuinely bad symbol still returns empty fast."""
+    Stooq is the shared daily source for regime + MTF + macro + daily-levels +
+    the swing 70-stock scan. The market-open burst (all consumers at once) got
+    everything throttled together, leaving regime UNKNOWN / MTF all-zero. The fix
+    is the 30-min in-memory cache below: consumers SHARE one fetch instead of each
+    hammering Stooq, which is what actually prevents the burst rate-limiting.
+
+    NOTE: single fetch, NO blocking sleep/retry — several callers run on the async
+    event loop, and a blocking time.sleep() there freezes it and times out every
+    concurrent webhook. The cache (not retries) is the real defense; a transient
+    miss just isn't cached and self-corrects on the next call. Short timeout so a
+    slow Stooq can't stall the loop for long."""
     import pandas as pd
     import time as _time
     _c = _STOOQ_CACHE.get(stooq_symbol)
     if _c and (_time.time() - _c[0]) < _STOOQ_TTL and len(_c[1]):
         return _c[1]
     url = f"https://stooq.com/q/d/l/?s={stooq_symbol}&i=d"
-    text = ""
-    for attempt in range(3):
-        try:
-            with httpx.Client(timeout=12) as client:
-                r = client.get(url, headers={"User-Agent": _STOOQ_UA})
-                r.raise_for_status()
-                text = r.text or ""
-            if text and ("Date" in text[:64]):
-                break                       # got a real CSV header
-            # Empty / "N/D" / throttle body — retry (could be a transient rate-limit)
-        except Exception:
-            if attempt == 2:
-                raise
-        _time.sleep(1.2 * (attempt + 1))    # 1.2s, 2.4s backoff
+    with httpx.Client(timeout=8) as client:
+        r = client.get(url, headers={"User-Agent": _STOOQ_UA})
+        r.raise_for_status()
+        text = r.text or ""
     lines = text.splitlines()
     if not lines or "Date" not in lines[0] or "Close" not in lines[0]:
         return pd.DataFrame()      # Stooq returns "N/D" / HTML for bad symbols
