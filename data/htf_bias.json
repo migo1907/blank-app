@@ -232,5 +232,23 @@
     "ml_score": 0.625,
     "stored_at": "2026-07-01T14:30:21.819372+00:00",
     "expires_at": "2026-07-01T18:30:21.819394+00:00"
+  },
+  "BBAI_60": {
+    "direction": "LONG",
+    "timeframe": "60",
+    "symbol": "BBAI",
+    "trigger": "OB",
+    "ml_score": 0.75,
+    "stored_at": "2026-07-01T14:30:22.671468+00:00",
+    "expires_at": "2026-07-01T18:30:22.671488+00:00"
+  },
+  "MU_60": {
+    "direction": "SHORT",
+    "timeframe": "60",
+    "symbol": "MU",
+    "trigger": "FVG",
+    "ml_score": 0.375,
+    "stored_at": "2026-07-01T14:30:23.712844+00:00",
+    "expires_at": "2026-07-01T18:30:23.712863+00:00"
   }
 }
