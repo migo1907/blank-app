@@ -1228,6 +1228,20 @@ async def unified_webhook(payload: UnifiedPayload):
                 outcome_row["gate_threshold"] = _gs[2]
         except Exception:
             pass
+        # Macro snapshot — cross-asset context the 26 price features can't see
+        # (entry-alpha program, 2026-07-02). All in-memory caches refreshed hourly
+        # elsewhere; zero network on the webhook hot path. Becomes new training
+        # dimensions once enough clean-era rows carry them.
+        try:
+            from market_macro import get_macro_bias, get_equity_macro_bias
+            from fear_greed import get_fear_greed
+            outcome_row["mx_gold_bias"]   = round(float(get_macro_bias().get("bias") or 0), 4)
+            outcome_row["mx_equity_bias"] = round(float(get_equity_macro_bias().get("bias") or 0), 4)
+            _fg = get_fear_greed().get("value")
+            if _fg is not None:
+                outcome_row["mx_fear_greed"] = float(_fg)
+        except Exception:
+            pass
         outcome_row.update(features.as_db_dict())
 
         async def _persist():

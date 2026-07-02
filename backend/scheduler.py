@@ -582,8 +582,19 @@ async def _news_signal_cycle() -> None:
                 )
                 _confluence = 1.0 if _other_sig.get("direction") == _opt_dir else 0.5
 
+                # Quarantine coherence (2026-07-02): if the source pool (or the
+                # current stock hour) is a lab-confirmed bleeding segment, don't
+                # convert its signals into leveraged options — the paper ledger
+                # should train on the same signal stream the system trusts.
+                try:
+                    from strategy_lab import threshold_bump as _tb
+                    _opt_quarantined = _tb(_opt_pool) > 0
+                except Exception:
+                    _opt_quarantined = False
                 if _opt_dir in ("NEUTRAL", ""):
                     set_options_check("SPX500 signal neutral — no directional entry this cycle")
+                elif _opt_quarantined:
+                    set_options_check(f"{_opt_pool} quarantined by strategy lab — no options entry")
                 elif _opt_dir == _last_sent_direction_spx_options:
                     set_options_check(f"SPX500 {_opt_dir} unchanged — waiting for a direction flip")
                 else:
