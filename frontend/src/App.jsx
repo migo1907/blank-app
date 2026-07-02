@@ -1234,7 +1234,7 @@ function PriceChart({symbol, period='6mo', levels}) {
   const [state,setState] = useState('loading')   // loading | ready | empty | error
   const levelsKey = JSON.stringify(levels||null)
   useEffect(()=>{
-    let disposed=false, chart=null, ro=null
+    let disposed=false, chart=null, ro=null, liveTimer=null
     setState('loading')
     ;(async()=>{
       try{
@@ -1273,9 +1273,33 @@ function PriceChart({symbol, period='6mo', levels}) {
         ro = new ResizeObserver(()=>{ try{ if(chart&&el.clientWidth) chart.applyOptions({width:el.clientWidth}) }catch{} })
         ro.observe(el)
         setState('ready')
+        // Daily bars come from EOD sources, so today's candle is missing and the
+        // chart looks frozen intraday. Synthesize today's bar from the live quote
+        // (open = last − change, H/L from the session) and refresh it every 60s.
+        const lastTime = candles[candles.length-1]?.time
+        const liveTick = async()=>{
+          try{
+            const key = String(symbol||'').toUpperCase()
+            const dow = new Date().getUTCDay()
+            if(!key.endsWith('-USD')&&(dow===0||dow===6)) return   // closed markets — no phantom weekend bar
+            const q = (await getMarketQuotes(key))?.[key]
+            if(disposed||!q||q.error||q.price==null) return
+            const today = new Date().toISOString().slice(0,10)
+            if(lastTime && today < lastTime) return
+            const px=Number(q.price), ch=Number(q.change)||0, open=px-ch
+            series.update({
+              time: today, open,
+              high: Math.max(Number(q.day_high)||px, px, open),
+              low:  Math.min(Number(q.day_low)||px, px, open),
+              close: px,
+            })
+          }catch{}
+        }
+        liveTick()
+        liveTimer = setInterval(liveTick, 60_000)
       }catch(e){ if(!disposed){ console.error('chart failed',e); setState('error') } }
     })()
-    return ()=>{ disposed=true; try{ro?.disconnect()}catch{}; try{chart?.remove()}catch{} }
+    return ()=>{ disposed=true; try{ro?.disconnect()}catch{}; try{clearInterval(liveTimer)}catch{}; try{chart?.remove()}catch{} }
   },[symbol,period,levelsKey])
   return (
     <div>
@@ -1303,6 +1327,44 @@ function ChartCard({symbol, title='6M Chart', levels}) {
         </div>
       </div>
       <PriceChart symbol={symbol} period={period} levels={levels}/>
+    </div>
+  )
+}
+
+// Swing Radar — the swing screen's Ready/Watch names surfaced on the overview
+function SwingRadarCard() {
+  const {data} = useLoad(()=>api('/swing/candidates'))
+  const all = data?.candidates||[]
+  const isReady = x=>!!(x.entry_now||(x.technical||{}).entry_now||['STRONG','GOOD'].includes(x.entry_quality||(x.technical||{}).entry_quality))
+  const ready = all.filter(isReady)
+  const seen = new Set(ready.map(x=>x.ticker))
+  const watchU = [...all.filter(x=>!isReady(x)), ...(data?.watchlist||[])]
+    .filter(x=>{ if(!x.ticker||seen.has(x.ticker)) return false; seen.add(x.ticker); return true })
+    .slice(0,8)
+  if(!ready.length&&!watchU.length) return null
+  const chip = (x,i,hot)=>{
+    const v=x.valuation||{}
+    return (
+      <span key={i} style={{display:'inline-flex',gap:6,alignItems:'center',background:'var(--surface2)',
+        border:`1px solid ${hot?'rgba(34,197,94,.4)':'var(--border)'}`,borderRadius:6,padding:'4px 8px',fontSize:12}}>
+        <strong style={{color:'var(--text-hi)'}}>{x.ticker}</strong>
+        {v.pe!=null&&<span style={{color:'var(--muted)'}}>PE {Number(v.pe).toFixed(1)}</span>}
+        <span style={{color:hot?'var(--green)':'var(--gold)',fontWeight:700}}>{hot?'✅':'👁'}</span>
+      </span>
+    )
+  }
+  return (
+    <div className="card">
+      <div className="card-title">Swing Radar</div>
+      {ready.length>0&&<>
+        <div style={{fontSize:11,color:'var(--green)',fontWeight:700,margin:'2px 0 6px'}}>✅ Ready — technical entry now</div>
+        <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:watchU.length?10:0}}>{ready.map((x,i)=>chip(x,'r'+i,true))}</div>
+      </>}
+      {watchU.length>0&&<>
+        <div style={{fontSize:11,color:'var(--gold)',fontWeight:700,margin:'2px 0 6px'}}>👁 Watch — cheap &amp; quality, awaiting the spark</div>
+        <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>{watchU.map((x,i)=>chip(x,'w'+i,false))}</div>
+      </>}
+      <div style={{fontSize:11,color:'var(--muted)',marginTop:8}}>From the fundamental screen: quality + CHEAP valuation. Full detail in Portfolio → Swing.</div>
     </div>
   )
 }
@@ -1386,6 +1448,8 @@ function MarketsGridTab() {
       )}
 
       <WatchTodayCard/>
+
+      <SwingRadarCard/>
 
       <MarketChartCard/>
 

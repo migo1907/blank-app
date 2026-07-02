@@ -2635,7 +2635,32 @@ def _fmt_event(ev) -> str:
         return str(ev)
 
 
-def _commentary_data_lines(ctx: dict, events: list | None = None) -> list[str]:
+def _todays_major_earnings(limit: int = 6) -> list[str]:
+    """Today's earnings reports from household names — fed to the commentary."""
+    try:
+        import httpx, datetime as _dtt
+        from news_fetcher import FINNHUB_KEY
+        if not FINNHUB_KEY:
+            return []
+        today = _dtt.datetime.now(_dtt.timezone.utc).date().isoformat()
+        r = httpx.get("https://finnhub.io/api/v1/calendar/earnings",
+                      params={"from": today, "to": today, "token": FINNHUB_KEY}, timeout=8)
+        if r.status_code != 200:
+            return []
+        _HR = {"bmo": "pre-market", "amc": "after close", "dmh": "mid-day"}
+        out = []
+        for ev in r.json().get("earningsCalendar", []) or []:
+            sym = (ev.get("symbol") or "").upper()
+            if sym not in _EARNINGS_MAJORS:
+                continue
+            out.append(f"{sym} ({_HR.get((ev.get('hour') or '').lower(), 'today')})")
+        return out[:limit]
+    except Exception:
+        return []
+
+
+def _commentary_data_lines(ctx: dict, events: list | None = None,
+                           earnings: list | None = None) -> list[str]:
     """Rich per-asset technicals + levels + macro + events — the DATA block fed to the LLM."""
     names = {"XAUUSD": "Gold", "SPY": "S&P 500 (SPY)", "QQQ": "Nasdaq 100 (QQQ)"}
     lines = []
@@ -2652,6 +2677,17 @@ def _commentary_data_lines(ctx: dict, events: list | None = None) -> list[str]:
         if lv.get("pivot") is not None:
             seg += (f" Pivot {lv.get('pivot')}; R {lv.get('r1')}/{lv.get('r2')}, "
                     f"S {lv.get('s1')}/{lv.get('s2')}. ATR {tc.get('atr','?')}.")
+        rl = tc.get("rev_levels") or {}
+        rev_bits = [f"{k} {v.get('price')} ({v.get('dist_pct'):+.1f}% away)"
+                    for k, v in rl.items() if v.get("dist_pct") is not None]
+        if rev_bits:
+            seg += " Mean-reversion anchors: " + ", ".join(rev_bits) + "."
+        try:
+            atr_f = float(str(tc.get("atr", "")).replace(",", ""))
+            if isinstance(price, (int, float)) and atr_f > 0:
+                seg += f" ATR-implied 1-day range ≈ {price - atr_f:,.2f}–{price + atr_f:,.2f}."
+        except Exception:
+            pass
         lines.append(seg)
     m = ctx["macro"]
     macro_bits = [f"Backdrop: {m['equity_label']} equities"]
@@ -2665,12 +2701,17 @@ def _commentary_data_lines(ctx: dict, events: list | None = None) -> list[str]:
         lines.append("Today's high-impact US events: " + "; ".join(_fmt_event(e) for e in events) + ".")
     else:
         lines.append("Today's high-impact US events: none scheduled.")
+    if earnings:
+        lines.append("Major earnings today: " + ", ".join(earnings) + ".")
+    else:
+        lines.append("Major earnings today: none.")
     return lines
 
 
-def _commentary_lines(ctx: dict, events: list | None = None) -> list[str]:
-    """Deterministic 4-block desk note (DIRECTION / LEVELS / SCENARIOS / WATCH) —
-    graceful fallback when no LLM key is present. Short, numbers-first."""
+def _commentary_lines(ctx: dict, events: list | None = None,
+                      earnings: list | None = None) -> list[str]:
+    """Deterministic desk note (DIRECTION / LEVELS / EVENT PLAYBOOK / REVERSION &
+    RANGE / EARNINGS & WATCH) — graceful fallback when no LLM key is present."""
     names = {"XAUUSD": "Gold", "SPY": "S&P", "QQQ": "Nasdaq"}
 
     def _n(v):
@@ -2679,8 +2720,9 @@ def _commentary_lines(ctx: dict, events: list | None = None) -> list[str]:
         except Exception:
             return "?"
 
-    direction, level_rows, scen = [], [], []
+    direction, level_rows, scen, rev_rows = [], [], [], []
     gold_lv = None
+    eq_lv = {}   # label → levels, for the two-sided event playbook
     for key, label in names.items():
         a = ctx["assets"].get(key, {})
         tc, lv, price = a.get("tc", {}), a.get("lv", {}), a.get("price")
@@ -2688,6 +2730,20 @@ def _commentary_lines(ctx: dict, events: list | None = None) -> list[str]:
             continue
         if key == "XAUUSD" and lv.get("pivot") is not None:
             gold_lv = lv
+        elif lv.get("pivot") is not None:
+            eq_lv[label] = lv
+        # Mean-reversion + expected range row
+        rl = tc.get("rev_levels") or {}
+        rev_bits = [f"{k} {v.get('price')} ({v.get('dist_pct'):+.1f}%)"
+                    for k, v in rl.items() if v.get("dist_pct") is not None]
+        row = f"{label}: " + (" · ".join(rev_bits) if rev_bits else "no MA data")
+        try:
+            atr_f = float(str(tc.get("atr", "")).replace(",", ""))
+            if isinstance(price, (int, float)) and atr_f > 0:
+                row += f" · day range {_n(price - atr_f)}–{_n(price + atr_f)}"
+        except Exception:
+            pass
+        rev_rows.append(row)
         bullish = str(tc.get("direction", "")).lower().startswith("bull")
         piv, r1, r2, s1, s2 = (lv.get("pivot"), lv.get("r1"), lv.get("r2"),
                                lv.get("s1"), lv.get("s2"))
@@ -2714,23 +2770,35 @@ def _commentary_lines(ctx: dict, events: list | None = None) -> list[str]:
             scen.append(f"{label} above R1 {_n(lv.get('r1'))} → {_n(lv.get('r2'))} next; "
                         f"below S1 {_n(lv.get('s1'))} → {_n(lv.get('s2'))}.")
     scen = scen[:3]
+
+    # Two-sided playbook for today's top scheduled event (e.g. NFP): what a hot
+    # vs soft print does to gold and equities, with the exact levels in play.
+    playbook = []
     if events:
-        # tie one scenario to today's top event (replaces the last level line, or appends)
         ev_name = events[0][1] if len(events[0]) > 1 else "the data"
         _g = gold_lv or {}
-        ev_line = (f"{ev_name} hot → yields/DXY up, gold tests S1 {_n(_g.get('s1'))}; "
-                   f"soft print → gold reclaims R1 {_n(_g.get('r1'))}.")
-        if len(scen) >= 3:
-            scen[2] = ev_line
-        else:
-            scen.append(ev_line)
+        _e_label, _e = (next(iter(eq_lv.items())) if eq_lv else ("Equities", {}))
+        playbook.append(
+            f"{ev_name} HOT (above consensus) → yields & DXY up: gold sells to S1 "
+            f"{_n(_g.get('s1'))} (S2 {_n(_g.get('s2'))} if broken); {_e_label} fades from R1 "
+            f"{_n(_e.get('r1'))} toward pivot {_n(_e.get('pivot'))}. Rate-cut odds fall.")
+        playbook.append(
+            f"{ev_name} SOFT (below consensus) → yields & DXY down: gold reclaims R1 "
+            f"{_n(_g.get('r1'))} then R2 {_n(_g.get('r2'))}; {_e_label} squeezes above R1 "
+            f"{_n(_e.get('r1'))}. Rate-cut odds rise — risk-on.")
+        playbook.append("In-line print → fade the first spike, back to pivot; range day.")
+    else:
+        playbook.append("No high-impact US data today — levels and flows drive; expect mean-reversion toward pivots.")
     watch = "; ".join(_fmt_event(e) for e in (events or [])[:3]) or "No high-impact US events today."
+    ern = ("Earnings today: " + ", ".join(earnings) + ".") if earnings else "No major earnings today."
 
     return [
         "DIRECTION:\n" + "\n".join(direction or ["No data."]),
         "LEVELS:\n" + "\n".join(level_rows or ["No pivot data."]),
+        "EVENT PLAYBOOK:\n" + "\n".join(playbook),
+        "MEAN REVERSION & RANGE:\n" + "\n".join(rev_rows or ["No MA data."]),
         "SCENARIOS:\n" + "\n".join(scen or ["No level data for scenarios."]),
-        "WATCH:\n" + watch,
+        "EARNINGS & WATCH:\n" + ern + "\n" + watch,
     ]
 
 
@@ -2757,37 +2825,45 @@ def market_commentary(secret: str = ""):
     except Exception:
         events = []
 
-    data_block = "\n".join(_commentary_data_lines(ctx, events))
+    earnings = _todays_major_earnings()
+    data_block = "\n".join(_commentary_data_lines(ctx, events, earnings))
     prompt = (
         f"You are a senior prop-desk strategist writing the morning tape note for {today}. "
-        "Using ONLY the data below, output EXACTLY 4 blocks separated by blank lines, 140-180 words total:\n"
+        "Using ONLY the data below, output EXACTLY 6 blocks separated by blank lines, 220-300 words total:\n"
         "DIRECTION: one hard-call line for EACH of Gold, SPY, QQQ — a tradeable conclusion with explicit "
         "numbers from the data, format: '<asset>: LONG bias above <level>, target <level> then <level>; "
         "flip SHORT below <level>' (or SHORT bias with LONG flip). Pick a side per asset — never describe "
         "or explain the numbers, never say 'mixed' or 'watch for'.\n"
         "LEVELS: one line per asset (Gold, SPY, QQQ) with explicit support/resistance from the pivot data, "
         "e.g. 'Gold: S 4011 / 3985 · R 4061 / 4099'.\n"
-        "SCENARIOS: exactly 3 if/then lines with a concrete trigger level and a concrete target — at least "
-        "one MUST be tied to today's top scheduled event, "
-        "e.g. 'SPY above R1 612 → 615 next' and 'NFP hot → yields up, gold tests S1 3985'.\n"
+        "EVENT PLAYBOOK: if a high-impact event is scheduled today, exactly 2-3 lines covering BOTH outcomes "
+        "with macro transmission and exact levels — e.g. 'NFP HOT → yields/DXY up, rate-cut odds fall: gold "
+        "sells to S1 3985 (S2 3960 if broken), SPY fades R1 612 back to pivot 609' and the mirror-image SOFT "
+        "line, plus an in-line line ('fade the first spike'). If nothing is scheduled, ONE line saying levels "
+        "and flows drive today.\n"
+        "MEAN REVERSION & RANGE: one line per asset — how stretched price is vs its 20/50/200MA anchors "
+        "(use the dist % given), which MA is the magnet if momentum stalls, and the ATR-implied day range, "
+        "e.g. 'Gold +3.1% over 20MA 3,942 — stretched, 3,942 is the pullback magnet; range 4,020–4,105'.\n"
+        "EARNINGS: one line — today's major reports and which index they can move (QQQ for mega-tech), "
+        "or 'None major today.'\n"
         "WATCH: one line — today's highest-impact event(s) with their Dubai times.\n"
         "Style: terse desk shorthand, conclusions only, numbers-first. Every line must be actionable — "
         "state what to do at what level, not why. No hedging, no 'investors should', no disclaimers, "
-        "no prose paragraphs, nothing outside the 4 blocks.\n\nDATA:\n" + data_block
+        "no prose paragraphs, nothing outside the 6 blocks.\n\nDATA:\n" + data_block
     )
     try:
         client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
         msg = client.messages.create(
             model="claude-haiku-4-5-20251001",
-            max_tokens=600,
+            max_tokens=900,
             messages=[{"role": "user", "content": prompt}],
         )
         text = msg.content[0].text.strip()
         _commentary_cache.update({"date": today, "text": text})
         return {"date": today, "commentary": text, "cached": False}
     except Exception:
-        # Graceful fallback: deterministic 4-block desk note (same structure, no LLM)
-        text = "\n\n".join(_commentary_lines(ctx, events))
+        # Graceful fallback: deterministic 6-block desk note (same structure, no LLM)
+        text = "\n\n".join(_commentary_lines(ctx, events, earnings))
         return {"date": today, "commentary": text, "cached": False, "fallback": True}
 
 
