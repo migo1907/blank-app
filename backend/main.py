@@ -2763,6 +2763,68 @@ def market_sparklines(secret: str = ""):
     return res
 
 
+# ── Daily OHLC history for candlestick charts (Endpoint: /market/history) ────
+_history_cache: dict = {}          # (symbol, period) -> (epoch_fetched, payload)
+_HISTORY_TTL = 600                 # 10 min — daily bars don't change intraday
+_HISTORY_PERIODS = {"1mo": 31, "3mo": 93, "6mo": 186, "1y": 366}
+
+
+@app.get("/market/history")
+def market_history(symbol: str, period: str = "6mo", secret: str = ""):
+    """Daily OHLC candles for the PWA charts. Overview aliases (^GSPC, GC=F,
+    BTC-USD, ...) resolve via the same Stooq map the overview/sparklines use;
+    everything else goes through market_data.fetch_daily (STOOQ_SYMBOLS aliases
+    + the '<ticker>.us' equity convention). Cached 10 min per (symbol, period).
+    Returns candles=[] on any failure — never 500s."""
+    _validate_secret(secret)
+    import math, time
+    from datetime import timedelta
+    sym = (symbol or "").strip().upper()
+    per = period if period in _HISTORY_PERIODS else "6mo"
+    key = (sym, per)
+    ent = _history_cache.get(key)
+    if ent and time.time() - ent[0] < _HISTORY_TTL:
+        return ent[1]
+    candles = []
+    try:
+        from market_data import fetch_daily, _stooq_daily
+        df = None
+        stooq_sym = _OVERVIEW_STOOQ.get(sym)
+        if stooq_sym:
+            try:
+                df = _stooq_daily(stooq_sym)
+            except Exception:
+                df = None
+        if df is None or not len(df):
+            df = fetch_daily(sym, period=per)
+        if df is not None and len(df):
+            # Stooq/IBKR return full history — trim to the requested window.
+            cutoff = datetime.now(timezone.utc) - timedelta(days=_HISTORY_PERIODS[per])
+            try:
+                df = df[df.index >= cutoff]
+            except Exception:
+                pass   # naive index — serve untrimmed rather than fail
+            for ts, row in df.iterrows():
+                try:
+                    o, h, l, c = (float(row["Open"]), float(row["High"]),
+                                  float(row["Low"]), float(row["Close"]))
+                except Exception:
+                    continue
+                if any(math.isnan(v) or math.isinf(v) for v in (o, h, l, c)):
+                    continue
+                candles.append({"time": ts.strftime("%Y-%m-%d"),
+                                "open": round(o, 2), "high": round(h, 2),
+                                "low": round(l, 2), "close": round(c, 2)})
+    except Exception as e:
+        print(f"[history] {sym} {per} failed: {e}")
+        candles = []
+    out = {"symbol": sym, "candles": candles,
+           "updated_at": datetime.now(timezone.utc).isoformat()}
+    if candles:   # never cache a failed fetch
+        _history_cache[key] = (time.time(), out)
+    return out
+
+
 @app.get("/calendar/economic")
 def calendar_economic(secret: str = ""):
     """This-week high/medium-impact US economic events. Forex Factory primary, Finnhub fallback."""

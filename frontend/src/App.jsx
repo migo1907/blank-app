@@ -10,7 +10,7 @@ import { t, getLang, setLang, LANGS } from './i18n'
 import { getDashboard, subscribePush, VAPID_PUBLIC, getVapidPublic,
   getMarketOverview, getMarketQuotes, getMarketTicker, getMarketCompare, getMarketWrap, getMarketCommentary,
   getMarketSparklines, getOptionsFlow, getEconomicCalendar, getEarningsCalendar,
-  getMarketSentiment, getWatchToday,
+  getMarketSentiment, getWatchToday, getMarketHistory,
   getBreakingNews, login, getSecret, clearSecret } from './api'
 
 const BASE = 'https://blank-app-production-a8bd.up.railway.app'
@@ -1187,6 +1187,110 @@ function WatchTodayCard() {
   )
 }
 
+// ── Interactive candlestick chart (lightweight-charts, lazy-loaded chunk) ────
+function PriceChart({symbol, period='6mo', levels}) {
+  const wrapRef = useRef(null)
+  const [state,setState] = useState('loading')   // loading | ready | empty | error
+  const levelsKey = JSON.stringify(levels||null)
+  useEffect(()=>{
+    let disposed=false, chart=null, ro=null
+    setState('loading')
+    ;(async()=>{
+      try{
+        // Dynamic import → lightweight-charts lands in its own chunk
+        const [lwc, hist] = await Promise.all([
+          import('lightweight-charts'),
+          getMarketHistory(symbol, period),
+        ])
+        if(disposed) return
+        const candles = hist?.candles||[]
+        if(!candles.length){ setState('empty'); return }
+        const el = wrapRef.current
+        if(!el) return
+        const css   = getComputedStyle(document.documentElement)
+        const cvar  = (name,fb) => (css.getPropertyValue(name)||'').trim()||fb
+        const green = cvar('--green','#2ebd85'), red = cvar('--red','#f6465d')
+        const textMut = cvar('--text-mut','#8089a0'), gold = cvar('--gold','#f5b027')
+        chart = lwc.createChart(el, {
+          width: el.clientWidth||undefined, height: 300,
+          layout: { background:{color:'transparent'}, textColor:textMut, attributionLogo:false, fontSize:11 },
+          grid: { vertLines:{color:'rgba(255,255,255,.05)'}, horzLines:{color:'rgba(255,255,255,.05)'} },
+          rightPriceScale: { borderVisible:false },
+          timeScale: { borderVisible:false },
+        })
+        const opts = { upColor:green, downColor:red, wickUpColor:green, wickDownColor:red, borderVisible:false }
+        // v5 API (addSeries) with v4 fallback (addCandlestickSeries)
+        const series = lwc.CandlestickSeries && chart.addSeries
+          ? chart.addSeries(lwc.CandlestickSeries, opts)
+          : chart.addCandlestickSeries(opts)
+        series.setData(candles.map(c=>({time:c.time,open:c.open,high:c.high,low:c.low,close:c.close})))
+        for(const l of (levels||[])){
+          if(l?.price==null) continue
+          try{ series.createPriceLine({price:Number(l.price), color:l.color||gold, lineWidth:1, lineStyle:2, title:l.title||''}) }catch{}
+        }
+        chart.timeScale().fitContent()
+        ro = new ResizeObserver(()=>{ try{ if(chart&&el.clientWidth) chart.applyOptions({width:el.clientWidth}) }catch{} })
+        ro.observe(el)
+        setState('ready')
+      }catch(e){ if(!disposed){ console.error('chart failed',e); setState('error') } }
+    })()
+    return ()=>{ disposed=true; try{ro?.disconnect()}catch{}; try{chart?.remove()}catch{} }
+  },[symbol,period,levelsKey])
+  return (
+    <div>
+      <div ref={wrapRef} style={{width:'100%'}}/>
+      {state==='loading'&&<Spinner/>}
+      {state==='empty'&&<div className="empty"><span className="emoji">📉</span><div className="title">No chart data</div><div className="sub">No daily candles available for {symbol}.</div></div>}
+      {state==='error'&&<div style={{color:'var(--text-mut)',fontSize:13,padding:'16px 0',textAlign:'center'}}>Chart unavailable</div>}
+    </div>
+  )
+}
+
+const CHART_PERIODS = [['1mo','1M'],['3mo','3M'],['6mo','6M'],['1y','1Y']]
+
+// Period-chip wrapper card around PriceChart (Research tab)
+function ChartCard({symbol, title='6M Chart', levels}) {
+  const [period,setPeriod] = useState('6mo')
+  return (
+    <div className="card">
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:8,marginBottom:10}}>
+        <div className="card-title" style={{marginBottom:0}}>{title}</div>
+        <div style={{display:'flex',gap:6}}>
+          {CHART_PERIODS.map(([p,lbl])=>(
+            <button key={p} className={`filter-chip ${period===p?'active':''}`} onClick={()=>setPeriod(p)}>{lbl}</button>
+          ))}
+        </div>
+      </div>
+      <PriceChart symbol={symbol} period={period} levels={levels}/>
+    </div>
+  )
+}
+
+// Markets → Overview chart card: symbol chips + period chips, default Gold 6mo
+const CHART_SYMBOLS = [['SPX','^GSPC'],['Gold','GC=F'],['NASDAQ','^IXIC'],['BTC','BTC-USD']]
+function MarketChartCard() {
+  const [sym,setSym]       = useState('GC=F')
+  const [period,setPeriod] = useState('6mo')
+  return (
+    <div className="card">
+      <div className="card-title">Chart</div>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:8,marginBottom:10}}>
+        <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+          {CHART_SYMBOLS.map(([lbl,s])=>(
+            <button key={s} className={`filter-chip ${sym===s?'active':''}`} onClick={()=>setSym(s)}>{lbl}</button>
+          ))}
+        </div>
+        <div style={{display:'flex',gap:6}}>
+          {CHART_PERIODS.map(([p,lbl])=>(
+            <button key={p} className={`filter-chip ${period===p?'active':''}`} onClick={()=>setPeriod(p)}>{lbl}</button>
+          ))}
+        </div>
+      </div>
+      <PriceChart symbol={sym} period={period}/>
+    </div>
+  )
+}
+
 function MarketsGridTab() {
   const {data,err,load} = useLoad(()=>getMarketOverview())
   const spark = useLoad(()=>getMarketSparklines())
@@ -1241,6 +1345,8 @@ function MarketsGridTab() {
       )}
 
       <WatchTodayCard/>
+
+      <MarketChartCard/>
 
       {/* Group filter */}
       <div className="filter-bar">
@@ -1607,6 +1713,7 @@ function ResearchTab() {
               )
             })()}
           </div>
+          <ChartCard symbol={symbol}/>
           <div className="card">
             <h3 style={{color:'var(--gold)',marginBottom:12,fontSize:14}}>Fundamentals</h3>
             <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))',gap:10}}>
