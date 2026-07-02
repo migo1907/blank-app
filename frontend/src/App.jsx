@@ -720,8 +720,8 @@ function SwingTab() {
           </div>
         </div>
         <div style={{textAlign:'right',fontSize:11,color:'var(--muted)'}}>
-          <div>Gate 1: valuation upside ≥ 15%</div>
-          <div style={{color:'var(--gold)'}}>Gate 2: entry STRONG / GOOD / FAIR</div>
+          <div>Gate 1: quality fundamentals</div>
+          <div style={{color:'var(--gold)'}}>Gate 2: CHEAP vs sector &amp; history</div>
         </div>
       </div>
 
@@ -730,7 +730,7 @@ function SwingTab() {
         <div style={{padding:'40px 20px',textAlign:'center',color:'var(--muted)'}}>
           <div style={{fontSize:32,marginBottom:10}}>📈</div>
           <div style={{fontSize:14,fontWeight:600,marginBottom:6}}>No candidates yet</div>
-          <div style={{fontSize:13}}>Screen runs at 09:45 ET and 16:30 ET on trading days. 70 stocks scanned — top 15 with ≥15% valuation upside (Gate 1) and STRONG/GOOD/FAIR technical entry (Gate 2) shown here, with a 4H early-turn flag. WAIT-quality names appear below as watching.</div>
+          <div style={{fontSize:13}}>Screen runs nightly on trading days (manual rescan anytime). 70 stocks scanned — a name must pass quality fundamentals (Gate 1) and be CHEAP vs its sector and its own history (Gate 2). Technicals then set the timing: ✅ Ready = entry signal now, 👁 Watch = cheap &amp; quality, waiting for the technical spark.</div>
         </div>
       ) : (
         <div style={{padding:'0 10px',display:'flex',flexDirection:'column',gap:10}}>
@@ -2455,7 +2455,7 @@ function TickerTape() {
   if(!items.length) return null
   const fmtPx = v => Number(v).toLocaleString('en-US',{maximumFractionDigits:2})
   const renderItem = (it,key)=>{
-    const chg = Number(it.change_pct)
+    const chg = it.change_pct==null ? NaN : Number(it.change_pct)
     const has = !isNaN(chg)
     const up  = has && chg>=0
     const sym = String(it.symbol||it.name||'').replace(/^\^/,'')

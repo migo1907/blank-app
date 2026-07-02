@@ -2364,6 +2364,20 @@ def start_scheduler() -> AsyncIOScheduler:
         _scheduler.add_job(_swing_manage_cycle, trigger="date", run_date=_now + _td(seconds=75),
                            id="swing_manage_catchup", replace_existing=True)
 
+    # Swing gate-version catch-up — a redeploy kills any in-flight scan, and a
+    # gate change makes the persisted scan meaningless. If the cached scan is
+    # missing or was produced by older gates, rescan shortly after boot so the
+    # app never shows results from gates that no longer exist.
+    if _is_weekday:
+        try:
+            import swing_screener as _sw
+            if (_sw.get_candidates() or {}).get("gate_version") != _sw.GATE_VERSION:
+                print("[scheduler] Startup catch-up: swing rescan (no scan from current gates yet).")
+                _scheduler.add_job(_swing_screen_cycle, trigger="date", run_date=_now + _td(seconds=120),
+                                   id="swing_gate_catchup", replace_existing=True)
+        except Exception as _e:
+            print(f"[scheduler] Startup catch-up: swing gate check skipped ({_e}).")
+
     # Weekly autopsy — Monday 09:00 UTC
     if _is_monday and _missed(9, 0, _now):
         print("[scheduler] Startup catch-up: weekly autopsy.")

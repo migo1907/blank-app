@@ -78,6 +78,10 @@ _TICKER_SECTOR = {t: etf for etf, ts in _SECTOR.items() for t in ts}
 _SWING_PATH = "data/swing_candidates.json"
 _cached: dict = {}
 
+# Bump when gate logic changes — a persisted scan from older gates is stale
+# and the scheduler rescans on startup until one from the current gates exists.
+GATE_VERSION = 2
+
 
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
@@ -565,6 +569,7 @@ def run_screen(top_n: int = 15) -> dict:
         "skipped_quality":     skipped_quality,
         "skipped_expensive":   skipped_expensive,
         "skipped_technical":   skipped_technical,
+        "gate_version":        GATE_VERSION,
         "updated_at":          _now(),
     }
     _cached = result
@@ -604,8 +609,11 @@ def load_candidates() -> None:
     try:
         from db import _get_file
         data, _ = _get_file(_SWING_PATH)
-        if isinstance(data, dict) and data.get("candidates"):
+        # A legit scan can pass 0 names — accept any completed scan, not just
+        # non-empty ones, so a 0-candidate result doesn't force a boot rescan.
+        if isinstance(data, dict) and (data.get("candidates") or data.get("scanned")):
             _cached = data
-            print(f"[swing] loaded {len(data['candidates'])} cached swing candidates")
+            print(f"[swing] loaded {len(data.get('candidates') or [])} cached swing candidates "
+                  f"(gate_version={data.get('gate_version')})")
     except Exception as e:
         print(f"[swing] load failed: {e}")

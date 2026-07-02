@@ -283,10 +283,15 @@ def _tv_quote_from_values(vals: list) -> dict | None:
     price = _tv_num(vals[0]) if len(vals) >= 1 else None
     if price is None or price <= 0:
         return None
+    change = _tv_num(vals[1]) if len(vals) >= 2 else None
+    change_pct = _tv_num(vals[2], 2) if len(vals) >= 3 else None
+    if change_pct is None and change is not None and price != change:
+        # some /symbol responses omit chp — derive it from ch and prev close
+        change_pct = round(change / (price - change) * 100, 2)
     return {
         "price":      price,
-        "change":     _tv_num(vals[1]) if len(vals) >= 2 else None,
-        "change_pct": _tv_num(vals[2], 2) if len(vals) >= 3 else None,
+        "change":     change,
+        "change_pct": change_pct,
         "day_high":   _tv_num(vals[3]) if len(vals) >= 4 else None,
         "day_low":    _tv_num(vals[4]) if len(vals) >= 5 else None,
     }
