@@ -2,37 +2,6 @@
   "signals": [
     {
       "direction": "LONG",
-      "timeframe": "15",
-      "trigger": "FVG",
-      "symbol": "BBAI",
-      "entry_price": 3.77,
-      "tp1": 3.85,
-      "tp2": 3.92,
-      "tp3": 4.0,
-      "sl": 3.69,
-      "ml_score": 0.25,
-      "tier": "\u26a1 LOW",
-      "quality_score": 0.3598,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.1808,
-      "velocity": "LOW",
-      "event": "NFP",
-      "htf_bias": {
-        "direction": "LONG",
-        "timeframe": "60",
-        "symbol": "BBAI",
-        "trigger": "OB",
-        "ml_score": 0.75,
-        "stored_at": "2026-07-01T14:30:22.671468+00:00",
-        "expires_at": "2026-07-01T18:30:22.671488+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "with_bias",
-      "session": "NYSE Open",
-      "fired_at": "2026-07-01T15:30:41.269539+00:00"
-    },
-    {
-      "direction": "LONG",
       "timeframe": "30",
       "trigger": "FVG",
       "symbol": "NOW",
@@ -2843,6 +2812,37 @@
       "htf_context": "htf_direct",
       "session": "London",
       "fired_at": "2026-07-02T12:32:03.243471+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "5",
+      "trigger": "FVG",
+      "symbol": "XAUUSD",
+      "entry_price": 4127.76,
+      "tp1": 4135.41,
+      "tp2": 4140.52,
+      "tp3": 4148.17,
+      "sl": 4117.04,
+      "ml_score": 0.25,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.4675,
+      "quality_reason": "approved",
+      "news_score": -0.0932,
+      "velocity": "LOW",
+      "event": "NFP",
+      "htf_bias": {
+        "direction": "LONG",
+        "timeframe": "30",
+        "symbol": "XAUUSD",
+        "trigger": "OB",
+        "ml_score": 0.625,
+        "stored_at": "2026-07-02T12:32:02.567483+00:00",
+        "expires_at": "2026-07-02T14:32:02.567491+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "with_bias",
+      "session": "London",
+      "fired_at": "2026-07-02T12:37:02.708759+00:00"
     }
   ]
 }
