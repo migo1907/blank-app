@@ -135,11 +135,14 @@ html, body {
 /* ── SUB-TABS ── */
 .sub-tabs {
   display: flex; gap: 4px; padding: 10px 12px 8px;
+  overflow-x: auto; scrollbar-width: none;
   border-bottom: 1px solid var(--border);
   background: var(--header-bg); backdrop-filter: blur(10px);
   position: sticky; top: 0; z-index: 10;
 }
+.sub-tabs::-webkit-scrollbar{display:none}
 .sub-tab {
+  flex-shrink: 0;
   padding: 6px 14px; font-size: var(--fs-11); font-weight: 700;
   border-radius: var(--r-sm); border: none; cursor: pointer;
   background: var(--surface2); color: var(--muted);

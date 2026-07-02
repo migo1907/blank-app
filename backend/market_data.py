@@ -463,4 +463,56 @@ def fetch_daily(ticker: str, period: str = "1y"):
         except Exception as e:
             print(f"[mktdata] Stooq {sym} failed: {e}")
             _health("stooq_daily", False, "price", str(e))
+    # TradingView daily bars — last resort when Stooq is rate-limited from the
+    # cloud IP. tvdatafeed anonymous mode; same lib daily_analysis levels use.
+    try:
+        df = _tv_daily(ticker)
+        if df is not None and len(df):
+            _health("tv_daily", True, "price")
+            return df
+        _health("tv_daily", False, "price", f"empty for {ticker}")
+    except Exception as e:
+        print(f"[mktdata] TV daily {ticker} failed: {e}")
+        _health("tv_daily", False, "price", str(e))
     return pd.DataFrame()
+
+
+_TV_DAILY_MAP = {
+    "GC=F": ("GOLD", "TVC"), "XAUUSD": ("GOLD", "TVC"),
+    "SPY": ("SPY", "AMEX"), "QQQ": ("QQQ", "NASDAQ"),
+    "^GSPC": ("SPX", "SP"), "^IXIC": ("IXIC", "NASDAQ"), "^DJI": ("DJI", "TVC"),
+    "^RUT": ("RUT", "TVC"), "^VIX": ("VIX", "TVC"),
+    "CL=F": ("USOIL", "TVC"), "SI=F": ("SILVER", "TVC"), "NG=F": ("NG1!", "NYMEX"),
+    "BTC-USD": ("BTCUSD", "BITSTAMP"), "ETH-USD": ("ETHUSD", "BITSTAMP"),
+    "^TNX": ("US10Y", "TVC"), "^IRX": ("US02Y", "TVC"),
+}
+
+_tv_daily_cache: dict = {}
+
+def _tv_daily(ticker: str):
+    """Daily OHLC via tvdatafeed (anonymous). 30-min cache per ticker."""
+    import time
+    import pandas as pd
+    hit = _tv_daily_cache.get(ticker)
+    if hit and time.time() - hit[0] < 1800:
+        return hit[1]
+    try:
+        from tvDatafeed import TvDatafeed, Interval
+    except Exception:
+        return None
+    sym, exch = _TV_DAILY_MAP.get(ticker, (ticker.upper().replace("-", "").replace(".", ""), "NASDAQ"))
+    tv = TvDatafeed()
+    df = None
+    for ex in ([exch] + (["NYSE", "AMEX"] if exch == "NASDAQ" else [])):
+        try:
+            raw = tv.get_hist(symbol=sym, exchange=ex, interval=Interval.in_daily, n_bars=260)
+            if raw is not None and len(raw) >= 30:
+                df = raw.rename(columns={"open": "Open", "high": "High", "low": "Low", "close": "Close", "volume": "Volume"})
+                df = df[["Open", "High", "Low", "Close"] + (["Volume"] if "Volume" in df.columns else [])]
+                break
+        except Exception:
+            continue
+    if df is not None and len(df):
+        _tv_daily_cache[ticker] = (time.time(), df)
+        return df
+    return None
