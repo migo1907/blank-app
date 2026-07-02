@@ -2,37 +2,6 @@
   "signals": [
     {
       "direction": "LONG",
-      "timeframe": "30",
-      "trigger": "FVG",
-      "symbol": "MSFT",
-      "entry_price": 386.74,
-      "tp1": 393.75,
-      "tp2": 398.85,
-      "tp3": 405.86,
-      "sl": 379.73,
-      "ml_score": 0.375,
-      "tier": "\u26a1 LOW",
-      "quality_score": 0.2424,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.1808,
-      "velocity": "LOW",
-      "event": "NFP",
-      "htf_bias": {
-        "direction": "LONG",
-        "timeframe": "60",
-        "symbol": "MSFT",
-        "trigger": "FVG",
-        "ml_score": 0.875,
-        "stored_at": "2026-07-01T14:30:09.651601+00:00",
-        "expires_at": "2026-07-01T18:30:09.651624+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "htf_direct",
-      "session": "NYSE Open",
-      "fired_at": "2026-07-01T15:30:08.080137+00:00"
-    },
-    {
-      "direction": "LONG",
       "timeframe": "60",
       "trigger": "FVG",
       "symbol": "GOOGL",
@@ -2851,6 +2820,37 @@
       "htf_context": "counter_trend",
       "session": "London Open",
       "fired_at": "2026-07-02T07:02:02.687348+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "5",
+      "trigger": "FVG",
+      "symbol": "XAUUSD",
+      "entry_price": 4064.0,
+      "tp1": 4060.22,
+      "tp2": 4057.71,
+      "tp3": 4053.93,
+      "sl": 4069.29,
+      "ml_score": 0.25,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.4046,
+      "quality_reason": "rejected_low_confidence",
+      "news_score": 0.0409,
+      "velocity": "CONFLICTED",
+      "event": "NFP",
+      "htf_bias": null,
+      "contra_bias": {
+        "direction": "LONG",
+        "timeframe": "30",
+        "symbol": "XAUUSD",
+        "trigger": "FVG",
+        "ml_score": 0.75,
+        "stored_at": "2026-07-02T06:32:02.049775+00:00",
+        "expires_at": "2026-07-02T08:32:02.049790+00:00"
+      },
+      "htf_context": "counter_trend",
+      "session": "London",
+      "fired_at": "2026-07-02T08:02:01.583152+00:00"
     }
   ]
 }
