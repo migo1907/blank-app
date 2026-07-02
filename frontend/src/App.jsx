@@ -9,6 +9,7 @@ import { Crosshair, BarChart3, CalendarDays, Briefcase, Newspaper, LogOut, Menu,
 import { getDashboard, subscribePush, VAPID_PUBLIC, getVapidPublic,
   getMarketOverview, getMarketQuotes, getMarketTicker, getMarketCompare, getMarketWrap, getMarketCommentary,
   getMarketSparklines, getOptionsFlow, getEconomicCalendar, getEarningsCalendar,
+  getMarketSentiment, getWatchToday,
   getBreakingNews, login, getSecret, clearSecret } from './api'
 
 const BASE = 'https://blank-app-production-a8bd.up.railway.app'
@@ -1139,6 +1140,52 @@ function Spark({data,w=70,h=24}){
   )
 }
 
+// "Stocks to Watch" — top movers chips + swing picks table (renders nothing if empty)
+function WatchTodayCard() {
+  const {data,err} = useLoad(()=>getWatchToday())
+  const movers = (data?.movers||[]).filter(m=>m&&m.symbol).slice(0,6)
+  const picks  = (data?.swing_picks||[]).filter(p=>p&&p.ticker).slice(0,5)
+  if(err||(!movers.length&&!picks.length)) return null
+  const eqCls = q => q==='STRONG'?'bdg bdg-bull':q==='FAIR'?'bdg bdg-gold':'bdg bdg-muted'
+  return (
+    <div className="card">
+      <div className="card-title">👀 Stocks to Watch</div>
+      {movers.length>0&&(
+        <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:picks.length?12:0}}>
+          {movers.map((m,i)=>{
+            const up=(m.change_pct||0)>=0
+            return (
+              <span key={i} style={{display:'inline-flex',gap:6,alignItems:'center',background:'var(--surface2)',border:'1px solid var(--border)',borderRadius:6,padding:'4px 8px',fontSize:12}}>
+                <strong style={{color:'var(--text-hi)'}}>{m.symbol}</strong>
+                <span className="mono" style={{color:up?'var(--green-text)':'var(--red-text)',fontWeight:700}}>{up?'▲':'▼'}{Math.abs(m.change_pct||0).toFixed(2)}%</span>
+              </span>
+            )
+          })}
+        </div>
+      )}
+      {picks.length>0&&(
+        <div style={{overflowX:'auto'}}>
+          <table className="tbl" style={{width:'100%'}}>
+            <thead><tr><th>Ticker</th><th className="num">Score</th><th>Entry Q</th><th className="num">Entry</th><th className="num">Stop</th><th className="num">T1</th></tr></thead>
+            <tbody>
+              {picks.map((p,i)=>(
+                <tr key={i}>
+                  <td><strong style={{color:'var(--gold-text)'}}>{p.ticker}</strong></td>
+                  <td className="num">{p.combined_score!=null?`${Math.round(Number(p.combined_score)*100)}%`:'—'}</td>
+                  <td><span className={eqCls(p.entry_quality)}>{p.entry_quality||'—'}</span></td>
+                  <td className="num">{p.entry!=null?n(p.entry,2):'—'}</td>
+                  <td className="num">{p.stop!=null?n(p.stop,2):'—'}</td>
+                  <td className="num">{p.t1!=null?n(p.t1,2):'—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function MarketsGridTab() {
   const {data,err,load} = useLoad(()=>getMarketOverview())
   const spark = useLoad(()=>getMarketSparklines())
@@ -1192,6 +1239,8 @@ function MarketsGridTab() {
         </div>
       )}
 
+      <WatchTodayCard/>
+
       {/* Group filter */}
       <div className="filter-bar">
         {chips.map(c=>(
@@ -1237,6 +1286,87 @@ function MarketsGridTab() {
   )
 }
 
+// Markets → Sentiment — composite risk appetite + component breakdown + VIX term structure
+function SentimentTab() {
+  const {data,err,load,reload} = useLoad(()=>getMarketSentiment())
+  if(load&&!data) return <Spinner/>
+  if(err&&!data)  return <Err e={err}/>
+  if(!data) return null
+
+  const comp  = typeof data.composite==='number'?Math.min(1,Math.max(0,data.composite)):null
+  const cClr  = comp==null?'var(--muted)':comp>=0.6?'var(--green-text)':comp<=0.4?'var(--red-text)':'var(--gold-text)'
+  const comps = data.components||{}
+  const raw   = data.raw||{}
+  const fg=raw.fear_greed||{}, vx=raw.vix||{}, nw=raw.news||{}, br=raw.breadth||{}
+  const vClr  = v => v>=0.6?'var(--green-text)':v<=0.4?'var(--red-text)':'var(--gold-text)'
+
+  const rows = [
+    ['Fear & Greed', comps.fear_greed, fg.score!=null?`F&G ${Math.round(fg.score)}${fg.label?` · ${fg.label}`:''}`:null],
+    ['Put/Call',     comps.put_call,   raw.put_call!=null?`P/C ${n(raw.put_call,2)}`:null],
+    ['VIX',          comps.vix,        vx.vix!=null?`VIX ${n(vx.vix,1)}`:null],
+    ['News',         comps.news,       nw.sentiment!=null?`News ${nw.sentiment>=0?'+':''}${n(nw.sentiment,2)}`:null],
+    ['Breadth',      comps.breadth,    (br.advancing!=null||br.declining!=null)?`Adv ${br.advancing??'—'} / Dec ${br.declining??'—'}`:null],
+  ].filter(([,v])=>typeof v==='number')
+
+  const hasVix = vx.vix!=null||vx.vix9d_ratio!=null||vx.ratio!=null||vx.backwardation
+
+  if(comp==null&&!rows.length&&!hasVix)
+    return <div className="empty"><span className="emoji">🌡️</span><div className="title">No sentiment data yet</div><div className="sub">The sentiment feed has not populated — check back shortly.</div></div>
+
+  return (
+    <div>
+      {/* Hero — Risk Appetite */}
+      <div className="card">
+        <div className="card-title">Risk Appetite</div>
+        <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:10}}>
+          <ScoreRing value={comp??0} size={110} color={cClr} sublabel={data.label||''}/>
+          <div style={{fontSize:15,fontWeight:800,color:cClr}}>{data.label||'—'}</div>
+          <BiasBar value={comp??0.5} label="Composite"/>
+        </div>
+      </div>
+
+      {/* Components */}
+      {rows.length>0&&(
+        <div className="card">
+          <div className="card-title">Components</div>
+          <div style={{display:'flex',flexDirection:'column',gap:9}}>
+            {rows.map(([name,v,rawTxt])=>{
+              const p=Math.round(Math.min(1,Math.max(0,v))*100)
+              return (
+                <div key={name}>
+                  <div style={{display:'flex',justifyContent:'space-between',fontSize:12,marginBottom:3}}>
+                    <span style={{color:'var(--text)'}}>{name}</span>
+                    <span className="mono" style={{color:vClr(v),fontWeight:700}}>{rawTxt||`${p}%`}</span>
+                  </div>
+                  <div className="bar-wrap"><div className="bar-fill" style={{width:`${p}%`,background:vClr(v)}}/></div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* VIX term structure */}
+      {hasVix&&(
+        <div className="card">
+          <div className="card-title">VIX Term Structure</div>
+          <div className="metrics">
+            {vx.vix!=null&&<div className="metric"><div className="metric-val">{n(vx.vix,1)}</div><div className="metric-lbl">VIX</div></div>}
+            {vx.vix9d_ratio!=null&&<div className="metric"><div className="metric-val">{n(vx.vix9d_ratio,2)}</div><div className="metric-lbl">VIX9D Ratio</div></div>}
+            {vx.ratio!=null&&<div className="metric"><div className="metric-val">{n(vx.ratio,2)}</div><div className="metric-lbl">VIX3M Ratio</div></div>}
+          </div>
+          {vx.backwardation&&<div style={{marginTop:10}}><span className="bdg bdg-bear">⚠ Backwardation</span></div>}
+        </div>
+      )}
+
+      <div style={{padding:'4px 12px 12px',fontSize:11,color:'var(--muted)',display:'flex',justifyContent:'space-between'}}>
+        <span>Updated {age(data.updated_at)}</span>
+        <span style={{color:'var(--gold)',cursor:'pointer'}} onClick={reload}>↻ Refresh</span>
+      </div>
+    </div>
+  )
+}
+
 function MarketsTab({pulse, health, initialSub}) {
   const [sub,setSub] = useState(initialSub||'overview')
   return (
@@ -1244,11 +1374,13 @@ function MarketsTab({pulse, health, initialSub}) {
       <div className="sub-tabs">
         <button className={`sub-tab${sub==='overview'?' active':''}`} onClick={()=>setSub('overview')}>Overview</button>
         <button className={`sub-tab${sub==='pulse'?' active':''}`} onClick={()=>setSub('pulse')}>Pulse &amp; Regime</button>
+        <button className={`sub-tab${sub==='sentiment'?' active':''}`} onClick={()=>setSub('sentiment')}>Sentiment</button>
         <button className={`sub-tab${sub==='wrap'?' active':''}`} onClick={()=>setSub('wrap')}>Wrap</button>
       </div>
-      {sub==='overview' && <><MarketsGridTab/><BriefTab/></>}
-      {sub==='pulse'    && <><PulseTab pulse={pulse} health={health}/><MacroTab health={health}/></>}
-      {sub==='wrap'     && <WrapTab/>}
+      {sub==='overview'  && <><MarketsGridTab/><BriefTab/></>}
+      {sub==='pulse'     && <><PulseTab pulse={pulse} health={health}/><MacroTab health={health}/></>}
+      {sub==='sentiment' && <SentimentTab/>}
+      {sub==='wrap'      && <WrapTab/>}
     </div>
   )
 }
