@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-07-02T01:35:48.235634+00:00",
+  "checked_at": "2026-07-02T05:39:07.760448+00:00",
   "health": {
     "status_code": 200,
     "data": {
@@ -239,7 +239,7 @@
           "transition_prob": 0.0,
           "probs": {},
           "method": "none",
-          "updated_at": "2026-07-02T00:46:27.792199+00:00"
+          "updated_at": "2026-07-02T05:20:33.326475+00:00"
         },
         "SPY": {
           "regime": "UNKNOWN",
@@ -247,7 +247,7 @@
           "transition_prob": 0.0,
           "probs": {},
           "method": "none",
-          "updated_at": "2026-07-02T00:46:28.415600+00:00"
+          "updated_at": "2026-07-02T05:20:33.920041+00:00"
         },
         "QQQ": {
           "regime": "UNKNOWN",
@@ -255,7 +255,7 @@
           "transition_prob": 0.0,
           "probs": {},
           "method": "none",
-          "updated_at": "2026-07-02T00:46:29.036011+00:00"
+          "updated_at": "2026-07-02T05:20:34.516871+00:00"
         }
       },
       "mtf": {
@@ -268,7 +268,7 @@
           },
           "weighted": 0.0,
           "bias": "NEUTRAL",
-          "updated_at": "2026-07-02T00:46:30.648977+00:00",
+          "updated_at": "2026-07-02T05:20:35.959453+00:00",
           "method": "yfinance"
         },
         "SPY": {
@@ -280,7 +280,7 @@
           },
           "weighted": 0.0,
           "bias": "NEUTRAL",
-          "updated_at": "2026-07-02T00:46:32.575380+00:00",
+          "updated_at": "2026-07-02T05:20:36.534626+00:00",
           "method": "yfinance"
         },
         "QQQ": {
@@ -292,7 +292,7 @@
           },
           "weighted": 0.0,
           "bias": "NEUTRAL",
-          "updated_at": "2026-07-02T00:46:34.383008+00:00",
+          "updated_at": "2026-07-02T05:20:37.082635+00:00",
           "method": "yfinance"
         }
       },
