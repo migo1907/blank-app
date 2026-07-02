@@ -1,25 +1,5 @@
 [
   {
-    "symbol": "XAUUSD",
-    "pool": "XAUUSD_2M",
-    "direction": "NEUTRAL",
-    "confidence": 0.0,
-    "tier": "LOW",
-    "ml_score": 0.5,
-    "rf_score": 0.5,
-    "gbm_score": 0.5,
-    "news_score": -0.0007,
-    "combined_score": 0.0,
-    "session": "LONDON",
-    "regime": "NORMAL",
-    "regime_label": "NORMAL",
-    "reasoning": "News CONFLICTED \u2014 low conviction",
-    "status": "NEUTRAL",
-    "expires_at": "2026-07-02T09:35:13.330852+00:00",
-    "created_at": "2026-07-02T09:05:13.513219+00:00",
-    "id": 101
-  },
-  {
     "symbol": "SPY",
     "pool": "STOCKS_INDEX_30M",
     "direction": "SHORT",
@@ -3243,6 +3223,40 @@
     "status": "ACTIVE",
     "expires_at": "2026-07-02T13:12:03.706232+00:00",
     "created_at": "2026-07-02T12:42:04.011330+00:00",
+    "id": 101
+  },
+  {
+    "symbol": "XAUUSD",
+    "pool": "XAUUSD_2M",
+    "direction": "NEUTRAL",
+    "lean_direction": "SHORT",
+    "lean_pct": 50,
+    "confidence": 0.0,
+    "tier": "LOW",
+    "ml_score": 0.5,
+    "rf_score": 0.4674,
+    "gbm_score": 0.4624,
+    "ml_interval": [
+      0.0,
+      1.0
+    ],
+    "ml_interval_width": 1.0,
+    "ml_certainty": "LOW",
+    "news_score": 0.082,
+    "macro_bias": -0.067,
+    "macro_label": "NEUTRAL",
+    "combined_score": -0.0178,
+    "session": "LONDON",
+    "regime": "NORMAL",
+    "regime_label": "NORMAL",
+    "hmm_regime": "hmm:RANGING(0.99)",
+    "intermarket": "imkt:na",
+    "mtf_confluence": "mtf:1/3\u26a0",
+    "post_event": "evt:na",
+    "reasoning": "KNN:SHORT RF:SHORT GBM:SHORT | agree\u00d71.20 | regime:NORMAL(NORMAL)\u00d71.00 | hmm:RANGING(0.99)\u00d71.00 | imkt:na\u00d71.00 | mtf:1/3\u26a0\u00d70.93 | evt:na\u00d71.00 | sess:LONDON\u00d71.15 | confluence\u00d70.90 | cluster\u00d71.00 | trigger:\u00d71.00 | rapid\u00d71.00 | vwap:STRETCHED(+1.00) | news:neutral(+0.082) | macro:NEUTRAL(-0.067) | combined:-0.018 \u2192 conf:0.021 \u26a1 NFP",
+    "status": "ACTIVE",
+    "expires_at": "2026-07-02T13:27:07.222573+00:00",
+    "created_at": "2026-07-02T12:57:08.843065+00:00",
     "id": 101
   }
 ]
