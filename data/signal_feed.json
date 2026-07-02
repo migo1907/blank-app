@@ -2,37 +2,6 @@
   "signals": [
     {
       "direction": "LONG",
-      "timeframe": "30",
-      "trigger": "FVG",
-      "symbol": "NOW",
-      "entry_price": 105.94,
-      "tp1": 108.74,
-      "tp2": 110.77,
-      "tp3": 113.57,
-      "sl": 103.14,
-      "ml_score": 0.125,
-      "tier": "\u26a1 LOW",
-      "quality_score": 0.2823,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.1808,
-      "velocity": "LOW",
-      "event": "NFP",
-      "htf_bias": {
-        "direction": "LONG",
-        "timeframe": "60",
-        "symbol": "NOW",
-        "trigger": "FVG",
-        "ml_score": 0.375,
-        "stored_at": "2026-07-01T15:30:22.210718+00:00",
-        "expires_at": "2026-07-01T19:30:22.210735+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "htf_direct",
-      "session": "NYSE Open",
-      "fired_at": "2026-07-01T15:30:41.391298+00:00"
-    },
-    {
-      "direction": "LONG",
       "timeframe": "60",
       "trigger": "FVG",
       "symbol": "NOW",
@@ -2843,6 +2812,37 @@
       "htf_context": "with_bias",
       "session": "London",
       "fired_at": "2026-07-02T12:37:02.708759+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "5",
+      "trigger": "FVG",
+      "symbol": "XAUUSD",
+      "entry_price": 4130.5,
+      "tp1": 4138.49,
+      "tp2": 4143.81,
+      "tp3": 4151.8,
+      "sl": 4119.32,
+      "ml_score": 0.25,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.4699,
+      "quality_reason": "approved",
+      "news_score": 0.1038,
+      "velocity": "CONFLICTED",
+      "event": "NFP",
+      "htf_bias": {
+        "direction": "LONG",
+        "timeframe": "30",
+        "symbol": "XAUUSD",
+        "trigger": "OB",
+        "ml_score": 0.625,
+        "stored_at": "2026-07-02T12:32:02.567483+00:00",
+        "expires_at": "2026-07-02T14:32:02.567491+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "with_bias",
+      "session": "London",
+      "fired_at": "2026-07-02T12:42:03.500083+00:00"
     }
   ]
 }
