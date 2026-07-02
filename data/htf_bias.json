@@ -1,13 +1,4 @@
 {
-  "IBKR_60": {
-    "direction": "LONG",
-    "timeframe": "60",
-    "symbol": "IBKR",
-    "trigger": "BOS",
-    "ml_score": 0.375,
-    "stored_at": "2026-07-01T16:30:20.794801+00:00",
-    "expires_at": "2026-07-01T20:30:20.794815+00:00"
-  },
   "SPCX_240": {
     "direction": "SHORT",
     "timeframe": "240",
@@ -107,76 +98,13 @@
     "stored_at": "2026-07-01T18:00:08.229845+00:00",
     "expires_at": "2026-07-02T02:00:08.229860+00:00"
   },
-  "SPCX_60": {
-    "direction": "SHORT",
-    "timeframe": "60",
-    "symbol": "SPCX",
-    "trigger": "OB",
-    "ml_score": 0.5,
-    "stored_at": "2026-07-01T18:30:02.981219+00:00",
-    "expires_at": "2026-07-01T22:30:02.981239+00:00"
-  },
-  "SPCX_30": {
-    "direction": "SHORT",
-    "timeframe": "30",
-    "symbol": "SPCX",
-    "trigger": "FVG",
-    "ml_score": 0.5,
-    "stored_at": "2026-07-01T19:00:06.426968+00:00",
-    "expires_at": "2026-07-01T21:00:06.426990+00:00"
-  },
-  "TSLA_30": {
+  "XAUUSD_60": {
     "direction": "LONG",
-    "timeframe": "30",
-    "symbol": "TSLA",
-    "trigger": "OB",
-    "ml_score": 0.75,
-    "stored_at": "2026-07-01T19:00:21.664331+00:00",
-    "expires_at": "2026-07-01T21:00:21.664347+00:00"
-  },
-  "TNA_30": {
-    "direction": "SHORT",
-    "timeframe": "30",
-    "symbol": "TNA",
-    "trigger": "FVG",
-    "ml_score": 0.375,
-    "stored_at": "2026-07-01T19:00:23.177179+00:00",
-    "expires_at": "2026-07-01T21:00:23.177204+00:00"
-  },
-  "QQQ_30": {
-    "direction": "SHORT",
-    "timeframe": "30",
-    "symbol": "QQQ",
-    "trigger": "OB",
-    "ml_score": 0.5,
-    "stored_at": "2026-07-01T20:00:03.843279+00:00",
-    "expires_at": "2026-07-01T22:00:03.843302+00:00"
-  },
-  "MU_30": {
-    "direction": "SHORT",
-    "timeframe": "30",
-    "symbol": "MU",
+    "timeframe": "60",
+    "symbol": "XAUUSD",
     "trigger": "OB",
     "ml_score": 0.25,
-    "stored_at": "2026-07-01T20:00:18.683293+00:00",
-    "expires_at": "2026-07-01T22:00:18.683311+00:00"
-  },
-  "XAUUSD_30": {
-    "direction": "SHORT",
-    "timeframe": "30",
-    "symbol": "XAUUSD",
-    "trigger": "RSI",
-    "ml_score": 0.5,
-    "stored_at": "2026-07-01T20:02:02.193094+00:00",
-    "expires_at": "2026-07-01T22:02:02.193106+00:00"
-  },
-  "US500_30": {
-    "direction": "SHORT",
-    "timeframe": "30",
-    "symbol": "US500",
-    "trigger": "FVG",
-    "ml_score": 0.625,
-    "stored_at": "2026-07-01T20:30:08.158356+00:00",
-    "expires_at": "2026-07-01T22:30:08.158384+00:00"
+    "stored_at": "2026-07-02T01:02:01.272007+00:00",
+    "expires_at": "2026-07-02T05:02:01.272015+00:00"
   }
 }
