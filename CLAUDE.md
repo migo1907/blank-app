@@ -92,13 +92,13 @@
 | 3 | ✅ ~~Relative volume (swing)~~ | Low | **Done** — `rel_volume` (vol vs 20d avg) in `_technical_score`, bounded score tilt + app display. |
 | 4 | ✅ ~~Fear & Greed Index (all sections)~~ | Low | **Done** — `fear_greed.py` (CNN), hourly refresh, surfaced in `/pulse` + app. External host must be in egress allowlist. |
 | 5 | ✅ ~~Conformal prediction for intraday pools~~ | Low | **Done** — `predict_with_interval()` in `ml_ensemble.py`; `ml_interval`/`ml_interval_width`/`ml_certainty` in signal payload. |
-| 6 | Label noise correction (intraday) | Medium | When XAUUSD_2M OOS acc stabilises |
+| 6 | ✅ ~~Label noise correction (intraday)~~ | Medium | **Done** — `_label_noise_weight` in all 4 training paths (MFE-vs-loss ratio downweights exit-noise losses). |
 | 7 | Scaling exits (options) | Low | After 50+ closed options trades |
 | 8 | Half-Kelly sizing | Medium | When live capital deployed |
-| 9 | Regime-conditional retraining | Medium | After pools reach 300+ trades each |
-| 10 | Correlation filter | Medium | When 3+ stock pools fire concurrently |
+| 9 | Regime-conditional retraining | Medium | **Tested 2026-07-01, deferred**: phantom-free audit shows NO regime historically profitable under old exits — retest on clean-era data (lab auto-measures). |
+| 10 | Correlation filter | Medium | **Tested 2026-07-01, deferred**: follower vs leader PF 0.30/0.34, halves disagree — not enough separation to suppress. Retest on clean era. |
 | 11 | Iron condor strategy | Medium | After paper long-option edge confirmed |
-| 12 | Polygon paid tier (live options flow) | External | If Polygon plan upgraded |
+| 12 | ~~Polygon paid tier~~ superseded by IBKR gateway (`IBKR_GATEWAY_URL`) — same unlock, no new subscription |
 
 ---
 
