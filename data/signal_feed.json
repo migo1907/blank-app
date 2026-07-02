@@ -2,37 +2,6 @@
   "signals": [
     {
       "direction": "SHORT",
-      "timeframe": "60",
-      "trigger": "FVG",
-      "symbol": "MU",
-      "entry_price": 1074.82,
-      "tp1": 988.04,
-      "tp2": 918.61,
-      "tp3": 831.83,
-      "sl": 1161.6,
-      "ml_score": 0.375,
-      "tier": "\u26a1 LOW",
-      "quality_score": 0.2423,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.2328,
-      "velocity": "LOW",
-      "event": "GEOPOLITICAL",
-      "htf_bias": {
-        "direction": "SHORT",
-        "timeframe": "60",
-        "symbol": "MU",
-        "trigger": "FVG",
-        "ml_score": 0.375,
-        "stored_at": "2026-07-01T14:30:23.712844+00:00",
-        "expires_at": "2026-07-01T18:30:23.712863+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "htf_direct",
-      "session": "NYSE Open",
-      "fired_at": "2026-07-01T14:30:23.912294+00:00"
-    },
-    {
-      "direction": "SHORT",
       "timeframe": "30",
       "trigger": "FVG",
       "symbol": "HTZ",
@@ -2867,6 +2836,29 @@
       "htf_context": "scalp",
       "session": "Off-Hours",
       "fired_at": "2026-07-01T23:47:01.679358+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "5",
+      "trigger": "BOS",
+      "symbol": "XAUUSD",
+      "entry_price": 4033.27,
+      "tp1": 4030.79,
+      "tp2": 4029.14,
+      "tp3": 4026.66,
+      "sl": 4036.74,
+      "ml_score": 0.625,
+      "tier": "\u2705 MED",
+      "quality_score": 0.516,
+      "quality_reason": "approved",
+      "news_score": -0.0444,
+      "velocity": "CONFLICTED",
+      "event": "WAR/CONFLICT",
+      "htf_bias": null,
+      "contra_bias": null,
+      "htf_context": "scalp",
+      "session": "Asian",
+      "fired_at": "2026-07-02T00:02:02.237285+00:00"
     }
   ]
 }
