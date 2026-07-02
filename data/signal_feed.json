@@ -1,29 +1,6 @@
 {
   "signals": [
     {
-      "direction": "SHORT",
-      "timeframe": "15",
-      "trigger": "FVG",
-      "symbol": "RR",
-      "entry_price": 2.04,
-      "tp1": 1.97,
-      "tp2": 1.92,
-      "tp3": 1.86,
-      "sl": 2.11,
-      "ml_score": 0.25,
-      "tier": "\u26a1 LOW",
-      "quality_score": 0.294,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.1568,
-      "velocity": "CONFLICTED",
-      "event": "NFP",
-      "htf_bias": null,
-      "contra_bias": null,
-      "htf_context": "scalp",
-      "session": "NYSE Open",
-      "fired_at": "2026-07-01T15:00:19.862694+00:00"
-    },
-    {
       "direction": "LONG",
       "timeframe": "15",
       "trigger": "BOS",
@@ -2843,6 +2820,37 @@
       "htf_context": "htf_direct",
       "session": "Asian",
       "fired_at": "2026-07-02T03:32:02.750485+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "5",
+      "trigger": "OB",
+      "symbol": "XAUUSD",
+      "entry_price": 4068.76,
+      "tp1": 4072.31,
+      "tp2": 4074.68,
+      "tp3": 4078.23,
+      "sl": 4063.79,
+      "ml_score": 0.75,
+      "tier": "\u2b50 HIGH",
+      "quality_score": 0.4563,
+      "quality_reason": "approved",
+      "news_score": -0.1316,
+      "velocity": "CONFLICTED",
+      "event": "NFP",
+      "htf_bias": {
+        "direction": "LONG",
+        "timeframe": "30",
+        "symbol": "XAUUSD",
+        "trigger": "FVG",
+        "ml_score": 0.75,
+        "stored_at": "2026-07-02T03:32:02.149283+00:00",
+        "expires_at": "2026-07-02T05:32:02.149299+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "with_bias",
+      "session": "Asian",
+      "fired_at": "2026-07-02T03:52:01.716530+00:00"
     }
   ]
 }
