@@ -24,3 +24,13 @@ def test_bars_from_aggs_sorted_utc():
     assert bars[0]["time"] < bars[1]["time"]
     assert bars[0]["time"].tzinfo == timezone.utc
     assert bars[1]["v"] == 10
+
+
+def test_spx_daily_opens_from_repo_data():
+    from polygon_backfill_0dte import spx_daily_opens, vix1d_daily_opens
+    opens = spx_daily_opens()
+    assert len(opens) >= 50            # 30m file covers ~75 sessions
+    assert all(1000 < v < 20000 for v in opens.values())
+    vix = vix1d_daily_opens()
+    assert len(vix) >= 30
+    assert all(3 < v < 100 for v in vix.values())

@@ -53,8 +53,10 @@ jobs:
           cd ..
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add backend/backtest_data/polygon_0dte_grades.json \
-                  backend/backtest_data/polygon_0dte_bars.json.gz
+          for f in backend/backtest_data/polygon_0dte_grades.json \
+                   backend/backtest_data/polygon_0dte_bars.json.gz; do
+            [ -f "$f" ] && git add "$f"
+          done
           git diff --cached --quiet && echo "no changes" && exit 0
           git commit -m "Add Polygon 0DTE real-price backfill results (workflow run ${{ github.run_id }})"
           git pull --rebase origin "${{ github.ref_name }}"

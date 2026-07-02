@@ -9,7 +9,10 @@ run. Free tier is 5 req/min; ~2 calls per session day, so ~90 days takes
 roughly 40 minutes (429s are waited out).
 
 Per session day:
-  - SPX open + VIX1D open (one upfront aggs call each for the whole range)
+  - SPX open + VIX1D open come from the repo's own IBKR pulls
+    (spx_30min_ibkr.json / spx_15min_ibkr.json, vix1d_daily_ibkr.json) —
+    the free Polygon key is NOT authorized for index endpoints (I:SPX and
+    I:VIX1D return 403), so no index API calls are made at all
   - strike at ~0.25 delta via the same BS picker as ibkr_backtest
   - contract ticker constructed directly (O:SPXW{yymmdd}{C/P}{strike*1000:08d});
     falls back to the reference endpoint if the aggs come back empty
@@ -25,7 +28,7 @@ Outputs (backtest_data/):
 Run:  POLYGON_API_KEY=... python polygon_backfill_0dte.py [--days 90]
 """
 from __future__ import annotations
-import os, json, gzip, argparse
+import os, sys, json, gzip, argparse
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
@@ -56,14 +59,35 @@ def bars_from_aggs(results: list[dict]) -> list[dict]:
     return bars
 
 
-def _daily_map(ticker: str, frm: str, to: str, field: str = "o") -> dict:
-    data = _get(f"/v2/aggs/ticker/{ticker}/range/1/day/{frm}/{to}",
-                {"limit": 50000, "sort": "asc"})
-    out = {}
-    for r in (data or {}).get("results", []):
-        day = datetime.fromtimestamp(r["t"] / 1000.0, tz=timezone.utc)
-        out[day.astimezone(_ET).date().isoformat()] = r[field]
+def _load_json(name: str) -> dict | None:
+    p = os.path.join(_DIR, name)
+    if not os.path.exists(p):
+        return None
+    with open(p) as f:
+        return json.load(f)
+
+
+def spx_daily_opens() -> dict:
+    """ET day -> SPX 09:30 open, from the repo's IBKR intraday pulls
+    (finest file wins where days overlap)."""
+    out: dict[str, float] = {}
+    for name in ("spx_30min_ibkr.json", "spx_15min_ibkr.json"):
+        d = _load_json(name)
+        if not d:
+            continue
+        for i, t in enumerate(d["time"]):
+            ts = datetime.strptime(t, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+            et = ts.astimezone(_ET)
+            if et.hour == 9 and et.minute == 30:
+                out.setdefault(et.date().isoformat(), d["open"][i])
     return out
+
+
+def vix1d_daily_opens() -> dict:
+    d = _load_json("vix1d_daily_ibkr.json")
+    if not d:
+        return {}
+    return {t[:10]: d["open"][i] for i, t in enumerate(d["time"])}
 
 
 def fetch_contract_bars(expiry: str, right: str, strike: float) -> tuple[list[dict], str]:
@@ -106,18 +130,20 @@ def main(days: int = 90, output: str = "", bars_out: str = "") -> dict:
     if not os.environ.get("POLYGON_API_KEY"):
         print("POLYGON_API_KEY not set — aborting")
         return {}
-    today = datetime.now(tz=_ET).date()
-    frm = (today - timedelta(days=days + 10)).isoformat()
-    to = (today - timedelta(days=1)).isoformat()   # only fully closed sessions
-
-    print(f"SPX opens {frm} -> {to} ...", flush=True)
-    spx_open = _daily_map("I:SPX", frm, to, "o")
-    vix_open = _daily_map("I:VIX1D", frm, to, "o")
-    sessions = sorted(spx_open)[-days:]
-    print(f"{len(sessions)} sessions, VIX1D coverage {len(vix_open)}", flush=True)
+    today = datetime.now(tz=_ET).date().isoformat()
+    spx_open = spx_daily_opens()
+    vix_open = vix1d_daily_opens()
+    # only fully closed sessions — today's contracts may still be trading
+    sessions = sorted(d for d in spx_open if d < today)[-days:]
+    if not sessions:
+        print("No SPX daily opens found in backtest_data — aborting")
+        sys.exit(2)
+    print(f"{len(sessions)} sessions ({sessions[0]} -> {sessions[-1]}), "
+          f"VIX1D coverage {sum(1 for d in sessions if d in vix_open)}", flush=True)
 
     tau0 = SESSION_MIN / (60.0 * 24.0 * 365.0)
     grades, raw = [], {}
+    consecutive_empty = 0
     for day in sessions:
         spot = spx_open[day]
         iv = vix_open.get(day, DEFAULT_IV * 100) / 100.0
@@ -125,8 +151,14 @@ def main(days: int = 90, output: str = "", bars_out: str = "") -> dict:
             strike = pick_strike(spot, tau0, iv, right)
             bars, tk = fetch_contract_bars(day, right, strike)
             if not bars:
+                consecutive_empty += 1
                 print(f"  {day} {right} K={strike:g} — no bars, skipped", flush=True)
+                if consecutive_empty >= 6 and not raw:
+                    print("First 3 sessions returned no option bars — the key "
+                          "is likely not authorized for options aggregates. Aborting.")
+                    sys.exit(3)
                 continue
+            consecutive_empty = 0
             raw[tk] = {"expiry": day, "right": right, "strike": strike,
                        "time": [b["time"].strftime("%Y-%m-%dT%H:%M:%SZ") for b in bars],
                        "open": [round(b["o"], 2) for b in bars],
@@ -195,6 +227,9 @@ def main(days: int = 90, output: str = "", bars_out: str = "") -> dict:
         with gzip.open(bars_out, "wt") as f:
             json.dump(raw, f, separators=(",", ":"))
         print(f"Saved raw bars -> {bars_out} ({os.path.getsize(bars_out)} bytes)")
+    if not grades:
+        print("No trades graded — failing loudly rather than committing nothing")
+        sys.exit(2)
     return results
 
 
