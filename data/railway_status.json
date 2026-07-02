@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-07-02T11:09:43.941031+00:00",
+  "checked_at": "2026-07-02T13:04:49.633991+00:00",
   "health": {
     "status_code": 200,
     "data": {
@@ -236,17 +236,17 @@
         "XAUUSD": {
           "asset": "XAUUSD",
           "regime": "RANGING",
-          "confidence": 0.996,
-          "transition_prob": 0.072,
+          "confidence": 0.991,
+          "transition_prob": 0.077,
           "next_regime": "RANGING",
           "shifting": false,
           "probs": {
             "TRENDING_BULL": 0.0,
-            "RANGING": 0.996,
-            "VOLATILE": 0.004
+            "RANGING": 0.991,
+            "VOLATILE": 0.009
           },
           "method": "hmm",
-          "updated_at": "2026-07-02T10:57:55.048924+00:00"
+          "updated_at": "2026-07-02T12:43:00.586979+00:00"
         },
         "SPY": {
           "asset": "SPY",
@@ -261,7 +261,7 @@
             "VOLATILE": 0.99
           },
           "method": "hmm",
-          "updated_at": "2026-07-02T10:57:56.044832+00:00"
+          "updated_at": "2026-07-02T12:43:01.570302+00:00"
         },
         "QQQ": {
           "asset": "QQQ",
@@ -276,7 +276,7 @@
             "VOLATILE": 1.0
           },
           "method": "hmm",
-          "updated_at": "2026-07-02T10:57:56.943619+00:00"
+          "updated_at": "2026-07-02T12:43:02.444102+00:00"
         }
       },
       "mtf": {
@@ -289,7 +289,7 @@
           },
           "weighted": -0.5,
           "bias": "BEAR",
-          "updated_at": "2026-07-02T10:57:58.341963+00:00",
+          "updated_at": "2026-07-02T12:43:03.994232+00:00",
           "method": "yfinance"
         },
         "SPY": {
@@ -301,7 +301,7 @@
           },
           "weighted": 0.5,
           "bias": "BULL",
-          "updated_at": "2026-07-02T10:57:59.053054+00:00",
+          "updated_at": "2026-07-02T12:43:04.563375+00:00",
           "method": "yfinance"
         },
         "QQQ": {
@@ -313,7 +313,7 @@
           },
           "weighted": 0.5,
           "bias": "BULL",
-          "updated_at": "2026-07-02T10:57:59.708595+00:00",
+          "updated_at": "2026-07-02T12:43:05.171571+00:00",
           "method": "yfinance"
         }
       },
