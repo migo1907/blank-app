@@ -511,3 +511,12 @@ select.pro:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-d
 }
 .radio-btn:active{ transform:scale(.96); }
 .radio-btn.playing{ background:var(--gold); color:#1a1205; border-color:var(--gold); box-shadow:0 3px 14px rgba(245,176,39,.35); }
+
+/* ── RTL SUPPORT (Arabic) — dir attribute lives on <html> ── */
+[dir="rtl"] .side-menu{
+  left:0; right:auto;
+  border-left:none; border-right:1px solid var(--border);
+  animation:menuSlideRtl .26s cubic-bezier(.4,0,.2,1);
+}
+@keyframes menuSlideRtl{ from{transform:translateX(-100%)} to{transform:translateX(0)} }
+[dir="rtl"] .menu-fab{ right:auto !important; left:14px !important; }

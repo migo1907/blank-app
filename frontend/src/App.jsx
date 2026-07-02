@@ -5,7 +5,8 @@ import {
   AreaChart, Area, LineChart, Line,
   ReferenceLine
 } from 'recharts'
-import { Crosshair, BarChart3, CalendarDays, Briefcase, Newspaper, LogOut, Menu, X, Moon, Sun, FileText, Bell, RefreshCw } from 'lucide-react'
+import { Crosshair, BarChart3, CalendarDays, Briefcase, Newspaper, LogOut, Menu, X, Moon, Sun, FileText, Bell, RefreshCw, Globe2 } from 'lucide-react'
+import { t, getLang, setLang, LANGS } from './i18n'
 import { getDashboard, subscribePush, VAPID_PUBLIC, getVapidPublic,
   getMarketOverview, getMarketQuotes, getMarketTicker, getMarketCompare, getMarketWrap, getMarketCommentary,
   getMarketSparklines, getOptionsFlow, getEconomicCalendar, getEarningsCalendar,
@@ -26,11 +27,11 @@ async function api(path, params = {}) {
 }
 
 const BOTTOM_NAV = [
-  { id: 'signals',   Icon: Crosshair, label: 'Signals'   },
-  { id: 'markets',   Icon: BarChart3, label: 'Markets'   },
-  { id: 'calendar',  Icon: CalendarDays, label: 'Calendar' },
-  { id: 'portfolio', Icon: Briefcase, label: 'Portfolio' },
-  { id: 'news',      Icon: Newspaper, label: 'News'      },
+  { id: 'signals',   Icon: Crosshair,    k: 'signals'   },
+  { id: 'markets',   Icon: BarChart3,    k: 'markets'   },
+  { id: 'calendar',  Icon: CalendarDays, k: 'calendar'  },
+  { id: 'portfolio', Icon: Briefcase,    k: 'portfolio' },
+  { id: 'news',      Icon: Newspaper,    k: 'news'      },
 ]
 
 const GOLD_POOLS  = ['XAUUSD_2M','XAUUSD_5M','XAUUSD_15M','XAUUSD_30M','XAUUSD_1H']
@@ -1372,10 +1373,10 @@ function MarketsTab({pulse, health, initialSub}) {
   return (
     <div className="content">
       <div className="sub-tabs">
-        <button className={`sub-tab${sub==='overview'?' active':''}`} onClick={()=>setSub('overview')}>Overview</button>
-        <button className={`sub-tab${sub==='pulse'?' active':''}`} onClick={()=>setSub('pulse')}>Pulse &amp; Regime</button>
-        <button className={`sub-tab${sub==='sentiment'?' active':''}`} onClick={()=>setSub('sentiment')}>Sentiment</button>
-        <button className={`sub-tab${sub==='wrap'?' active':''}`} onClick={()=>setSub('wrap')}>Wrap</button>
+        <button className={`sub-tab${sub==='overview'?' active':''}`} onClick={()=>setSub('overview')}>{t('overview')}</button>
+        <button className={`sub-tab${sub==='pulse'?' active':''}`} onClick={()=>setSub('pulse')}>{t('pulseRegime')}</button>
+        <button className={`sub-tab${sub==='sentiment'?' active':''}`} onClick={()=>setSub('sentiment')}>{t('sentiment')}</button>
+        <button className={`sub-tab${sub==='wrap'?' active':''}`} onClick={()=>setSub('wrap')}>{t('wrap')}</button>
       </div>
       {sub==='overview'  && <><MarketsGridTab/><BriefTab/></>}
       {sub==='pulse'     && <><PulseTab pulse={pulse} health={health}/><MacroTab health={health}/></>}
@@ -1771,9 +1772,9 @@ function SignalsHub() {
   return (
     <div className="content">
       <div className="sub-tabs">
-        <button className={`sub-tab${subTab==='intraday'?' active':''}`} onClick={()=>setSubTab('intraday')}>Intraday</button>
-        <button className={`sub-tab${subTab==='swing'?' active':''}`} onClick={()=>setSubTab('swing')}>Swing</button>
-        <button className={`sub-tab${subTab==='options'?' active':''}`} onClick={()=>setSubTab('options')}>Options</button>
+        <button className={`sub-tab${subTab==='intraday'?' active':''}`} onClick={()=>setSubTab('intraday')}>{t('intraday')}</button>
+        <button className={`sub-tab${subTab==='swing'?' active':''}`} onClick={()=>setSubTab('swing')}>{t('swing')}</button>
+        <button className={`sub-tab${subTab==='options'?' active':''}`} onClick={()=>setSubTab('options')}>{t('options')}</button>
       </div>
       {subTab==='intraday' && <SignalsTab/>}
       {subTab==='swing'    && <SwingTab/>}
@@ -1809,8 +1810,8 @@ function CalendarTab() {
   return (
     <div className="content">
       <div className="filter-bar">
-        <button className={`filter-chip${view==='economic'?' active':''}`} onClick={()=>setView('economic')}>📆 Economic</button>
-        <button className={`filter-chip${view==='earnings'?' active':''}`} onClick={()=>setView('earnings')}>📊 Earnings</button>
+        <button className={`filter-chip${view==='economic'?' active':''}`} onClick={()=>setView('economic')}>📆 {t('economic')}</button>
+        <button className={`filter-chip${view==='earnings'?' active':''}`} onClick={()=>setView('earnings')}>📊 {t('earnings')}</button>
       </div>
 
       {view==='economic' && eco.data && days.length>0 && (
@@ -1896,10 +1897,10 @@ function PortfolioHub() {
   return (
     <div className="content">
       <div className="sub-tabs">
-        <button className={`sub-tab${subTab==='holdings'?' active':''}`} onClick={()=>setSubTab('holdings')}>Holdings</button>
-        <button className={`sub-tab${subTab==='watchlist'?' active':''}`} onClick={()=>setSubTab('watchlist')}>Watchlist</button>
-        <button className={`sub-tab${subTab==='research'?' active':''}`} onClick={()=>setSubTab('research')}>Research</button>
-        <button className={`sub-tab${subTab==='compare'?' active':''}`} onClick={()=>setSubTab('compare')}>Compare</button>
+        <button className={`sub-tab${subTab==='holdings'?' active':''}`} onClick={()=>setSubTab('holdings')}>{t('holdings')}</button>
+        <button className={`sub-tab${subTab==='watchlist'?' active':''}`} onClick={()=>setSubTab('watchlist')}>{t('watchlist')}</button>
+        <button className={`sub-tab${subTab==='research'?' active':''}`} onClick={()=>setSubTab('research')}>{t('research')}</button>
+        <button className={`sub-tab${subTab==='compare'?' active':''}`} onClick={()=>setSubTab('compare')}>{t('compare')}</button>
       </div>
       {subTab==='holdings'  && <PortfolioTab/>}
       {subTab==='watchlist' && <WatchlistTab/>}
@@ -2280,6 +2281,9 @@ function MainApp({onLock}) {
     setTimeout(()=>setRefreshing(false), 800)
   }
   const [theme,setTheme] = useState(()=>{ try{ return localStorage.getItem('theme')||'dark' }catch{ return 'dark' } })
+  const [lang,setLangState] = useState(()=>getLang())
+  useEffect(()=>{ setLang(lang) },[lang])  // applies dir/lang on mount + on toggle
+  const toggleLang = () => setLangState(l=>l==='en'?'ar':'en')
   const [pushOn,setPushOn] = useState(()=>{ try{ return localStorage.getItem('push_enabled')==='1' }catch{ return false } })
   const canPush = typeof window!=='undefined' && 'PushManager' in window && 'serviceWorker' in navigator
 
@@ -2322,7 +2326,7 @@ function MainApp({onLock}) {
       </div>
 
       {/* Refresh current view */}
-      <button onClick={doRefresh} title="Refresh" aria-label="Refresh"
+      <button onClick={doRefresh} title={t('refresh')} aria-label={t('refresh')}
         style={{position:'fixed', right:16, bottom:'calc(64px + env(safe-area-inset-bottom) + 64px)', zIndex:120,
           width:40, height:40, borderRadius:'50%', border:'1px solid var(--border-2)',
           background:'var(--surface)', color:'var(--text-hi)',
@@ -2358,21 +2362,25 @@ function MainApp({onLock}) {
               </button>
             </div>
             <button className="menu-item" onClick={()=>{ setMarketsSub('wrap'); setTab('markets'); setMenu(false) }}>
-              <span className="m-ico"><FileText size={18}/></span> Daily Wrap-Up
+              <span className="m-ico"><FileText size={18}/></span> {t('dailyWrap')}
             </button>
             <button className="menu-item" onClick={()=>setTheme(theme==='light'?'dark':'light')}>
               <span className="m-ico">{theme==='light'?<Moon size={18}/>:<Sun size={18}/>}</span>
-              {theme==='light'?'Night Mode':'Day Mode'}
+              {theme==='light'?t('nightMode'):t('dayMode')}
               <span className="m-meta">{theme==='light'?'Light':'Dark'}</span>
+            </button>
+            <button className="menu-item" onClick={toggleLang}>
+              <span className="m-ico"><Globe2 size={18}/></span> {t('language')}
+              <span className="m-meta">{LANGS[lang==='en'?'ar':'en']}</span>
             </button>
             {canPush && (
               <button className="menu-item" onClick={enablePush}>
-                <span className="m-ico"><Bell size={18}/></span> Notifications
+                <span className="m-ico"><Bell size={18}/></span> {t('notifications')}
                 {pushOn && <span className="m-meta">✓ Enabled</span>}
               </button>
             )}
             <button className="menu-item danger" onClick={()=>{ setMenu(false); onLock() }}>
-              <span className="m-ico"><LogOut size={18}/></span> Lock / Sign Out
+              <span className="m-ico"><LogOut size={18}/></span> {t('lockSignOut')}
             </button>
           </div>
         </>
@@ -2385,7 +2393,7 @@ function MainApp({onLock}) {
             className={tab===item.id?'active':''}
             onClick={()=>setTab(item.id)}>
             <item.Icon size={20} strokeWidth={2}/>
-            <span>{item.label}</span>
+            <span>{t(item.k)}</span>
           </button>
         ))}
       </nav>
