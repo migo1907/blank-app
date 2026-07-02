@@ -2,37 +2,6 @@
   "signals": [
     {
       "direction": "LONG",
-      "timeframe": "30",
-      "trigger": "FVG",
-      "symbol": "PLTR",
-      "entry_price": 127.51,
-      "tp1": 131.15,
-      "tp2": 133.8,
-      "tp3": 137.44,
-      "sl": 123.87,
-      "ml_score": 0.625,
-      "tier": "\u2705 MED",
-      "quality_score": 0.3053,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.1808,
-      "velocity": "LOW",
-      "event": "NFP",
-      "htf_bias": {
-        "direction": "LONG",
-        "timeframe": "60",
-        "symbol": "PLTR",
-        "trigger": "FVG",
-        "ml_score": 0.5,
-        "stored_at": "2026-07-01T14:30:06.495837+00:00",
-        "expires_at": "2026-07-01T18:30:06.495856+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "htf_direct",
-      "session": "NYSE Open",
-      "fired_at": "2026-07-01T15:30:18.543333+00:00"
-    },
-    {
-      "direction": "LONG",
       "timeframe": "15",
       "trigger": "BOS",
       "symbol": "TNA",
@@ -2851,6 +2820,29 @@
       "htf_context": "with_bias",
       "session": "London",
       "fired_at": "2026-07-02T08:12:02.574799+00:00"
+    },
+    {
+      "direction": "SHORT",
+      "timeframe": "5",
+      "trigger": "RSI",
+      "symbol": "XAUUSD",
+      "entry_price": 4072.23,
+      "tp1": 4068.64,
+      "tp2": 4066.25,
+      "tp3": 4062.66,
+      "sl": 4077.25,
+      "ml_score": 0.375,
+      "tier": "\u26a1 LOW",
+      "quality_score": 0.4858,
+      "quality_reason": "approved",
+      "news_score": -0.0007,
+      "velocity": "CONFLICTED",
+      "event": "NFP",
+      "htf_bias": null,
+      "contra_bias": null,
+      "htf_context": "scalp",
+      "session": "London",
+      "fired_at": "2026-07-02T09:07:02.437205+00:00"
     }
   ]
 }
