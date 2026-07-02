@@ -679,6 +679,9 @@ function SwingTab() {
   const ss  = stats.data || {}
   const all = cands.data?.candidates || []
   const meta = cands.data || {}
+  const isReady = x=>!!(x.entry_now||(x.technical||{}).entry_now||['STRONG','GOOD'].includes(x.entry_quality||(x.technical||{}).entry_quality))
+  const ordered = [...all].sort((a,b)=>(isReady(b)?1:0)-(isReady(a)?1:0))
+  const nReady  = ordered.filter(isReady).length
 
   const eqClr = q => q==='STRONG'?'var(--green)':q==='GOOD'?'#14b8a6':q==='FAIR'?'var(--gold)':q==='AVOID'?'var(--red)':'var(--muted)'
   const eqBg  = q => q==='STRONG'?'rgba(34,197,94,.1)':q==='GOOD'?'rgba(20,184,166,.1)':q==='FAIR'?'rgba(245,158,11,.1)':q==='AVOID'?'rgba(239,68,68,.1)':'rgba(100,116,139,.08)'
@@ -731,7 +734,8 @@ function SwingTab() {
         </div>
       ) : (
         <div style={{padding:'0 10px',display:'flex',flexDirection:'column',gap:10}}>
-          {all.map((c,i)=>{
+          {nReady>0&&<div className="section-h" style={{padding:'2px 2px 0'}}>✅ Ready — technical entry now ({nReady})</div>}
+          {ordered.map((c,i)=>{
             const tech   = c.technical   || {}
             const fund   = c.fundamental || {}
             const eq     = c.entry_quality || tech.entry_quality || 'WAIT'
@@ -749,7 +753,9 @@ function SwingTab() {
             const rr     = (entry&&sl&&t1&&entry!==sl) ? (t1-entry)/(entry-sl) : null
 
             return (
-              <div key={i} style={{
+              <React.Fragment key={i}>
+              {i===nReady&&nReady<ordered.length&&<div className="section-h" style={{padding:'8px 2px 0'}}>👁 Watch — cheap & quality, awaiting entry ({ordered.length-nReady})</div>}
+              <div style={{
                 background:'var(--surface)',
                 border:`1px solid ${c.entry_now||tech.entry_now?'rgba(34,197,94,.3)':'var(--border)'}`,
                 borderLeft:`3px solid ${eqClr(eq)}`,
@@ -879,6 +885,7 @@ function SwingTab() {
                   )
                 })()}
               </div>
+              </React.Fragment>
             )
           })}
         </div>
