@@ -4,12 +4,25 @@ Swing addon — Screener engine.
 Scans a watchlist (top 70 S&P 500 by weight) twice daily (09:45 ET + 16:30 ET),
 scoring each name on two axes, then applies two hard gates before ranking:
 
-  Gate 1 — Fundamental quality: fundamental score > 0  (positive composite)
-  Gate 2 — Valuation upside:    analyst mean target ≥ 20% above current price
+  Gate 1 — Fundamental quality:   fundamental score > 0  (positive composite)
+  Gate 2 — Valuation CHEAPNESS:   cheap_score ≥ 0.55 (CHEAP verdict from
+            fundamental_data.valuation_score — own PE/PS/PB vs the sector-peer
+            MEDIAN across this watchlist, PE vs its own normalized PE, 52-week
+            range position, PEG / FCF-yield / EV-EBITDA absolute checks).
+            A name with NO valuation data at all is FAIR/0.5 and passes —
+            it is gated by quality only, never killed by missing data.
+
+  Owner goal: screen companies whose fundamentals are QUALITY and which are
+  currently CHEAP (PE vs own history, PE vs sector); technicals then give
+  entry/targets. Analyst target upside is NOT a gate anymore — it survives
+  only as a small ranking bonus tilt (_upside_score_bonus).
 
   • Fundamental score  (fundamental_data.fetch_fundamentals) — the "why":
-    analyst consensus, earnings surprise/drift, insider buying, growth, news.
-  • Technical score     (computed here from daily bars) — the "when": daily-bar
+    archetype-weighted quality composite, earnings drift, insider buying, news.
+  • Valuation score    (fundamental_data.valuation_score) — the "how cheap":
+    sector medians built from the SAME per-scan Finnhub metrics (zero extra
+    API calls, via fundamental_data._METRICS_CACHE).
+  • Technical score    (computed here from daily bars) — the "when": daily-bar
     trend / momentum / RSI read, fused with the existing backend context layers
     (MTF confluence + HMM regime, both already computed for the intraday system).
 
@@ -124,7 +137,9 @@ def _self_computed_upside(fund: dict) -> float | None:
     signals = []
 
     # FCF yield vs 5% anchor: an 8% FCF yield implies ~60% upside to a 5%-yield fair value
-    fcf_raw = fh.get("fcfYieldTTM")
+    # (Finnhub has no `fcfYieldTTM` — derive from pfcfShareTTM, the real field)
+    pfcf = fh.get("pfcfShareTTM")
+    fcf_raw = (1.0 / float(pfcf)) if pfcf and float(pfcf) > 0 else None
     if fcf_raw is None and adv.get("fcf_yield_pct") is not None:
         fcf_raw = adv["fcf_yield_pct"] / 100.0
     if fcf_raw is not None:
@@ -133,7 +148,8 @@ def _self_computed_upside(fund: dict) -> float | None:
             signals.append((fcf_v / 0.05 - 1.0) * 100)
 
     # PEG < 1.0 implies discount to fair growth-adjusted value
-    peg = fh.get("pegAnnual") or adv.get("peg")
+    # (Finnhub has no `pegAnnual` — real fields are pegTTM / forwardPEG)
+    peg = fh.get("pegTTM") or fh.get("forwardPEG") or adv.get("peg")
     if peg is not None:
         peg_v = float(peg)
         if 0.1 < peg_v < 5:
@@ -322,14 +338,70 @@ def _combined(fund_score: float, tech_score: float, imminent_earnings: bool) -> 
     return round(combined, 3)
 
 
-def screen_one(ticker: str) -> dict:
-    """Full swing read for one ticker: fundamental + technical + valuation upside.
+def _sector_medians() -> dict:
+    """
+    Per-sector medians of valuation multiples (pe/ps/pb/ev_ebitda) across the
+    70-name WATCHLIST, computed from the Finnhub /stock/metric blobs already
+    fetched and cached during screening (fundamental_data._METRICS_CACHE) —
+    ZERO additional API calls. A sector median needs ≥3 positive peer values
+    or it is omitted (thin sectors like XLB/XLU skip the sector-relative leg).
 
-    Upside source priority:
+    Returns {etf: {"pe": med, "ps": med, "pb": med, "ev_ebitda": med}, ...}.
+    """
+    from fundamental_data import get_cached_metrics
+
+    _FIELDS = {"pe": ("peTTM",), "ps": ("psTTM",), "pb": ("pbAnnual", "pb"),
+               "ev_ebitda": ("evEbitdaTTM",)}
+    by_sector: dict[str, dict[str, list]] = {}
+    for t in WATCHLIST:
+        fm = get_cached_metrics(t)
+        if not fm:
+            continue
+        bucket = by_sector.setdefault(_TICKER_SECTOR.get(t, "SPY"), {})
+        for out_key, fields in _FIELDS.items():
+            for fld in fields:
+                try:
+                    v = float(fm.get(fld))
+                except (TypeError, ValueError):
+                    continue
+                if v > 0 and np.isfinite(v):
+                    bucket.setdefault(out_key, []).append(v)
+                    break
+    return {
+        etf: {k: float(np.median(vs)) for k, vs in b.items() if len(vs) >= 3}
+        for etf, b in by_sector.items()
+    }
+
+
+def _attach_valuation(r: dict, medians: dict | None = None) -> None:
+    """Compute + attach the valuation cheapness dict on a screen_one row (in place).
+    Never raises — a failure leaves the neutral FAIR/0.5 fallback."""
+    from fundamental_data import valuation_score
+
+    try:
+        med = (medians if medians is not None else _sector_medians()).get(
+            _TICKER_SECTOR.get(r.get("ticker"), "SPY"), {})
+        val = valuation_score(r.get("ticker", "?"), r.get("fundamental") or {},
+                              med, price=r.get("current_price"))
+    except Exception as e:
+        print(f"[swing] valuation {r.get('ticker')} failed (neutral): {e}")
+        val = {"cheap_score": 0.5, "verdict": "FAIR", "has_data": False}
+    r["valuation"] = val
+    r["cheap_verdict"] = val.get("verdict", "FAIR")
+
+
+def screen_one(ticker: str) -> dict:
+    """Full swing read for one ticker: fundamental + technical + valuation cheapness.
+
+    Analyst upside is a RANKING TILT only (never a gate). Source priority:
       1. yfinance analyst consensus target (fund["analyst"]["target_upside_pct"])
-      2. Alpha Vantage OVERVIEW AnalystTargetPrice (cloud-reliable — keeps the
-         valuation gate alive when yfinance silently fails from Railway cloud IPs)
+      2. Alpha Vantage OVERVIEW AnalystTargetPrice (cloud-reliable when
+         yfinance silently fails from Railway cloud IPs)
       3. Self-computed from FCF yield + PEG (Finnhub metrics)
+
+    The valuation cheapness dict is attached from whatever peer metrics are
+    cached at call time (standalone /swing/one gets a partial-peer read;
+    run_screen recomputes it with the full-scan sector medians).
     """
     from fundamental_data import fetch_fundamentals
 
@@ -360,7 +432,7 @@ def screen_one(ticker: str) -> dict:
         upside_pct    = _self_computed_upside(fund)
         upside_source = "computed" if upside_pct is not None else None
 
-    return {
+    r = {
         "ticker":         ticker,
         "combined_score": combined,
         "upside_pct":     upside_pct,
@@ -375,6 +447,8 @@ def screen_one(ticker: str) -> dict:
         "technical":      tech,
         "updated_at":     _now(),
     }
+    _attach_valuation(r)   # cheapness read from currently-cached peer metrics
+    return r
 
 
 def _upside_score_bonus(upside_pct: float | None) -> float:
@@ -394,25 +468,33 @@ def _upside_score_bonus(upside_pct: float | None) -> float:
 
 def run_screen(top_n: int = 15) -> dict:
     """
-    Scan full watchlist, apply two gates, rank by combined score, lock the best 15.
-    Also produces a watchlist of WAIT-quality stocks passing Gate 1 (not ready to
-    enter but worth monitoring — may flip STRONG/FAIR within days).
+    Scan full watchlist, apply the quality + cheapness gates, rank by combined
+    score, lock the best 15. Also produces a watchlist of WAIT-quality stocks
+    passing both gates (quality-and-cheap but not timed — may flip within days).
     Runs twice daily: 09:45 ET (morning) + 16:30 ET (close).
 
-    Gate 1 — Valuation (≥15% upside, soft): hard floor at 15%; stocks 15–25% get a
-              small score nudge (+0–0.05) so 30%+ upside outranks 15% upside naturally.
-              Skipped gracefully when no target is available (not penalised).
+    Gate 1 — Fundamental quality: fundamental score > 0 (positive composite).
 
-    Gate 2 — Technical entry: STRONG / GOOD / FAIR → active candidates
-              (4H-confirmed timing). WAIT (good value, not timed) → watchlist only.
-              AVOID → rejected entirely.
+    Gate 2 — Valuation cheapness: cheap_score ≥ 0.55 (CHEAP verdict — own
+              PE/PS/PB vs sector-peer medians, PE vs own normalized PE, 52W
+              range position, PEG/FCF-yield/EV-EBITDA checks). A stock with NO
+              valuation data at all passes (FAIR 0.5, gated by quality only).
+              Analyst upside is no longer a gate — it survives only as the
+              small _upside_score_bonus ranking tilt.
+
+    Entry routing (unchanged): STRONG / GOOD / FAIR → active candidates
+              (4H-confirmed timing). WAIT (quality + cheap, not timed) →
+              watchlist only. AVOID → rejected entirely.
     """
     global _cached
     rows        = []
-    watchlist   = []   # WAIT-quality stocks that pass Gate 1
-    skipped_upside    = 0
+    watchlist   = []   # WAIT-quality stocks that pass both gates
+    skipped_quality   = 0
+    skipped_expensive = 0
     skipped_technical = 0
 
+    # ── Phase A — scan every name (fills the per-scan Finnhub metrics cache) ──
+    all_rows = []
     import time as _time
     for _idx, t in enumerate(WATCHLIST):
         # Finnhub free tier: 60 req/min; screen_one makes ~4 calls per ticker.
@@ -420,22 +502,43 @@ def run_screen(top_n: int = 15) -> dict:
         if _idx > 0 and _idx % 12 == 0:
             _time.sleep(5)
         try:
-            r = screen_one(t)
+            all_rows.append(screen_one(t))
+        except Exception as e:
+            print(f"[swing] screen {t} failed: {e}")
 
-            # Gate 1: hard floor ≥15% upside (down from 20% cliff)
-            upside = r.get("upside_pct")
-            if upside is not None and upside < 15.0:
-                skipped_upside += 1
+    # ── Phase B — full-scan sector medians, then re-attach valuation so every
+    # name is judged against the COMPLETE peer set (no extra API calls) ────────
+    medians = {}
+    try:
+        medians = _sector_medians()
+    except Exception as e:
+        print(f"[swing] sector medians failed: {e}")
+
+    # ── Phase C — gates + entry routing ───────────────────────────────────────
+    for r in all_rows:
+        try:
+            _attach_valuation(r, medians)
+
+            # Gate 1: fundamental quality — positive composite score
+            if ((r.get("fundamental") or {}).get("score") or 0) <= 0:
+                skipped_quality += 1
                 continue
 
-            # Soft upside bonus nudges score ranking between 15–25%
-            bonus = _upside_score_bonus(upside)
+            # Gate 2: valuation cheapness (CHEAP verdict). Missing-data names
+            # (has_data False → FAIR 0.5) pass — quality-gated only.
+            val = r.get("valuation") or {}
+            if val.get("has_data") and (val.get("cheap_score") or 0.5) < 0.55:
+                skipped_expensive += 1
+                continue
+
+            # Analyst upside — soft ranking bonus only (never blocks)
+            bonus = _upside_score_bonus(r.get("upside_pct"))
             if bonus:
                 r["combined_score"] = round(
                     float(np.clip(r["combined_score"] + bonus, -1, 1)), 3
                 )
 
-            # Gate 2: active entry vs watch-only vs reject
+            # Entry routing: active entry vs watch-only vs reject
             eq = r.get("entry_quality") or r["technical"].get("entry_quality", "WAIT")
             if eq in ("STRONG", "GOOD", "FAIR"):
                 rows.append(r)
@@ -445,7 +548,7 @@ def run_screen(top_n: int = 15) -> dict:
                 skipped_technical += 1
 
         except Exception as e:
-            print(f"[swing] screen {t} failed: {e}")
+            print(f"[swing] gate {r.get('ticker')} failed: {e}")
 
     # Sort: entry_now first, then combined score
     rows.sort(key=lambda r: (r.get("entry_now", False), r["combined_score"]), reverse=True)
@@ -459,7 +562,8 @@ def run_screen(top_n: int = 15) -> dict:
         "passed_gates":        len(rows),
         "watching":            len(watchlist),
         "top_n":               top_n,
-        "skipped_upside":      skipped_upside,
+        "skipped_quality":     skipped_quality,
+        "skipped_expensive":   skipped_expensive,
         "skipped_technical":   skipped_technical,
         "updated_at":          _now(),
     }
@@ -471,13 +575,21 @@ def run_screen(top_n: int = 15) -> dict:
     except Exception as e:
         print(f"[swing] persist failed: {e}")
 
+    def _vtag(r: dict) -> str:
+        v = r.get("valuation") or {}
+        pe, spe = v.get("pe"), v.get("sector_pe")
+        if pe is not None and spe is not None:
+            return f"{v.get('verdict','?')} PE {pe:g}/{spe:g}"
+        return v.get("verdict", "?")
+
     summary = " | ".join(
-        f"{r['ticker']}({r['combined_score']:+.2f} ↑{r['upside_pct']:.0f}% [{r.get('entry_quality','?')}])"
+        f"{r['ticker']}({r['combined_score']:+.2f} {_vtag(r)} [{r.get('entry_quality','?')}])"
         for r in top
     )
     watch_summary = ", ".join(r['ticker'] for r in watchlist[:5])
-    print(f"[swing] {len(WATCHLIST)} scanned → {skipped_upside} failed upside → "
-          f"{skipped_technical} AVOID → {len(rows)} active → {len(watchlist)} watching → "
+    print(f"[swing] {len(WATCHLIST)} scanned → {skipped_quality} failed quality → "
+          f"{skipped_expensive} not cheap → {skipped_technical} AVOID → "
+          f"{len(rows)} active → {len(watchlist)} watching → "
           f"top {len(top)}: {summary} | watch: {watch_summary}")
     return result
 

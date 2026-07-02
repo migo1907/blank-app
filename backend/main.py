@@ -1528,9 +1528,13 @@ async def swing_candidates(secret: str = ""):
             "entry_quality":     c.get("entry_quality") or t.get("entry_quality"),
             "entry_now":         c.get("entry_now") or t.get("entry_now", False),
             "upside_source":     c.get("upside_source"),
+            # Valuation cheapness engine (Gate 2) — lets the app render e.g.
+            # "CHEAP · PE 18 vs sector 24 (−25%)"
+            "valuation":         c.get("valuation"),
+            "cheap_verdict":     c.get("cheap_verdict"),
         })
 
-    # Watchlist: WAIT-quality stocks that passed Gate 1 (good value, not yet timed)
+    # Watchlist: WAIT-quality stocks that passed both gates (quality + cheap, not yet timed)
     watch_out = []
     for c in (data.get("watchlist") or []):
         f = c.get("fundamental") or {}
@@ -1546,6 +1550,8 @@ async def swing_candidates(secret: str = ""):
             "entry":         t.get("entry"),
             "stop":          t.get("stop"),
             "t1":            t.get("t1"),
+            "valuation":     c.get("valuation"),
+            "cheap_verdict": c.get("cheap_verdict"),
             "fundamental":   f,
             "technical":     t,
         })

@@ -45,6 +45,19 @@ _HEADERS = {
 
 _CIK_MAP: dict[str, str] = {}  # ticker → CIK string, lazy-loaded from SEC
 
+# Per-scan Finnhub /stock/metric cache: ticker → metric blob. Written by
+# fetch_fundamentals() (which already fetches metrics once per name per scan)
+# and read by the valuation engine to build sector-peer medians WITHOUT any
+# extra Finnhub calls. Write-through only — never used to skip a fetch, so
+# Finnhub call volume is unchanged.
+_METRICS_CACHE: dict[str, dict] = {}
+_METRIC_KEYS_LOGGED = False
+
+
+def get_cached_metrics(ticker: str) -> dict:
+    """Finnhub /stock/metric blob cached from this process's screening passes."""
+    return _METRICS_CACHE.get(ticker.upper(), {})
+
 
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
@@ -456,13 +469,14 @@ def _finnhub_metrics(ticker: str) -> dict:
     More reliable than yfinance from Railway cloud IPs. Used as primary source;
     yfinance fills any gaps.
 
-    Key fields mapped:
-      peNormalizedAnnual, pbAnnual, pegAnnual, roeTTM, roaTTM,
-      grossMarginTTM, operatingMarginTTM, netMarginTTM,
-      revenueGrowthTTMYoy, epsGrowthTTMYoy, revenueGrowth3Y,
-      dividendYieldIndicatedAnnual, payoutRatioAnnual,
-      debtEquityAnnual, currentRatioAnnual, fcfYieldTTM,
-      52WeekHigh, 52WeekLow, marketCapitalization
+    Key fields mapped (verified against live responses 2026-07-02 — note there is
+    NO `pegAnnual` and NO `fcfYieldTTM` in the real payload):
+      peTTM, peAnnual, peNormalizedAnnual, psTTM, psAnnual, pb, pbAnnual,
+      pegTTM, forwardPEG, evEbitdaTTM, pfcfShareTTM (price/FCF per share —
+      invert for FCF yield), roeTTM, roaTTM, grossMarginTTM,
+      operatingMarginTTM, netMarginTTM, revenueGrowthTTMYoy, epsGrowthTTMYoy,
+      revenueGrowth3Y, dividendYieldIndicatedAnnual, currentDividendYieldTTM,
+      payoutRatioAnnual, debtEquityAnnual, 52WeekHigh, 52WeekLow
     """
     if not FINNHUB_KEY:
         return {}
@@ -478,6 +492,157 @@ def _finnhub_metrics(ticker: str) -> dict:
     except Exception as e:
         print(f"[fundamental] Finnhub metric {ticker} failed: {e}")
         return {}
+
+
+# ── Valuation cheapness engine ────────────────────────────────────────────────
+
+def _fnum(x) -> float | None:
+    """float(x) or None — rejects None, non-numeric, NaN and infinities."""
+    try:
+        v = float(x)
+    except (TypeError, ValueError):
+        return None
+    return v if (v == v and abs(v) != float("inf")) else None
+
+
+def _posnum(x) -> float | None:
+    """Positive finite float or None (negative PE/PS/PB etc. are excluded)."""
+    v = _fnum(x)
+    return v if (v is not None and v > 0) else None
+
+
+def valuation_score(ticker: str, fund: dict, sector_medians: dict | None = None,
+                    price: float | None = None) -> dict:
+    """
+    Valuation CHEAPNESS score ∈ [0,1] for one stock — "is this quality name
+    currently cheap?" Three components, weight-averaged over whichever ones
+    have data (weights renormalized; NO data at all → neutral 0.5 / FAIR):
+
+      1. Sector-relative multiples (weight 0.50) — own peTTM / psTTM / pb vs
+         the WATCHLIST sector-peer MEDIAN (computed from this scan's cached
+         Finnhub metrics — zero extra API calls). Discount per multiple =
+         (sector_median − own) / sector_median (positive = cheaper than
+         peers); ±60% discount maps to subscore 1.0 / 0.0. Negative or
+         missing multiples skip that component only — they never kill the stock.
+      2. Own-history proxy (weight 0.30) — peTTM vs peNormalizedAnnual (below
+         its own normalized PE = cheaper than its norm) + 52-week range
+         position (bottom half of the range adds cheapness, top decile
+         subtracts, middle is neutral).
+      3. Absolute value checks (weight 0.20) — PEG < 1.2 (pegTTM/forwardPEG),
+         FCF yield > 5% (100/pfcfShareTTM, else advanced fcf_yield_pct),
+         evEbitdaTTM below the sector median.
+
+    Verdict: CHEAP ≥ 0.55 · EXPENSIVE < 0.40 · else FAIR.
+    Never raises; every output field is None-safe. `has_data` False means no
+    valuation input existed at all → callers must gate on quality only.
+    """
+    out = {
+        "cheap_score": 0.5, "verdict": "FAIR", "has_data": False,
+        "pe": None, "sector_pe": None, "pe_discount_pct": None,
+        "ps": None, "sector_ps": None, "pb": None, "sector_pb": None,
+        "ev_ebitda": None, "sector_ev_ebitda": None,
+        "peg": None, "fcf_yield": None, "pe_norm": None, "range_pos_52w": None,
+        "components": {"sector_relative": None, "own_history": None, "absolute": None},
+    }
+    try:
+        fund = fund or {}
+        fh   = fund.get("finnhub_metrics") or {}
+        adv  = fund.get("advanced") or {}
+        med  = sector_medians or {}
+
+        # ── Own multiples (verified real Finnhub field names) ─────────────────
+        pe      = _posnum(fh.get("peTTM")) or _posnum(adv.get("pe_ratio"))
+        ps      = _posnum(fh.get("psTTM"))
+        pb      = _posnum(fh.get("pbAnnual")) or _posnum(fh.get("pb")) or _posnum(adv.get("price_to_book"))
+        ev_eb   = _posnum(fh.get("evEbitdaTTM"))
+        peg     = _posnum(fh.get("pegTTM")) or _posnum(fh.get("forwardPEG")) or _posnum(adv.get("peg"))
+        pe_norm = _posnum(fh.get("peNormalizedAnnual")) or _posnum(fh.get("peAnnual"))
+
+        fcf_yield = None  # percent
+        pfcf = _posnum(fh.get("pfcfShareTTM"))          # price / FCF-per-share
+        if pfcf:
+            fcf_yield = 100.0 / pfcf
+        elif _fnum(adv.get("fcf_yield_pct")) is not None:
+            fcf_yield = float(adv["fcf_yield_pct"])     # may be negative — kept
+
+        px = _posnum(price) or _posnum((fund.get("analyst") or {}).get("current_price"))
+        hi = _posnum(fh.get("52WeekHigh"))
+        lo = _posnum(fh.get("52WeekLow"))
+        range_pos = None
+        if px and hi and lo and hi > lo:
+            range_pos = min(1.0, max(0.0, (px - lo) / (hi - lo)))
+
+        out["pe"]           = round(pe, 1) if pe is not None else None
+        out["ps"]           = round(ps, 2) if ps is not None else None
+        out["pb"]           = round(pb, 2) if pb is not None else None
+        out["ev_ebitda"]    = round(ev_eb, 1) if ev_eb is not None else None
+        out["peg"]          = round(peg, 2) if peg is not None else None
+        out["pe_norm"]      = round(pe_norm, 1) if pe_norm is not None else None
+        out["fcf_yield"]    = round(fcf_yield, 2) if fcf_yield is not None else None
+        out["range_pos_52w"] = round(range_pos, 3) if range_pos is not None else None
+
+        # ── 1. Sector-relative multiples (primary) ────────────────────────────
+        rel_subs = []
+        for own, key, digits in ((pe, "pe", 1), (ps, "ps", 2), (pb, "pb", 2)):
+            sm = _posnum(med.get(key))
+            if sm is not None:
+                out[f"sector_{key}"] = round(sm, digits)
+            if own is not None and sm is not None:
+                disc = (sm - own) / sm                       # + = cheaper than peers
+                rel_subs.append(0.5 + max(-0.6, min(0.6, disc)) / 1.2)
+                if key == "pe":
+                    out["pe_discount_pct"] = round(disc * 100, 1)
+        comp_sector = sum(rel_subs) / len(rel_subs) if rel_subs else None
+
+        # ── 2. Own-history proxy ──────────────────────────────────────────────
+        hist_subs = []
+        if pe is not None and pe_norm is not None:
+            rel = (pe_norm - pe) / pe_norm                   # + = below its own norm
+            hist_subs.append(0.5 + max(-0.5, min(0.5, rel)))
+        if range_pos is not None:
+            if range_pos < 0.5:
+                hist_subs.append(0.5 + (0.5 - range_pos) * 0.8)   # bottom half → up to 0.9
+            elif range_pos > 0.9:
+                hist_subs.append(0.5 - (range_pos - 0.9) * 2.0)   # top decile → down to 0.3
+            else:
+                hist_subs.append(0.5)
+        comp_hist = sum(hist_subs) / len(hist_subs) if hist_subs else None
+
+        # ── 3. Absolute value checks ──────────────────────────────────────────
+        abs_votes = []
+        if peg is not None:
+            abs_votes.append(1.0 if peg < 1.2 else 0.0 if peg > 2.0 else (2.0 - peg) / 0.8)
+        if fcf_yield is not None:
+            abs_votes.append(1.0 if fcf_yield > 5.0 else 0.0 if fcf_yield < 1.0
+                             else (fcf_yield - 1.0) / 4.0)
+        sm_ev = _posnum(med.get("ev_ebitda"))
+        if sm_ev is not None:
+            out["sector_ev_ebitda"] = round(sm_ev, 1)
+        if ev_eb is not None and sm_ev is not None:
+            abs_votes.append(1.0 if ev_eb < sm_ev else 0.0)
+        comp_abs = sum(abs_votes) / len(abs_votes) if abs_votes else None
+
+        out["components"] = {
+            "sector_relative": round(comp_sector, 3) if comp_sector is not None else None,
+            "own_history":     round(comp_hist, 3) if comp_hist is not None else None,
+            "absolute":        round(comp_abs, 3) if comp_abs is not None else None,
+        }
+
+        # ── Weighted blend over available components ──────────────────────────
+        num = den = 0.0
+        for comp, w in ((comp_sector, 0.50), (comp_hist, 0.30), (comp_abs, 0.20)):
+            if comp is not None:
+                num += w * comp
+                den += w
+        if den > 0:
+            out["has_data"]    = True
+            out["cheap_score"] = round(min(1.0, max(0.0, num / den)), 3)
+        out["verdict"] = ("CHEAP" if out["has_data"] and out["cheap_score"] >= 0.55
+                          else "EXPENSIVE" if out["has_data"] and out["cheap_score"] < 0.40
+                          else "FAIR")
+    except Exception as e:
+        print(f"[fundamental] valuation_score {ticker} failed (neutral fallback): {e}")
+    return out
 
 
 def _finnhub_earnings_quality(ticker: str) -> dict:
@@ -733,14 +898,19 @@ def _metrics(f: dict) -> dict:
         m["profit_margin"] = _clamp((float(pm) - 0.10) / 0.20)
 
     # ── Valuation quality ─────────────────────────────────────────────────────
-    fcf = fh.get("fcfYieldTTM") or (adv.get("fcf_yield_pct", 0) / 100 if adv.get("fcf_yield_pct") else None)
+    # NOTE: Finnhub has no `fcfYieldTTM` — derive FCF yield from pfcfShareTTM
+    # (price / FCF-per-share, verified live field), yfinance advanced as fallback.
+    pfcf = fh.get("pfcfShareTTM")
+    fcf = (1.0 / float(pfcf)) if pfcf and float(pfcf) > 0 else \
+          (adv.get("fcf_yield_pct", 0) / 100 if adv.get("fcf_yield_pct") else None)
     if fcf is not None:
         m["fcf_yield"] = _clamp(float(fcf) / 0.08)                  # 8% FCF yield → +1
 
     if adv.get("rule_of_40") is not None:
         m["rule40"] = _clamp((adv["rule_of_40"] - 40.0) / 40.0)     # 40 = neutral, 80 → +1
 
-    peg = fh.get("pegAnnual") or adv.get("peg")
+    # NOTE: Finnhub has no `pegAnnual` — real fields are pegTTM / forwardPEG.
+    peg = fh.get("pegTTM") or fh.get("forwardPEG") or adv.get("peg")
     if peg is not None and float(peg) > 0:
         m["peg"] = _clamp((2.0 - float(peg)) / 2.0)                 # PEG 1 → +0.5, 0 → +1, 4 → -1
 
@@ -882,6 +1052,14 @@ def fetch_fundamentals(ticker: str) -> dict:
     # ── Finnhub (primary — cloud-reliable) ───────────────────────────────────
     try:
         f["finnhub_metrics"]  = _finnhub_metrics(ticker)
+        if f["finnhub_metrics"]:
+            # Per-scan cache — powers sector-peer medians with zero extra calls
+            _METRICS_CACHE[ticker.upper()] = f["finnhub_metrics"]
+            global _METRIC_KEYS_LOGGED
+            if not _METRIC_KEYS_LOGGED:
+                _METRIC_KEYS_LOGGED = True
+                print(f"[fundamental] finnhub /stock/metric keys for {ticker} "
+                      f"({len(f['finnhub_metrics'])}): {sorted(f['finnhub_metrics'].keys())}")
     except Exception as e:
         print(f"[fundamental] finnhub_metrics {ticker} error: {e}")
     try:
