@@ -257,6 +257,114 @@ def alphavantage_target_upside(ticker: str, current_price: float | None):
         return None, None
 
 
+# ── TradingView scanner batch quotes ─────────────────────────────────────────
+# Same scanner the daily brief (`daily_analysis._fetch_live_price_tv`) and the
+# GitHub Actions daily-levels job already rely on — the most reliable live-quote
+# source from Railway cloud IPs (Yahoo blocks/rate-limits them).
+_TV_SCAN_URL = "https://scanner.tradingview.com/global/scan"
+_TV_SCAN_HEADERS = {
+    "User-Agent": "Mozilla/5.0",
+    "Origin": "https://www.tradingview.com",
+}
+
+
+_TV_QUOTE_FIELDS = ["lp", "ch", "chp", "high", "low"]
+
+
+def _tv_num(v, nd=4):
+    try:
+        return round(float(v), nd) if v is not None else None
+    except (TypeError, ValueError):
+        return None
+
+
+def _tv_quote_from_values(vals: list) -> dict | None:
+    """[lp, ch, chp, high, low] → quote dict, or None when no usable price."""
+    price = _tv_num(vals[0]) if len(vals) >= 1 else None
+    if price is None or price <= 0:
+        return None
+    return {
+        "price":      price,
+        "change":     _tv_num(vals[1]) if len(vals) >= 2 else None,
+        "change_pct": _tv_num(vals[2], 2) if len(vals) >= 3 else None,
+        "day_high":   _tv_num(vals[3]) if len(vals) >= 4 else None,
+        "day_low":    _tv_num(vals[4]) if len(vals) >= 5 else None,
+    }
+
+
+def _tv_single_quote(tv_symbol: str) -> dict | None:
+    """Per-symbol GET /symbol quote — the exact request shape daily_analysis and
+    the GitHub Actions levels job already use successfully from cloud IPs.
+    Fallback path when the batch POST endpoint is unavailable."""
+    from urllib.parse import quote as _q
+    url = (f"https://scanner.tradingview.com/symbol"
+           f"?symbol={_q(tv_symbol)}&fields={','.join(_TV_QUOTE_FIELDS + ['close'])}&no_404=1")
+    try:
+        with httpx.Client(timeout=8) as client:
+            r = client.get(url, headers=_TV_SCAN_HEADERS)
+            if r.status_code != 200:
+                return None
+            d = r.json() or {}
+    except Exception:
+        return None
+    vals = [d.get("lp") if d.get("lp") is not None else d.get("close"),
+            d.get("ch"), d.get("chp"), d.get("high"), d.get("low")]
+    return _tv_quote_from_values(vals)
+
+
+def tv_batch_quotes(candidates: dict) -> dict:
+    """Live quotes for many instruments in ONE TradingView scanner POST, with a
+    per-symbol GET fallback (the repo's proven-from-Railway request shape) if
+    the batch endpoint itself is unreachable.
+
+    candidates: {caller_key: [TV symbol candidates in priority order]}
+                e.g. {"GC=F": ["TVC:GOLD", "OANDA:XAUUSD"]}.
+    Returns {caller_key: {price, change, change_pct, day_high, day_low}} for
+    every key the scanner resolved (first candidate with data wins); keys the
+    scanner couldn't serve are simply absent. Never raises.
+    """
+    tickers: list = []
+    for cands in candidates.values():
+        for tv in cands or []:
+            if tv and tv not in tickers:
+                tickers.append(tv)
+    if not tickers:
+        return {}
+    payload = {
+        "symbols": {"tickers": tickers, "query": {"types": []}},
+        "columns": _TV_QUOTE_FIELDS,
+    }
+    out: dict = {}
+    batch_ok = False
+    try:
+        with httpx.Client(timeout=10) as client:
+            r = client.post(_TV_SCAN_URL, json=payload, headers=_TV_SCAN_HEADERS)
+            r.raise_for_status()
+            rows = (r.json() or {}).get("data") or []
+        batch_ok = True
+        by_tv = {row.get("s"): row.get("d") for row in rows
+                 if isinstance(row, dict) and row.get("s") and isinstance(row.get("d"), list)}
+        for key, cands in candidates.items():
+            for tv in cands or []:
+                q = _tv_quote_from_values(by_tv.get(tv) or [])
+                if q:
+                    out[key] = q
+                    break
+    except Exception as e:
+        print(f"[mktdata] TV scanner batch failed: {e}")
+    if not batch_ok:
+        # Batch endpoint down/blocked — proven per-symbol GET path, bounded to
+        # one request per instrument (first candidate only).
+        for key, cands in candidates.items():
+            if cands:
+                q = _tv_single_quote(cands[0])
+                if q:
+                    out[key] = q
+    _health("tv_scanner_batch", bool(out), "price",
+            "" if out else "no quotes resolved")
+    return out
+
+
 _STOOQ_CACHE: dict = {}   # stooq_symbol -> (epoch_fetched, df) — shared across consumers
 _STOOQ_TTL = 1800         # 30 min: daily bars don't change intraday
 

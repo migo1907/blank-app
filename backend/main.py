@@ -2043,6 +2043,27 @@ _OVERVIEW_STOOQ = {
     "^TNX": "^tnx", "^IRX": "^irx",
 }
 
+# Yahoo symbol → TradingView scanner candidates (priority order). Live quotes,
+# one batched POST for the whole board — the cloud-reliable primary; Stooq /
+# Finnhub stay as delayed fallbacks. NOTE: ^TNX/^IRX are Yahoo yield×10 series;
+# the TV US10Y/US02Y values are the yields themselves and are served as price
+# directly (change_pct stays consistent either way).
+_OVERVIEW_TV = {
+    "^GSPC":   ["SP:SPX", "TVC:SPX", "FOREXCOM:SPXUSD"],
+    "^IXIC":   ["NASDAQ:IXIC", "TVC:IXIC"],
+    "^DJI":    ["TVC:DJI", "DJ:DJI"],
+    "^RUT":    ["TVC:RUT"],
+    "^VIX":    ["TVC:VIX", "CBOE:VIX"],
+    "GC=F":    ["TVC:GOLD", "OANDA:XAUUSD", "FX_IDC:XAUUSD"],
+    "CL=F":    ["TVC:USOIL", "NYMEX:CL1!"],
+    "SI=F":    ["TVC:SILVER", "OANDA:XAGUSD"],
+    "NG=F":    ["NYMEX:NG1!", "TVC:NATGAS"],
+    "BTC-USD": ["BITSTAMP:BTCUSD", "COINBASE:BTCUSD"],
+    "ETH-USD": ["BITSTAMP:ETHUSD", "COINBASE:ETHUSD"],
+    "^TNX":    ["TVC:US10Y"],
+    "^IRX":    ["TVC:US02Y"],
+}
+
 def _stooq_quote(sym: str) -> dict | None:
     """Last close from Stooq daily data — used for indices/commodities/crypto."""
     from market_data import _stooq_daily
@@ -2089,37 +2110,87 @@ def _finnhub_quote(sym: str) -> dict | None:
         return None
 
 
+def _daily_quote(sym: str) -> dict | None:
+    """Last-resort delayed quote from daily bars (market_data.fetch_daily) —
+    covers arbitrary US equities via the Stooq '<ticker>.us' convention."""
+    from market_data import fetch_daily
+    try:
+        df = fetch_daily(sym, period="5d")
+        if len(df) < 2:
+            return None
+        price = float(df["Close"].iloc[-1])
+        prev  = float(df["Close"].iloc[-2])
+        hi    = float(df["High"].iloc[-1]) if "High" in df.columns else None
+        lo    = float(df["Low"].iloc[-1])  if "Low"  in df.columns else None
+        chg   = price - prev
+        return {"price": round(price, 4), "change": round(chg, 4),
+                "change_pct": round(chg / prev * 100 if prev else 0, 2),
+                "day_high": hi, "day_low": lo}
+    except Exception:
+        return None
+
+
+def _tv_equity_candidates(sym: str) -> list:
+    """TV scanner symbol guesses for an arbitrary ticker: mapped instruments use
+    _OVERVIEW_TV; plain US equities try NASDAQ → NYSE → AMEX listings."""
+    mapped = _OVERVIEW_TV.get(sym)
+    if mapped:
+        return mapped
+    if not sym or sym.startswith("^") or "=" in sym or ":" in sym or sym.endswith("-USD"):
+        return []
+    tv = sym.replace("-", ".")   # Yahoo class shares BRK-B → TV BRK.B
+    return [f"NASDAQ:{tv}", f"NYSE:{tv}", f"AMEX:{tv}"]
+
+
 @app.get("/market/overview")
 def market_overview(secret: str = ""):
     _validate_secret(secret)
     import time
+    from market_data import tv_batch_quotes
     if time.time() - _overview_cache["ts"] < 60 and _overview_cache["data"]:
         return _overview_cache["data"]
-    out = {}
     all_syms = [(grp, name, sym) for grp, items in _OVERVIEW_SYMBOLS.items() for name, sym in items.items()]
+    # ONE batched TradingView scanner POST for the whole board (live price /
+    # change / change% / day high-low), then per-symbol Stooq → Finnhub for
+    # whatever the scanner missed.
+    tv = tv_batch_quotes({sym: _OVERVIEW_TV.get(sym, []) for _, _, sym in all_syms})
+    out, priced = {}, 0
     for grp, name, sym in all_syms:
-        q = _stooq_quote(sym) or _finnhub_quote(sym)
-        if q:
+        q = tv.get(sym) or _stooq_quote(sym) or _finnhub_quote(sym)
+        if q and q.get("price") is not None:
+            priced += 1
             out.setdefault(grp, []).append({"name": name, "symbol": sym, **q})
         else:
             out.setdefault(grp, []).append({"name": name, "symbol": sym, "error": "no data"})
-    _overview_cache.update({"ts": time.time(), "data": out})
+    # Never poison the 60s cache with a mostly-failed sweep (transient egress
+    # blip would otherwise show "—" for a full minute after recovery): only
+    # cache when at least half the instruments priced.
+    if priced * 2 >= len(all_syms):
+        _overview_cache.update({"ts": time.time(), "data": out})
     return out
 
 
 @app.get("/market/quotes")
 async def market_quotes(symbols: str = "", secret: str = ""):
     _validate_secret(secret)
+    from market_data import tv_batch_quotes
     syms = [s.strip().upper() for s in symbols.split(",") if s.strip()]
     if not syms:
         return {}
-    result = {}
+    result, missing = {}, []
     for sym in syms:
         q = _stooq_quote(sym) or _finnhub_quote(sym)
         if q:
             result[sym] = {**q, "name": sym}
         else:
-            result[sym] = {"error": "no data"}
+            missing.append(sym)
+    if missing:
+        # ONE batched TV scanner call for everything still unresolved, then a
+        # delayed daily-bar quote as the final fallback.
+        tv = tv_batch_quotes({s: _tv_equity_candidates(s) for s in missing})
+        for sym in missing:
+            q = tv.get(sym) or _daily_quote(sym)
+            result[sym] = {**q, "name": sym} if q else {"error": "no data"}
     return result
 
 
