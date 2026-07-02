@@ -1556,6 +1556,13 @@ async def swing_candidates(secret: str = ""):
             "technical":     t,
         })
 
+    # Catalyst sparks — CHEAP-list names that spiked ≥+3% intraday (scheduler buffer)
+    try:
+        from scheduler import get_recent_sparks
+        sparks = get_recent_sparks()
+    except Exception:
+        sparks = []
+
     return {
         "candidates":      out,
         "watchlist":       watch_out,
@@ -1563,6 +1570,7 @@ async def swing_candidates(secret: str = ""):
         "qualified_count": data.get("qualified_count"),
         "scanned":         data.get("scanned"),
         "updated_at":      data.get("updated_at"),
+        "sparks":          sparks,
     }
 
 

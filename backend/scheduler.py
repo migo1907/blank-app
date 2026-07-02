@@ -2155,6 +2155,74 @@ async def _swing_agents_cycle() -> None:
         print(f"[ta_layer] agent cycle failed: {e}")
 
 
+# ── Catalyst spark watch — "fundamentals ready + news spark → technical entry" ──
+# One alert per ticker per UTC day; rolling buffer feeds /swing/candidates.
+_spark_sent: dict[str, str] = {}     # {ticker: "YYYY-MM-DD" last alerted}
+_recent_sparks: list[dict] = []      # newest first
+_RECENT_SPARKS_MAX = 20
+
+
+def get_recent_sparks() -> list[dict]:
+    """Newest-first catalyst sparks (quality+CHEAP names moving ≥+3% intraday)."""
+    return list(_recent_sparks)
+
+
+async def _catalyst_watch_cycle() -> None:
+    """
+    Every 30 min during US market hours (13:30–20:00 UTC Mon-Fri): if a current
+    swing candidate (already quality+CHEAP gated) spikes ≥+3.0% on the day —
+    a news spark on a fundamentally-ready name — push the cached entry plan.
+    """
+    from datetime import datetime, timezone
+    now = datetime.now(timezone.utc)
+    if now.weekday() >= 5:
+        return
+    mins = now.hour * 60 + now.minute
+    if not (13 * 60 + 30 <= mins <= 20 * 60):   # RTH window guard (also on misfire)
+        return
+    try:
+        from swing_screener import get_candidates
+        cands = [c for c in ((get_candidates() or {}).get("candidates") or [])
+                 if isinstance(c, dict) and c.get("ticker")][:15]
+        if not cands:
+            return
+        try:
+            # Safe here: main imports scheduler only inside functions, and the
+            # main module is already loaded by the time any job runs.
+            from main import _get_quotes   # TV-batch → Stooq → Finnhub chain
+        except Exception as e:
+            print(f"[catalyst] quote chain unavailable: {e}")
+            return
+        by_tkr = {c["ticker"].upper(): c for c in cands}
+        quotes = await asyncio.to_thread(_get_quotes, list(by_tkr))
+        today = now.date().isoformat()
+        for tkr, c in by_tkr.items():
+            q = quotes.get(tkr) or {}
+            chg = q.get("change_pct")
+            if chg is None or float(chg) < 3.0 or _spark_sent.get(tkr) == today:
+                continue
+            _spark_sent[tkr] = today
+            t = c.get("technical") or {}
+            entry, stop, t1 = t.get("entry"), t.get("stop"), t.get("t1")
+            _recent_sparks.insert(0, {
+                "ticker": tkr, "change_pct": round(float(chg), 2),
+                "at": now.isoformat(), "entry": entry, "stop": stop, "t1": t1,
+            })
+            del _recent_sparks[_RECENT_SPARKS_MAX:]
+            print(f"[catalyst] spark: {tkr} +{float(chg):.1f}% (CHEAP list)")
+            try:
+                import push_notify
+                if push_notify.available():
+                    asyncio.create_task(asyncio.to_thread(
+                        push_notify.send_push,
+                        f"⚡ Catalyst: {tkr} +{float(chg):.1f}%",
+                        f"CHEAP name moving — entry {entry} · SL {stop} · T1 {t1}"))
+            except Exception:
+                pass
+    except Exception as e:
+        print(f"[catalyst] cycle error: {e}")
+
+
 def start_scheduler() -> AsyncIOScheduler:
     global _scheduler
     _load_seen_headlines()
@@ -2202,6 +2270,11 @@ def start_scheduler() -> AsyncIOScheduler:
     # Resolve open swing paper trades 15 min after the screen (uses today's close).
     _scheduler.add_job(_swing_manage_cycle, trigger="cron", day_of_week="mon-fri", hour=16, minute=45,
                        timezone=_ny_tz, id="swing_manage", replace_existing=True, misfire_grace_time=3600)
+
+    # Catalyst spark watch — every 30 min during US market hours (13:30–20:00 UTC);
+    # in-function guard trims the 13:00/20:30 cron edges.
+    _scheduler.add_job(_catalyst_watch_cycle, trigger="cron", day_of_week="mon-fri", hour="13-20", minute="0,30",
+                       id="catalyst_watch", replace_existing=True, misfire_grace_time=600)
     # TradingAgents second-layer filter — Mon + Thu 17:30 ET (every ~3 days).
     # Runs bull/bear debate on top swing candidates and enriches swing_candidates.json.
     _scheduler.add_job(_swing_agents_cycle, trigger="cron", day_of_week="mon,thu", hour=17, minute=30,

@@ -688,6 +688,25 @@ function SwingTab() {
   return (
     <div className="content">
 
+      {/* ⚡ Catalyst sparks — CHEAP-list names moving ≥+3% on news */}
+      {(meta.sparks||[]).length>0&&(
+        <div className="card" style={{borderLeft:'3px solid var(--gold)'}}>
+          <div className="card-title">⚡ Catalyst Sparks</div>
+          <div style={{display:'flex',flexDirection:'column',gap:6}}>
+            {meta.sparks.map((s,i)=>(
+              <div key={i} style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:8}}>
+                <div>
+                  <span style={{fontWeight:800,fontSize:14}}>{s.ticker}</span>
+                  <span style={{marginLeft:6,fontSize:12,fontWeight:700,color:'var(--green)'}}>▲{n(s.change_pct,1)}%</span>
+                  <div style={{fontSize:11,color:'var(--muted)',marginTop:1}}>entry {s.entry!=null?money(s.entry):'—'} · SL {s.stop!=null?money(s.stop):'—'} · T1 {s.t1!=null?money(s.t1):'—'}</div>
+                </div>
+                <span style={{fontSize:11,color:'var(--text-mut)'}}>{age(s.at)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Header bar */}
       <div style={{padding:'10px 10px 4px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
         <div>
@@ -751,9 +770,15 @@ function SwingTab() {
                       {(c.early_4h||tech.early_4h)&&(
                         <span style={{fontSize:11,fontWeight:700,color:'#14b8a6',background:'rgba(20,184,166,.12)',border:'1px solid rgba(20,184,166,.3)',borderRadius:3,padding:'2px 6px'}}>4H ▲ early</span>
                       )}
+                      {c.cheap_verdict&&(
+                        <span className={`bdg bdg-${c.cheap_verdict==='CHEAP'?'bull':c.cheap_verdict==='EXPENSIVE'?'bear':'muted'}`}>{c.cheap_verdict}</span>
+                      )}
                       <span style={{fontSize:11,color:'var(--muted)',fontWeight:600}}>{tech.trend||'—'}</span>
                       {tech.rsi!=null&&<span style={{fontSize:11,color:'var(--muted)'}}>RSI {tech.rsi}</span>}
                     </div>
+                    {c.valuation?.pe!=null&&c.valuation?.sector_pe!=null&&(
+                      <div style={{fontSize:10,color:'var(--muted)',marginTop:3}}>PE {n(c.valuation.pe,1)} vs {n(c.valuation.sector_pe,1)}</div>
+                    )}
                   </div>
                   <div style={{textAlign:'right'}}>
                     <div className="mono" style={{fontSize:16,fontWeight:800,color:'var(--green)'}}>
@@ -765,6 +790,15 @@ function SwingTab() {
                     {target&&<div style={{fontSize:11,color:'var(--muted)',marginTop:2}}>Target {money(target)}</div>}
                   </div>
                 </div>
+
+                {/* Top pick: valuation read */}
+                {i===0&&c.cheap_verdict&&(
+                  <div style={{fontSize:12,color:'var(--muted)',marginBottom:8}}>
+                    💰 {c.cheap_verdict}
+                    {c.valuation?.pe!=null&&c.valuation?.sector_pe!=null&&<> — PE {n(c.valuation.pe,1)} vs sector {n(c.valuation.sector_pe,1)}</>}
+                    {c.valuation?.pe_discount_pct!=null&&<> ({c.valuation.pe_discount_pct>0?'−':'+'}{Math.abs(c.valuation.pe_discount_pct).toFixed(0)}% vs peers)</>}
+                  </div>
+                )}
 
                 {/* Score bar */}
                 <div style={{display:'flex',gap:4,marginBottom:10,alignItems:'center'}}>
