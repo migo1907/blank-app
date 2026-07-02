@@ -4,11 +4,11 @@
     "votes": {
       "h1": 0,
       "h4": 0,
-      "d1": 0
+      "d1": -1
     },
-    "weighted": 0.0,
-    "bias": "NEUTRAL",
-    "updated_at": "2026-07-02T10:20:37.376494+00:00",
+    "weighted": -0.5,
+    "bias": "BEAR",
+    "updated_at": "2026-07-02T10:43:06.562675+00:00",
     "method": "yfinance"
   },
   "SPY": {
@@ -16,11 +16,11 @@
     "votes": {
       "h1": 0,
       "h4": 0,
-      "d1": 0
+      "d1": 1
     },
-    "weighted": 0.0,
-    "bias": "NEUTRAL",
-    "updated_at": "2026-07-02T10:20:37.825006+00:00",
+    "weighted": 0.5,
+    "bias": "BULL",
+    "updated_at": "2026-07-02T10:43:07.217405+00:00",
     "method": "yfinance"
   },
   "QQQ": {
@@ -28,11 +28,11 @@
     "votes": {
       "h1": 0,
       "h4": 0,
-      "d1": 0
+      "d1": 1
     },
-    "weighted": 0.0,
-    "bias": "NEUTRAL",
-    "updated_at": "2026-07-02T10:20:38.276781+00:00",
+    "weighted": 0.5,
+    "bias": "BULL",
+    "updated_at": "2026-07-02T10:43:07.925381+00:00",
     "method": "yfinance"
   }
 }
