@@ -2428,9 +2428,18 @@ def _build_commentary_context() -> dict:
     }
 
 
-def _commentary_lines(ctx: dict) -> list[str]:
-    """Deterministic, data-rich commentary used as the LLM prompt source AND as a
-    graceful fallback when no LLM key is present — always cites real numbers/levels."""
+def _fmt_event(ev) -> str:
+    """(ts_utc, name, detail) → 'HH:MM Dubai — Name'."""
+    try:
+        ts_utc, name = ev[0], ev[1]
+        from datetime import timedelta as _td
+        return f"{(ts_utc + _td(hours=4)).strftime('%H:%M')} Dubai — {name}"
+    except Exception:
+        return str(ev)
+
+
+def _commentary_data_lines(ctx: dict, events: list | None = None) -> list[str]:
+    """Rich per-asset technicals + levels + macro + events — the DATA block fed to the LLM."""
     names = {"XAUUSD": "Gold", "SPY": "S&P 500 (SPY)", "QQQ": "Nasdaq 100 (QQQ)"}
     lines = []
     for key, label in names.items():
@@ -2455,7 +2464,52 @@ def _commentary_lines(ctx: dict) -> list[str]:
     macro_bits.append(f"gold macro {m['label']} ({m['bias']:+.2f})")
     macro_bits.append(f"news sentiment {m['news']:+.2f}")
     lines.append(" · ".join(macro_bits) + ".")
+    if events:
+        lines.append("Today's high-impact US events: " + "; ".join(_fmt_event(e) for e in events) + ".")
+    else:
+        lines.append("Today's high-impact US events: none scheduled.")
     return lines
+
+
+def _commentary_lines(ctx: dict, events: list | None = None) -> list[str]:
+    """Deterministic 4-block desk note (DIRECTION / LEVELS / SCENARIOS / WATCH) —
+    graceful fallback when no LLM key is present. Short, numbers-first."""
+    names = {"XAUUSD": "Gold", "SPY": "S&P", "QQQ": "Nasdaq"}
+
+    def _n(v):
+        try:
+            return f"{float(v):,.0f}"
+        except Exception:
+            return "?"
+
+    direction, level_rows, scen = [], [], []
+    for key, label in names.items():
+        a = ctx["assets"].get(key, {})
+        tc, lv, price = a.get("tc", {}), a.get("lv", {}), a.get("price")
+        if not tc:
+            continue
+        px = f"{price:,.2f}" if isinstance(price, (int, float)) else "?"
+        direction.append(f"{label}: {tc.get('direction','?')} {tc.get('bias_pct','?')}% @ {px} "
+                         f"— RSI {tc.get('rsi','?')}, 20d mom {tc.get('mom20','?')}%")
+        if lv.get("pivot") is not None:
+            level_rows.append(f"{label}: S {_n(lv.get('s1'))} / {_n(lv.get('s2'))} · "
+                              f"R {_n(lv.get('r1'))} / {_n(lv.get('r2'))} · P {_n(lv.get('pivot'))}")
+            if len(scen) < 2:
+                scen.append(f"{label} above R1 {_n(lv.get('r1'))} → {_n(lv.get('r2'))} next; "
+                            f"below S1 {_n(lv.get('s1'))} → {_n(lv.get('s2'))}.")
+    if events and len(scen) >= 2:
+        # tie the second scenario to today's top event instead of a second level line
+        ev_name = events[0][1] if len(events[0]) > 1 else "the data"
+        scen[1] = (f"{ev_name} hot → yields/DXY up, gold tests S1; "
+                   f"soft print → gold reclaims R1.")
+    watch = "; ".join(_fmt_event(e) for e in (events or [])[:3]) or "No high-impact US events today."
+
+    return [
+        "DIRECTION:\n" + "\n".join(direction or ["No data."]),
+        "LEVELS:\n" + "\n".join(level_rows or ["No pivot data."]),
+        "SCENARIOS:\n" + "\n".join(scen or ["No level data for scenarios."]),
+        "WATCH:\n" + watch,
+    ]
 
 
 @app.get("/market/commentary")
@@ -2468,32 +2522,46 @@ def market_commentary(secret: str = ""):
 
     try:
         ctx = _build_commentary_context()
-        data_lines = _commentary_lines(ctx)
     except Exception as e:
         return {"date": today, "commentary": f"Commentary unavailable: {e}", "cached": False}
 
-    data_block = "\n".join(data_lines)
+    # Today's high-impact US events (same helpers /brief/data uses)
+    try:
+        from daily_analysis import _finnhub_calendar_events, _ff_calendar_events
+        _now = _dtt.datetime.now(_dtt.timezone.utc)
+        cal = _finnhub_calendar_events(_now) + _ff_calendar_events(_now)
+        cal.sort(key=lambda x: x[0])
+        events = cal[:3]
+    except Exception:
+        events = []
+
+    data_block = "\n".join(_commentary_data_lines(ctx, events))
     prompt = (
-        f"You are a senior markets desk strategist. Using ONLY the data below for {today}, write a concise, "
-        "professional market commentary (3 short paragraphs). Paragraph 1: the cross-market read and the macro/"
-        "fundamental backdrop (real yields, the dollar, VIX, risk tone). Paragraph 2: the technical posture for gold "
-        "and the equity indices — trend, momentum and RSI. Paragraph 3: the key actionable levels to watch today "
-        "(cite specific pivot, support and resistance numbers). Reference concrete numbers and price levels throughout. "
-        "Be direct and analytical, no hedging or filler, no disclaimers.\n\nDATA:\n" + data_block
+        f"You are a senior prop-desk strategist writing the morning tape note for {today}. "
+        "Using ONLY the data below, output EXACTLY 4 blocks separated by blank lines, max 120 words total:\n"
+        "DIRECTION: one line per asset (Gold, S&P, Nasdaq) — expected direction TODAY plus the single key "
+        "number driving it.\n"
+        "LEVELS: one line per asset with explicit support/resistance from the pivot data, "
+        "e.g. 'Gold: S 4011 / 3985 · R 4061 / 4099'.\n"
+        "SCENARIOS: exactly 2 if/then lines tied to today's events and the levels above, "
+        "e.g. 'Above R1 4061 → 4099 next; NFP hot → yields up, gold tests S1'.\n"
+        "WATCH: one line — today's highest-impact event(s) with time.\n"
+        "Style: terse desk shorthand, numbers-first. No hedging, no 'investors should', no disclaimers, "
+        "no prose paragraphs, nothing outside the 4 blocks.\n\nDATA:\n" + data_block
     )
     try:
         client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
         msg = client.messages.create(
             model="claude-haiku-4-5-20251001",
-            max_tokens=700,
+            max_tokens=500,
             messages=[{"role": "user", "content": prompt}],
         )
         text = msg.content[0].text.strip()
         _commentary_cache.update({"date": today, "text": text})
         return {"date": today, "commentary": text, "cached": False}
     except Exception:
-        # Graceful fallback: deterministic data-rich note (still has numbers + levels)
-        text = "\n\n".join(data_lines)
+        # Graceful fallback: deterministic 4-block desk note (same structure, no LLM)
+        text = "\n\n".join(_commentary_lines(ctx, events))
         return {"date": today, "commentary": text, "cached": False, "fallback": True}
 
 

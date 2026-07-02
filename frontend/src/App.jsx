@@ -5,7 +5,7 @@ import {
   AreaChart, Area, LineChart, Line,
   ReferenceLine
 } from 'recharts'
-import { Crosshair, BarChart3, CalendarDays, Briefcase, Newspaper, LogOut, Menu, X, Moon, Sun, FileText, Bell } from 'lucide-react'
+import { Crosshair, BarChart3, CalendarDays, Briefcase, Newspaper, LogOut, Menu, X, Moon, Sun, FileText, Bell, RefreshCw } from 'lucide-react'
 import { getDashboard, subscribePush, VAPID_PUBLIC, getVapidPublic,
   getMarketOverview, getMarketQuotes, getMarketTicker, getMarketCompare, getMarketWrap, getMarketCommentary,
   getMarketSparklines, getOptionsFlow, getEconomicCalendar, getEarningsCalendar,
@@ -2140,6 +2140,13 @@ function MainApp({onLock}) {
   const [tab,setTab] = useState('signals')
   const [menu,setMenu] = useState(false)
   const [marketsSub,setMarketsSub] = useState('overview')
+  const [refreshKey,setRefreshKey] = useState(0)
+  const [refreshing,setRefreshing] = useState(false)
+  const doRefresh = () => {
+    setRefreshKey(k=>k+1)
+    setRefreshing(true)
+    setTimeout(()=>setRefreshing(false), 800)
+  }
   const [theme,setTheme] = useState(()=>{ try{ return localStorage.getItem('theme')||'dark' }catch{ return 'dark' } })
   const [pushOn,setPushOn] = useState(()=>{ try{ return localStorage.getItem('push_enabled')==='1' }catch{ return false } })
   const canPush = typeof window!=='undefined' && 'PushManager' in window && 'serviceWorker' in navigator
@@ -2175,12 +2182,22 @@ function MainApp({onLock}) {
       <BreakingBar/>
       <div className="app-main" style={{flex:1, paddingBottom:64}}>
         <TickerTape/>
-        {tab==='signals'   && <SignalsHub/>}
-        {tab==='markets'   && <MarketsTab key={'mk-'+marketsSub} initialSub={marketsSub} pulse={pulse} health={health}/>}
-        {tab==='calendar'  && <CalendarTab/>}
-        {tab==='portfolio' && <PortfolioHub/>}
-        {tab==='news'      && <NewsTab/>}
+        {tab==='signals'   && <SignalsHub key={'signals-'+refreshKey}/>}
+        {tab==='markets'   && <MarketsTab key={'mk-'+marketsSub+'-'+refreshKey} initialSub={marketsSub} pulse={pulse} health={health}/>}
+        {tab==='calendar'  && <CalendarTab key={'calendar-'+refreshKey}/>}
+        {tab==='portfolio' && <PortfolioHub key={'portfolio-'+refreshKey}/>}
+        {tab==='news'      && <NewsTab key={'news-'+refreshKey}/>}
       </div>
+
+      {/* Refresh current view */}
+      <button onClick={doRefresh} title="Refresh" aria-label="Refresh"
+        style={{position:'fixed', right:16, bottom:'calc(64px + env(safe-area-inset-bottom) + 64px)', zIndex:120,
+          width:40, height:40, borderRadius:'50%', border:'1px solid var(--border-2)',
+          background:'var(--surface)', color:'var(--text-hi)',
+          display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer',
+          boxShadow:'var(--shadow-pop)'}}>
+        <RefreshCw size={17} strokeWidth={2} style={refreshing?{animation:'spin .8s linear'}:undefined}/>
+      </button>
 
       {/* Menu button */}
       <button onClick={()=>setMenu(true)} title="Menu" aria-label="Menu" className="menu-fab"
