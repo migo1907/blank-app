@@ -2,37 +2,6 @@
   "signals": [
     {
       "direction": "LONG",
-      "timeframe": "60",
-      "trigger": "FVG",
-      "symbol": "TSLL",
-      "entry_price": 14.94,
-      "tp1": 15.82,
-      "tp2": 16.52,
-      "tp3": 17.39,
-      "sl": 14.06,
-      "ml_score": 0.375,
-      "tier": "\u26a1 LOW",
-      "quality_score": 0.3212,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.1808,
-      "velocity": "LOW",
-      "event": "NFP",
-      "htf_bias": {
-        "direction": "LONG",
-        "timeframe": "60",
-        "symbol": "TSLL",
-        "trigger": "FVG",
-        "ml_score": 0.375,
-        "stored_at": "2026-07-01T15:30:22.281172+00:00",
-        "expires_at": "2026-07-01T19:30:22.281188+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "htf_direct",
-      "session": "NYSE Open",
-      "fired_at": "2026-07-01T15:30:41.501608+00:00"
-    },
-    {
-      "direction": "LONG",
       "timeframe": "15",
       "trigger": "BOS",
       "symbol": "US500",
@@ -2843,6 +2812,37 @@
       "htf_context": "with_bias",
       "session": "London",
       "fired_at": "2026-07-02T12:47:01.649396+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "30",
+      "trigger": "FVG",
+      "symbol": "XAUUSD",
+      "entry_price": 4118.48,
+      "tp1": 4136.18,
+      "tp2": 4149.05,
+      "tp3": 4166.75,
+      "sl": 4083.08,
+      "ml_score": 0.625,
+      "tier": "\u2705 MED",
+      "quality_score": 0.451,
+      "quality_reason": "approved",
+      "news_score": 0.082,
+      "velocity": "CONFLICTED",
+      "event": "NFP",
+      "htf_bias": {
+        "direction": "LONG",
+        "timeframe": "30",
+        "symbol": "XAUUSD",
+        "trigger": "FVG",
+        "ml_score": 0.625,
+        "stored_at": "2026-07-02T13:02:01.819333+00:00",
+        "expires_at": "2026-07-02T15:02:01.819348+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "htf_direct",
+      "session": "London/NY Overlap",
+      "fired_at": "2026-07-02T13:02:02.272740+00:00"
     }
   ]
 }
