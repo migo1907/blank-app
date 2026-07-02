@@ -1,10 +1,339 @@
 {
-  "checked_at": "2026-07-02T08:31:43.995638+00:00",
+  "checked_at": "2026-07-02T11:09:43.941031+00:00",
   "health": {
-    "status_code": 0,
+    "status_code": 200,
     "data": {
-      "error": "The read operation timed out"
+      "status": "ok",
+      "version": "5.2.0-26F",
+      "scheduler": "running",
+      "ml": {
+        "joint_gold_trained": true,
+        "joint_stocks_trained": true,
+        "optuna_available": true,
+        "shap_available": true,
+        "lgbm_available": true,
+        "tabpfn_available": false,
+        "pools": {
+          "XAUUSD_2M": {
+            "rf_trained": true,
+            "gbm_trained": true,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "XAUUSD_5M": {
+            "rf_trained": true,
+            "gbm_trained": true,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "XAUUSD_15M": {
+            "rf_trained": true,
+            "gbm_trained": true,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "XAUUSD_30M": {
+            "rf_trained": true,
+            "gbm_trained": true,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "XAUUSD_1H": {
+            "rf_trained": false,
+            "gbm_trained": false,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "STOCKS_MOMENTUM_15M": {
+            "rf_trained": true,
+            "gbm_trained": true,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "STOCKS_MOMENTUM_30M": {
+            "rf_trained": true,
+            "gbm_trained": true,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "STOCKS_MOMENTUM_1H": {
+            "rf_trained": false,
+            "gbm_trained": false,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "STOCKS_MOMENTUM_4H": {
+            "rf_trained": false,
+            "gbm_trained": false,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "STOCKS_QUALITY_15M": {
+            "rf_trained": true,
+            "gbm_trained": true,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "STOCKS_QUALITY_30M": {
+            "rf_trained": true,
+            "gbm_trained": true,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "STOCKS_QUALITY_1H": {
+            "rf_trained": false,
+            "gbm_trained": false,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "STOCKS_QUALITY_4H": {
+            "rf_trained": false,
+            "gbm_trained": false,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "STOCKS_INDEX_15M": {
+            "rf_trained": false,
+            "gbm_trained": false,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "STOCKS_INDEX_30M": {
+            "rf_trained": false,
+            "gbm_trained": false,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "STOCKS_INDEX_1H": {
+            "rf_trained": false,
+            "gbm_trained": false,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "STOCKS_INDEX_4H": {
+            "rf_trained": false,
+            "gbm_trained": false,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "STOCKS_QQQ_15M": {
+            "rf_trained": false,
+            "gbm_trained": false,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "STOCKS_QQQ_30M": {
+            "rf_trained": false,
+            "gbm_trained": false,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "STOCKS_QQQ_1H": {
+            "rf_trained": false,
+            "gbm_trained": false,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "STOCKS_QQQ_4H": {
+            "rf_trained": false,
+            "gbm_trained": false,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "STOCKS_SPX500_15M": {
+            "rf_trained": false,
+            "gbm_trained": false,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "STOCKS_SPX500_30M": {
+            "rf_trained": false,
+            "gbm_trained": false,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "STOCKS_SPX500_1H": {
+            "rf_trained": false,
+            "gbm_trained": false,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          },
+          "STOCKS_SPX500_4H": {
+            "rf_trained": false,
+            "gbm_trained": false,
+            "tabpfn_trained": false,
+            "threshold": 0.45,
+            "retrain_count": 0,
+            "last_retrain": "never"
+          }
+        }
+      },
+      "directive": {
+        "version": "5.2.0-26F",
+        "mission": "highest signal quality + maximum win ratio",
+        "learning_mode": "online (per trade) + batch (per 10 trades) + weekly autopsy",
+        "self_heal": true,
+        "test_before_act": true,
+        "champion_challenger": true,
+        "inspection_every_hours": 6,
+        "improvement_phases": {
+          "phase1_active": true,
+          "phase2_boosters": false,
+          "phase3_features": false,
+          "phase4_joint": true,
+          "phase5_quality": false
+        }
+      },
+      "regimes": {
+        "XAUUSD": {
+          "asset": "XAUUSD",
+          "regime": "RANGING",
+          "confidence": 0.996,
+          "transition_prob": 0.072,
+          "next_regime": "RANGING",
+          "shifting": false,
+          "probs": {
+            "TRENDING_BULL": 0.0,
+            "RANGING": 0.996,
+            "VOLATILE": 0.004
+          },
+          "method": "hmm",
+          "updated_at": "2026-07-02T10:57:55.048924+00:00"
+        },
+        "SPY": {
+          "asset": "SPY",
+          "regime": "VOLATILE",
+          "confidence": 0.99,
+          "transition_prob": 0.043,
+          "next_regime": "VOLATILE",
+          "shifting": false,
+          "probs": {
+            "RANGING": 0.01,
+            "TRENDING_BULL": 0.0,
+            "VOLATILE": 0.99
+          },
+          "method": "hmm",
+          "updated_at": "2026-07-02T10:57:56.044832+00:00"
+        },
+        "QQQ": {
+          "asset": "QQQ",
+          "regime": "VOLATILE",
+          "confidence": 1.0,
+          "transition_prob": 0.081,
+          "next_regime": "VOLATILE",
+          "shifting": false,
+          "probs": {
+            "RANGING": 0.0,
+            "TRENDING_BULL": 0.0,
+            "VOLATILE": 1.0
+          },
+          "method": "hmm",
+          "updated_at": "2026-07-02T10:57:56.943619+00:00"
+        }
+      },
+      "mtf": {
+        "XAUUSD": {
+          "asset": "XAUUSD",
+          "votes": {
+            "h1": 0,
+            "h4": 0,
+            "d1": -1
+          },
+          "weighted": -0.5,
+          "bias": "BEAR",
+          "updated_at": "2026-07-02T10:57:58.341963+00:00",
+          "method": "yfinance"
+        },
+        "SPY": {
+          "asset": "SPY",
+          "votes": {
+            "h1": 0,
+            "h4": 0,
+            "d1": 1
+          },
+          "weighted": 0.5,
+          "bias": "BULL",
+          "updated_at": "2026-07-02T10:57:59.053054+00:00",
+          "method": "yfinance"
+        },
+        "QQQ": {
+          "asset": "QQQ",
+          "votes": {
+            "h1": 0,
+            "h4": 0,
+            "d1": 1
+          },
+          "weighted": 0.5,
+          "bias": "BULL",
+          "updated_at": "2026-07-02T10:57:59.708595+00:00",
+          "method": "yfinance"
+        }
+      },
+      "post_event": {},
+      "intermarket": {
+        "vix": {
+          "vix": 16.59,
+          "vix3m": 19.16,
+          "ratio": 0.866,
+          "regime": "CALM",
+          "size_factor": 1.0,
+          "backwardation": false
+        },
+        "dxy_break": {
+          "direction": "NONE",
+          "strength": 0.0,
+          "level": 28.49
+        }
+      }
     }
   },
-  "overall": "down"
+  "overall": "ok"
 }
