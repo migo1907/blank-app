@@ -2170,28 +2170,197 @@ def market_overview(secret: str = ""):
     return out
 
 
+def _get_quotes(syms: list) -> dict:
+    """Quotes for arbitrary symbols. ONE batched TradingView scanner POST first
+    (live, cloud-reliable primary), then per-symbol Stooq → Finnhub → delayed
+    daily-bar fallbacks for whatever the scanner missed.
+    Returns {SYM: {price, change, change_pct, day_high, day_low, name}} with
+    {"error": "no data"} entries for unresolvable symbols."""
+    from market_data import tv_batch_quotes
+    if not syms:
+        return {}
+    try:
+        tv = tv_batch_quotes({s: _tv_equity_candidates(s) for s in syms})
+    except Exception:
+        tv = {}
+    result = {}
+    for sym in syms:
+        q = tv.get(sym) or _stooq_quote(sym) or _finnhub_quote(sym) or _daily_quote(sym)
+        result[sym] = {**q, "name": sym} if q else {"error": "no data"}
+    return result
+
+
 @app.get("/market/quotes")
 async def market_quotes(symbols: str = "", secret: str = ""):
     _validate_secret(secret)
-    from market_data import tv_batch_quotes
     syms = [s.strip().upper() for s in symbols.split(",") if s.strip()]
-    if not syms:
-        return {}
-    result, missing = {}, []
-    for sym in syms:
-        q = _stooq_quote(sym) or _finnhub_quote(sym)
-        if q:
-            result[sym] = {**q, "name": sym}
-        else:
-            missing.append(sym)
-    if missing:
-        # ONE batched TV scanner call for everything still unresolved, then a
-        # delayed daily-bar quote as the final fallback.
-        tv = tv_batch_quotes({s: _tv_equity_candidates(s) for s in missing})
-        for sym in missing:
-            q = tv.get(sym) or _daily_quote(sym)
-            result[sym] = {**q, "name": sym} if q else {"error": "no data"}
-    return result
+    return _get_quotes(syms)
+
+
+# ── Market sentiment aggregate (Endpoint: /market/sentiment) ────────────────
+_sentiment_cache = {"ts": 0, "data": None}
+
+
+@app.get("/market/sentiment")
+def market_sentiment(secret: str = ""):
+    """One risk-appetite snapshot: Fear&Greed + CBOE P/C + VIX + news + breadth,
+    each independently fail-safe, folded into a 0..1 composite. Cached 5 min."""
+    _validate_secret(secret)
+    import time
+    if time.time() - _sentiment_cache["ts"] < 300 and _sentiment_cache["data"]:
+        return _sentiment_cache["data"]
+
+    def _clamp(x: float) -> float:
+        return max(0.0, min(1.0, x))
+
+    # ── Fear & Greed (CNN, hourly-refreshed module cache) ────────────────
+    fg_raw = None
+    try:
+        from fear_greed import get_fear_greed
+        fg = get_fear_greed()
+        if fg.get("score") is not None:
+            fg_raw = {"score": fg["score"], "label": fg.get("label")}
+    except Exception:
+        fg_raw = None
+
+    # ── CBOE put/call ratio (total, equity fallback) ─────────────────────
+    pc_raw = None
+    try:
+        from cboe_data import get_pc_ratio
+        pc = get_pc_ratio()
+        val = pc.get("total_pc") if pc.get("total_pc") is not None else pc.get("equity_pc")
+        if val is not None:
+            pc_raw = {"value": val, "total_pc": pc.get("total_pc"),
+                      "equity_pc": pc.get("equity_pc"), "index_pc": pc.get("index_pc"),
+                      "date": pc.get("date")}
+    except Exception:
+        pc_raw = None
+
+    # ── VIX term structure ───────────────────────────────────────────────
+    vix_raw = None
+    try:
+        from options_engine import get_vix_context
+        vc = get_vix_context()
+        if vc.get("vix") is not None:
+            vix_raw = {"vix": vc.get("vix"), "vix9d_ratio": vc.get("vix9d_ratio"),
+                       "ratio": vc.get("ratio"), "backwardation": vc.get("backwardation")}
+    except Exception:
+        vix_raw = None
+
+    # ── News sentiment + velocity ────────────────────────────────────────
+    news_raw = None
+    try:
+        from scheduler import get_latest_news_sentiment, get_latest_velocity
+        news_raw = {"score": round(float(get_latest_news_sentiment()), 4),
+                    "velocity": get_latest_velocity().get("label", "NORMAL")}
+    except Exception:
+        news_raw = None
+
+    # ── Breadth from the /market/overview data path (60s-cached) ────────
+    breadth_raw = None
+    try:
+        ov = market_overview(secret=secret)
+        adv = dec = 0
+        pcts = []
+        for items in ov.values():
+            for it in items:
+                cp = it.get("change_pct")
+                if cp is None:
+                    continue
+                pcts.append(cp)
+                if cp > 0:
+                    adv += 1
+                elif cp < 0:
+                    dec += 1
+        if pcts:
+            breadth_raw = {"advancing": adv, "declining": dec,
+                           "avg_change_pct": round(sum(pcts) / len(pcts), 3)}
+    except Exception:
+        breadth_raw = None
+
+    # ── Normalize (0 = risk-off, 1 = risk-on) + composite ───────────────
+    components = {
+        "fear_greed": round(_clamp(fg_raw["score"] / 100.0), 3) if fg_raw else None,
+        "put_call":   round(_clamp((1.3 - pc_raw["value"]) / 0.6), 3) if pc_raw else None,
+        "vix":        round(_clamp((30.0 - vix_raw["vix"]) / 18.0), 3) if vix_raw else None,
+        "news":       round(_clamp((news_raw["score"] + 1.0) / 2.0), 3) if news_raw else None,
+        "breadth":    round(_clamp(breadth_raw["advancing"] /
+                                   max(1, breadth_raw["advancing"] + breadth_raw["declining"])), 3)
+                      if breadth_raw else None,
+    }
+    avail = [v for v in components.values() if v is not None]
+    composite = round(sum(avail) / len(avail), 3) if avail else None
+    label = None
+    if composite is not None:
+        label = "Risk-On" if composite > 0.6 else ("Risk-Off" if composite < 0.4 else "Neutral")
+
+    out = {
+        "composite":  composite,
+        "label":      label,
+        "components": components,
+        "raw": {
+            "fear_greed": fg_raw,
+            "put_call":   pc_raw,
+            "vix":        vix_raw,
+            "news":       news_raw,
+            "breadth":    breadth_raw,
+        },
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }
+    _sentiment_cache.update({"ts": time.time(), "data": out})
+    return out
+
+
+# ── Stocks to Watch (Endpoint: /market/watch-today) ─────────────────────────
+_watch_today_cache = {"ts": 0, "data": None}
+
+
+@app.get("/market/watch-today")
+def market_watch_today(secret: str = ""):
+    """Top movers across the 70-ticker swing watchlist (one TV batch + fallbacks)
+    plus the top cached swing screener picks. Cached 5 min."""
+    _validate_secret(secret)
+    import time
+    if time.time() - _watch_today_cache["ts"] < 300 and _watch_today_cache["data"]:
+        return _watch_today_cache["data"]
+
+    movers = []
+    try:
+        from swing_screener import WATCHLIST
+        quotes = _get_quotes(list(WATCHLIST))
+        priced = [(sym, q) for sym, q in quotes.items()
+                  if q.get("price") is not None and q.get("change_pct") is not None]
+        priced.sort(key=lambda x: abs(x[1]["change_pct"]), reverse=True)
+        movers = [{"symbol": sym, "price": q["price"], "change_pct": q["change_pct"]}
+                  for sym, q in priced[:6]]
+    except Exception as e:
+        print(f"[watch-today] movers failed: {e}")
+
+    swing_picks = []
+    try:
+        from swing_screener import get_candidates
+        for c in (get_candidates().get("candidates") or [])[:5]:
+            try:
+                tech = c.get("technical") or {}
+                swing_picks.append({
+                    "ticker":         c.get("ticker"),
+                    "combined_score": c.get("combined_score"),
+                    "entry_quality":  tech.get("entry_quality") or c.get("entry_quality"),
+                    "entry":          tech.get("entry"),
+                    "stop":           tech.get("stop"),
+                    "t1":             tech.get("t1"),
+                })
+            except Exception:
+                continue
+    except Exception as e:
+        print(f"[watch-today] swing picks failed: {e}")
+
+    out = {"movers": movers, "swing_picks": swing_picks,
+           "updated_at": datetime.now(timezone.utc).isoformat()}
+    # Don't cache an all-empty result (transient egress blip)
+    if movers or swing_picks:
+        _watch_today_cache.update({"ts": time.time(), "data": out})
+    return out
 
 
 @app.get("/market/ticker/{symbol}")
