@@ -137,6 +137,21 @@
 - `RAILWAY_API_TOKEN` is set in Railway Variables (backend hourly check uses it).
 - ✅ LightGBM working in production since 2026-06-11 16:10 UTC (joint_gold 516 trades, joint_stocks 276 trades).
 
+## Mistake Ledger — Lessons Learned (append, never delete)
+Rule 4 made durable. Each entry: what went wrong → the lesson. Check this BEFORE repeating any similar task.
+
+**2026-07-02 (IBKR/Polygon backtest session):**
+1. **IBKR deletes expired option contracts** — the 7/1 0DTE chain was unrecoverable hours after expiry. Real 0DTE premium paths must be captured SAME-DAY while contracts are live. For backfill, use Polygon instead: it serves expired SPXW contracts with minute aggregates ~2 years back, even on the free key.
+2. **Polygon free key entitlements are per-cluster:** options aggregates + expired-contract reference = YES; index endpoints (`I:SPX`, `I:VIX1D`) = 403 NOT_AUTHORIZED. Never build a Polygon script that depends on index data — derive SPX/VIX1D reference values from the repo's own IBKR pulls (`backend/backtest_data/`).
+3. **IBKR history caps are per-instrument and there is NO date pagination:** CMDTY (spot gold) allows ~3,500 bars via `step_count`; SPX index (IND) hard-caps `step_count` at 1,000. Short-TF depth is fixed per pull (gold 2m ≈ 5 days, SPX 2m ≈ 5 days) — extending coverage requires periodic re-pulls, not bigger requests.
+4. **Black-Scholes + VIX1D materially underprices real SPXW premiums, non-uniformly** (ATM ~0.63–0.78×, far-OTM puts 0.11–0.28× — vol skew). No scalar iv_mult can fix it. BS backtests are shape-only (comparing configs); absolute win-rate/P&L claims require real premium data (`options_backtest.grade_from_series`).
+5. **`workflow_dispatch` only works from the default branch**, and we never push to main. Pattern that works: trigger the workflow with `on: push` + a `paths:` filter on a trigger file (`backfill.trigger`) on the feature branch.
+6. **The cloud session's egress allowlist blocks new hosts** (api.polygon.io 403 at the proxy) and can't be changed from inside the session. Fallback that works today: run the job on GitHub Actions runners (open egress) with the secret in repo Actions secrets.
+7. **Scripts must fail loudly, not succeed empty.** Backfill run 1 "succeeded" in 1s with a 402-byte empty result; the failure only surfaced in a later step. Any data job must `sys.exit(nonzero)` when it produced nothing.
+8. **Give data-pull subagents a strict call budget.** An unconstrained agent burned its whole session exploring option chains (54 tool calls, died at the session limit, zero files). The re-run with an explicit ~20-call plan finished in 17 calls.
+9. **Scrub bad prints before backtesting.** One corrupted IBKR bar (gold 1h 2025-12-30 23:00Z, open/high +10% reverting same bar) created a fake −7.5R trade. Detection rule that works: open is >8× median-TR away from BOTH prev close and own close (a real gap persists into the close; a glitch reverts). `ladder_backtest.scrub_bad_prints`.
+10. **Container restarts kill background watchers/timers** — after any restart notification, re-arm pending timers and re-check in-flight external jobs before assuming they're still watched.
+
 ## Non-Negotiable Rules
 These are permanent agreements — never override, skip, or work around them under any circumstance:
 
