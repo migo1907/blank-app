@@ -3,37 +3,6 @@
     {
       "direction": "LONG",
       "timeframe": "60",
-      "trigger": "BOS",
-      "symbol": "HOOD",
-      "entry_price": 107.7,
-      "tp1": 113.23,
-      "tp2": 117.66,
-      "tp3": 123.19,
-      "sl": 102.17,
-      "ml_score": 0.625,
-      "tier": "\u2705 MED",
-      "quality_score": 0.3099,
-      "quality_reason": "rejected_low_confidence",
-      "news_score": -0.1808,
-      "velocity": "LOW",
-      "event": "NFP",
-      "htf_bias": {
-        "direction": "LONG",
-        "timeframe": "60",
-        "symbol": "HOOD",
-        "trigger": "BOS",
-        "ml_score": 0.625,
-        "stored_at": "2026-07-01T15:30:06.495075+00:00",
-        "expires_at": "2026-07-01T19:30:06.495083+00:00"
-      },
-      "contra_bias": null,
-      "htf_context": "htf_direct",
-      "session": "NYSE Open",
-      "fired_at": "2026-07-01T15:30:07.036732+00:00"
-    },
-    {
-      "direction": "LONG",
-      "timeframe": "60",
       "trigger": "FVG",
       "symbol": "TSLA",
       "entry_price": 431.87,
@@ -2851,6 +2820,37 @@
       "htf_context": "scalp",
       "session": "Asian",
       "fired_at": "2026-07-02T06:27:02.296426+00:00"
+    },
+    {
+      "direction": "LONG",
+      "timeframe": "30",
+      "trigger": "FVG",
+      "symbol": "XAUUSD",
+      "entry_price": 4075.05,
+      "tp1": 4089.21,
+      "tp2": 4099.5,
+      "tp3": 4113.66,
+      "sl": 4046.74,
+      "ml_score": 0.75,
+      "tier": "\u2b50 HIGH",
+      "quality_score": 0.5397,
+      "quality_reason": "approved",
+      "news_score": 0.0924,
+      "velocity": "CONFLICTED",
+      "event": "NFP",
+      "htf_bias": {
+        "direction": "LONG",
+        "timeframe": "30",
+        "symbol": "XAUUSD",
+        "trigger": "FVG",
+        "ml_score": 0.75,
+        "stored_at": "2026-07-02T06:32:02.049775+00:00",
+        "expires_at": "2026-07-02T08:32:02.049790+00:00"
+      },
+      "contra_bias": null,
+      "htf_context": "htf_direct",
+      "session": "Asian",
+      "fired_at": "2026-07-02T06:32:02.480469+00:00"
     }
   ]
 }
