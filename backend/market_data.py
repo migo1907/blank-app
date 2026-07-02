@@ -352,14 +352,17 @@ def tv_batch_quotes(candidates: dict) -> dict:
                     break
     except Exception as e:
         print(f"[mktdata] TV scanner batch failed: {e}")
-    if not batch_ok:
-        # Batch endpoint down/blocked — proven per-symbol GET path, bounded to
-        # one request per instrument (first candidate only).
-        for key, cands in candidates.items():
-            if cands:
-                q = _tv_single_quote(cands[0])
-                if q:
-                    out[key] = q
+    # Per-symbol GET (the proven-from-Railway shape) for every key the batch
+    # did NOT resolve — the batch POST can return 200 yet resolve nothing for
+    # index/futures symbols, so gating this on batch failure alone left the
+    # overview empty. Bounded: ≤2 candidates per unresolved instrument.
+    missing = [k for k in candidates if k not in out]
+    for key in missing:
+        for tv in (candidates.get(key) or [])[:2]:
+            q = _tv_single_quote(tv)
+            if q:
+                out[key] = q
+                break
     _health("tv_scanner_batch", bool(out), "price",
             "" if out else "no quotes resolved")
     return out

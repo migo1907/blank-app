@@ -171,7 +171,7 @@ function BriefTab() {
   const mac   = data.macro    || {}
   const evts  = data.events_list || []
 
-  const bias  = tc.composite_bias ?? tc.bias ?? null
+  const bias  = tc.composite_bias ?? tc.bias ?? (tc.bias_pct!=null ? tc.bias_pct/100 : null)
   const biasP = bias != null ? Math.round(bias*100) : null
   const biasLabel = bias==null?'—':bias>0.6?'Bullish':bias<0.4?'Bearish':'Neutral'
   const biasClr = bias==null?'var(--muted)':bias>0.6?'var(--green)':bias<0.4?'var(--red)':'var(--gold)'
@@ -1882,12 +1882,10 @@ function SignalsHub() {
         <button className={`sub-tab${subTab==='intraday'?' active':''}`} onClick={()=>setSubTab('intraday')}>{t('intraday')}</button>
         <button className={`sub-tab${subTab==='swing'?' active':''}`} onClick={()=>setSubTab('swing')}>{t('swing')}</button>
         <button className={`sub-tab${subTab==='options'?' active':''}`} onClick={()=>setSubTab('options')}>{t('options')}</button>
-        <button className={`sub-tab${subTab==='stats'?' active':''}`} onClick={()=>setSubTab('stats')}>Stats</button>
       </div>
       {subTab==='intraday' && <SignalsTab/>}
       {subTab==='swing'    && <SwingTab/>}
       {subTab==='options'  && <OptionsTab/>}
-      {subTab==='stats'    && <StatsTab/>}
     </div>
   )
 }

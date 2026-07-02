@@ -3120,12 +3120,13 @@ def calendar_earnings(secret: str = ""):
     out = []
     for ev in data:
         sym = (ev.get("symbol") or "").upper()
-        if sym not in _EARNINGS_MAJORS:
-            continue
+        if sym not in _EARNINGS_MAJORS and ev.get("epsEstimate") is None and ev.get("revenueEstimate") is None:
+            continue  # keep majors + any analyst-covered name; skip uncovered micro-caps
         surprise_pct, beat_miss = _finnhub_eps_surprise(sym)
         out.append({
             "symbol":       sym,
-            "name":         _EARNINGS_MAJORS[sym],
+            "name":         _EARNINGS_MAJORS.get(sym, sym),
+            "major":        sym in _EARNINGS_MAJORS,
             "date":         ev.get("date"),
             "when":         _HR.get((ev.get("hour") or "").lower(), ev.get("hour") or ""),
             "eps_estimate": ev.get("epsEstimate"),
@@ -3134,7 +3135,8 @@ def calendar_earnings(secret: str = ""):
             "last_surprise_pct": surprise_pct,
             "last_beat_miss":    beat_miss,
         })
-    out.sort(key=lambda x: (x["date"] or "", x["symbol"]))
+    out.sort(key=lambda x: (x["date"] or "", not x.get("major"), x["symbol"]))
+    out = out[:40]
     result = {"earnings": out, "from": frm, "to": to}
     if source_err and not out:
         result["error"] = f"Finnhub failed ({source_err})"
