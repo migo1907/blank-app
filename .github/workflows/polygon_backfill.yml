@@ -1,0 +1,71 @@
+name: Polygon 0DTE Backfill
+
+# workflow_dispatch only works from the default branch and we never push to
+# main — so this fires on pushes to the backtest branch that touch the
+# trigger file. Bump backfill.trigger to request a run. The results commit
+# does not touch the trigger, so no loop.
+on:
+  push:
+    branches:
+      - "claude/ibkr-data-backtest-tfyswp"
+    paths:
+      - "backfill.trigger"
+
+concurrency:
+  group: polygon-backfill
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: pip install --quiet httpx
+
+      - name: Run backfill (free tier ~5 req/min — takes ~45 min for 90 days)
+        env:
+          POLYGON_API_KEY: ${{ secrets.POLYGON_API_KEY }}
+        run: |
+          DAYS=$(cat ../backfill.trigger | grep -oE '^[0-9]+' || echo 90)
+          python polygon_backfill_0dte.py --days "$DAYS" \
+            --output backtest_data/polygon_0dte_grades.json \
+            --bars-out backtest_data/polygon_0dte_bars.json.gz
+
+      - name: Commit results back to the branch
+        run: |
+          cd ..
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add backend/backtest_data/polygon_0dte_grades.json \
+                  backend/backtest_data/polygon_0dte_bars.json.gz
+          git diff --cached --quiet && echo "no changes" && exit 0
+          git commit -m "Add Polygon 0DTE real-price backfill results (workflow run ${{ github.run_id }})"
+          git pull --rebase origin "${{ github.ref_name }}"
+          git push origin HEAD:"${{ github.ref_name }}"
+
+      - name: Upload results as artifact (backup)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: polygon-0dte-results
+          path: |
+            backend/backtest_data/polygon_0dte_grades.json
+            backend/backtest_data/polygon_0dte_bars.json.gz
+          if-no-files-found: ignore
