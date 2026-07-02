@@ -524,3 +524,33 @@ def _tv_daily(ticker: str):
         _tv_daily_cache[ticker] = (time.time(), df)
         return df
     return None
+
+
+_tv_4h_cache: dict = {}
+
+def tv_4h(ticker: str):
+    """4-hour OHLC via tvdatafeed (anonymous) — free fallback for the swing 4H
+    entry trigger now that Alpha Vantage intraday is a premium-only endpoint.
+    60-min cache per ticker; NYSE/AMEX retry for NASDAQ-guessed equities."""
+    import time
+    hit = _tv_4h_cache.get(ticker)
+    if hit and time.time() - hit[0] < 3600:
+        return hit[1]
+    try:
+        from tvDatafeed import TvDatafeed, Interval
+    except Exception:
+        return None
+    sym, exch = _TV_DAILY_MAP.get(ticker, (ticker.upper().replace("-", "").replace(".", ""), "NASDAQ"))
+    tv = TvDatafeed()
+    for ex in ([exch] + (["NYSE", "AMEX"] if exch == "NASDAQ" else [])):
+        try:
+            raw = tv.get_hist(symbol=sym, exchange=ex, interval=Interval.in_4_hour, n_bars=80)
+            if raw is not None and len(raw) >= 25:
+                df = raw.rename(columns={"open": "Open", "high": "High",
+                                         "low": "Low", "close": "Close", "volume": "Volume"})
+                df = df[["Open", "High", "Low", "Close"] + (["Volume"] if "Volume" in df.columns else [])]
+                _tv_4h_cache[ticker] = (time.time(), df)
+                return df
+        except Exception:
+            continue
+    return None

@@ -80,7 +80,7 @@ _cached: dict = {}
 
 # Bump when gate logic changes — a persisted scan from older gates is stale
 # and the scheduler rescans on startup until one from the current gates exists.
-GATE_VERSION = 2
+GATE_VERSION = 3   # v3: trigger_proximity ladder + tv_4h source
 
 
 def _now() -> str:
@@ -177,8 +177,11 @@ def _fourh_confirm(ticker: str):
     intraday source is added.
     """
     try:
-        from market_data import alphavantage_4h
+        from market_data import alphavantage_4h, tv_4h
         d4 = alphavantage_4h(ticker)
+        if d4 is None or len(d4) < 25:
+            # AV intraday went premium-only — tvdatafeed is the free 4H source
+            d4 = tv_4h(ticker)
         if d4 is None or len(d4) < 25:
             return None
         c4 = d4["Close"].to_numpy(dtype=float)
@@ -328,6 +331,51 @@ def _technical_score(ticker: str) -> dict:
 
         out["entry_quality"] = entry_quality
         out["entry_now"]     = entry_now
+        out["ema20"]         = round(float(ef20[-1]), 2)
+
+        # ── Trigger proximity: how close is this name to firing an entry NOW ──
+        # Ranks the Watch list by "who fires next": 45 pts trend structure,
+        # 30 pts RSI vs the 40-58 pullback zone, 25 pts distance to the 20EMA
+        # entry band. A confirmed 4H turn floors it at 85 — the lower timeframe
+        # fires ahead of the daily, so it's the early trigger.
+        dist20 = abs(c[-1] - ef20[-1]) / ef20[-1]
+        prox = 0.0
+        if ema_stack_bull:
+            prox += 45
+        elif price_above_50 and price_above_200:
+            prox += 30
+        elif price_above_200:
+            prox += 15
+        if 40 <= rsi <= 58:
+            prox += 30
+        elif 58 < rsi < 75:
+            prox += 30 * (75 - rsi) / 17
+        elif 25 < rsi < 40:
+            prox += 30 * (rsi - 25) / 15
+        if dist20 <= 0.03:
+            prox += 25
+        elif dist20 <= 0.10:
+            prox += 25 * (0.10 - dist20) / 0.07
+        if entry_now:
+            prox = 100.0
+        elif out.get("early_4h"):
+            prox = max(prox, 85.0)
+        out["trigger_proximity"] = int(round(prox))
+        out["trigger_state"] = ("READY" if entry_now else
+                                "4H_FIRED" if out.get("early_4h") else
+                                "NEAR" if prox >= 60 else
+                                "FORMING" if prox >= 35 else "EARLY")
+        gaps = []
+        if not ema_stack_bull:
+            gaps.append("EMA stack not bullish")
+        if rsi > 65:
+            gaps.append(f"RSI {rsi:.0f} hot (needs ≤65)")
+        elif rsi > 58:
+            gaps.append(f"RSI {rsi:.0f} vs ideal 40–58")
+        if dist20 > 0.03:
+            gaps.append(f"{dist20*100:.1f}% off 20EMA (entry band ≤3%)")
+        out["trigger_gap"] = ("entry conditions met" if entry_now
+                              else (" · ".join(gaps) or "forming"))
 
     except Exception as e:
         print(f"[swing] technical {ticker} failed: {e}")
@@ -556,7 +604,9 @@ def run_screen(top_n: int = 15) -> dict:
 
     # Sort: entry_now first, then combined score
     rows.sort(key=lambda r: (r.get("entry_now", False), r["combined_score"]), reverse=True)
-    watchlist.sort(key=lambda r: r["combined_score"], reverse=True)
+    # Watch list ranks by trigger proximity — "who fires next" — then quality
+    watchlist.sort(key=lambda r: ((r.get("technical") or {}).get("trigger_proximity") or 0,
+                                  r["combined_score"]), reverse=True)
     top = rows[:top_n]
 
     result = {

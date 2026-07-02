@@ -680,7 +680,8 @@ function SwingTab() {
   const all = cands.data?.candidates || []
   const meta = cands.data || {}
   const isReady = x=>!!(x.entry_now||(x.technical||{}).entry_now||['STRONG','GOOD'].includes(x.entry_quality||(x.technical||{}).entry_quality))
-  const ordered = [...all].sort((a,b)=>(isReady(b)?1:0)-(isReady(a)?1:0))
+  const proxOf  = x=>(x.technical||{}).trigger_proximity??x.trigger_proximity??0
+  const ordered = [...all].sort((a,b)=>((isReady(b)?1:0)-(isReady(a)?1:0))||(proxOf(b)-proxOf(a)))
   const nReady  = ordered.filter(isReady).length
 
   const eqClr = q => q==='STRONG'?'var(--green)':q==='GOOD'?'#14b8a6':q==='FAIR'?'var(--gold)':q==='AVOID'?'var(--red)':'var(--muted)'
@@ -700,7 +701,9 @@ function SwingTab() {
               <div key={i} style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:8}}>
                 <div>
                   <span style={{fontWeight:800,fontSize:14}}>{s.ticker}</span>
-                  <span style={{marginLeft:6,fontSize:12,fontWeight:700,color:'var(--green)'}}>▲{n(s.change_pct,1)}%</span>
+                  {s.kind==='trigger'
+                    ? <span style={{marginLeft:6,fontSize:12,fontWeight:700,color:'var(--gold)'}}>🎯 entry zone {s.price!=null?money(s.price):''} (20EMA {s.ema20!=null?money(s.ema20):'—'})</span>
+                    : <span style={{marginLeft:6,fontSize:12,fontWeight:700,color:'var(--green)'}}>▲{n(s.change_pct,1)}%</span>}
                   <div style={{fontSize:11,color:'var(--muted)',marginTop:1}}>entry {s.entry!=null?money(s.entry):'—'} · SL {s.stop!=null?money(s.stop):'—'} · T1 {s.t1!=null?money(s.t1):'—'}</div>
                 </div>
                 <span style={{fontSize:11,color:'var(--text-mut)'}}>{age(s.at)}</span>
@@ -828,6 +831,22 @@ function SwingTab() {
                   </div>}
                 </div>
 
+                {/* Trigger proximity — how close the technical entry is to firing */}
+                {!(c.entry_now||tech.entry_now)&&tech.trigger_proximity!=null&&(
+                  <div style={{marginBottom:10}}>
+                    <div style={{display:'flex',justifyContent:'space-between',fontSize:10,color:'var(--muted)',marginBottom:3}}>
+                      <span>🎯 Trigger proximity{tech.trigger_state==='4H_FIRED'?' — 4H fired, awaiting daily':''}</span>
+                      <span style={{fontWeight:700,color:tech.trigger_proximity>=85?'var(--green)':tech.trigger_proximity>=60?'var(--gold)':'var(--muted)'}}>{tech.trigger_proximity}%</span>
+                    </div>
+                    <div className="bar-wrap">
+                      <div className="bar-fill" style={{width:`${tech.trigger_proximity}%`,background:tech.trigger_proximity>=85?'var(--green)':tech.trigger_proximity>=60?'var(--gold)':'var(--muted)'}}/>
+                    </div>
+                    {tech.trigger_gap&&tech.trigger_gap!=='forming'&&(
+                      <div style={{fontSize:10,color:'var(--muted)',marginTop:3}}>needs: {tech.trigger_gap}</div>
+                    )}
+                  </div>
+                )}
+
                 {/* Levels grid */}
                 <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:3}}>
                   {[['Entry',entry,'var(--text)'],['TP1',t1,'var(--green)'],['TP2',t2,'var(--green)'],['TP3',t3,'#16a34a'],['SL',sl,'var(--red)']].map(([lbl,val,clr])=>(
@@ -895,27 +914,40 @@ function SwingTab() {
       {(cands.data?.watchlist||[]).length>0&&(
         <div style={{padding:'8px 10px 0'}}>
           <div style={{fontSize:12,fontWeight:700,color:'var(--gold)',marginBottom:6,letterSpacing:.5}}>
-            WATCHING — good value, entry not ready ({cands.data.watchlist.length})
+            WATCHING — ranked by 🎯 trigger proximity ({cands.data.watchlist.length})
           </div>
           <div style={{display:'flex',flexDirection:'column',gap:6}}>
-            {(cands.data.watchlist||[]).map(w=>(
+            {(cands.data.watchlist||[]).map(w=>{
+              const wt   = w.technical||{}
+              const prox = wt.trigger_proximity??w.trigger_proximity
+              const gap  = wt.trigger_gap??w.trigger_gap
+              const fourH= (wt.trigger_state??w.trigger_state)==='4H_FIRED'
+              return (
               <div key={w.ticker} style={{background:'var(--card)',borderRadius:8,padding:'8px 10px',
-                display:'flex',justifyContent:'space-between',alignItems:'center',
-                borderLeft:'3px solid var(--gold)'}}>
-                <div>
-                  <span style={{fontWeight:800,fontSize:14}}>{w.ticker}</span>
-                  <span style={{marginLeft:6,fontSize:11,color:'var(--muted)',background:'rgba(245,158,11,.12)',
-                    padding:'1px 5px',borderRadius:4}}>WAIT</span>
-                  {w.trend&&<span style={{marginLeft:5,fontSize:11,color:w.trend==='BULL'?'var(--green)':w.trend==='BEAR'?'var(--red)':'var(--muted)'}}>
-                    {w.trend==='BULL'?'▲':w.trend==='BEAR'?'▼':'—'} {w.trend}
-                  </span>}
+                borderLeft:`3px solid ${fourH?'#14b8a6':prox>=60?'var(--gold)':'var(--border)'}`}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                  <div>
+                    <span style={{fontWeight:800,fontSize:14}}>{w.ticker}</span>
+                    {fourH
+                      ? <span style={{marginLeft:6,fontSize:11,fontWeight:700,color:'#14b8a6',background:'rgba(20,184,166,.12)',padding:'1px 5px',borderRadius:4}}>4H ▲ FIRED</span>
+                      : <span style={{marginLeft:6,fontSize:11,color:'var(--muted)',background:'rgba(245,158,11,.12)',padding:'1px 5px',borderRadius:4}}>WAIT</span>}
+                    {(w.trend||wt.trend)&&<span style={{marginLeft:5,fontSize:11,color:(w.trend||wt.trend)==='BULL'?'var(--green)':(w.trend||wt.trend)==='BEAR'?'var(--red)':'var(--muted)'}}>
+                      {(w.trend||wt.trend)==='BULL'?'▲':(w.trend||wt.trend)==='BEAR'?'▼':'—'} {w.trend||wt.trend}
+                    </span>}
+                  </div>
+                  <div style={{textAlign:'right'}}>
+                    {prox!=null&&<div style={{fontSize:13,fontWeight:800,color:prox>=85?'var(--green)':prox>=60?'var(--gold)':'var(--muted)'}}>🎯 {prox}%</div>}
+                    {(w.rsi??wt.rsi)!=null&&<div style={{fontSize:11,color:'var(--muted)'}}>RSI {w.rsi??wt.rsi}</div>}
+                  </div>
                 </div>
-                <div style={{textAlign:'right'}}>
-                  {w.upside_pct!=null&&<div style={{fontSize:13,fontWeight:700,color:'var(--green)'}}>↑{w.upside_pct.toFixed(0)}%</div>}
-                  {w.rsi!=null&&<div style={{fontSize:11,color:'var(--muted)'}}>RSI {w.rsi}</div>}
-                </div>
+                {prox!=null&&(
+                  <div className="bar-wrap" style={{marginTop:6}}>
+                    <div className="bar-fill" style={{width:`${prox}%`,background:prox>=85?'var(--green)':prox>=60?'var(--gold)':'var(--muted)'}}/>
+                  </div>
+                )}
+                {gap&&gap!=='forming'&&<div style={{fontSize:10,color:'var(--muted)',marginTop:4}}>needs: {gap}</div>}
               </div>
-            ))}
+            )})}
           </div>
         </div>
       )}
@@ -1338,17 +1370,21 @@ function SwingRadarCard() {
   const isReady = x=>!!(x.entry_now||(x.technical||{}).entry_now||['STRONG','GOOD'].includes(x.entry_quality||(x.technical||{}).entry_quality))
   const ready = all.filter(isReady)
   const seen = new Set(ready.map(x=>x.ticker))
+  const proxOf = x=>(x.technical||{}).trigger_proximity??x.trigger_proximity??0
   const watchU = [...all.filter(x=>!isReady(x)), ...(data?.watchlist||[])]
     .filter(x=>{ if(!x.ticker||seen.has(x.ticker)) return false; seen.add(x.ticker); return true })
+    .sort((a,b)=>proxOf(b)-proxOf(a))
     .slice(0,8)
   if(!ready.length&&!watchU.length) return null
   const chip = (x,i,hot)=>{
     const v=x.valuation||{}
+    const prox=(x.technical||{}).trigger_proximity??x.trigger_proximity
     return (
       <span key={i} style={{display:'inline-flex',gap:6,alignItems:'center',background:'var(--surface2)',
         border:`1px solid ${hot?'rgba(34,197,94,.4)':'var(--border)'}`,borderRadius:6,padding:'4px 8px',fontSize:12}}>
         <strong style={{color:'var(--text-hi)'}}>{x.ticker}</strong>
         {v.pe!=null&&<span style={{color:'var(--muted)'}}>PE {Number(v.pe).toFixed(1)}</span>}
+        {!hot&&prox!=null&&<span style={{color:prox>=85?'var(--green)':prox>=60?'var(--gold)':'var(--muted)',fontWeight:700}}>🎯{prox}%</span>}
         <span style={{color:hot?'var(--green)':'var(--gold)',fontWeight:700}}>{hot?'✅':'👁'}</span>
       </span>
     )

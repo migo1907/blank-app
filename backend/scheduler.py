@@ -2193,9 +2193,12 @@ async def _catalyst_watch_cycle() -> None:
         return
     try:
         from swing_screener import get_candidates
-        cands = [c for c in ((get_candidates() or {}).get("candidates") or [])
+        data = get_candidates() or {}
+        cands = [c for c in (data.get("candidates") or [])
                  if isinstance(c, dict) and c.get("ticker")][:15]
-        if not cands:
+        watch = [c for c in (data.get("watchlist") or [])
+                 if isinstance(c, dict) and c.get("ticker")][:10]
+        if not cands and not watch:
             return
         try:
             # Safe here: main imports scheduler only inside functions, and the
@@ -2204,32 +2207,65 @@ async def _catalyst_watch_cycle() -> None:
         except Exception as e:
             print(f"[catalyst] quote chain unavailable: {e}")
             return
-        by_tkr = {c["ticker"].upper(): c for c in cands}
+        by_tkr = {c["ticker"].upper(): c for c in cands + watch}
         quotes = await asyncio.to_thread(_get_quotes, list(by_tkr))
         today = now.date().isoformat()
         for tkr, c in by_tkr.items():
             q = quotes.get(tkr) or {}
-            chg = q.get("change_pct")
-            if chg is None or float(chg) < 3.0 or _spark_sent.get(tkr) == today:
-                continue
-            _spark_sent[tkr] = today
+            px, chg = q.get("price"), q.get("change_pct")
             t = c.get("technical") or {}
             entry, stop, t1 = t.get("entry"), t.get("stop"), t.get("t1")
-            _recent_sparks.insert(0, {
-                "ticker": tkr, "change_pct": round(float(chg), 2),
-                "at": now.isoformat(), "entry": entry, "stop": stop, "t1": t1,
-            })
-            del _recent_sparks[_RECENT_SPARKS_MAX:]
-            print(f"[catalyst] spark: {tkr} +{float(chg):.1f}% (CHEAP list)")
+
+            # ⚡ News spark — a CHEAP-list name ripping on the day (the META catch)
+            if chg is not None and float(chg) >= 3.0 and _spark_sent.get(tkr) != today:
+                _spark_sent[tkr] = today
+                _recent_sparks.insert(0, {
+                    "ticker": tkr, "kind": "move", "change_pct": round(float(chg), 2),
+                    "at": now.isoformat(), "entry": entry, "stop": stop, "t1": t1,
+                })
+                del _recent_sparks[_RECENT_SPARKS_MAX:]
+                print(f"[catalyst] spark: {tkr} +{float(chg):.1f}% (CHEAP list)")
+                try:
+                    import push_notify
+                    if push_notify.available():
+                        asyncio.create_task(asyncio.to_thread(
+                            push_notify.send_push,
+                            f"⚡ Catalyst: {tkr} +{float(chg):.1f}%",
+                            f"CHEAP name moving — entry {entry} · SL {stop} · T1 {t1}"))
+                except Exception:
+                    pass
+
+            # 🎯 Entry-zone trigger — a near-trigger Watch name dips into the
+            # 20EMA entry band intraday (the "NFLX is almost there" catch): the
+            # nightly scan stores the setup, the live price arms it.
+            ema20 = t.get("ema20")
             try:
-                import push_notify
-                if push_notify.available():
-                    asyncio.create_task(asyncio.to_thread(
-                        push_notify.send_push,
-                        f"⚡ Catalyst: {tkr} +{float(chg):.1f}%",
-                        f"CHEAP name moving — entry {entry} · SL {stop} · T1 {t1}"))
+                in_band = (px is not None and ema20
+                           and abs(float(px) - float(ema20)) / float(ema20) <= 0.03)
             except Exception:
-                pass
+                in_band = False
+            if (in_band and not t.get("entry_now")
+                    and (t.get("trigger_proximity") or 0) >= 60
+                    and t.get("entry_quality") in ("GOOD", "FAIR", "WAIT")
+                    and (stop is None or float(px) > float(stop))
+                    and _spark_sent.get(tkr + ":trig") != today):
+                _spark_sent[tkr + ":trig"] = today
+                _recent_sparks.insert(0, {
+                    "ticker": tkr, "kind": "trigger", "price": round(float(px), 2),
+                    "ema20": ema20, "at": now.isoformat(),
+                    "entry": entry, "stop": stop, "t1": t1,
+                })
+                del _recent_sparks[_RECENT_SPARKS_MAX:]
+                print(f"[catalyst] entry-zone trigger: {tkr} @ {px} (20EMA {ema20})")
+                try:
+                    import push_notify
+                    if push_notify.available():
+                        asyncio.create_task(asyncio.to_thread(
+                            push_notify.send_push,
+                            f"🎯 Entry zone: {tkr} ${float(px):.2f}",
+                            f"At the 20EMA {ema20} — SL {stop} · T1 {t1}"))
+                except Exception:
+                    pass
     except Exception as e:
         print(f"[catalyst] cycle error: {e}")
 
