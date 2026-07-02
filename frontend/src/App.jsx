@@ -10,7 +10,7 @@ import { t, getLang, setLang, LANGS } from './i18n'
 import { getDashboard, subscribePush, VAPID_PUBLIC, getVapidPublic,
   getMarketOverview, getMarketQuotes, getMarketTicker, getMarketCompare, getMarketWrap, getMarketCommentary,
   getMarketSparklines, getOptionsFlow, getEconomicCalendar, getEarningsCalendar,
-  getMarketSentiment, getWatchToday, getMarketHistory,
+  getMarketSentiment, getWatchToday, getMarketHistory, getPoolStats,
   getBreakingNews, login, getSecret, clearSecret } from './api'
 
 const BASE = 'https://blank-app-production-a8bd.up.railway.app'
@@ -1882,10 +1882,12 @@ function SignalsHub() {
         <button className={`sub-tab${subTab==='intraday'?' active':''}`} onClick={()=>setSubTab('intraday')}>{t('intraday')}</button>
         <button className={`sub-tab${subTab==='swing'?' active':''}`} onClick={()=>setSubTab('swing')}>{t('swing')}</button>
         <button className={`sub-tab${subTab==='options'?' active':''}`} onClick={()=>setSubTab('options')}>{t('options')}</button>
+        <button className={`sub-tab${subTab==='stats'?' active':''}`} onClick={()=>setSubTab('stats')}>Stats</button>
       </div>
       {subTab==='intraday' && <SignalsTab/>}
       {subTab==='swing'    && <SwingTab/>}
       {subTab==='options'  && <OptionsTab/>}
+      {subTab==='stats'    && <StatsTab/>}
     </div>
   )
 }
@@ -2260,6 +2262,69 @@ function OptionsTab() {
   )
 }
 
+// ── Stats — per-pool signal performance transparency ─────────────
+function StatsTab() {
+  const { data, err, load } = useLoad(() => getPoolStats())
+  if (load) return <Spinner/>
+  if (err)  return <Err e={err}/>
+
+  const pools = (data?.pools || []).filter(p => (p.trades||0) > 0)  // backend sends trades desc
+  const totalTrades = pools.reduce((s,p) => s + (p.trades||0), 0)
+  const totalWins   = pools.reduce((s,p) => s + (p.wins||0),   0)
+  const overallWr   = totalTrades ? totalWins / totalTrades * 100 : null
+  const wrClr = v => v==null ? 'var(--muted)' : v>=55 ? 'var(--green)' : v>=45 ? 'var(--gold)' : 'var(--red)'
+  const fmtWr = v => v!=null ? `${Number(v).toFixed(1)}%` : '—'
+
+  return (
+    <div className="content">
+      <div className="section-h">Signal Performance</div>
+
+      {/* Hero strip */}
+      <div className="card" style={{marginBottom:12}}>
+        <div className="metrics">
+          <div className="metric">
+            <div className="metric-val">{totalTrades.toLocaleString()}</div>
+            <div className="metric-lbl">TOTAL TRADES</div>
+          </div>
+          <div className="metric">
+            <div className="metric-val" style={{color:wrClr(overallWr)}}>{fmtWr(overallWr)}</div>
+            <div className="metric-lbl">OVERALL WIN RATE</div>
+          </div>
+        </div>
+      </div>
+
+      {pools.length===0 ? (
+        <div className="empty"><span className="emoji">📊</span><div className="title">No closed trades yet</div><div className="sub">Per-pool statistics appear here as paper trades close.</div></div>
+      ) : (
+        <div className="card" style={{marginBottom:12,overflowX:'auto'}}>
+          <div className="card-title">Per-Pool Record</div>
+          <table className="tbl" style={{width:'100%',minWidth:440}}>
+            <thead><tr>
+              <th>Pool</th><th className="num">Trades</th><th className="num">Win%</th>
+              <th className="num">30d Win%</th><th className="num">OOS%</th>
+            </tr></thead>
+            <tbody>
+              {pools.map(p => (
+                <tr key={p.pool}>
+                  <td style={{fontWeight:600,fontSize:11}}>{p.pool}</td>
+                  <td className="num">{p.trades}</td>
+                  <td className="num" style={{color:wrClr(p.win_rate),fontWeight:700}}>{fmtWr(p.win_rate)}</td>
+                  <td className="num" style={{color:wrClr(p.win_rate_30d)}}>{fmtWr(p.win_rate_30d)}</td>
+                  <td className="num" style={{color:'var(--muted)'}}>{p.oos_accuracy!=null?`${(p.oos_accuracy*100).toFixed(0)}%`:'—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <div style={{fontSize:11,color:'var(--muted)',textAlign:'center',padding:'4px 0 14px'}}>
+        Live paper-trade record — updated {age(data?.generated_at)}
+      </div>
+    </div>
+  )
+}
+
 // ══════════════════════════════════════════════════════════════════
 // COVER / SPLASH SCREEN
 // ══════════════════════════════════════════════════════════════════
@@ -2462,6 +2527,7 @@ function MainApp({onLock}) {
               <div>
                 <div className="sh-name">Sniper Signals</div>
                 <div className="sh-sub">Global Market Insights</div>
+                <div style={{fontSize:10,color:'var(--text-dim)',marginTop:2}}>build {typeof __BUILD_TS__!=='undefined'?__BUILD_TS__:'dev'}</div>
               </div>
               <button onClick={()=>setMenu(false)} aria-label="Close"
                 style={{marginLeft:'auto',background:'none',border:'none',color:'var(--text-mut)',cursor:'pointer',padding:4}}>

@@ -2652,25 +2652,50 @@ def _commentary_lines(ctx: dict, events: list | None = None) -> list[str]:
             return "?"
 
     direction, level_rows, scen = [], [], []
+    gold_lv = None
     for key, label in names.items():
         a = ctx["assets"].get(key, {})
         tc, lv, price = a.get("tc", {}), a.get("lv", {}), a.get("price")
         if not tc:
             continue
-        px = f"{price:,.2f}" if isinstance(price, (int, float)) else "?"
-        direction.append(f"{label}: {tc.get('direction','?')} {tc.get('bias_pct','?')}% @ {px} "
-                         f"— RSI {tc.get('rsi','?')}, 20d mom {tc.get('mom20','?')}%")
+        if key == "XAUUSD" and lv.get("pivot") is not None:
+            gold_lv = lv
+        bullish = str(tc.get("direction", "")).lower().startswith("bull")
+        piv, r1, r2, s1, s2 = (lv.get("pivot"), lv.get("r1"), lv.get("r2"),
+                               lv.get("s1"), lv.get("s2"))
+        if piv is not None:
+            # Hard call — a tradeable conclusion with the trigger/target/flip levels.
+            if bullish:
+                direction.append(f"{label}: LONG bias above {_n(piv)}, target {_n(r1)} "
+                                 f"then {_n(r2)}; flip SHORT below {_n(s1)}")
+            else:
+                direction.append(f"{label}: SHORT bias below {_n(piv)}, target {_n(s1)} "
+                                 f"then {_n(s2)}; flip LONG above {_n(r1)}")
+        else:
+            # No pivot data — anchor the hard call on the 20/50 MAs instead.
+            ma20, ma50 = tc.get("ma20"), tc.get("ma50")
+            if bullish:
+                direction.append(f"{label}: LONG bias above 20MA {_n(ma20)}, target prior highs; "
+                                 f"flip SHORT below 50MA {_n(ma50)}")
+            else:
+                direction.append(f"{label}: SHORT bias below 20MA {_n(ma20)}, target 50MA {_n(ma50)}; "
+                                 f"flip LONG above 20MA {_n(ma20)}")
         if lv.get("pivot") is not None:
             level_rows.append(f"{label}: S {_n(lv.get('s1'))} / {_n(lv.get('s2'))} · "
                               f"R {_n(lv.get('r1'))} / {_n(lv.get('r2'))} · P {_n(lv.get('pivot'))}")
-            if len(scen) < 2:
-                scen.append(f"{label} above R1 {_n(lv.get('r1'))} → {_n(lv.get('r2'))} next; "
-                            f"below S1 {_n(lv.get('s1'))} → {_n(lv.get('s2'))}.")
-    if events and len(scen) >= 2:
-        # tie the second scenario to today's top event instead of a second level line
+            scen.append(f"{label} above R1 {_n(lv.get('r1'))} → {_n(lv.get('r2'))} next; "
+                        f"below S1 {_n(lv.get('s1'))} → {_n(lv.get('s2'))}.")
+    scen = scen[:3]
+    if events:
+        # tie one scenario to today's top event (replaces the last level line, or appends)
         ev_name = events[0][1] if len(events[0]) > 1 else "the data"
-        scen[1] = (f"{ev_name} hot → yields/DXY up, gold tests S1; "
-                   f"soft print → gold reclaims R1.")
+        _g = gold_lv or {}
+        ev_line = (f"{ev_name} hot → yields/DXY up, gold tests S1 {_n(_g.get('s1'))}; "
+                   f"soft print → gold reclaims R1 {_n(_g.get('r1'))}.")
+        if len(scen) >= 3:
+            scen[2] = ev_line
+        else:
+            scen.append(ev_line)
     watch = "; ".join(_fmt_event(e) for e in (events or [])[:3]) or "No high-impact US events today."
 
     return [
@@ -2707,22 +2732,26 @@ def market_commentary(secret: str = ""):
     data_block = "\n".join(_commentary_data_lines(ctx, events))
     prompt = (
         f"You are a senior prop-desk strategist writing the morning tape note for {today}. "
-        "Using ONLY the data below, output EXACTLY 4 blocks separated by blank lines, max 120 words total:\n"
-        "DIRECTION: one line per asset (Gold, S&P, Nasdaq) — expected direction TODAY plus the single key "
-        "number driving it.\n"
-        "LEVELS: one line per asset with explicit support/resistance from the pivot data, "
+        "Using ONLY the data below, output EXACTLY 4 blocks separated by blank lines, 140-180 words total:\n"
+        "DIRECTION: one hard-call line for EACH of Gold, SPY, QQQ — a tradeable conclusion with explicit "
+        "numbers from the data, format: '<asset>: LONG bias above <level>, target <level> then <level>; "
+        "flip SHORT below <level>' (or SHORT bias with LONG flip). Pick a side per asset — never describe "
+        "or explain the numbers, never say 'mixed' or 'watch for'.\n"
+        "LEVELS: one line per asset (Gold, SPY, QQQ) with explicit support/resistance from the pivot data, "
         "e.g. 'Gold: S 4011 / 3985 · R 4061 / 4099'.\n"
-        "SCENARIOS: exactly 2 if/then lines tied to today's events and the levels above, "
-        "e.g. 'Above R1 4061 → 4099 next; NFP hot → yields up, gold tests S1'.\n"
-        "WATCH: one line — today's highest-impact event(s) with time.\n"
-        "Style: terse desk shorthand, numbers-first. No hedging, no 'investors should', no disclaimers, "
+        "SCENARIOS: exactly 3 if/then lines with a concrete trigger level and a concrete target — at least "
+        "one MUST be tied to today's top scheduled event, "
+        "e.g. 'SPY above R1 612 → 615 next' and 'NFP hot → yields up, gold tests S1 3985'.\n"
+        "WATCH: one line — today's highest-impact event(s) with their Dubai times.\n"
+        "Style: terse desk shorthand, conclusions only, numbers-first. Every line must be actionable — "
+        "state what to do at what level, not why. No hedging, no 'investors should', no disclaimers, "
         "no prose paragraphs, nothing outside the 4 blocks.\n\nDATA:\n" + data_block
     )
     try:
         client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
         msg = client.messages.create(
             model="claude-haiku-4-5-20251001",
-            max_tokens=500,
+            max_tokens=600,
             messages=[{"role": "user", "content": prompt}],
         )
         text = msg.content[0].text.strip()
@@ -2732,6 +2761,86 @@ def market_commentary(secret: str = ""):
         # Graceful fallback: deterministic 4-block desk note (same structure, no LLM)
         text = "\n\n".join(_commentary_lines(ctx, events))
         return {"date": today, "commentary": text, "cached": False, "fallback": True}
+
+
+# ── Pool performance stats (Endpoint: /stats/pools) ─────────────────────────
+_pool_stats_cache = {"ts": 0.0, "data": None}
+_POOL_STATS_TTL = 600  # 10 min — 26 GitHub file reads per rebuild, keep it cached
+
+
+@app.get("/stats/pools")
+def stats_pools(secret: str = ""):
+    """Per-pool paper-trade record for the transparency page: n_trades, wins,
+    losses, win_rate, last-30-days win_rate, plus per-pool OOS accuracy when the
+    /health ml.pools payload exposes it. Cached 10 min. Never 500s per-pool —
+    a failing pool simply reports zero trades."""
+    _validate_secret(secret)
+    import time
+    from datetime import timedelta
+    if _pool_stats_cache["data"] and time.time() - _pool_stats_cache["ts"] < _POOL_STATS_TTL:
+        return _pool_stats_cache["data"]
+
+    from db import recent_outcomes
+    from ml_model import is_win
+
+    # Same source /health uses for ml.pools — pick up oos_accuracy if present.
+    try:
+        from signal_engine import get_ml_health
+        ml_pools = (get_ml_health() or {}).get("pools", {}) or {}
+    except Exception:
+        ml_pools = {}
+
+    cutoff_30d = datetime.now(timezone.utc) - timedelta(days=30)
+    pools_out = []
+    for pool in sorted(VALID_POOLS):
+        try:
+            hist = recent_outcomes(pool, limit=1000)
+        except Exception:
+            hist = []
+        closed = [t for t in hist if t.get("outcome") in ("WIN", "PARTIAL", "LOSS")]
+        n_trades = len(closed)
+        wins = sum(1 for t in closed if is_win(t))
+        losses = n_trades - wins
+        win_rate = round(wins / n_trades * 100, 1) if n_trades else None
+
+        # Last-30-days win rate — only rows with a parseable timestamp count.
+        w30 = n30 = 0
+        for t in closed:
+            ts = t.get("created_at") or t.get("timestamp") or ""
+            try:
+                dt = datetime.fromisoformat(str(ts).replace("Z", "+00:00"))
+                if dt.tzinfo is None:
+                    dt = dt.replace(tzinfo=timezone.utc)
+            except Exception:
+                continue
+            if dt >= cutoff_30d:
+                n30 += 1
+                if is_win(t):
+                    w30 += 1
+        win_rate_30d = round(w30 / n30 * 100, 1) if n30 else None
+
+        try:
+            oos = ml_pools.get(pool, {}).get("oos_accuracy")
+            oos = round(float(oos), 3) if oos is not None else None
+        except Exception:
+            oos = None
+
+        pools_out.append({
+            "pool":         pool,
+            "trades":       n_trades,
+            "wins":         wins,
+            "losses":       losses,
+            "win_rate":     win_rate,
+            "trades_30d":   n30,
+            "win_rate_30d": win_rate_30d,
+            "oos_accuracy": oos,
+        })
+
+    pools_out.sort(key=lambda p: p["trades"], reverse=True)
+    out = {"pools": pools_out,
+           "generated_at": datetime.now(timezone.utc).isoformat()}
+    _pool_stats_cache.update({"ts": time.time(), "data": out})
+    return out
 
 
 _sparkline_cache = {"ts": 0, "data": None}
